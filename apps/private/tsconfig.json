@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@common/*": ["../../common/src/*"],
+      "@injected/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "../../common/**/**.d.ts"],
+  "references": [{ "path": "../../common" }]
+}

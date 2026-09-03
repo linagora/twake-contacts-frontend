@@ -1,0 +1,64 @@
+import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { setAppLoading } from '@common/app/loadingSlice'
+import { Auth } from '@common/features/User/oidcAuth'
+import {
+  getOpenPaasUserData,
+  setTokens,
+  setUserData
+} from '@common/features/User/UserSlice'
+import { redirectTo } from '@common/utils/apiUtils'
+import { useEffect, useRef } from 'react'
+import { type userData } from './userDataTypes'
+
+export const useInitializeApp = (): void => {
+  const userData = useAppSelector(state => state.user)
+  const dispatch = useAppDispatch()
+  const hasInitiatedRef = useRef(false)
+
+  useEffect(() => {
+    if (hasInitiatedRef.current) return
+    const isUserDataNotEmpty =
+      userData.userData && Object.keys(userData.userData).length > 0
+    if (isUserDataNotEmpty) return
+    if (window.location.pathname === '/callback') return
+    hasInitiatedRef.current = true
+
+    const initiateLogin = async (): Promise<void> => {
+      const savedToken = sessionStorage.getItem('tokenSet')
+        ? (JSON.parse(sessionStorage.getItem('tokenSet') ?? '{}') as Record<
+            string,
+            string
+          >)
+        : null
+      const savedUser = sessionStorage.getItem('userData')
+        ? (JSON.parse(sessionStorage.getItem('userData') ?? '{}') as userData)
+        : null
+
+      if (savedToken && savedUser) {
+        dispatch(setAppLoading(true))
+        dispatch(setTokens(savedToken))
+        dispatch(setUserData(savedUser))
+        try {
+          await dispatch(getOpenPaasUserData())
+        } finally {
+          dispatch(setAppLoading(false))
+        }
+
+        return
+      }
+
+      const loginurl = await Auth()
+      sessionStorage.setItem(
+        'redirectState',
+        JSON.stringify({
+          code_verifier: loginurl.code_verifier,
+          state: loginurl.state
+        })
+      )
+      redirectTo(loginurl.redirectTo)
+    }
+
+    void initiateLogin()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData.userData])
+}

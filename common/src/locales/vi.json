@@ -1,0 +1,14 @@
+{
+  "locale": "vi",
+  "contacts": {
+    "title": "Danh bạ"
+  },
+  "error": {
+    "title": "Đã xảy ra lỗi",
+    "unknown": "Có lỗi không xác định",
+    "retry": "Thử lại"
+  },
+  "common": {
+    "ok": "OK"
+  }
+}

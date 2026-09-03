@@ -1,0 +1,11 @@
+var SSO_BASE_URL = 'https://example.com'
+var SSO_CLIENT_ID = 'example'
+var SSO_SCOPE = 'openid profile email'
+var SSO_REDIRECT_URI = 'https://example.com/callback'
+var SSO_RESPONSE_TYPE = 'code'
+var SSO_CODE_CHALLENGE_METHOD = 'S256'
+var SSO_POST_LOGOUT_REDIRECT = 'http://example.com?logout=1'
+var OPENPAAS_BASE_URL = 'https://openpaas.example.com'
+var DAV_BASE_URL = 'https://dav.example.com'
+var DEBUG = false
+var LANG = 'en'

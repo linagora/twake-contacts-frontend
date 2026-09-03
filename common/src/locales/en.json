@@ -1,0 +1,14 @@
+{
+  "locale": "en-gb",
+  "contacts": {
+    "title": "Contacts"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "unknown": "An unknown error occurred",
+    "retry": "Try Again"
+  },
+  "common": {
+    "ok": "Ok"
+  }
+}

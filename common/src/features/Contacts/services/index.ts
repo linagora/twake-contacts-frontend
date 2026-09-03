@@ -1,0 +1,1 @@
+export { fetchContactsThunk } from './fetchContactsAsync'
