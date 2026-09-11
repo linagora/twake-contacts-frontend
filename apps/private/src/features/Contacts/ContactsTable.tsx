@@ -26,6 +26,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ entries }) => {
             <TableCell>{t('contacts.email')}</TableCell>
             <TableCell>{t('contacts.phone')}</TableCell>
             <TableCell>{t('contacts.team')}</TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>

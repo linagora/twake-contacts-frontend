@@ -1,23 +1,23 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
-import { saveContact } from '../ContactsDao'
-import { Contact, ContactsState } from '../contactsTypes'
+import { deleteContact } from '../ContactsDao'
+import { ContactsState } from '../contactsTypes'
 
-export interface CreateContactArgs {
+export interface DeleteContactArgs {
   userId: string
   addressBookId: string
-  contact: Contact
+  contactId: string
 }
 
-export const createContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
   create.asyncThunk<
-    CreateContactArgs,
-    CreateContactArgs,
+    DeleteContactArgs,
+    DeleteContactArgs,
     { rejectValue: RejectedError }
   >(
     async (args, { rejectWithValue }) => {
       try {
-        await saveContact(args.userId, args.addressBookId, args.contact)
+        await deleteContact(args.userId, args.addressBookId, args.contactId)
         return args
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
@@ -27,11 +27,13 @@ export const createContactThunk = (create: ReducerCreators<ContactsState>) =>
       fulfilled: (state, action) => {
         const book = state.addressBooks[action.payload.addressBookId]
         if (!book) return
-        book.contacts.push(action.payload.contact)
-        book.contactsCount += 1
+        book.contacts = book.contacts.filter(
+          contact => contact.id !== action.payload.contactId
+        )
+        book.contactsCount -= 1
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to create contact'
+        state.error = action.payload?.message ?? 'Failed to delete contact'
       }
     }
   )

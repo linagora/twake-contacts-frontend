@@ -28,13 +28,24 @@
       "type": "Type",
       "cancel": "Cancel",
       "save": "Save",
-      "addressBook": "Address book"
+      "addressBook": "Address book",
+      "editTitle": "Edit contact"
     },
     "types": {
       "cell": "Mobile",
       "work": "Work",
       "home": "Home",
       "other": "Other"
+    },
+    "menu": {
+      "more": "More actions",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete": {
+      "title": "Delete this contact?",
+      "description": "This contact will be permanently deleted from this account.",
+      "confirm": "Delete"
     }
   },
   "error": {

@@ -292,5 +292,28 @@ export function denormalizeContact(contact: Contact): JCalCard {
       makeTypedProperty('socialprofile', profile.type, profile.value)
     )
   })
+  contact.urls?.forEach(url => {
+    properties.push(['url', {}, 'text', url])
+  })
+  if (contact.org) {
+    properties.push([
+      'org',
+      {},
+      'text',
+      [contact.org.name, ...contact.org.units]
+    ])
+  }
+  const singles: [string, string | undefined][] = [
+    ['nickname', contact.nickname],
+    ['photo', contact.photo],
+    ['bday', contact.birthday],
+    ['title', contact.title],
+    ['role', contact.role],
+    ['note', contact.note]
+  ]
+  singles.forEach(([name, value]) => {
+    if (value) properties.push([name, {}, 'text', value])
+  })
+  properties.push(...(contact.passthroughProps ?? []))
   return ['vcard', properties]
 }

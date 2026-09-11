@@ -43,7 +43,7 @@ export async function fetchContactsForBook(
   return items.map(normalizeContact)
 }
 
-export async function createContact(
+export async function saveContact(
   userId: string,
   bookId: string,
   contact: Contact
@@ -52,4 +52,12 @@ export async function createContact(
     headers: { 'Content-Type': 'application/vcard+json' },
     json: denormalizeContact(contact)
   })
+}
+
+export async function deleteContact(
+  userId: string,
+  bookId: string,
+  contactId: string
+): Promise<void> {
+  await davApi.delete(`addressbooks/${userId}/${bookId}/${contactId}.vcf`)
 }

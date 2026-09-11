@@ -24,7 +24,12 @@ import {
   Phone,
   Plus
 } from '@linagora/twake-icons'
-import { AddressBook, Contact } from '@common/features/Contacts/contactsTypes'
+import {
+  AddressBook,
+  Contact,
+  ContactAddress,
+  ContactSocialProfile
+} from '@common/features/Contacts/contactsTypes'
 import { useState } from 'react'
 import { useI18n } from 'twake-i18n'
 
@@ -61,28 +66,84 @@ export const EMPTY_CONTACT_FORM_VALUES: ContactFormValues = {
   addresses: [{ type: 'home', value: '' }]
 }
 
+const MATRIX_TYPE = 'matrix'
+
 const hasValue = (entry: ContactFormEntry): boolean => entry.value.trim() !== ''
 
-export function makeContactFromForm(values: ContactFormValues): Contact {
+const isMatrix = (profile: ContactSocialProfile): boolean =>
+  profile.type?.toLowerCase() === MATRIX_TYPE
+
+const formatAddress = (address: ContactAddress): string =>
+  [address.street, address.postalCode, address.locality, address.country]
+    .filter(Boolean)
+    .join(', ')
+
+const orDefault = (
+  entries: ContactFormEntry[],
+  type: string
+): ContactFormEntry[] => (entries.length ? entries : [{ type, value: '' }])
+
+export function makeFormValuesFromContact(
+  contact: Contact,
+  addressBookId: string
+): ContactFormValues {
+  const toEntry = (entry: { type: string | null; value: string }) => ({
+    type: entry.type ?? 'other',
+    value: entry.value
+  })
+  return {
+    addressBookId,
+    givenName: contact.name?.givenName ?? '',
+    familyName: contact.name?.familyName ?? '',
+    categories: contact.categories ?? [],
+    matrixId: contact.socialProfiles?.find(isMatrix)?.value ?? '',
+    phones: orDefault((contact.phones ?? []).map(toEntry), 'cell'),
+    emails: orDefault(contact.emails.map(toEntry), 'work'),
+    addresses: orDefault(
+      (contact.addresses ?? []).map(address => ({
+        type: address.type ?? 'other',
+        value: formatAddress(address)
+      })),
+      'home'
+    )
+  }
+}
+
+/** Builds the contact to save. With a base contact, fields the form does not edit are kept. */
+export function makeContactFromForm(
+  values: ContactFormValues,
+  base?: Contact
+): Contact {
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
+  const addresses = values.addresses.filter(hasValue).map((entry, index) => {
+    const original = base?.addresses?.[index]
+    const untouched = original && formatAddress(original) === entry.value
+    return untouched
+      ? { ...original, type: entry.type }
+      : {
+          type: entry.type,
+          address: '',
+          street: entry.value.trim(),
+          locality: '',
+          postalCode: '',
+          country: ''
+        }
+  })
+  const otherProfiles = (base?.socialProfiles ?? []).filter(p => !isMatrix(p))
   return {
-    id: crypto.randomUUID(),
+    ...base,
+    id: base?.id ?? crypto.randomUUID(),
     displayName: [givenName, familyName].filter(Boolean).join(' '),
     name: { givenName, familyName },
     categories: values.categories,
     emails: values.emails.filter(hasValue),
     phones: values.phones.filter(hasValue),
-    addresses: values.addresses.filter(hasValue).map(address => ({
-      type: address.type,
-      address: '',
-      street: address.value.trim(),
-      locality: '',
-      postalCode: '',
-      country: ''
-    })),
-    socialProfiles: matrixId ? [{ type: 'matrix', value: matrixId }] : []
+    addresses,
+    socialProfiles: matrixId
+      ? [...otherProfiles, { type: MATRIX_TYPE, value: matrixId }]
+      : otherProfiles
   }
 }
 

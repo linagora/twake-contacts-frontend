@@ -22,8 +22,9 @@ import {
 } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
 import { ContactAddress } from '@common/features/Contacts/contactsTypes'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
+import { ContactActionsMenu } from './ContactActionsMenu'
 import { getInitials } from './getInitials'
 
 const formatAddress = (address: ContactAddress): string =>
@@ -73,10 +74,12 @@ const ContactField: React.FC<ContactFieldProps> = ({
 
 export const ContactPage: React.FC = () => {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const { addressBookId = '', contactId } = useParams()
   const contact = useAppSelector(
     state => state.contacts.addressBooks[addressBookId]?.contacts
   )?.find(c => c.id === contactId)
+  const handleDeleted = (): void => navigate(`/contacts/${addressBookId}`)
 
   return (
     <Stack spacing={3}>
@@ -97,6 +100,11 @@ export const ContactPage: React.FC = () => {
               {getInitials(contact.displayName)}
             </Avatar>
             <Typography variant="h4">{contact.displayName}</Typography>
+            <ContactActionsMenu
+              contact={contact}
+              addressBookId={addressBookId}
+              onDeleted={handleDeleted}
+            />
           </Stack>
           <List>
             <Typography variant="h5" component="li" gutterBottom>

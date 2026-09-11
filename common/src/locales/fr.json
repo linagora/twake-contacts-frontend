@@ -28,13 +28,24 @@
       "type": "Type",
       "cancel": "Annuler",
       "save": "Enregistrer",
-      "addressBook": "Carnet d'adresses"
+      "addressBook": "Carnet d'adresses",
+      "editTitle": "Modifier le contact"
     },
     "types": {
       "cell": "Mobile",
       "work": "Travail",
       "home": "Domicile",
       "other": "Autre"
+    },
+    "menu": {
+      "more": "Plus d'actions",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "delete": {
+      "title": "Supprimer ce contact ?",
+      "description": "Ce contact sera définitivement supprimé de ce compte.",
+      "confirm": "Supprimer"
     }
   },
   "error": {

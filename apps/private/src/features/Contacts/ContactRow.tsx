@@ -10,6 +10,7 @@ import {
 } from '@linagora/twake-mui'
 import { Contact } from '@common/features/Contacts/contactsTypes'
 import { useNavigate } from 'react-router-dom'
+import { ContactActionsMenu } from './ContactActionsMenu'
 import { getInitials } from './getInitials'
 
 interface ContactRowProps {
@@ -24,6 +25,9 @@ export const ContactRow: React.FC<ContactRowProps> = ({
   const navigate = useNavigate()
   const handleClick = (): void => {
     navigate(`/contacts/${addressBookId}/${contact.id}`)
+  }
+  const handleMenuCellClick = (event: React.MouseEvent): void => {
+    event.stopPropagation()
   }
 
   return (
@@ -46,6 +50,9 @@ export const ContactRow: React.FC<ContactRowProps> = ({
             <Chip key={category} label={category} size="small" square />
           ))}
         </Stack>
+      </TableCell>
+      <TableCell align="right" onClick={handleMenuCellClick}>
+        <ContactActionsMenu contact={contact} addressBookId={addressBookId} />
       </TableCell>
     </TableRow>
   )

@@ -28,13 +28,24 @@
       "type": "Loại",
       "cancel": "Hủy",
       "save": "Lưu",
-      "addressBook": "Sổ địa chỉ"
+      "addressBook": "Sổ địa chỉ",
+      "editTitle": "Chỉnh sửa liên hệ"
     },
     "types": {
       "cell": "Di động",
       "work": "Công việc",
       "home": "Nhà riêng",
       "other": "Khác"
+    },
+    "menu": {
+      "more": "Thao tác khác",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa"
+    },
+    "delete": {
+      "title": "Xóa liên hệ này?",
+      "description": "Liên hệ này sẽ bị xóa vĩnh viễn khỏi tài khoản.",
+      "confirm": "Xóa"
     }
   },
   "error": {
