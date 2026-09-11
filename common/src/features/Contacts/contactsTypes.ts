@@ -46,7 +46,6 @@ export interface Contact {
   displayName: string
   name?: ContactName
   nickname?: string
-  photo?: string
   birthday?: string
   emails: ContactEmail[]
   phones?: ContactPhone[]

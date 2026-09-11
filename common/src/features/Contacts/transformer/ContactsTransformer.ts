@@ -162,7 +162,6 @@ const KNOWN_PROPERTIES = new Set([
   'fn',
   'n',
   'nickname',
-  'photo',
   'bday',
   'anniversary',
   'gender',
@@ -198,9 +197,6 @@ export function normalizeContact(item: DavContactItem): Contact {
 
   const nickname = getCardProperty(card, 'nickname')
   if (nickname) contact.nickname = nickname
-
-  const photo = getCardProperty(card, 'photo')
-  if (photo) contact.photo = photo
 
   const birthday = getCardProperty(card, 'bday')
   if (birthday) contact.birthday = birthday

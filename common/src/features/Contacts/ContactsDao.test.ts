@@ -178,7 +178,15 @@ describe('normalizeContact', () => {
             'adr',
             { type: 'Work' },
             'text',
-            ['', '', 'test', 'test', '', 'test', 'test']
+            [
+              'street',
+              'locality',
+              'adress',
+              'postalCode',
+              'country',
+              'street',
+              ''
+            ]
           ]
         ]
       ]
@@ -186,14 +194,11 @@ describe('normalizeContact', () => {
     expect(normalizeContact(withAdr).addresses).toEqual([
       {
         type: 'Work',
-        poBox: '',
-        extendedAddress: '',
-        street: 'test',
-        locality: 'test',
-        region: '',
-        postalCode: 'test',
-        country: 'test',
-        label: null
+        street: 'street',
+        locality: 'locality',
+        postalCode: 'postalCode',
+        country: 'country',
+        address: 'adress',
       }
     ])
   })
