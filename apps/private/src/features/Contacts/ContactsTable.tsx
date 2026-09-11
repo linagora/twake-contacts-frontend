@@ -6,14 +6,9 @@ import {
   TableHead,
   TableRow
 } from '@linagora/twake-mui'
-import { Contact } from '@common/features/Contacts/contactsTypes'
+import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import { useI18n } from 'twake-i18n'
 import { ContactRow } from './ContactRow'
-
-export interface ContactEntry {
-  addressBookId: string
-  contact: Contact
-}
 
 interface ContactsTableProps {
   entries: ContactEntry[]

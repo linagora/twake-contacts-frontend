@@ -74,9 +74,9 @@ const ContactField: React.FC<ContactFieldProps> = ({
 export const ContactPage: React.FC = () => {
   const { t } = useI18n()
   const { addressBookId = '', contactId } = useParams()
-  const contact = useAppSelector(state =>
-    state.contacts.contactsByBook[addressBookId]?.find(c => c.id === contactId)
-  )
+  const contact = useAppSelector(
+    state => state.contacts.addressBooks[addressBookId]?.contacts
+  )?.find(c => c.id === contactId)
 
   return (
     <Stack spacing={3}>

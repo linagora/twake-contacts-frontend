@@ -1,29 +1,30 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { fetchAddressBooks, fetchContactsForBook } from '../ContactsDao'
-import { Contact, ContactsState, AddressBook } from '../contactsTypes'
+import { ContactsState, AddressBookWithContacts } from '../contactsTypes'
 
 export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
   create.asyncThunk<
-    { contactsByBook: Record<string, Contact[]>; books: AddressBook[] },
+    Record<string, AddressBookWithContacts>,
     string,
     { rejectValue: RejectedError }
   >(
     async (userId, { rejectWithValue }) => {
       try {
         const books = await fetchAddressBooks(userId)
-        const contactsByBook: Record<string, Contact[]> = {}
+        const addressBooks: Record<string, AddressBookWithContacts> = {}
 
         await Promise.all(
           books.map(async book => {
-            contactsByBook[book.id] =
+            const contacts =
               book.contactsCount > 0
                 ? await fetchContactsForBook(userId, book.id)
                 : []
+            addressBooks[book.id] = { ...book, contacts }
           })
         )
 
-        return { contactsByBook, books }
+        return addressBooks
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
@@ -35,8 +36,7 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
       },
       fulfilled: (state, action) => {
         state.loading = false
-        state.contactsByBook = action.payload.contactsByBook
-        state.addressBooks = action.payload.books
+        state.addressBooks = action.payload
       },
       rejected: (state, action) => {
         state.loading = false

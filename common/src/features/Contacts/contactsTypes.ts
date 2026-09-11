@@ -60,9 +60,17 @@ export interface Contact {
   passthroughProps?: JCalProperty[]
 }
 
+export interface AddressBookWithContacts extends AddressBook {
+  contacts: Contact[]
+}
+
 export interface ContactsState {
-  addressBooks: AddressBook[]
-  contactsByBook: Record<string, Contact[]>
+  addressBooks: Record<string, AddressBookWithContacts>
   loading: boolean
   error: string | null
+}
+
+export interface ContactEntry {
+  addressBookId: string
+  contact: Contact
 }

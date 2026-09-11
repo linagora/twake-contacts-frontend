@@ -3,8 +3,7 @@ import { ContactsState } from './contactsTypes'
 import { fetchContactsThunk } from './services'
 
 const initialState: ContactsState = {
-  addressBooks: [],
-  contactsByBook: {},
+  addressBooks: {},
   loading: false,
   error: null
 }

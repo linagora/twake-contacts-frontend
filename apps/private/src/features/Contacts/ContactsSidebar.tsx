@@ -17,7 +17,7 @@ export const ContactsSidebar: React.FC = () => {
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
-  const otherBooks = addressBooks.filter(
+  const otherBooks = Object.values(addressBooks).filter(
     book => book.id !== 'collected' && book.id !== MY_CONTACTS_ID
   )
   return (

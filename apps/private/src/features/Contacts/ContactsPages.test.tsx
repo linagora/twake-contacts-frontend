@@ -12,31 +12,40 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
     <Provider
       store={setupStore({
         contacts: {
-          addressBooks: [],
+          addressBooks: {
+            book2: {
+              id: 'book2',
+              name: 'Book 2',
+              contactsCount: 1,
+              contacts: [{ id: 'c2', displayName: 'Alice Roche', emails: [] }]
+            },
+            book1: {
+              id: 'book1',
+              name: 'Book 1',
+              contactsCount: 1,
+              contacts: [
+                {
+                  id: 'c1',
+                  displayName: 'Isabella Martinez',
+                  emails: [{ type: 'work', value: 'martinez@twake.app' }],
+                  phones: [{ type: 'cell', value: '+3365024491' }],
+                  categories: ['Information'],
+                  addresses: [
+                    {
+                      type: 'home',
+                      address: '',
+                      street: '23 Rue de Mogador',
+                      postalCode: '75009',
+                      locality: 'Paris',
+                      country: ''
+                    }
+                  ]
+                }
+              ]
+            }
+          },
           loading: false,
-          error: null,
-          contactsByBook: {
-            book2: [{ id: 'c2', displayName: 'Alice Roche', emails: [] }],
-            book1: [
-              {
-                id: 'c1',
-                displayName: 'Isabella Martinez',
-                emails: [{ type: 'work', value: 'martinez@twake.app' }],
-                phones: [{ type: 'cell', value: '+3365024491' }],
-                categories: ['Information'],
-                addresses: [
-                  {
-                    type: 'home',
-                    address: '',
-                    street: '23 Rue de Mogador',
-                    postalCode: '75009',
-                    locality: 'Paris',
-                    country: ''
-                  }
-                ]
-              }
-            ]
-          }
+          error: null
         }
       })}
     >
