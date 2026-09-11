@@ -4,5 +4,5 @@
 - Sidebar selection navigates to /contacts/:addressBookId
 - Contact selection navigates to /contacts/:addressBookId/:contactId
 - UI built with @linagora/twake-mui components, no local MUI overrides, no sx, no custom styles. Just plain component with standard API and styles.
-- Client-side routing via React Router — remove redux-first-history dependency
+- Client-side routing via React Router
 - All user-facing strings must be internationalized from the start: no hardcoded strings, all 4 locales covered (en, fr, vi, ru)
