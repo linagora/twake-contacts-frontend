@@ -13,7 +13,7 @@ import {
   UserInfoResponse
 } from 'openid-client'
 import { useEffect, useRef } from 'react'
-import { replace } from 'redux-first-history'
+import { useNavigate } from 'react-router-dom'
 
 interface RedirectState {
   code_verifier: string
@@ -59,6 +59,7 @@ const processCallbackData = async (
 
 export const CallbackResume: React.FC = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const hasRun = useRef(false)
   const hasNavigated = useRef(false)
   const userData = useAppSelector(state => state.user)
@@ -81,7 +82,7 @@ export const CallbackResume: React.FC = () => {
           console.warn('Missing redirectState')
         }
         sessionStorage.removeItem('redirectState')
-        dispatch(replace('/'))
+        navigate('/', { replace: true })
         return
       }
 
@@ -105,12 +106,12 @@ export const CallbackResume: React.FC = () => {
         console.error('OIDC callback error:', e)
         dispatch(setAppLoading(false))
         dispatch(setUserError(getErrorMessage(e)))
-        dispatch(replace('/error'))
+        navigate('/error', { replace: true })
       }
     }
 
     void runCallback()
-  }, [dispatch])
+  }, [dispatch, navigate])
 
   // Navigate to /contacts only when user data is ready
   useEffect(() => {
@@ -118,7 +119,7 @@ export const CallbackResume: React.FC = () => {
     if (userData.loading) return
     if (userData.error) {
       dispatch(setAppLoading(false))
-      dispatch(replace('/error'))
+      navigate('/error', { replace: true })
       return
     }
     if (!userData.userData || !userData.tokens) return
@@ -131,13 +132,14 @@ export const CallbackResume: React.FC = () => {
       window.history.replaceState({}, '', window.location.pathname)
     }
 
-    dispatch(replace('/contacts'))
+    navigate('/contacts', { replace: true })
   }, [
     userData.loading,
     userData.userData,
     userData.tokens,
     userData.error,
-    dispatch
+    dispatch,
+    navigate
   ])
 
   return null

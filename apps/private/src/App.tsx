@@ -1,23 +1,14 @@
-import * as Sentry from '@sentry/react'
-import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
-import { Suspense, useEffect } from 'react'
-import { Route, Routes } from 'react-router-dom'
-import { HistoryRouter as Router } from 'redux-first-history/rr6'
-import { push } from 'redux-first-history'
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { history } from '@common/app/store'
+import { useAppSelector } from '@common/app/hooks'
 import { Error as ErrorPage } from '@common/components/Error/Error'
-import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { EmbeddingProvider } from '@common/contexts/EmbeddingContext'
-import { ErrorBoundary } from 'react-error-boundary'
 import { Loading } from '@common/components/Loading/Loading'
+import { EmbeddingProvider } from '@common/contexts/EmbeddingContext'
 import { AVAILABLE_LANGUAGES } from '@common/features/Settings/constants'
-import { default as HandleLogin } from '@/features/User/HandleLogin'
-import { CallbackResume } from '@/features/User/LoginCallback'
-import { ContactsPage } from '@/features/Contacts/ContactsPage'
-import { AddressBookPage } from '@/features/Contacts/AddressBookPage'
-import { ContactPage } from '@/features/Contacts/ContactPage'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
+import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
+import * as Sentry from '@sentry/react'
+import { Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
+import { BrowserRouter as Router } from 'react-router-dom'
 
 import {
   enGB,
@@ -26,11 +17,12 @@ import {
   vi as viLocale
 } from 'date-fns/locale'
 
-import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 import fr from '@common/locales/fr.json'
 import ru from '@common/locales/ru.json'
 import vi from '@common/locales/vi.json'
+import I18n from 'twake-i18n'
+import { AppRoutes } from './AppRoutes'
 
 const locale = { en, fr, ru, vi }
 const dateLocales = { en: enGB, fr: frLocale, ru: ruLocale, vi: viLocale }
@@ -45,7 +37,6 @@ const isValidLanguage = (
 }
 
 export default function App(): JSX.Element {
-  const error = useAppSelector(state => state.user.error)
   const appLoading = useAppSelector(state => state.loading.isLoading)
   const userLanguage = useAppSelector(state => state.user.coreConfig.language)
   const settingsLanguage = useAppSelector(state => state.settings.language)
@@ -56,13 +47,6 @@ export default function App(): JSX.Element {
     [userLanguage, settingsLanguage, savedLang, defaultLang].find(
       l => !!l && isValidLanguage(l)
     ) || 'en'
-
-  const dispatch = useAppDispatch()
-  useEffect(() => {
-    if (error) {
-      dispatch(push('/error'))
-    }
-  }, [error, dispatch])
 
   useInitializeApp()
 
@@ -92,25 +76,9 @@ export default function App(): JSX.Element {
             }}
           >
             <Suspense fallback={<Loading />}>
-              <Router history={history}>
-                <Routes>
-                  <Route path="/" element={<HandleLogin />} />
-                  <Route path="/contacts" element={<ContactsPage />}>
-                    <Route index element={<AddressBookPage />} />
-                    <Route
-                      path=":addressBookId"
-                      element={<AddressBookPage />}
-                    />
-                    <Route
-                      path=":addressBookId/:contactId"
-                      element={<ContactPage />}
-                    />
-                  </Route>
-                  <Route path="/callback" element={<CallbackResume />} />
-                  <Route path="/error" element={<ErrorPage />} />
-                </Routes>
+              <Router>
+                <AppRoutes />
               </Router>
-              <ErrorSnackbar error={error} />
             </Suspense>
             {appLoading && <Loading />}
           </ErrorBoundary>
