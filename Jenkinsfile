@@ -37,10 +37,6 @@ pipeline {
           sh 'npx prettier --check .'
         }
       }
-      /* TODO(contacts): deploy stages disabled until the contacts CI is set up.
-         They still carry twake-calendar image names, GitHub repo and Vault path.
-         Re-enable once retargeted to the contacts images, and drop the apps/public
-         build since this repo has no public app.
       stage('Deploy docker image (PR)') {
         when {
           changeRequest()
@@ -66,7 +62,7 @@ pipeline {
                 def commentsJson = sh(
                   script: """curl -s \
                     -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \
-                    "https://api.github.com/repos/linagora/twake-calendar-frontend/issues/\${CHANGE_ID}/comments" """,
+                    "https://api.github.com/repos/linagora/twake-contacts-frontend/issues/\${CHANGE_ID}/comments" """,
                   returnStdout: true
                 ).trim()
                 def comments = readJSON text: commentsJson
@@ -102,17 +98,15 @@ pipeline {
             echo "Docker tag: ${dockerTag}"
             def shortSha = env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'dev'
             sh 'npm run build'
-            sh "docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=${shortSha} -t linagora/twake-calendar-web-pr:\$DOCKER_TAG ."
-            sh "docker build -f apps/public/Dockerfile --build-arg BUILD_VERSION=${shortSha} -t linagora/twake-calendar-public-pr:\$DOCKER_TAG ."
+            sh "docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=${shortSha} -t linagora/twake-contacts-web-pr:\$DOCKER_TAG ."
             sh 'echo $DOCKER_HUB_CREDENTIAL_PSW | docker login -u $DOCKER_HUB_CREDENTIAL_USR --password-stdin'
-            sh 'docker push linagora/twake-calendar-web-pr:$DOCKER_TAG'
-            sh 'docker push linagora/twake-calendar-public-pr:$DOCKER_TAG'
+            sh 'docker push linagora/twake-contacts-web-pr:$DOCKER_TAG'
             sh """
               HTTP_STATUS=\$(curl -s -o /tmp/gh_comment_response.json -w "%{http_code}" -X POST \\
                 -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \\
                 -H "Content-Type: application/json" \\
-                -d "{\\"body\\": \\"Docker images published for this PR:\\n- Private: linagora/twake-calendar-web-pr:${dockerTag}\\n- Public: linagora/twake-calendar-public-pr:${dockerTag}\\"}" \\
-                "https://api.github.com/repos/linagora/twake-calendar-frontend/issues/\${CHANGE_ID}/comments")
+                -d "{\\"body\\": \\"Docker image published for this PR:\\n- Private: linagora/twake-contacts-web-pr:${dockerTag}\\"}" \\
+                "https://api.github.com/repos/linagora/twake-contacts-frontend/issues/\${CHANGE_ID}/comments")
               if [ "\$HTTP_STATUS" -lt 200 ] || [ "\$HTTP_STATUS" -ge 300 ]; then
                 echo "WARNING: GitHub API comment failed with HTTP \$HTTP_STATUS"
                 cat /tmp/gh_comment_response.json
@@ -129,37 +123,26 @@ pipeline {
           }
         }
         steps {
-          withVault([
-            vaultSecrets: [
-                [path: 'secret/jenkins/calendar-frontend', secretValues: [
-                    [envVar: 'SENTRY_AUTH_TOKEN', vaultKey: 'SENTRY_AUTH_TOKEN'],
-                    [envVar: 'SENTRY_ORG', vaultKey: 'SENTRY_ORG'],
-                    [envVar: 'SENTRY_PROJECT', vaultKey: 'SENTRY_PROJECT'],
-                    [envVar: 'SENTRY_URL', vaultKey: 'SENTRY_URL']
-                ]]
-            ]
-          ]) {
-            script {
-              def shortSha = env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'dev'
-              env.DOCKER_TAG = 'branch-master'
-              env.BUILD_VERSION = shortSha
-              if (env.TAG_NAME) {
-                env.DOCKER_TAG = env.TAG_NAME
-                env.BUILD_VERSION = env.TAG_NAME
-              }
-
-              echo "Docker tag: ${env.DOCKER_TAG}"
-              sh 'npm run build'
-              sh 'docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-calendar-web:$DOCKER_TAG .'
-              sh 'docker build -f apps/public/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-calendar-public:$DOCKER_TAG .'
-              sh 'docker login -u $DOCKER_HUB_CREDENTIAL_USR -p $DOCKER_HUB_CREDENTIAL_PSW'
-              sh 'docker push linagora/twake-calendar-web:$DOCKER_TAG'
-              sh 'docker push linagora/twake-calendar-public:$DOCKER_TAG'
+          // TODO(contacts): no Vault secrets yet, so Sentry sourcemaps are not uploaded.
+          // Wrap this in withVault([... 'secret/jenkins/contacts-frontend' ...]) exporting
+          // SENTRY_AUTH_TOKEN/ORG/PROJECT/URL once the path exists, as twake-calendar-frontend does.
+          script {
+            def shortSha = env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'dev'
+            env.DOCKER_TAG = 'branch-master'
+            env.BUILD_VERSION = shortSha
+            if (env.TAG_NAME) {
+              env.DOCKER_TAG = env.TAG_NAME
+              env.BUILD_VERSION = env.TAG_NAME
             }
+
+            echo "Docker tag: ${env.DOCKER_TAG}"
+            sh 'npm run build'
+            sh 'docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-contacts-web:$DOCKER_TAG .'
+            sh 'docker login -u $DOCKER_HUB_CREDENTIAL_USR -p $DOCKER_HUB_CREDENTIAL_PSW'
+            sh 'docker push linagora/twake-contacts-web:$DOCKER_TAG'
           }
         }
       }
-      */
     }
     post {
         always {
