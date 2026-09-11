@@ -198,7 +198,7 @@ describe('normalizeContact', () => {
         locality: 'locality',
         postalCode: 'postalCode',
         country: 'country',
-        address: 'adress',
+        address: 'adress'
       }
     ])
   })

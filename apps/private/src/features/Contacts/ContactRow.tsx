@@ -35,9 +35,7 @@ export const ContactRow: React.FC<ContactRowProps> = ({
       <TableCell>
         <ListItem disableGutters disablePadding>
           <ListItemAvatar>
-            <Avatar size="s">
-              {getInitials(contact.displayName)}
-            </Avatar>
+            <Avatar size="s">{getInitials(contact.displayName)}</Avatar>
           </ListItemAvatar>
           <ListItemText primary={contact.displayName} />
         </ListItem>

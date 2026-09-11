@@ -16,11 +16,12 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
 
         await Promise.all(
           books.map(async book => {
-            const contacts =
-              book.contactsCount > 0
-                ? await fetchContactsForBook(userId, book.id)
-                : []
-            addressBooks[book.id] = { ...book, contacts }
+            const contacts = await fetchContactsForBook(userId, book.id)
+
+            addressBooks[book.id] = {
+              ...book,
+              contacts: contacts?.length > 0 ? contacts : []
+            }
           })
         )
 

@@ -96,9 +96,7 @@ export const ContactPage: React.FC = () => {
       ) : (
         <>
           <Stack direction="row" spacing={2}>
-            <Avatar size="xl">
-              {getInitials(contact.displayName)}
-            </Avatar>
+            <Avatar size="xl">{getInitials(contact.displayName)}</Avatar>
             <Typography variant="h4">{contact.displayName}</Typography>
             <ContactActionsMenu
               contact={contact}
