@@ -69,7 +69,7 @@ export interface DavContactsResponse {
 
 /** One address book, as embedded under `dav:addressbook`. */
 export interface DavAddressBookItem {
-  /** `href` ends in `<bookId>.json`, e.g. `collected.json`. */
+  /** `/addressbooks/<userId>/<bookId>.json`, `userId` being the owner of the book. */
   _links?: DavSelfLink
   'dav:name'?: string
   numberOfContacts?: number

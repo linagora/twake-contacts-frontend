@@ -15,12 +15,14 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
           addressBooks: {
             book2: {
               id: 'book2',
+              userId: 'u1',
               name: 'Book 2',
               contactsCount: 1,
               contacts: [{ id: 'c2', displayName: 'Alice Roche', emails: [] }]
             },
             book1: {
               id: 'book1',
+              userId: 'u1',
               name: 'Book 1',
               contactsCount: 1,
               contacts: [

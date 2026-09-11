@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit'
 import { RootState } from '@common/app/store'
-import { ContactEntry } from './contactsTypes'
+import { AddressBook, ContactEntry } from './contactsTypes'
 
 const selectAddressBooks = (state: RootState) => state.contacts.addressBooks
 
@@ -26,4 +26,25 @@ export const selectContactEntries = createSelector(
       }))
     )
   }
+)
+
+export const selectCategories = createSelector(
+  [selectAddressBooks],
+  (books): string[] => [
+    ...new Set(
+      Object.values(books).flatMap(book =>
+        book.contacts.flatMap(contact => contact.categories ?? [])
+      )
+    )
+  ]
+)
+
+const selectOpenpaasId = (state: RootState) => state.user.userData.openpaasId
+
+export const selectOwnedBooks = createSelector(
+  [selectAddressBooks, selectOpenpaasId],
+  (books, openpaasId): AddressBook[] =>
+    Object.values(books).filter(
+      book => book.userId === openpaasId && book.id !== 'collected'
+    )
 )

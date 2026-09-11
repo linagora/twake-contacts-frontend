@@ -2,6 +2,7 @@ import { davApi } from '@common/utils/apiUtils'
 import { AddressBook, Contact } from './contactsTypes'
 import { DavAddressBooksResponse, DavContactsResponse } from './davTypes'
 import {
+  denormalizeContact,
   normalizeAddressBook,
   normalizeContact
 } from './transformer/ContactsTransformer'
@@ -40,4 +41,15 @@ export async function fetchContactsForBook(
 
   const items = data._embedded?.['dav:item'] ?? []
   return items.map(normalizeContact)
+}
+
+export async function createContact(
+  userId: string,
+  bookId: string,
+  contact: Contact
+): Promise<void> {
+  await davApi.put(`addressbooks/${userId}/${bookId}/${contact.id}.vcf`, {
+    headers: { 'Content-Type': 'application/vcard+json' },
+    json: denormalizeContact(contact)
+  })
 }

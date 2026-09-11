@@ -2,6 +2,7 @@ import { JCalProperty } from './davTypes'
 
 export interface AddressBook {
   id: string
+  userId: string
   name: string
   contactsCount: number
 }

@@ -11,7 +11,31 @@
     "back": "Quay lại",
     "copy": "Sao chép",
     "notFound": "Không tìm thấy liên hệ",
-    "empty": "Không có liên hệ nào trong sổ địa chỉ này"
+    "empty": "Không có liên hệ nào trong sổ địa chỉ này",
+    "form": {
+      "createTitle": "Tạo liên hệ",
+      "close": "Đóng",
+      "firstName": "Tên",
+      "lastName": "Họ",
+      "addTeam": "Thêm nhóm",
+      "matrixId": "ID Matrix",
+      "phone": "Điện thoại",
+      "addPhone": "Thêm số điện thoại",
+      "email": "Email",
+      "addEmail": "Thêm email",
+      "address": "Địa chỉ",
+      "addAddress": "Thêm địa chỉ",
+      "type": "Loại",
+      "cancel": "Hủy",
+      "save": "Lưu",
+      "addressBook": "Sổ địa chỉ"
+    },
+    "types": {
+      "cell": "Di động",
+      "work": "Công việc",
+      "home": "Nhà riêng",
+      "other": "Khác"
+    }
   },
   "error": {
     "title": "Đã xảy ra lỗi",

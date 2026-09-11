@@ -1,6 +1,6 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { ContactsState } from './contactsTypes'
-import { fetchContactsThunk } from './services'
+import { createContactThunk, fetchContactsThunk } from './services'
 
 const initialState: ContactsState = {
   addressBooks: {},
@@ -15,9 +15,11 @@ const ContactsSlice = createAppSlice({
     clearContactsError: create.reducer(state => {
       state.error = null
     }),
-    fetchContacts: fetchContactsThunk(create)
+    fetchContacts: fetchContactsThunk(create),
+    createContact: createContactThunk(create)
   })
 })
 
-export const { clearContactsError, fetchContacts } = ContactsSlice.actions
+export const { clearContactsError, createContact, fetchContacts } =
+  ContactsSlice.actions
 export default ContactsSlice.reducer

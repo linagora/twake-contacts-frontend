@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {
+  denormalizeContact,
   getCardProperty,
   normalizeContact
 } from './transformer/ContactsTransformer'
@@ -278,5 +279,32 @@ describe('getCardProperty', () => {
       [['n', {}, 'text', ['Roe', 'Jane', '', '', '']]]
     ]
     expect(getCardProperty(card, 'n')).toBeNull()
+  })
+})
+
+describe('denormalizeContact', () => {
+  it('builds the jCal card the DAV server expects', () => {
+    const card = denormalizeContact({
+      id: 'c-1',
+      displayName: 'Alice Roche',
+      name: { givenName: 'Alice', familyName: 'Roche' },
+      categories: ['Design'],
+      emails: [{ type: 'work', value: 'alice@twake.app' }],
+      phones: [{ type: 'cell', value: '+336' }],
+      socialProfiles: [{ type: 'matrix', value: '@alice:twake.app' }]
+    })
+    expect(card).toEqual([
+      'vcard',
+      [
+        ['version', {}, 'text', '4.0'],
+        ['uid', {}, 'text', 'c-1'],
+        ['fn', {}, 'text', 'Alice Roche'],
+        ['n', {}, 'text', ['Roche', 'Alice', '', '', '']],
+        ['categories', {}, 'text', 'Design'],
+        ['email', { type: 'work' }, 'text', 'mailto:alice@twake.app'],
+        ['tel', { type: 'cell' }, 'text', '+336'],
+        ['socialprofile', { type: 'matrix' }, 'text', '@alice:twake.app']
+      ]
+    ])
   })
 })

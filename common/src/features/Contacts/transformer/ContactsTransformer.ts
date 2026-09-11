@@ -13,7 +13,8 @@ import {
   DavContactItem,
   JCalCard,
   JCalParams,
-  JCalProperty
+  JCalProperty,
+  JCalValue
 } from '../davTypes'
 
 export function getCardProperty(card: JCalCard, name: string): string | null {
@@ -143,9 +144,13 @@ function extractId(href: string | undefined, extension: string): string {
 }
 
 export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
-  const id = extractId(raw._links?.self?.href, '.json')
+  const href = raw._links?.self?.href
+  const id = extractId(href, '.json')
+  // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
+  const userId = href?.split('/').at(-2) ?? ''
   return {
     id,
+    userId,
     name: raw['dav:name'] ?? id,
     contactsCount: raw.numberOfContacts ?? 0
   }
@@ -233,4 +238,59 @@ export function normalizeContact(item: DavContactItem): Contact {
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 
   return contact
+}
+
+function makeTypedProperty(
+  name: string,
+  type: string | null,
+  value: JCalValue
+): JCalProperty {
+  return [name, type ? { type } : {}, 'text', value]
+}
+
+/** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */
+export function denormalizeContact(contact: Contact): JCalCard {
+  const properties: JCalProperty[] = [
+    ['version', {}, 'text', '4.0'],
+    ['uid', {}, 'text', contact.id],
+    ['fn', {}, 'text', contact.displayName]
+  ]
+  if (contact.name) {
+    properties.push([
+      'n',
+      {},
+      'text',
+      [contact.name.familyName, contact.name.givenName, '', '', '']
+    ])
+  }
+  if (contact.categories?.length) {
+    properties.push(['categories', {}, 'text', ...contact.categories])
+  }
+  contact.emails.forEach(email => {
+    properties.push(
+      makeTypedProperty('email', email.type, `mailto:${email.value}`)
+    )
+  })
+  contact.phones?.forEach(phone => {
+    properties.push(makeTypedProperty('tel', phone.type, phone.value))
+  })
+  contact.addresses?.forEach(address => {
+    properties.push(
+      makeTypedProperty('adr', address.type, [
+        '',
+        '',
+        address.street,
+        address.locality,
+        '',
+        address.postalCode,
+        address.country
+      ])
+    )
+  })
+  contact.socialProfiles?.forEach(profile => {
+    properties.push(
+      makeTypedProperty('socialprofile', profile.type, profile.value)
+    )
+  })
+  return ['vcard', properties]
 }

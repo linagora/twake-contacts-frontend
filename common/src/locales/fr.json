@@ -11,7 +11,31 @@
     "back": "Retour",
     "copy": "Copier",
     "notFound": "Contact introuvable",
-    "empty": "Aucun contact dans ce carnet d'adresses"
+    "empty": "Aucun contact dans ce carnet d'adresses",
+    "form": {
+      "createTitle": "Créer un contact",
+      "close": "Fermer",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "addTeam": "Ajouter une équipe",
+      "matrixId": "Identifiant Matrix",
+      "phone": "Téléphone",
+      "addPhone": "Ajouter un téléphone",
+      "email": "E-mail",
+      "addEmail": "Ajouter un e-mail",
+      "address": "Adresse",
+      "addAddress": "Ajouter une adresse",
+      "type": "Type",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "addressBook": "Carnet d'adresses"
+    },
+    "types": {
+      "cell": "Mobile",
+      "work": "Travail",
+      "home": "Domicile",
+      "other": "Autre"
+    }
   },
   "error": {
     "title": "Une erreur s'est produite",

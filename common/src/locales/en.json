@@ -11,7 +11,31 @@
     "back": "Back",
     "copy": "Copy",
     "notFound": "Contact not found",
-    "empty": "No contacts in this address book"
+    "empty": "No contacts in this address book",
+    "form": {
+      "createTitle": "Create contact",
+      "close": "Close",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "addTeam": "Add team",
+      "matrixId": "Matrix id",
+      "phone": "Phone",
+      "addPhone": "Add phone",
+      "email": "Email",
+      "addEmail": "Add email",
+      "address": "Address",
+      "addAddress": "Add address",
+      "type": "Type",
+      "cancel": "Cancel",
+      "save": "Save",
+      "addressBook": "Address book"
+    },
+    "types": {
+      "cell": "Mobile",
+      "work": "Work",
+      "home": "Home",
+      "other": "Other"
+    }
   },
   "error": {
     "title": "Something went wrong",
