@@ -5,7 +5,13 @@
     "myContacts": "My contacts",
     "create": "Create",
     "name": "Name",
-    "email": "Email"
+    "email": "Email",
+    "phone": "Phone",
+    "team": "Team",
+    "back": "Back",
+    "copy": "Copy",
+    "notFound": "Contact not found",
+    "empty": "No contacts in this address book"
   },
   "error": {
     "title": "Something went wrong",

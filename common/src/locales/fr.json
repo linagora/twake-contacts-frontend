@@ -5,7 +5,13 @@
     "myContacts": "Mes contacts",
     "create": "Créer",
     "name": "Nom",
-    "email": "E-mail"
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "team": "Équipe",
+    "back": "Retour",
+    "copy": "Copier",
+    "notFound": "Contact introuvable",
+    "empty": "Aucun contact dans ce carnet d'adresses"
   },
   "error": {
     "title": "Une erreur s'est produite",

@@ -1,5 +1,4 @@
 import {
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -11,15 +10,20 @@ import { Contact } from '@common/features/Contacts/contactsTypes'
 import { useI18n } from 'twake-i18n'
 import { ContactRow } from './ContactRow'
 
-interface ContactsTableProps {
-  contacts: Contact[]
+export interface ContactEntry {
+  addressBookId: string
+  contact: Contact
 }
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
+interface ContactsTableProps {
+  entries: ContactEntry[]
+}
+
+export const ContactsTable: React.FC<ContactsTableProps> = ({ entries }) => {
   const { t } = useI18n()
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer>
       <Table>
         <TableHead>
           <TableRow>
@@ -30,8 +34,12 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {contacts.map(contact => (
-            <ContactRow key={contact.id} contact={contact} />
+          {entries.map(({ addressBookId, contact }) => (
+            <ContactRow
+              key={`${addressBookId}/${contact.id}`}
+              contact={contact}
+              addressBookId={addressBookId}
+            />
           ))}
         </TableBody>
       </Table>

@@ -15,6 +15,8 @@ import { AVAILABLE_LANGUAGES } from '@common/features/Settings/constants'
 import { default as HandleLogin } from '@/features/User/HandleLogin'
 import { CallbackResume } from '@/features/User/LoginCallback'
 import { ContactsPage } from '@/features/Contacts/ContactsPage'
+import { AddressBookPage } from '@/features/Contacts/AddressBookPage'
+import { ContactPage } from '@/features/Contacts/ContactPage'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
 
 import {
@@ -93,7 +95,17 @@ export default function App(): JSX.Element {
               <Router history={history}>
                 <Routes>
                   <Route path="/" element={<HandleLogin />} />
-                  <Route path="/contacts" element={<ContactsPage />} />
+                  <Route path="/contacts" element={<ContactsPage />}>
+                    <Route index element={<AddressBookPage />} />
+                    <Route
+                      path=":addressBookId"
+                      element={<AddressBookPage />}
+                    />
+                    <Route
+                      path=":addressBookId/:contactId"
+                      element={<ContactPage />}
+                    />
+                  </Route>
                   <Route path="/callback" element={<CallbackResume />} />
                   <Route path="/error" element={<ErrorPage />} />
                 </Routes>

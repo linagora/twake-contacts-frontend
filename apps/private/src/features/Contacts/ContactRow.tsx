@@ -4,30 +4,49 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Stack,
   TableCell,
   TableRow
 } from '@linagora/twake-mui'
 import { Contact } from '@common/features/Contacts/contactsTypes'
+import { useNavigate } from 'react-router-dom'
 import { getInitials } from './getInitials'
 
 interface ContactRowProps {
   contact: Contact
+  addressBookId: string
 }
 
-export const ContactRow: React.FC<ContactRowProps> = ({ contact }) => (
-  <TableRow hover>
-    <TableCell>
-      <ListItem disableGutters disablePadding>
-        <ListItemAvatar>
-          <Avatar size="s">{getInitials(contact.displayName)}</Avatar>
-        </ListItemAvatar>
-        <ListItemText primary={contact.displayName} />
-      </ListItem>
-    </TableCell>
-    <TableCell>{contact.emails?.[0].value ?? '-'}</TableCell>
-    <TableCell>{contact.phones?.[0].value ?? '-'}</TableCell>
-    <TableCell>
-      {contact.org?.name ? <Chip label={contact.org?.name} /> : '-'}
-    </TableCell>
-  </TableRow>
-)
+export const ContactRow: React.FC<ContactRowProps> = ({
+  contact,
+  addressBookId
+}) => {
+  const navigate = useNavigate()
+  const handleClick = (): void => {
+    navigate(`/contacts/${addressBookId}/${contact.id}`)
+  }
+
+  return (
+    <TableRow hover onClick={handleClick}>
+      <TableCell>
+        <ListItem disableGutters disablePadding>
+          <ListItemAvatar>
+            <Avatar size="s" src={contact.photo}>
+              {getInitials(contact.displayName)}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText primary={contact.displayName} />
+        </ListItem>
+      </TableCell>
+      <TableCell>{contact.emails[0]?.value ?? '-'}</TableCell>
+      <TableCell>{contact.phones?.[0]?.value ?? '-'}</TableCell>
+      <TableCell>
+        <Stack direction="row" spacing={1}>
+          {contact.categories?.map(category => (
+            <Chip key={category} label={category} size="small" square />
+          ))}
+        </Stack>
+      </TableCell>
+    </TableRow>
+  )
+}

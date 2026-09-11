@@ -5,7 +5,13 @@
     "myContacts": "Danh bạ của tôi",
     "create": "Tạo",
     "name": "Tên",
-    "email": "Email"
+    "email": "Email",
+    "phone": "Điện thoại",
+    "team": "Nhóm",
+    "back": "Quay lại",
+    "copy": "Sao chép",
+    "notFound": "Không tìm thấy liên hệ",
+    "empty": "Không có liên hệ nào trong sổ địa chỉ này"
   },
   "error": {
     "title": "Đã xảy ra lỗi",
