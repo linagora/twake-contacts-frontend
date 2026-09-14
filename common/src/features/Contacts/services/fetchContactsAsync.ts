@@ -1,22 +1,28 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
+import { DomainInfo } from '@common/features/User/userDataTypes'
 import { fetchAddressBooks, fetchContactsForBook } from '../ContactsDao'
 import { ContactsState, AddressBookWithContacts } from '../contactsTypes'
+
+export interface FetchContactsPayload {
+  userId: string
+  domains?: DomainInfo[]
+}
 
 export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
   create.asyncThunk<
     Record<string, AddressBookWithContacts>,
-    string,
+    FetchContactsPayload,
     { rejectValue: RejectedError }
   >(
-    async (userId, { rejectWithValue }) => {
+    async ({ userId, domains }, { rejectWithValue }) => {
       try {
-        const books = await fetchAddressBooks(userId)
+        const books = await fetchAddressBooks(userId, domains)
         const addressBooks: Record<string, AddressBookWithContacts> = {}
 
         await Promise.all(
           books.map(async book => {
-            const contacts = await fetchContactsForBook(userId, book.id)
+            const contacts = await fetchContactsForBook(book, userId)
 
             addressBooks[book.id] = {
               ...book,

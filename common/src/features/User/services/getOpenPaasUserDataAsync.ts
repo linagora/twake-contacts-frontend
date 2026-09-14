@@ -2,19 +2,18 @@ import { toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { fetchCurrentUser } from '../UserDao'
 import { RejectedError, UserState } from '../UserSlice'
-import { OpenPaasUserData } from '../type/OpenPaasUserData'
-import { ConfigurationItem, ModuleConfiguration } from '../userDataTypes'
+import { OpenPaasUserData, ToUserData } from '../type/OpenPaasUserData'
+import {
+  ConfigurationItem,
+  ModuleConfiguration,
+  userData
+} from '../userDataTypes'
 
 function updateBasicUserData(
   state: UserState,
   payload: OpenPaasUserData
 ): void {
-  state.userData.name = payload.firstname ?? ''
-  state.userData.family_name = payload.lastname ?? ''
-  state.userData.openpaasId = payload.id
-  if (payload.preferredEmail) {
-    state.userData.email = payload.preferredEmail
-  }
+  state.userData = ToUserData(payload) ?? ({} as userData)
 }
 
 function applyCoreModuleConfig(

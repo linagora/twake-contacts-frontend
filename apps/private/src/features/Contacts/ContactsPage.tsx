@@ -8,14 +8,14 @@ import { ContactsSidebar } from './ContactsSidebar'
 export const ContactsPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
+  const domains = useAppSelector(state => state.user.userData.domains)
   const loading = useAppSelector(state => state.contacts.loading)
   const error = useAppSelector(state => state.contacts.error)
-
   useEffect(() => {
     if (openpaasId) {
-      void dispatch(fetchContacts(openpaasId))
+      void dispatch(fetchContacts({ userId: openpaasId, domains }))
     }
-  }, [openpaasId, dispatch])
+  }, [openpaasId, domains, dispatch])
 
   return (
     <Stack direction="row" spacing={2}>

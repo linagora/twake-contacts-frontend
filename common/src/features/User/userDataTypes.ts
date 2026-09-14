@@ -1,3 +1,8 @@
+export interface DomainInfo {
+  domainId: string
+  joinedAt: string
+}
+
 export interface userData {
   email: string
   family_name: string
@@ -9,6 +14,7 @@ export interface userData {
   language?: string
   timezone?: string | null
   workplaceFqdn?: string
+  domains?: DomainInfo[]
 }
 
 export interface UserConfigurations {

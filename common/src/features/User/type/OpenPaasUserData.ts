@@ -3,6 +3,11 @@ import {
   userData
 } from '@common/features/User/userDataTypes'
 
+export interface Domain {
+  domain_id: string
+  joined_at: string
+}
+
 export interface OpenPaasUserData {
   firstname?: string
   lastname?: string
@@ -21,6 +26,7 @@ export interface OpenPaasUserData {
     access?: number
   }[]
   resourceIcon?: string
+  domains?: Domain[]
 }
 
 export function normalizeOpenPaasUser(
@@ -48,6 +54,10 @@ export function ToUserData(
     name: [given_name, family_name].filter(Boolean).join(' '),
     sid: openpaas.id ?? '',
     sub: openpaas.id ?? '',
-    openpaasId: openpaas.id
+    openpaasId: openpaas.id,
+    domains: openpaas.domains?.map(d => ({
+      domainId: d.domain_id,
+      joinedAt: d.joined_at
+    }))
   }
 }

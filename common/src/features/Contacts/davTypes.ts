@@ -83,3 +83,13 @@ export interface DavAddressBooksResponse {
     'dav:addressbook'?: DavAddressBookItem[]
   }
 }
+
+/** `PROPFIND /addressbooks/<domainId>/dab.json` */
+export interface DavAddressBookItem {
+  '{DAV:}displayname'?: string
+  '{DAV:}acl'?: string[]
+  '{http://open-paas.org/contacts}numberOfContacts'?: number
+  '{http://open-paas.org/contacts}type'?: string
+  '{http://open-paas.org/contacts}state'?: string
+  '{DAV:}share-access'?: number | null
+}

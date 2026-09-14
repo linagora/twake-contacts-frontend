@@ -1,3 +1,4 @@
+import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Table,
   TableBody,
@@ -6,7 +7,7 @@ import {
   TableHead,
   TableRow
 } from '@linagora/twake-mui'
-import { ContactEntry } from '@common/features/Contacts/contactsTypes'
+import React from 'react'
 import { useI18n } from 'twake-i18n'
 import { ContactRow } from './ContactRow'
 

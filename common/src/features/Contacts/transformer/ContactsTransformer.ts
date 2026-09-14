@@ -155,7 +155,10 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
     name: raw['dav:name'] ?? id,
     contactsCount: raw.numberOfContacts ?? 0,
     acl,
-    canWrite: acl.includes('dav:write')
+    canWrite: acl.some(
+      p =>
+        p === 'dav:write' || p === '{DAV:}write-content' || p === '{DAV:}bind'
+    )
   }
 }
 
