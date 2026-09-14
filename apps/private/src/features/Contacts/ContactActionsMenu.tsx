@@ -47,6 +47,8 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
 
+  if (!book?.canWrite) return null
+
   const handleOpenMenu = (event: React.MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget)
   }

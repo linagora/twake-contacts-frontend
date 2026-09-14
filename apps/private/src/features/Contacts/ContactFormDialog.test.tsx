@@ -11,7 +11,14 @@ describe('ContactFormDialog', () => {
         <ContactFormDialog
           title="Create contact"
           addressBooks={[
-            { id: 'book1', userId: 'u1', name: 'Book 1', contactsCount: 0 }
+            {
+              id: 'book1',
+              userId: 'u1',
+              name: 'Book 1',
+              contactsCount: 0,
+              acl: [],
+              canWrite: true
+            }
           ]}
           categoryOptions={[]}
           onClose={jest.fn()}

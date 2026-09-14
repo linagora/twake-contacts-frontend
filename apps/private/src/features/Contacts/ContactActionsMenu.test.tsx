@@ -20,6 +20,8 @@ describe('ContactActionsMenu', () => {
             userId: 'u1',
             name: 'Book 1',
             contactsCount: 1,
+            acl: [],
+            canWrite: true,
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
         },

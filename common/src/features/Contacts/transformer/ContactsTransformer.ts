@@ -148,11 +148,14 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const id = extractId(href, '.json')
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
   const userId = href?.split('/').at(-2) ?? ''
+  const acl = raw['dav:acl'] ?? []
   return {
     id,
     userId,
     name: raw['dav:name'] ?? id,
-    contactsCount: raw.numberOfContacts ?? 0
+    contactsCount: raw.numberOfContacts ?? 0,
+    acl,
+    canWrite: acl.includes('dav:write')
   }
 }
 

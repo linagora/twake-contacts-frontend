@@ -73,6 +73,8 @@ export interface DavAddressBookItem {
   _links?: DavSelfLink
   'dav:name'?: string
   numberOfContacts?: number
+  'dav:acl'?: string[]
+  'dav:share-access'?: number | null
 }
 
 /** `GET /addressbooks/<userId>.json` */

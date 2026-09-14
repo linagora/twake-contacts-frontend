@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
 import {
   selectCategories,
-  selectOwnedBooks
+  selectWritableBooks
 } from '@common/features/Contacts/contactsSelectors'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -32,7 +32,7 @@ export const ContactsSidebar: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const categories = useAppSelector(selectCategories)
-  const ownedBooks = useAppSelector(selectOwnedBooks)
+  const writableBooks = useAppSelector(selectWritableBooks)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const otherBooks = Object.values(addressBooks).filter(
     book => book.id !== 'collected' && book.id !== MY_CONTACTS_ID
@@ -99,11 +99,11 @@ export const ContactsSidebar: React.FC = () => {
       {isCreateOpen && (
         <ContactFormDialog
           title={t('contacts.form.createTitle')}
-          addressBooks={ownedBooks}
+          addressBooks={writableBooks}
           categoryOptions={categories}
           initialValues={{
             ...EMPTY_CONTACT_FORM_VALUES,
-            addressBookId: ownedBooks.some(book => book.id === addressBookId)
+            addressBookId: writableBooks.some(book => book.id === addressBookId)
               ? (addressBookId ?? '')
               : ''
           }}

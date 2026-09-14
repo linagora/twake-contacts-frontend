@@ -18,6 +18,8 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
               userId: 'u1',
               name: 'Book 2',
               contactsCount: 1,
+              acl: [],
+              canWrite: true,
               contacts: [{ id: 'c2', displayName: 'Alice Roche', emails: [] }]
             },
             book1: {
@@ -25,6 +27,8 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
               userId: 'u1',
               name: 'Book 1',
               contactsCount: 1,
+              acl: [],
+              canWrite: true,
               contacts: [
                 {
                   id: 'c1',

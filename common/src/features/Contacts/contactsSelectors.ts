@@ -39,12 +39,10 @@ export const selectCategories = createSelector(
   ]
 )
 
-const selectOpenpaasId = (state: RootState) => state.user.userData.openpaasId
-
-export const selectOwnedBooks = createSelector(
-  [selectAddressBooks, selectOpenpaasId],
-  (books, openpaasId): AddressBook[] =>
+export const selectWritableBooks = createSelector(
+  [selectAddressBooks],
+  (books): AddressBook[] =>
     Object.values(books).filter(
-      book => book.userId === openpaasId && book.id !== 'collected'
+      book => book.canWrite && book.id !== 'collected'
     )
 )

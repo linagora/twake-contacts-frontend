@@ -5,6 +5,8 @@ export interface AddressBook {
   userId: string
   name: string
   contactsCount: number
+  acl: string[]
+  canWrite: boolean
 }
 
 export interface ContactName {
