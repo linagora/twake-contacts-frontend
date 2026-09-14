@@ -1,6 +1,6 @@
 import { toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
-import { fetchCurrentUser, generateDavJwt } from '../UserDao'
+import { fetchCurrentUser } from '../UserDao'
 import { RejectedError, UserState } from '../UserSlice'
 import { OpenPaasUserData } from '../type/OpenPaasUserData'
 import { ConfigurationItem, ModuleConfiguration } from '../userDataTypes'
@@ -88,10 +88,7 @@ export const getOpenPaasUserDataThunk = (create: ReducerCreators<UserState>) =>
   create.asyncThunk<OpenPaasUserData, void, { rejectValue: RejectedError }>(
     async (_, { rejectWithValue }) => {
       try {
-        const user = await fetchCurrentUser()
-        const davJwt = await generateDavJwt()
-        sessionStorage.setItem('davJwt', davJwt)
-        return user
+        return await fetchCurrentUser()
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }

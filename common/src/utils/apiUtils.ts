@@ -65,70 +65,51 @@ const handleUnauthorizeRequest = async (
   await redirectSSO(response, request, options)
 }
 
-export const api: KyInstance = createAuthedClient(
-  window.SIDE_SERVICE_BASE_URL,
-  'tokenSet'
-)
+export const api: KyInstance = ky.extend({
+  prefixUrl: window.SIDE_SERVICE_BASE_URL,
+  retry: {
+    limit: RETRY_CONFIG.maxRetries
+  },
+  hooks: {
+    beforeRequest: [
+      async (request: KyRequest): Promise<KyRequest> => {
+        const headers = new Headers(request.headers)
 
-export const davApi: KyInstance = createAuthedClient(
-  window.SIDE_SERVICE_BASE_URL,
-  'davJwt'
-)
-
-function createAuthedClient(
-  prefixUrl: string,
-  tokenStorageKey: string
-): KyInstance {
-  return ky.extend({
-    prefixUrl,
-    retry: {
-      limit: RETRY_CONFIG.maxRetries
-    },
-    hooks: {
-      beforeRequest: [
-        async (request: KyRequest): Promise<KyRequest> => {
-          const headers = new Headers(request.headers)
-
-          if (!headers.has('Authorization')) {
-            const access_token = getStoredAccessToken(tokenStorageKey)
-            if (access_token) {
-              headers.set('Authorization', `Bearer ${access_token}`)
-            }
+        if (!headers.has('Authorization')) {
+          const access_token = getStoredAccessToken()
+          if (access_token) {
+            headers.set('Authorization', `Bearer ${access_token}`)
           }
-
-          return new Request(request, { headers }) as KyRequest
         }
-      ],
-      beforeRetry: [
-        ({ request, error, retryCount }): void => {
-          console.warn(
-            `[API Retry] Attempt ${retryCount}/${RETRY_CONFIG.maxRetries}`,
-            {
-              url: request.url,
-              error: error?.message
-            }
-          )
-        }
-      ],
 
-      afterResponse: [
-        async (request, options, response): Promise<KyResponse> => {
-          if (response.status === 401) {
-            await handleUnauthorizeRequest(response, request, options)
+        return new Request(request, { headers }) as KyRequest
+      }
+    ],
+    beforeRetry: [
+      ({ request, error, retryCount }): void => {
+        console.warn(
+          `[API Retry] Attempt ${retryCount}/${RETRY_CONFIG.maxRetries}`,
+          {
+            url: request.url,
+            error: error?.message
           }
-          return response
-        }
-      ]
-    }
-  })
-}
+        )
+      }
+    ],
 
-function getStoredAccessToken(tokenStorageKey: string): string | null {
-  if (tokenStorageKey === 'davJwt') {
-    return sessionStorage.getItem('davJwt')
+    afterResponse: [
+      async (request, options, response): Promise<KyResponse> => {
+        if (response.status === 401) {
+          await handleUnauthorizeRequest(response, request, options)
+        }
+        return response
+      }
+    ]
   }
+})
 
-  const raw = sessionStorage.getItem(tokenStorageKey)
+function getStoredAccessToken(): string | null {
+  const raw = sessionStorage.getItem('tokenSet')
   const saved = raw
     ? (JSON.parse(raw) as TokenEndpointResponse & TokenEndpointResponseHelpers)
     : null

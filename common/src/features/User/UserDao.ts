@@ -19,9 +19,3 @@ export async function patchConfigurations(
     json: modules
   })
 }
-
-export async function generateDavJwt(): Promise<string> {
-  const response = await api.post('api/jwt/generate')
-  const jwt = await response.text()
-  return jwt.replace(/^"|"$/g, '')
-}
