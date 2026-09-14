@@ -17,7 +17,7 @@ export default defineConfig({
     template: '../../public/index.html'
   },
   server: {
-    port: 5000,
+    port: 5002,
     historyApiFallback: true,
     publicDir: [{ name: '../../public' }]
   },

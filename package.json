@@ -31,7 +31,7 @@
     "start:private": "npm run start -w @contacts/private",
     "build": "npm run build:private",
     "build:private": "npm run build -w @contacts/private",
-    "serve:private": "npx serve -s apps/private/dist -l 5000",
+    "serve:private": "npx serve -s apps/private/dist -l 5002",
     "test": "jest",
     "lint": "eslint apps common",
     "lint:fix": "eslint apps common --fix",

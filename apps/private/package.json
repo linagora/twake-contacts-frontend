@@ -19,7 +19,7 @@
     "@linagora/twake-icons": "^2.7.0"
   },
   "scripts": {
-    "start": "PORT=5000 rsbuild dev",
+    "start": "PORT=5002 rsbuild dev",
     "build": "rsbuild build",
     "preview": "rsbuild preview"
   }

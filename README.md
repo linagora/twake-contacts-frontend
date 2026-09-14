@@ -65,7 +65,7 @@ To start the application in development mode:
 npm run start:private
 ```
 
-Runs the private app on [http://localhost:5000](http://localhost:5000).
+Runs the private app on [http://localhost:5002](http://localhost:5002).
 
 ### Production Build
 
@@ -85,7 +85,7 @@ You can serve the built production assets locally using:
 npm run serve:private
 ```
 
-Serves on [http://localhost:5000](http://localhost:5000).
+Serves on [http://localhost:5002](http://localhost:5002).
 
 ### Running Tests
 
@@ -130,7 +130,7 @@ To run the container, mount the `.env.js` configuration file from the root `publ
 ```bash
 docker run -d \
   -v $PWD/public/.env.js:/usr/share/nginx/html/.env.js \
-  -p 5000:80 \
+  -p 5002:80 \
   linagora/twake-contacts-private
 ```
 
