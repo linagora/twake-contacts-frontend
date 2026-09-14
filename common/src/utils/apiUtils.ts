@@ -66,7 +66,7 @@ const handleUnauthorizeRequest = async (
 }
 
 export const api: KyInstance = createAuthedClient(
-  window.OPENPAAS_BASE_URL,
+  window.SIDE_SERVICE_BASE_URL,
   'tokenSet'
 )
 

@@ -10,7 +10,7 @@ declare global {
     SSO_CODE_CHALLENGE_METHOD: 'S256'
     SSO_POST_LOGOUT_REDIRECT: string
 
-    OPENPAAS_BASE_URL: string
+    SIDE_SERVICE_BASE_URL: string
     DAV_BASE_URL: string
 
     SENTRY_DSN: string | undefined

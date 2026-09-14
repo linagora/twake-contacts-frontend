@@ -148,8 +148,8 @@ The application loads configuration dynamically at runtime from static JavaScrip
 | Variable | Description |
 |----------|-------------|
 | `SSO_BASE_URL`, `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI`, `SSO_RESPONSE_TYPE`, `SSO_CODE_CHALLENGE_METHOD`, `SSO_POST_LOGOUT_REDIRECT` | OIDC provider settings |
-| `OPENPAAS_BASE_URL` | OpenPaaS / ESN backend, serving `/api/user`, `/api/configurations` and `/api/jwt/generate` |
-| `DAV_BASE_URL` | Sabre DAV backend, serving the CardDAV address books |
+| `SIDE_SERVICE_BASE_URL` | Contacts backend` |
+| `DAV_BASE_URL` | Base URL displayed to users in the address book details |
 | `DEBUG` | Disables the Nginx browser cache when `true` |
 | `LANG` | Default language, overridden by the user configuration |
 | `SENTRY_DSN` | Optional, omit to disable Sentry |
