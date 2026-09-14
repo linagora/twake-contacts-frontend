@@ -71,7 +71,7 @@ export const api: KyInstance = createAuthedClient(
 )
 
 export const davApi: KyInstance = createAuthedClient(
-  window.DAV_BASE_URL,
+  window.SIDE_SERVICE_BASE_URL,
   'davJwt'
 )
 

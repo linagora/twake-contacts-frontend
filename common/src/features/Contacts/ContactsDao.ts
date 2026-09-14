@@ -1,4 +1,4 @@
-import { davApi } from '@common/utils/apiUtils'
+import { api } from '@common/utils/apiUtils'
 import { AddressBook, Contact } from './contactsTypes'
 import { DavAddressBooksResponse, DavContactsResponse } from './davTypes'
 import {
@@ -10,7 +10,7 @@ import {
 export async function fetchAddressBooks(
   userId: string
 ): Promise<AddressBook[]> {
-  const response = davApi.get(`addressbooks/${userId}.json`, {
+  const response = api.get(`dav/addressbooks/${userId}.json`, {
     searchParams: {
       contactsCount: 'true',
       inviteStatus: '2',
@@ -29,7 +29,7 @@ export async function fetchContactsForBook(
   userId: string,
   bookId: string
 ): Promise<Contact[]> {
-  const response = davApi.get(`addressbooks/${userId}/${bookId}.json`, {
+  const response = api.get(`dav/addressbooks/${userId}/${bookId}.json`, {
     searchParams: {
       limit: '500',
       offset: '0',
@@ -48,7 +48,7 @@ export async function saveContact(
   bookId: string,
   contact: Contact
 ): Promise<void> {
-  await davApi.put(`addressbooks/${userId}/${bookId}/${contact.id}.vcf`, {
+  await api.put(`dav/addressbooks/${userId}/${bookId}/${contact.id}.vcf`, {
     headers: { 'Content-Type': 'application/vcard+json' },
     json: denormalizeContact(contact)
   })
@@ -59,5 +59,5 @@ export async function deleteContact(
   bookId: string,
   contactId: string
 ): Promise<void> {
-  await davApi.delete(`addressbooks/${userId}/${bookId}/${contactId}.vcf`)
+  await api.delete(`dav/addressbooks/${userId}/${bookId}/${contactId}.vcf`)
 }
