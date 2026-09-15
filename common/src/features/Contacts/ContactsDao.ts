@@ -86,7 +86,7 @@ function normalizeDomainAddressBook(
   return {
     id: 'dab',
     userId: domainId,
-    name: raw['{DAV:}displayname'] ?? 'Domain Address Book',
+    name: raw['{DAV:}displayname'] ?? '',
     contactsCount: raw['{http://open-paas.org/contacts}numberOfContacts'] ?? 0,
     acl,
     canWrite: acl.some(p => p === '{DAV:}write-content' || p === '{DAV:}bind')

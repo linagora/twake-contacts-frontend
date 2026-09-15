@@ -75,6 +75,12 @@ export interface DavAddressBookItem {
   numberOfContacts?: number
   'dav:acl'?: string[]
   'dav:share-access'?: number | null
+  '{DAV:}displayname'?: string
+  '{DAV:}acl'?: string[]
+  '{http://open-paas.org/contacts}numberOfContacts'?: number
+  '{http://open-paas.org/contacts}type'?: string
+  '{http://open-paas.org/contacts}state'?: string
+  '{DAV:}share-access'?: number | null
 }
 
 /** `GET /addressbooks/<userId>.json` */
@@ -82,14 +88,4 @@ export interface DavAddressBooksResponse {
   _embedded?: {
     'dav:addressbook'?: DavAddressBookItem[]
   }
-}
-
-/** `PROPFIND /addressbooks/<domainId>/dab.json` */
-export interface DavAddressBookItem {
-  '{DAV:}displayname'?: string
-  '{DAV:}acl'?: string[]
-  '{http://open-paas.org/contacts}numberOfContacts'?: number
-  '{http://open-paas.org/contacts}type'?: string
-  '{http://open-paas.org/contacts}state'?: string
-  '{DAV:}share-access'?: number | null
 }

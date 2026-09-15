@@ -30,6 +30,7 @@ import {
   ContactAddress,
   ContactSocialProfile
 } from '@common/features/Contacts/contactsTypes'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { useState } from 'react'
 import { useI18n } from 'twake-i18n'
 
@@ -380,7 +381,8 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             >
               {addressBooks.map(book => (
                 <MenuItem key={book.id} value={book.id}>
-                  {book.name || t('contacts.myContacts')}
+                  {getAddressBookDisplayName(book, t) ||
+                    t('contacts.myContacts')}
                 </MenuItem>
               ))}
             </TextField>

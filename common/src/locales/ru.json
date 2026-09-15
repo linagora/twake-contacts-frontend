@@ -3,6 +3,7 @@
   "contacts": {
     "title": "Контакты",
     "myContacts": "Мои контакты",
+    "domainAddressBook": "Доменная адресная книга",
     "create": "Создать",
     "name": "Имя",
     "email": "Эл. почта",

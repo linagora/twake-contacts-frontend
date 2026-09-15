@@ -4,6 +4,7 @@ import {
   selectBook,
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
@@ -15,7 +16,9 @@ export const AddressBookPage: React.FC = () => {
   const entries = useAppSelector(state =>
     selectContactEntries(state, addressBookId)
   )
-  const title = addressBookId ? (book?.name ?? '') : t('contacts.myContacts')
+  const title = addressBookId
+    ? getAddressBookDisplayName(book, t)
+    : t('contacts.myContacts')
 
   return (
     <>

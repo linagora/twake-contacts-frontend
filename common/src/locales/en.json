@@ -3,6 +3,7 @@
   "contacts": {
     "title": "Contacts",
     "myContacts": "My contacts",
+    "domainAddressBook": "Domain Address Book",
     "create": "Create",
     "name": "Name",
     "email": "Email",

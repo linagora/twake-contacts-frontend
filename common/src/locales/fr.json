@@ -3,6 +3,7 @@
   "contacts": {
     "title": "Contacts",
     "myContacts": "Mes contacts",
+    "domainAddressBook": "Carnet d'adresses du domaine",
     "create": "Créer",
     "name": "Nom",
     "email": "E-mail",

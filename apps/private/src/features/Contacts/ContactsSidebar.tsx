@@ -13,6 +13,7 @@ import {
   selectCategories,
   selectWritableBooks
 } from '@common/features/Contacts/contactsSelectors'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
@@ -91,7 +92,7 @@ export const ContactsSidebar: React.FC = () => {
               <ListItemIcon>
                 <Icon icon={Company} />
               </ListItemIcon>
-              <ListItemText primary={book.name} />
+              <ListItemText primary={getAddressBookDisplayName(book, t)} />
             </ListItemButton>
           </ListItem>
         ))}
