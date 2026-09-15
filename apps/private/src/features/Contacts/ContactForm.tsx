@@ -2,22 +2,17 @@ import {
   Autocomplete,
   Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
-  IconButton,
-  ListItem,
   MenuItem,
   Stack,
-  TextField
+  TextField,
+  Typography
 } from '@linagora/twake-mui'
 import {
   Contacts,
-  Cross,
   Email,
   Icon,
+  Left,
   Location,
   Matrix,
   People,
@@ -32,6 +27,7 @@ import {
 } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 
 export interface ContactFormEntry {
@@ -88,7 +84,10 @@ export function makeFormValuesFromContact(
   contact: Contact,
   addressBookId: string
 ): ContactFormValues {
-  const toEntry = (entry: { type: string | null; value: string }) => ({
+  const toEntry = (entry: {
+    type: string | null
+    value: string
+  }): ContactFormEntry => ({
     type: entry.type ?? 'other',
     value: entry.value
   })
@@ -146,15 +145,6 @@ export function makeContactFromForm(
       ? [...otherProfiles, { type: MATRIX_TYPE, value: matrixId }]
       : otherProfiles
   }
-}
-
-interface ContactFormDialogProps {
-  title: string
-  addressBooks: AddressBook[]
-  categoryOptions: string[]
-  initialValues?: ContactFormValues
-  onClose: () => void
-  onSubmit: (values: ContactFormValues) => void
 }
 
 interface FieldRowProps {
@@ -240,19 +230,29 @@ const EntryList: React.FC<EntryListProps> = ({
   )
 }
 
-export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
+interface ContactFormProps {
+  title: string
+  addressBooks: AddressBook[]
+  categoryOptions: string[]
+  initialValues: ContactFormValues
+  addressBookDisabled?: boolean
+  backTo: string
+  onSubmit: (values: ContactFormValues) => void | Promise<void>
+  onCancel: () => void
+}
+
+export const ContactForm: React.FC<ContactFormProps> = ({
   title,
   addressBooks,
   categoryOptions,
-  initialValues = EMPTY_CONTACT_FORM_VALUES,
-  onClose,
-  onSubmit
+  initialValues,
+  addressBookDisabled = false,
+  backTo,
+  onSubmit,
+  onCancel
 }) => {
   const { t } = useI18n()
-  const [values, setValues] = useState<ContactFormValues>(() => ({
-    ...initialValues,
-    addressBookId: initialValues.addressBookId || (addressBooks[0]?.id ?? '')
-  }))
+  const [values, setValues] = useState<ContactFormValues>(initialValues)
 
   const setField = <K extends keyof ContactFormValues>(
     key: K,
@@ -276,170 +276,155 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
     setField(key, [...values[key], { type, value: '' }])
   }
 
-  const handleSubmit = (): void => {
-    onSubmit(values)
-  }
-
   const canSubmit =
     Boolean(values.addressBookId) &&
     Boolean(values.givenName.trim() || values.familyName.trim())
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        <ListItem
-          disableGutters
-          disablePadding
-          secondaryAction={
-            <IconButton
-              edge="end"
-              aria-label={t('contacts.form.close')}
-              onClick={onClose}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          }
-        >
-          {title}
-        </ListItem>
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2}>
-          <FieldRow icon={People}>
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={3}>
-                <TextField
-                  fullWidth
-                  variant="standard"
-                  placeholder={t('contacts.form.firstName')}
-                  value={values.givenName}
-                  onChange={e => setField('givenName', e.target.value)}
-                  slotProps={{
-                    htmlInput: { 'aria-label': t('contacts.form.firstName') }
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  variant="standard"
-                  placeholder={t('contacts.form.lastName')}
-                  value={values.familyName}
-                  onChange={e => setField('familyName', e.target.value)}
-                  slotProps={{
-                    htmlInput: { 'aria-label': t('contacts.form.lastName') }
-                  }}
-                />
-              </Stack>
-              <Autocomplete
-                multiple
-                freeSolo
-                options={categoryOptions}
-                value={values.categories}
-                onChange={(_e, categories) =>
-                  setField('categories', categories)
-                }
-                renderValue={(selected, getItemProps) =>
-                  selected.map((category, index) => {
-                    const { key, ...itemProps } = getItemProps({ index })
-                    return (
-                      <Chip
-                        key={key}
-                        label={category}
-                        size="small"
-                        square
-                        {...itemProps}
-                      />
-                    )
-                  })
-                }
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    variant="standard"
-                    placeholder={t('contacts.form.addTeam')}
-                    slotProps={{
-                      ...params.slotProps,
-                      htmlInput: {
-                        ...params.slotProps.htmlInput,
-                        'aria-label': t('contacts.form.addTeam')
-                      }
-                    }}
-                  />
-                )}
+    <Stack spacing={3}>
+      <Button
+        component={Link}
+        to={backTo}
+        variant="text"
+        startIcon={<Icon icon={Left} />}
+      >
+        {t('contacts.back')}
+      </Button>
+      <Typography variant="h4">{title}</Typography>
+      <Stack spacing={2}>
+        <FieldRow icon={People}>
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={3}>
+              <TextField
+                fullWidth
+                variant="standard"
+                placeholder={t('contacts.form.firstName')}
+                value={values.givenName}
+                onChange={e => setField('givenName', e.target.value)}
+                slotProps={{
+                  htmlInput: { 'aria-label': t('contacts.form.firstName') }
+                }}
+              />
+              <TextField
+                fullWidth
+                variant="standard"
+                placeholder={t('contacts.form.lastName')}
+                value={values.familyName}
+                onChange={e => setField('familyName', e.target.value)}
+                slotProps={{
+                  htmlInput: { 'aria-label': t('contacts.form.lastName') }
+                }}
               />
             </Stack>
-          </FieldRow>
-          <FieldRow icon={Contacts}>
-            <TextField
-              select
-              fullWidth
-              variant="standard"
-              value={values.addressBookId}
-              onChange={e => setField('addressBookId', e.target.value)}
-              slotProps={{
-                select: { 'aria-label': t('contacts.form.addressBook') }
-              }}
-            >
-              {addressBooks.map(book => (
-                <MenuItem key={book.id} value={book.id}>
-                  {getAddressBookDisplayName(book, t) ||
-                    t('contacts.myContacts')}
-                </MenuItem>
-              ))}
-            </TextField>
-          </FieldRow>
-          <FieldRow icon={Matrix}>
-            <TextField
-              fullWidth
-              variant="standard"
-              placeholder={t('contacts.form.matrixId')}
-              value={values.matrixId}
-              onChange={e => setField('matrixId', e.target.value)}
-              slotProps={{
-                htmlInput: { 'aria-label': t('contacts.form.matrixId') }
-              }}
+            <Autocomplete
+              multiple
+              freeSolo
+              options={categoryOptions}
+              value={values.categories}
+              onChange={(_e, categories) => setField('categories', categories)}
+              renderValue={(selected, getItemProps) =>
+                selected.map((category, index) => {
+                  const { key, ...itemProps } = getItemProps({ index })
+                  return (
+                    <Chip
+                      key={key}
+                      label={category}
+                      size="small"
+                      square
+                      {...itemProps}
+                    />
+                  )
+                })
+              }
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  variant="standard"
+                  placeholder={t('contacts.form.addTeam')}
+                  slotProps={{
+                    ...params.slotProps,
+                    htmlInput: {
+                      ...params.slotProps.htmlInput,
+                      'aria-label': t('contacts.form.addTeam')
+                    }
+                  }}
+                />
+              )}
             />
-          </FieldRow>
-          <EntryList
-            icon={Phone}
-            entries={values.phones}
-            types={PHONE_TYPES}
-            placeholder={t('contacts.form.phone')}
-            addLabel={t('contacts.form.addPhone')}
-            onChange={updateEntry('phones')}
-            onAdd={addEntry('phones', 'cell')}
+          </Stack>
+        </FieldRow>
+        <FieldRow icon={Contacts}>
+          <TextField
+            select
+            fullWidth
+            variant="standard"
+            disabled={addressBookDisabled}
+            value={values.addressBookId}
+            onChange={e => setField('addressBookId', e.target.value)}
+            slotProps={{
+              select: { 'aria-label': t('contacts.form.addressBook') }
+            }}
+          >
+            {addressBooks.map(book => (
+              <MenuItem key={book.id} value={book.id}>
+                {getAddressBookDisplayName(book, t) ||
+                  t('contacts.myContacts')}
+              </MenuItem>
+            ))}
+          </TextField>
+        </FieldRow>
+        <FieldRow icon={Matrix}>
+          <TextField
+            fullWidth
+            variant="standard"
+            placeholder={t('contacts.form.matrixId')}
+            value={values.matrixId}
+            onChange={e => setField('matrixId', e.target.value)}
+            slotProps={{
+              htmlInput: { 'aria-label': t('contacts.form.matrixId') }
+            }}
           />
-          <EntryList
-            icon={Email}
-            entries={values.emails}
-            types={EMAIL_TYPES}
-            placeholder={t('contacts.form.email')}
-            addLabel={t('contacts.form.addEmail')}
-            onChange={updateEntry('emails')}
-            onAdd={addEntry('emails', 'work')}
-          />
-          <EntryList
-            icon={Location}
-            entries={values.addresses}
-            types={ADDRESS_TYPES}
-            placeholder={t('contacts.form.address')}
-            addLabel={t('contacts.form.addAddress')}
-            onChange={updateEntry('addresses')}
-            onAdd={addEntry('addresses', 'home')}
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={onClose}>
+        </FieldRow>
+        <EntryList
+          icon={Phone}
+          entries={values.phones}
+          types={PHONE_TYPES}
+          placeholder={t('contacts.form.phone')}
+          addLabel={t('contacts.form.addPhone')}
+          onChange={updateEntry('phones')}
+          onAdd={addEntry('phones', 'cell')}
+        />
+        <EntryList
+          icon={Email}
+          entries={values.emails}
+          types={EMAIL_TYPES}
+          placeholder={t('contacts.form.email')}
+          addLabel={t('contacts.form.addEmail')}
+          onChange={updateEntry('emails')}
+          onAdd={addEntry('emails', 'work')}
+        />
+        <EntryList
+          icon={Location}
+          entries={values.addresses}
+          types={ADDRESS_TYPES}
+          placeholder={t('contacts.form.address')}
+          addLabel={t('contacts.form.addAddress')}
+          onChange={updateEntry('addresses')}
+          onAdd={addEntry('addresses', 'home')}
+        />
+      </Stack>
+      <Stack direction="row" spacing={2} justifyContent="flex-end">
+        <Button variant="outlined" onClick={onCancel}>
           {t('contacts.form.cancel')}
         </Button>
         <Button
           variant="contained"
           disabled={!canSubmit}
-          onClick={handleSubmit}
+          onClick={() => void onSubmit(values)}
         >
           {t('contacts.form.save')}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Stack>
+    </Stack>
   )
 }

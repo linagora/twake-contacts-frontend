@@ -7,23 +7,12 @@ import {
 } from '@linagora/twake-mui'
 import { Dots, Icon, Pen, Trash } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import {
-  deleteContact,
-  updateContact
-} from '@common/features/Contacts/ContactsSlice'
-import {
-  selectBook,
-  selectCategories
-} from '@common/features/Contacts/contactsSelectors'
+import { deleteContact } from '@common/features/Contacts/ContactsSlice'
+import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-import {
-  ContactFormDialog,
-  ContactFormValues,
-  makeContactFromForm,
-  makeFormValuesFromContact
-} from './ContactFormDialog'
 import { DeleteContactDialog } from './DeleteContactDialog'
 
 interface ContactActionsMenuProps {
@@ -32,7 +21,7 @@ interface ContactActionsMenuProps {
   onDeleted?: () => void
 }
 
-type OpenDialog = 'edit' | 'delete' | null
+type OpenDialog = 'delete' | null
 
 export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   contact,
@@ -41,9 +30,9 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
 }) => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
-  const categories = useAppSelector(selectCategories)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
 
@@ -59,20 +48,8 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
     setOpenDialog(dialog)
   }
 
-  const handleEdit = async (values: ContactFormValues): Promise<void> => {
-    if (!openpaasId) return
-    try {
-      await dispatch(
-        updateContact({
-          userId: openpaasId,
-          addressBookId,
-          contact: makeContactFromForm(values, contact)
-        })
-      ).unwrap()
-      setOpenDialog(null)
-    } catch {
-      // error is surfaced by the contacts slice
-    }
+  const handleEdit = (): void => {
+    void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
   }
 
   const handleDelete = async (): Promise<void> => {
@@ -102,7 +79,7 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
         anchorEl={anchorEl}
         onClose={handleCloseMenu}
       >
-        <MenuItem onClick={openDialogFromMenu('edit')}>
+        <MenuItem onClick={handleEdit}>
           <ListItemIcon>
             <Icon icon={Pen} />
           </ListItemIcon>
@@ -117,21 +94,11 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
           </ListItemText>
         </MenuItem>
       </Menu>
-      {openDialog === 'edit' && book && (
-        <ContactFormDialog
-          title={t('contacts.form.editTitle')}
-          addressBooks={[book]}
-          categoryOptions={categories}
-          initialValues={makeFormValuesFromContact(contact, addressBookId)}
-          onClose={handleCloseDialog}
-          onSubmit={handleEdit}
-        />
-      )}
       {openDialog === 'delete' && (
         <DeleteContactDialog
           contact={contact}
           onClose={handleCloseDialog}
-          onConfirm={handleDelete}
+          onConfirm={() => void handleDelete()}
         />
       )}
     </>

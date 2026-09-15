@@ -7,55 +7,20 @@ import {
   ListItemText
 } from '@linagora/twake-mui'
 import { Company, Contacts, Icon, Plus } from '@linagora/twake-icons'
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { createContact } from '@common/features/Contacts/ContactsSlice'
-import {
-  selectCategories,
-  selectWritableBooks
-} from '@common/features/Contacts/contactsSelectors'
+import { useAppSelector } from '@common/app/hooks'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-import {
-  ContactFormDialog,
-  ContactFormValues,
-  EMPTY_CONTACT_FORM_VALUES,
-  makeContactFromForm
-} from './ContactFormDialog'
 
 const MY_CONTACTS_ID = 'contacts'
 
 export const ContactsSidebar: React.FC = () => {
   const { t } = useI18n()
-  const dispatch = useAppDispatch()
   const { addressBookId } = useParams()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
-  const categories = useAppSelector(selectCategories)
-  const writableBooks = useAppSelector(selectWritableBooks)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
   const otherBooks = Object.values(addressBooks).filter(
     book => book.id !== 'collected' && book.id !== MY_CONTACTS_ID
   )
-
-  const handleOpenCreate = (): void => setIsCreateOpen(true)
-  const handleCloseCreate = (): void => setIsCreateOpen(false)
-  const handleCreate = async (values: ContactFormValues): Promise<void> => {
-    if (!openpaasId) return
-    try {
-      await dispatch(
-        createContact({
-          userId: openpaasId,
-          addressBookId: values.addressBookId,
-          contact: makeContactFromForm(values)
-        })
-      ).unwrap()
-      setIsCreateOpen(false)
-    } catch {
-      // error is surfaced by the contacts slice
-    }
-  }
 
   return (
     <>
@@ -65,7 +30,8 @@ export const ContactsSidebar: React.FC = () => {
             variant="contained"
             fullWidth
             startIcon={<Icon icon={Plus} />}
-            onClick={handleOpenCreate}
+            component={Link}
+            to="/contacts/new"
           >
             {t('contacts.create')}
           </Button>
@@ -97,21 +63,6 @@ export const ContactsSidebar: React.FC = () => {
           </ListItem>
         ))}
       </List>
-      {isCreateOpen && (
-        <ContactFormDialog
-          title={t('contacts.form.createTitle')}
-          addressBooks={writableBooks}
-          categoryOptions={categories}
-          initialValues={{
-            ...EMPTY_CONTACT_FORM_VALUES,
-            addressBookId: writableBooks.some(book => book.id === addressBookId)
-              ? (addressBookId ?? '')
-              : ''
-          }}
-          onClose={handleCloseCreate}
-          onSubmit={handleCreate}
-        />
-      )}
     </>
   )
 }

@@ -1,0 +1,87 @@
+import { Button, Stack, Typography } from '@linagora/twake-mui'
+import { Icon, Left } from '@linagora/twake-icons'
+import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { updateContact } from '@common/features/Contacts/ContactsSlice'
+import {
+  selectBook,
+  selectCategories
+} from '@common/features/Contacts/contactsSelectors'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useI18n } from 'twake-i18n'
+import {
+  ContactForm,
+  ContactFormValues,
+  makeContactFromForm,
+  makeFormValuesFromContact
+} from './ContactForm'
+
+export const EditContactPage: React.FC = () => {
+  const { t } = useI18n()
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { addressBookId = '', contactId } = useParams()
+  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
+  const book = useAppSelector(state => selectBook(state, addressBookId))
+  const categories = useAppSelector(selectCategories)
+  const contact = useAppSelector(state =>
+    state.contacts.addressBooks[addressBookId]?.contacts.find(
+      c => c.id === contactId
+    )
+  )
+
+  if (!contact) {
+    return (
+      <Stack spacing={3}>
+        <Button
+          component={Link}
+          to={`/contacts/${addressBookId}`}
+          variant="text"
+          startIcon={<Icon icon={Left} />}
+        >
+          {t('contacts.back')}
+        </Button>
+        <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
+      </Stack>
+    )
+  }
+
+  const initialValues: ContactFormValues = {
+    ...makeFormValuesFromContact(contact, addressBookId),
+    addressBookId
+  }
+
+  const backTo = `/contacts/${addressBookId}/${contactId}`
+
+  const handleSubmit = async (values: ContactFormValues): Promise<void> => {
+    if (!openpaasId) return
+    try {
+      await dispatch(
+        updateContact({
+          userId: openpaasId,
+          addressBookId,
+          contact: makeContactFromForm(values, contact)
+        })
+      ).unwrap()
+      void navigate(backTo)
+    } catch {
+      // error is surfaced by the contacts slice
+    }
+  }
+
+  const handleCancel = (): void => {
+    void navigate(backTo)
+  }
+
+  return (
+    <ContactForm
+      title={t('contacts.form.editTitle')}
+      addressBooks={book ? [book] : []}
+      categoryOptions={categories}
+      initialValues={initialValues}
+      addressBookDisabled
+      backTo={backTo}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+    />
+  )
+}

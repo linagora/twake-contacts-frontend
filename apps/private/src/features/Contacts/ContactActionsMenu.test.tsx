@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router-dom'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
 import { deleteContact } from '@common/features/Contacts/ContactsDao'
@@ -33,11 +34,13 @@ describe('ContactActionsMenu', () => {
     render(
       <Provider store={store}>
         <I18n dictRequire={() => en} lang="en">
-          <ContactActionsMenu
-            contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
-            addressBookId="book1"
-            onDeleted={onDeleted}
-          />
+          <MemoryRouter>
+            <ContactActionsMenu
+              contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
+              addressBookId="book1"
+              onDeleted={onDeleted}
+            />
+          </MemoryRouter>
         </I18n>
       </Provider>
     )
