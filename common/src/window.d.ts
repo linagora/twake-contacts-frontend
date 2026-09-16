@@ -19,5 +19,7 @@ declare global {
 
     DEBUG: boolean
     LANG: string
+
+    CONTACTS_NS: string | undefined
   }
 }

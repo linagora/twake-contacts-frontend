@@ -7,5 +7,6 @@ var SSO_CODE_CHALLENGE_METHOD = 'S256'
 var SSO_POST_LOGOUT_REDIRECT = 'http://example.com?logout=1'
 var SIDE_SERVICE_BASE_URL = 'https://openpaas.example.com'
 var DAV_BASE_URL = 'https://dav.example.com'
+var CONTACTS_NS = 'http://open-paas.org/contacts'
 var DEBUG = false
 var LANG = 'en'

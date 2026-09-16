@@ -80,6 +80,13 @@ export interface DavAddressBookItem {
   '{http://open-paas.org/contacts}numberOfContacts'?: number
   '{http://open-paas.org/contacts}type'?: string
   '{http://open-paas.org/contacts}state'?: string
+  '{http://open-paas.org/contacts}subscription-type'?: string
+  '{http://open-paas.org/contacts}source'?: string
+  [key: `${string}numberOfContacts`]: number | undefined
+  [key: `${string}type`]: string | undefined
+  [key: `${string}state`]: string | undefined
+  [key: `${string}subscription-type`]: string | undefined
+  [key: `${string}source`]: string | undefined
   '{DAV:}share-access'?: number | null
 }
 

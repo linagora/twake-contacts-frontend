@@ -12,6 +12,8 @@ import {
   normalizeContact
 } from './transformer/ContactsTransformer'
 
+const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
+
 export async function fetchAddressBooks(
   userId: string,
   domains?: DomainInfo[]
@@ -56,11 +58,11 @@ async function fetchDomainAddressBooks(
               '{DAV:}invite',
               '{DAV:}share-access',
               '{DAV:}group',
-              '{http://open-paas.org/contacts}subscription-type',
-              '{http://open-paas.org/contacts}source',
-              '{http://open-paas.org/contacts}type',
-              '{http://open-paas.org/contacts}state',
-              '{http://open-paas.org/contacts}numberOfContacts',
+              `{${CONTACTS_NS}}subscription-type`,
+              `{${CONTACTS_NS}}source`,
+              `{${CONTACTS_NS}}type`,
+              `{${CONTACTS_NS}}state`,
+              `{${CONTACTS_NS}}numberOfContacts`,
               'acl'
             ]
           }
@@ -87,7 +89,7 @@ function normalizeDomainAddressBook(
     id: 'dab',
     userId: domainId,
     name: raw['{DAV:}displayname'] ?? '',
-    contactsCount: raw['{http://open-paas.org/contacts}numberOfContacts'] ?? 0,
+    contactsCount: raw[`{${CONTACTS_NS}}numberOfContacts`] ?? 0,
     acl,
     canWrite: acl.some(p => p === '{DAV:}write-content' || p === '{DAV:}bind')
   }
