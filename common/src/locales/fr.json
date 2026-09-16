@@ -26,11 +26,14 @@
       "addEmail": "Ajouter un e-mail",
       "address": "Adresse",
       "addAddress": "Ajouter une adresse",
+      "addField": "Ajouter",
+      "remove": "Supprimer",
       "type": "Type",
       "cancel": "Annuler",
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
-      "editTitle": "Modifier le contact"
+      "editTitle": "Modifier le contact",
+      "newContact": "Nouveau contact"
     },
     "types": {
       "cell": "Mobile",

@@ -26,11 +26,14 @@
       "addEmail": "Добавить эл. почту",
       "address": "Адрес",
       "addAddress": "Добавить адрес",
+      "addField": "Добавить",
+      "remove": "Удалить",
       "type": "Тип",
       "cancel": "Отмена",
       "save": "Сохранить",
       "addressBook": "Адресная книга",
-      "editTitle": "Изменить контакт"
+      "editTitle": "Изменить контакт",
+      "newContact": "Новый контакт"
     },
     "types": {
       "cell": "Мобильный",

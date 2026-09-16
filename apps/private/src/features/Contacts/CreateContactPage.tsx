@@ -60,9 +60,7 @@ export const CreateContactPage: React.FC = () => {
 
   return (
     <ContactForm
-      title={t('contacts.form.createTitle')}
       addressBooks={writableBooks}
-      categoryOptions={categories}
       initialValues={initialValues}
       backTo={backTo}
       onSubmit={handleSubmit}
