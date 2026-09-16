@@ -23,7 +23,7 @@ export const ContactsPage: React.FC = () => {
       <Container component="main">
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
-        {!loading && !error && <Outlet />}
+        {!loading && <Outlet />}
       </Container>
     </Stack>
   )

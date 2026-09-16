@@ -1,5 +1,4 @@
 - Dictionary-based data structure mapping address books to their contacts
-- Standard modals (no route-based modal pattern)
 - Shared addressbooks User ID persisted in the addressbooks dictonary 
 - Sidebar selection navigates to /contacts/:addressBookId
 - Contact selection navigates to /contacts/:addressBookId/:contactId

@@ -367,8 +367,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           >
             {addressBooks.map(book => (
               <MenuItem key={book.id} value={book.id}>
-                {getAddressBookDisplayName(book, t) ||
-                  t('contacts.myContacts')}
+                {getAddressBookDisplayName(book, t) || t('contacts.myContacts')}
               </MenuItem>
             ))}
           </TextField>
