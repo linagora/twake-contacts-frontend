@@ -12,7 +12,10 @@
     "back": "Retour",
     "copy": "Copier",
     "notFound": "Contact introuvable",
-    "empty": "Aucun contact dans ce carnet d'adresses",
+    "empty": {
+      "title": "Aucun contact",
+      "subtitle": "Vos contacts apparaîtront ici une fois que vous les aurez ajoutés."
+    },
     "form": {
       "createTitle": "Créer un contact",
       "close": "Fermer",

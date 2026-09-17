@@ -12,7 +12,10 @@
     "back": "Quay lại",
     "copy": "Sao chép",
     "notFound": "Không tìm thấy liên hệ",
-    "empty": "Không có liên hệ nào trong sổ địa chỉ này",
+    "empty": {
+      "title": "Chưa có liên hệ",
+      "subtitle": "Danh bạ của bạn sẽ xuất hiện ở đây sau khi bạn thêm."
+    },
     "form": {
       "createTitle": "Tạo liên hệ",
       "close": "Đóng",

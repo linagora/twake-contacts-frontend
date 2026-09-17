@@ -12,7 +12,10 @@
     "back": "Back",
     "copy": "Copy",
     "notFound": "Contact not found",
-    "empty": "No contacts in this address book",
+    "empty": {
+      "title": "No contacts yet",
+      "subtitle": "Your contacts will appear here once you add them."
+    },
     "form": {
       "createTitle": "Create contact",
       "close": "Close",

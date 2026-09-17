@@ -1,13 +1,14 @@
-import { Typography } from '@linagora/twake-mui'
 import { useAppSelector } from '@common/app/hooks'
 import {
   selectBook,
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { Typography } from '@linagora/twake-mui'
 import { useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
+import { NoContactsEmptyState } from './NoContactsEmptyState'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
@@ -26,7 +27,7 @@ export const AddressBookPage: React.FC = () => {
         {title}
       </Typography>
       {entries.length === 0 ? (
-        <Typography color="text.secondary">{t('contacts.empty')}</Typography>
+        <NoContactsEmptyState />
       ) : (
         <ContactsTable entries={entries} />
       )}
