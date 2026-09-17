@@ -1,7 +1,10 @@
 import { Button, Stack, Typography } from '@linagora/twake-mui'
 import { Icon, Left } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { updateContact } from '@common/features/Contacts/ContactsSlice'
+import {
+  deleteContact,
+  updateContact
+} from '@common/features/Contacts/ContactsSlice'
 import {
   selectBook,
   selectCategories
@@ -68,8 +71,20 @@ export const EditContactPage: React.FC = () => {
     }
   }
 
-  const handleCancel = (): void => {
-    void navigate(backTo)
+  const handleDelete = async (): Promise<void> => {
+    if (!openpaasId) return
+    try {
+      await dispatch(
+        deleteContact({
+          userId: openpaasId,
+          addressBookId,
+          contactId
+        })
+      ).unwrap()
+      void navigate(`/contacts/${addressBookId}`)
+    } catch {
+      // error is surfaced by the contacts slice
+    }
   }
 
   return (
@@ -81,7 +96,7 @@ export const EditContactPage: React.FC = () => {
       addressBookDisabled
       backTo={backTo}
       onSubmit={handleSubmit}
-      onCancel={handleCancel}
+      onDelete={handleDelete}
     />
   )
 }

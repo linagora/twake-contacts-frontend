@@ -48,17 +48,12 @@ export const CreateContactPage: React.FC = () => {
     }
   }
 
-  const handleCancel = (): void => {
-    void navigate(backTo)
-  }
-
   return (
     <ContactForm
       addressBooks={writableBooks}
       initialValues={initialValues}
       backTo={backTo}
       onSubmit={handleSubmit}
-      onCancel={handleCancel}
     />
   )
 }

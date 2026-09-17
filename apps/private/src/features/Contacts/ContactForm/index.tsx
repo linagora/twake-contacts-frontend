@@ -1,11 +1,24 @@
-import { Button, Menu, MenuItem, Stack } from '@linagora/twake-mui'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Grid
+} from '@linagora/twake-mui'
 import {
   Icon,
   Left,
   Location,
   Plus,
   Telephone,
-  Email
+  Email,
+  Trash
 } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { useState } from 'react'
@@ -42,7 +55,7 @@ interface ContactFormProps {
   addressBookDisabled?: boolean
   backTo: string
   onSubmit: (values: ContactFormValues) => void | Promise<void>
-  onCancel: () => void
+  onDelete?: () => void
 }
 
 export const ContactForm: React.FC<ContactFormProps> = ({
@@ -51,10 +64,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   addressBookDisabled = false,
   backTo,
   onSubmit,
-  onCancel
+  onDelete
 }) => {
   const { t } = useI18n()
   const [values, setValues] = useState<ContactFormValues>(initialValues)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const displayName = [values.givenName, values.familyName]
     .filter(Boolean)
@@ -131,9 +145,26 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       >
         {t('contacts.back')}
       </Button>
-
-      <AvatarHeader displayName={displayName} />
-
+      <Grid container spacing={2}>
+        <AvatarHeader displayName={displayName} />
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="contained"
+            disabled={!canSubmit}
+            onClick={() => void onSubmit(values)}
+          >
+            {t('contacts.form.save')}
+          </Button>
+          {onDelete && (
+            <IconButton
+              aria-label={t('contacts.menu.delete')}
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Icon icon={Trash} />
+            </IconButton>
+          )}
+        </Stack>
+      </Grid>
       <Stack spacing={3}>
         <NameFields
           givenName={values.givenName}
@@ -218,18 +249,39 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         </div>
       </Stack>
 
-      <Stack direction="row" spacing={2}>
-        <Button variant="outlined" onClick={onCancel}>
-          {t('contacts.form.cancel')}
-        </Button>
-        <Button
-          variant="contained"
-          disabled={!canSubmit}
-          onClick={() => void onSubmit(values)}
+      {showDeleteDialog && onDelete && (
+        <Dialog
+          open
+          onClose={() => setShowDeleteDialog(false)}
+          fullWidth
+          maxWidth="sm"
         >
-          {t('contacts.form.save')}
-        </Button>
-      </Stack>
+          <DialogTitle>{t('contacts.delete.title')}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {t('contacts.delete.description')}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="outlined"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              {t('contacts.form.cancel')}
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                setShowDeleteDialog(false)
+                onDelete()
+              }}
+            >
+              {t('contacts.delete.confirm')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Stack>
   )
 }

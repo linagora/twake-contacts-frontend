@@ -139,10 +139,10 @@ describe('EditContactPage', () => {
     expect(addressBookSelect).toHaveTextContent('Book 1')
   })
 
-  it('navigates back on cancel', () => {
+  it('navigates back on back button', () => {
     renderPage(['/contacts/book1', '/contacts/book1/c1/edit'])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('link', { name: /back/i }))
 
     expect(screen.getByText('Contact')).toBeInTheDocument()
   })
