@@ -33,7 +33,8 @@
       "save": "Lưu",
       "addressBook": "Sổ địa chỉ",
       "editTitle": "Chỉnh sửa liên hệ",
-      "newContact": "Liên hệ mới"
+      "newContact": "Liên hệ mới",
+      "invalidEmail": "Địa chỉ email không hợp lệ"
     },
     "types": {
       "cell": "Di động",

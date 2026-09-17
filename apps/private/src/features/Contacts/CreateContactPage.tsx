@@ -1,11 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
-import {
-  selectCategories,
-  selectWritableBooks
-} from '@common/features/Contacts/contactsSelectors'
+import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useI18n } from 'twake-i18n'
 import {
   ContactForm,
   ContactFormValues,
@@ -14,13 +10,11 @@ import {
 } from './ContactForm'
 
 export const CreateContactPage: React.FC = () => {
-  const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const writableBooks = useAppSelector(selectWritableBooks)
-  const categories = useAppSelector(selectCategories)
 
   const initialValues: ContactFormValues = {
     ...EMPTY_CONTACT_FORM_VALUES,

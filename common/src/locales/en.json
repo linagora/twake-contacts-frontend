@@ -33,7 +33,8 @@
       "save": "Save",
       "addressBook": "Address book",
       "editTitle": "Edit contact",
-      "newContact": "New contact"
+      "newContact": "New contact",
+      "invalidEmail": "Invalid email address"
     },
     "types": {
       "cell": "Mobile",

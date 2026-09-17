@@ -33,7 +33,8 @@
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
       "editTitle": "Modifier le contact",
-      "newContact": "Nouveau contact"
+      "newContact": "Nouveau contact",
+      "invalidEmail": "Adresse email invalide"
     },
     "types": {
       "cell": "Mobile",

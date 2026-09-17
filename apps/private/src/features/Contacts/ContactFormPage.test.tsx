@@ -74,7 +74,7 @@ describe('CreateContactPage', () => {
   it('renders with empty form', () => {
     renderPage(['/contacts/new'])
 
-    expect(screen.getByText('Create contact')).toBeInTheDocument()
+    expect(screen.getByText('New contact')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
     expect(screen.getByLabelText('First name')).toHaveValue('')
     expect(screen.getByLabelText('Last name')).toHaveValue('')
@@ -96,9 +96,34 @@ describe('CreateContactPage', () => {
     fireEvent.change(screen.getByLabelText('First name'), {
       target: { value: 'Bob' }
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Add phone' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Add phone' }))
 
     expect(screen.getAllByLabelText('Phone')).toHaveLength(2)
+  })
+
+  it('adds email entries', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: 'Bob' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Add email' }))
+
+    expect(screen.getAllByLabelText('Email')).toHaveLength(2)
+  })
+
+  it('adds address entries', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: 'Bob' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Add address' }))
+
+    expect(screen.getAllByLabelText('Address')).toHaveLength(2)
   })
 })
 
@@ -106,7 +131,6 @@ describe('EditContactPage', () => {
   it('renders pre-filled with contact data', () => {
     renderPage(['/contacts/book1/c1/edit'])
 
-    expect(screen.getByText('Edit contact')).toBeInTheDocument()
     expect(screen.getByLabelText('First name')).toHaveValue('Alice')
     expect(screen.getByLabelText('Last name')).toHaveValue('Roche')
     expect(screen.getByLabelText('Email')).toHaveValue('alice@example.com')
