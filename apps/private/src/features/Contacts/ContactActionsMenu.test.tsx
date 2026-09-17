@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import I18n from 'twake-i18n'
@@ -45,10 +51,11 @@ describe('ContactActionsMenu', () => {
       </Provider>
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
-    expect(screen.getByText('Delete this contact?')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    expect(screen.getByText('Delete this contact?')).toBeInTheDocument()
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' })
+    )
 
     await waitFor(() => expect(onDeleted).toHaveBeenCalled())
     expect(deleteContact).toHaveBeenCalledWith('u1', 'book1', 'c1')

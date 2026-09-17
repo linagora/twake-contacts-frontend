@@ -1,15 +1,10 @@
-import {
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem
-} from '@linagora/twake-mui'
-import { Dots, Icon, Pen, Trash } from '@linagora/twake-icons'
+import { Button, IconButton, Stack } from '@linagora/twake-mui'
+import { Icon, Trash } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { deleteContact } from '@common/features/Contacts/ContactsSlice'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
+import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
@@ -33,20 +28,13 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   const navigate = useNavigate()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   if (!book?.canWrite) return null
 
-  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>): void => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleCloseMenu = (): void => setAnchorEl(null)
   const handleCloseDialog = (): void => setOpenDialog(null)
-  const openDialogFromMenu = (dialog: OpenDialog) => (): void => {
-    setAnchorEl(null)
-    setOpenDialog(dialog)
-  }
+  const handleOpenDeleteDialog = (): void => setOpenDialog('delete')
 
   const handleEdit = (): void => {
     void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
@@ -64,36 +52,25 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
       ).unwrap()
       setOpenDialog(null)
       onDeleted?.()
-    } catch {
-      // error is surfaced by the contacts slice
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      setDeleteError(err.message || t('error.unknown'))
     }
   }
 
   return (
     <>
-      <IconButton aria-label={t('contacts.menu.more')} onClick={handleOpenMenu}>
-        <Icon icon={Dots} />
-      </IconButton>
-      <Menu
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={handleCloseMenu}
-      >
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <Icon icon={Pen} />
-          </ListItemIcon>
-          <ListItemText>{t('contacts.menu.edit')}</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={openDialogFromMenu('delete')}>
-          <ListItemIcon>
-            <Icon icon={Trash} />
-          </ListItemIcon>
-          <ListItemText slotProps={{ primary: { color: 'error' } }}>
-            {t('contacts.menu.delete')}
-          </ListItemText>
-        </MenuItem>
-      </Menu>
+      <Stack direction="row" spacing={1}>
+        <Button variant="contained" onClick={handleEdit}>
+          {t('contacts.menu.edit')}
+        </Button>
+        <IconButton
+          aria-label={t('contacts.menu.delete')}
+          onClick={handleOpenDeleteDialog}
+        >
+          <Icon icon={Trash} />
+        </IconButton>
+      </Stack>
       {openDialog === 'delete' && (
         <DeleteContactDialog
           contact={contact}
@@ -101,6 +78,7 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
           onConfirm={() => void handleDelete()}
         />
       )}
+      <ErrorSnackbar error={deleteError} onClose={() => setDeleteError(null)} />
     </>
   )
 }

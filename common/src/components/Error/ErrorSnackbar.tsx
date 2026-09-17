@@ -3,15 +3,25 @@ import { clearError as userClearError } from '@common/features/User/UserSlice'
 import { Alert, Button, Snackbar } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 
-export function ErrorSnackbar({ error }: { error: string | null }) {
+export function ErrorSnackbar({
+  error,
+  onClose
+}: {
+  error: string | null
+  onClose?: () => void
+}): React.ReactElement | null {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
 
-  const handleCloseSnackbar = () => {
-    dispatch(userClearError())
+  const handleCloseSnackbar = (): void => {
+    if (onClose) {
+      onClose()
+    } else {
+      dispatch(userClearError())
+    }
   }
 
-  const getErrorMessage = () => {
+  const getErrorMessage = (): string => {
     if (!error) return t('error.unknown')
 
     // Check if error message is a translation key with params
