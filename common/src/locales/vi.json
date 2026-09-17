@@ -52,7 +52,9 @@
     "menu": {
       "more": "Thao tác khác",
       "edit": "Chỉnh sửa",
-      "delete": "Xóa"
+      "delete": "Xóa",
+      "chat": "Trò chuyện",
+      "mail": "Gửi email"
     },
     "delete": {
       "title": "Xóa liên hệ này?",

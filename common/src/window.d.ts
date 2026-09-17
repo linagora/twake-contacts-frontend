@@ -21,5 +21,9 @@ declare global {
     LANG: string
 
     CONTACTS_NS: string | undefined
+
+    CHAT_SPA_URL: string | undefined
+    MAIL_SPA_URL: string | undefined
+    WORKPLACE_FQDN_FALLBACK: string | undefined
   }
 }

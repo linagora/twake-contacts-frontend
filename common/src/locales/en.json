@@ -52,7 +52,9 @@
     "menu": {
       "more": "More actions",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "chat": "Chat",
+      "mail": "Send email"
     },
     "delete": {
       "title": "Delete this contact?",

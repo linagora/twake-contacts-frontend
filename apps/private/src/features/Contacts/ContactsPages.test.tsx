@@ -3,6 +3,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
+import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { AddressBookPage } from './AddressBookPage'
 import { ContactPage } from './ContactPage'
@@ -11,6 +12,21 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
   render(
     <Provider
       store={setupStore({
+        user: {
+          userData: {
+            email: 'user@twake.app',
+            name: 'Test User',
+            given_name: 'Test',
+            family_name: 'User',
+            sid: 's1',
+            sub: 'sub1',
+            workplaceFqdn: 'user.twake.linagora.com'
+          },
+          tokens: null,
+          coreConfig: { language: null, datetime: { timeZone: null } },
+          loading: false,
+          error: null
+        } as UserState,
         contacts: {
           addressBooks: {
             book2: {
@@ -91,6 +107,33 @@ describe('AddressBookPage', () => {
 })
 
 describe('ContactPage', () => {
+  const originalMailSpaUrl = (window as Window & { MAIL_SPA_URL?: string })
+    .MAIL_SPA_URL
+  const originalChatSpaUrl = (window as Window & { CHAT_SPA_URL?: string })
+    .CHAT_SPA_URL
+
+  beforeEach(() => {
+    ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
+      'https://mail.example.com'
+    ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
+      'https://chat.example.com/#/chat/@{target}'
+  })
+
+  afterEach(() => {
+    if (originalMailSpaUrl !== undefined) {
+      ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
+        originalMailSpaUrl
+    } else {
+      delete (window as Window & { MAIL_SPA_URL?: string }).MAIL_SPA_URL
+    }
+    if (originalChatSpaUrl !== undefined) {
+      ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
+        originalChatSpaUrl
+    } else {
+      delete (window as Window & { CHAT_SPA_URL?: string }).CHAT_SPA_URL
+    }
+  })
+
   it('renders the contact details', () => {
     renderContacts('/contacts/book1/c1')
 
@@ -105,6 +148,13 @@ describe('ContactPage', () => {
       'href',
       '/contacts/book1'
     )
+  })
+
+  it('hides quick action buttons when contact has no email', () => {
+    renderContacts('/contacts/book2/c2')
+
+    expect(screen.queryByTestId('contact-mail-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('contact-chat-button')).not.toBeInTheDocument()
   })
 
   it('shows a not found message for an unknown contact', () => {

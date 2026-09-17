@@ -52,7 +52,9 @@
     "menu": {
       "more": "Plus d'actions",
       "edit": "Modifier",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "chat": "Discuter",
+      "mail": "Envoyer un email"
     },
     "delete": {
       "title": "Supprimer ce contact ?",

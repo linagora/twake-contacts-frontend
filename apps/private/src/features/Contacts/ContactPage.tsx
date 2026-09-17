@@ -14,6 +14,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import {
+  Discuss,
   Copy,
   Email,
   Icon,
@@ -26,6 +27,8 @@ import {
 } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
 import { ContactAddress } from '@common/features/Contacts/contactsTypes'
+import { openMailComposer } from '@common/utils/mailSpaUrl'
+import { openChat } from '@common/utils/chatSpaUrl'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
@@ -127,7 +130,26 @@ export const ContactPage: React.FC = () => {
   const contact = useAppSelector(
     state => state.contacts.addressBooks[addressBookId]?.contacts
   )?.find(c => c.id === contactId)
+  const workplaceFqdn = useAppSelector(
+    state => state.user.userData?.workplaceFqdn
+  )
   const handleDeleted = (): void => void navigate(`/contacts/${addressBookId}`)
+
+  const firstEmail = contact?.emails[0]?.value
+  const matrixProfile = contact?.socialProfiles?.find(
+    p => p.type?.toLowerCase() === 'matrix'
+  )
+  const chatTarget = matrixProfile?.value
+
+  const handleSendMail = (): void => {
+    if (!firstEmail) return
+    openMailComposer(firstEmail, { workplaceFqdn })
+  }
+
+  const handleOpenChat = (): void => {
+    if (!chatTarget) return
+    openChat(chatTarget, { workplaceFqdn })
+  }
 
   return (
     <Stack spacing={3}>
@@ -151,6 +173,30 @@ export const ContactPage: React.FC = () => {
               addressBookId={addressBookId}
               onDeleted={handleDeleted}
             />
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            {firstEmail && (
+              <Button
+                variant="contained"
+                startIcon={<Icon icon={Email} />}
+                aria-label={t('contacts.menu.mail')}
+                data-testid="contact-mail-button"
+                onClick={handleSendMail}
+              >
+                {t('contacts.menu.mail')}
+              </Button>
+            )}
+            {chatTarget && (
+              <Button
+                variant="contained"
+                aria-label={t('contacts.menu.chat')}
+                data-testid="contact-chat-button"
+                startIcon={<Icon icon={Discuss} />}
+                onClick={handleOpenChat}
+              >
+                {t('contacts.menu.chat')}
+              </Button>
+            )}
           </Stack>
           <List>
             <Typography variant="h5" component="li" gutterBottom>

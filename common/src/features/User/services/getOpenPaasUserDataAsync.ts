@@ -3,17 +3,16 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { fetchCurrentUser } from '../UserDao'
 import { RejectedError, UserState } from '../UserSlice'
 import { OpenPaasUserData, ToUserData } from '../type/OpenPaasUserData'
-import {
-  ConfigurationItem,
-  ModuleConfiguration,
-  userData
-} from '../userDataTypes'
+import { ConfigurationItem, ModuleConfiguration } from '../userDataTypes'
 
 function updateBasicUserData(
   state: UserState,
   payload: OpenPaasUserData
 ): void {
-  state.userData = ToUserData(payload) ?? ({} as userData)
+  const openPaasUserData = ToUserData(payload)
+  if (openPaasUserData) {
+    state.userData = { ...state.userData, ...openPaasUserData }
+  }
 }
 
 function applyCoreModuleConfig(
