@@ -4,9 +4,10 @@ import {
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { Typography } from '@linagora/twake-mui'
+import { Stack, Typography } from '@linagora/twake-mui'
 import { useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
+import { ContactSearchBar } from './ContactSearchBar'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 
@@ -22,7 +23,8 @@ export const AddressBookPage: React.FC = () => {
     : t('contacts.myContacts')
 
   return (
-    <>
+    <Stack spacing={2}>
+      <ContactSearchBar />
       <Typography variant="h4" gutterBottom>
         {title}
       </Typography>
@@ -31,6 +33,6 @@ export const AddressBookPage: React.FC = () => {
       ) : (
         <ContactsTable entries={entries} />
       )}
-    </>
+    </Stack>
   )
 }

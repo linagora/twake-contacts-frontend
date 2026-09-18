@@ -134,3 +134,20 @@ export async function deleteContact(
 ): Promise<void> {
   await api.delete(`dav/addressbooks/${userId}/${bookId}/${contactId}.vcf`)
 }
+
+export async function searchContacts(
+  userId: string,
+  search: string
+): Promise<Contact[]> {
+  const response = api.get(`dav/addressbooks/${userId}.json/contacts`, {
+    searchParams: {
+      limit: '30',
+      page: '1',
+      search
+    }
+  })
+  const data: DavContactsResponse = await response.json()
+
+  const items = data._embedded?.['dav:item'] ?? []
+  return items.map(normalizeContact)
+}

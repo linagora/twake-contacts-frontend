@@ -54,6 +54,11 @@
       "title": "Supprimer ce contact ?",
       "description": "Ce contact sera définitivement supprimé de ce compte.",
       "confirm": "Supprimer"
+    },
+    "search": {
+      "placeholder": "Rechercher des contacts...",
+      "loading": "Chargement...",
+      "noResults": "Aucun contact trouvé"
     }
   },
   "error": {

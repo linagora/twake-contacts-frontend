@@ -54,6 +54,11 @@
       "title": "Delete this contact?",
       "description": "This contact will be permanently deleted from this account.",
       "confirm": "Delete"
+    },
+    "search": {
+      "placeholder": "Search contacts...",
+      "loading": "Loading...",
+      "noResults": "No contacts found"
     }
   },
   "error": {
