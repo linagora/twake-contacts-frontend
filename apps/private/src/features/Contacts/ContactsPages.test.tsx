@@ -111,12 +111,17 @@ describe('ContactPage', () => {
     .MAIL_SPA_URL
   const originalChatSpaUrl = (window as Window & { CHAT_SPA_URL?: string })
     .CHAT_SPA_URL
+  const originalCalendarSpaUrl = (
+    window as Window & { CALENDAR_SPA_URL?: string }
+  ).CALENDAR_SPA_URL
 
   beforeEach(() => {
     ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
       'https://mail.example.com'
     ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
       'https://chat.example.com/#/chat/@{target}'
+    ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
+      'https://calendar.example.com'
   })
 
   afterEach(() => {
@@ -131,6 +136,12 @@ describe('ContactPage', () => {
         originalChatSpaUrl
     } else {
       delete (window as Window & { CHAT_SPA_URL?: string }).CHAT_SPA_URL
+    }
+    if (originalCalendarSpaUrl !== undefined) {
+      ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
+        originalCalendarSpaUrl
+    } else {
+      delete (window as Window & { CALENDAR_SPA_URL?: string }).CALENDAR_SPA_URL
     }
   })
 
@@ -150,11 +161,21 @@ describe('ContactPage', () => {
     )
   })
 
+  it('shows quick action buttons when contact has email', () => {
+    renderContacts('/contacts/book1/c1')
+
+    expect(screen.getByTestId('contact-mail-button')).toBeInTheDocument()
+    expect(screen.getByTestId('contact-calendar-button')).toBeInTheDocument()
+  })
+
   it('hides quick action buttons when contact has no email', () => {
     renderContacts('/contacts/book2/c2')
 
     expect(screen.queryByTestId('contact-mail-button')).not.toBeInTheDocument()
     expect(screen.queryByTestId('contact-chat-button')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('contact-calendar-button')
+    ).not.toBeInTheDocument()
   })
 
   it('shows a not found message for an unknown contact', () => {

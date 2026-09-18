@@ -54,7 +54,8 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "chat": "Discuter",
-      "mail": "Envoyer un email"
+      "mail": "Envoyer un email",
+      "calendar": "Créer un événement"
     },
     "delete": {
       "title": "Supprimer ce contact ?",

@@ -54,7 +54,8 @@
       "edit": "Chỉnh sửa",
       "delete": "Xóa",
       "chat": "Trò chuyện",
-      "mail": "Gửi email"
+      "mail": "Gửi email",
+      "calendar": "Tạo sự kiện"
     },
     "delete": {
       "title": "Xóa liên hệ này?",

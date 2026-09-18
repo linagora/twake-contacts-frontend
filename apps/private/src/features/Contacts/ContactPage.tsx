@@ -14,6 +14,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import {
+  Calendar,
   Discuss,
   Copy,
   Email,
@@ -27,6 +28,7 @@ import {
 } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
 import { ContactAddress } from '@common/features/Contacts/contactsTypes'
+import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
 import { openMailComposer } from '@common/utils/mailSpaUrl'
 import { openChat } from '@common/utils/chatSpaUrl'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -151,6 +153,11 @@ export const ContactPage: React.FC = () => {
     openChat(chatTarget, { workplaceFqdn })
   }
 
+  const handleCreateEvent = (): void => {
+    if (!firstEmail) return
+    openCalendarEvent(firstEmail, { workplaceFqdn })
+  }
+
   return (
     <Stack spacing={3}>
       <Button
@@ -195,6 +202,17 @@ export const ContactPage: React.FC = () => {
                 onClick={handleOpenChat}
               >
                 {t('contacts.menu.chat')}
+              </Button>
+            )}
+            {firstEmail && (
+              <Button
+                variant="contained"
+                aria-label={t('contacts.menu.calendar')}
+                data-testid="contact-calendar-button"
+                startIcon={<Icon icon={Calendar} />}
+                onClick={handleCreateEvent}
+              >
+                {t('contacts.menu.calendar')}
               </Button>
             )}
           </Stack>

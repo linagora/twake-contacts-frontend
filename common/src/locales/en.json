@@ -54,7 +54,8 @@
       "edit": "Edit",
       "delete": "Delete",
       "chat": "Chat",
-      "mail": "Send email"
+      "mail": "Send email",
+      "calendar": "Create event"
     },
     "delete": {
       "title": "Delete this contact?",

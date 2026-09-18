@@ -24,6 +24,7 @@ declare global {
 
     CHAT_SPA_URL: string | undefined
     MAIL_SPA_URL: string | undefined
+    CALENDAR_SPA_URL: string | undefined
     WORKPLACE_FQDN_FALLBACK: string | undefined
   }
 }
