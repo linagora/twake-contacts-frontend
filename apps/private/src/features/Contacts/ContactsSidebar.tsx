@@ -1,10 +1,12 @@
 import {
   Button,
-  List,
   ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText
+  Nav,
+  NavIcon,
+  NavItem,
+  NavLink,
+  NavText,
+  Sidebar
 } from '@linagora/twake-mui'
 import { Company, Contacts, Icon, Plus } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
@@ -23,9 +25,9 @@ export const ContactsSidebar: React.FC = () => {
   )
 
   return (
-    <>
-      <List component="nav">
-        <ListItem disableGutters>
+    <Sidebar>
+      <Nav>
+        <ListItem>
           <Button
             variant="contained"
             fullWidth
@@ -36,33 +38,29 @@ export const ContactsSidebar: React.FC = () => {
             {t('contacts.create')}
           </Button>
         </ListItem>
-        <ListItem disableGutters disablePadding>
-          <ListItemButton
+        <NavItem>
+          <NavLink
             component={Link}
             to="/contacts"
             selected={addressBookId === undefined}
           >
-            <ListItemIcon>
-              <Icon icon={Contacts} />
-            </ListItemIcon>
-            <ListItemText primary={t('contacts.myContacts')} />
-          </ListItemButton>
-        </ListItem>
+            <NavIcon icon={Contacts} />
+            <NavText>{t('contacts.myContacts')}</NavText>
+          </NavLink>
+        </NavItem>
         {otherBooks.map(book => (
-          <ListItem key={book.id} disableGutters disablePadding>
-            <ListItemButton
+          <NavItem key={book.id}>
+            <NavLink
               component={Link}
               to={`/contacts/${book.id}`}
               selected={addressBookId === book.id}
             >
-              <ListItemIcon>
-                <Icon icon={Company} />
-              </ListItemIcon>
-              <ListItemText primary={getAddressBookDisplayName(book, t)} />
-            </ListItemButton>
-          </ListItem>
+              <NavIcon icon={Company} />
+              <NavText>{getAddressBookDisplayName(book, t)}</NavText>
+            </NavLink>
+          </NavItem>
         ))}
-      </List>
-    </>
+      </Nav>
+    </Sidebar>
   )
 }

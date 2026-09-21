@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
+import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
 import { deleteContact } from '@common/features/Contacts/ContactsDao'
@@ -39,15 +40,17 @@ describe('ContactActionsMenu', () => {
     const onDeleted = jest.fn()
     render(
       <Provider store={store}>
-        <I18n dictRequire={() => en} lang="en">
-          <MemoryRouter>
-            <ContactActionsMenu
-              contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
-              addressBookId="book1"
-              onDeleted={onDeleted}
-            />
-          </MemoryRouter>
-        </I18n>
+        <TwakeMuiThemeProvider>
+          <I18n dictRequire={() => en} lang="en">
+            <MemoryRouter>
+              <ContactActionsMenu
+                contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
+                addressBookId="book1"
+                onDeleted={onDeleted}
+              />
+            </MemoryRouter>
+          </I18n>
+        </TwakeMuiThemeProvider>
       </Provider>
     )
 
