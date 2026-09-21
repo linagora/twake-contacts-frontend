@@ -11,6 +11,7 @@ import {
   normalizeAddressBook,
   normalizeContact
 } from './transformer/ContactsTransformer'
+import { SEARCH_LIMIT } from './constants'
 
 const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
 
@@ -141,7 +142,7 @@ export async function searchContacts(
 ): Promise<Contact[]> {
   const response = api.get(`dav/addressbooks/${userId}.json/contacts`, {
     searchParams: {
-      limit: '30',
+      limit: String(SEARCH_LIMIT),
       page: '1',
       search
     }

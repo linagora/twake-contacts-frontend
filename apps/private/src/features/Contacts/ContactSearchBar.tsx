@@ -1,9 +1,19 @@
-import { Autocomplete, TextField } from '@linagora/twake-mui'
+import {
+  Autocomplete,
+  Avatar,
+  ListItem,
+  Stack,
+  TextField
+} from '@linagora/twake-mui'
 import { useAppSelector } from '@common/app/hooks'
 import { searchContacts } from '@common/features/Contacts/ContactsDao'
-import { Contact } from '@common/features/Contacts/contactsTypes'
+import {
+  Contact,
+  AddressBookWithContacts
+} from '@common/features/Contacts/contactsTypes'
+import { getInitials } from './getInitials'
 import { useI18n } from 'twake-i18n'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SearchOption {
@@ -12,11 +22,33 @@ interface SearchOption {
   label: string
 }
 
+function buildSearchOptions(
+  contacts: Contact[],
+  addressBooks: AddressBookWithContacts[]
+): SearchOption[] {
+  return contacts.map(contact => {
+    const addressBookId =
+      addressBooks.find(book => book.contacts.some(c => c.id === contact.id))
+        ?.id ?? 'contacts' // id of default contacts addressbook
+    return {
+      contact,
+      addressBookId,
+      label: contact.displayName
+    }
+  })
+}
+
 export const ContactSearchBar: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
-  const addressBooks = useAppSelector(state => state.contacts.addressBooks)
+  const addressBooksRecord = useAppSelector(
+    state => state.contacts.addressBooks
+  )
+  const addressBooks = useMemo(
+    () => Object.values(addressBooksRecord),
+    [addressBooksRecord]
+  )
 
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])
@@ -33,18 +65,7 @@ export const ContactSearchBar: React.FC = () => {
       setLoading(true)
       try {
         const contacts = await searchContacts(openpaasId, search)
-        const searchOptions: SearchOption[] = contacts.map(contact => {
-          const addressBookId =
-            Object.values(addressBooks).find(book =>
-              book.contacts.some(c => c.id === contact.id)
-            )?.id ?? 'contacts'
-          return {
-            contact,
-            addressBookId,
-            label: contact.displayName
-          }
-        })
-        setOptions(searchOptions)
+        setOptions(buildSearchOptions(contacts, addressBooks))
       } catch {
         setOptions([])
       } finally {
@@ -90,6 +111,14 @@ export const ContactSearchBar: React.FC = () => {
           placeholder={t('contacts.search.placeholder')}
           size="small"
         />
+      )}
+      renderOption={(props, option) => (
+        <ListItem {...props} key={option.contact.id}>
+          <Stack direction="row" spacing={1}>
+            <Avatar size="s">{getInitials(option.contact.displayName)}</Avatar>
+            <span>{option.label}</span>
+          </Stack>
+        </ListItem>
       )}
       isOptionEqualToValue={(option, value): boolean =>
         option.contact.id === value.contact.id
