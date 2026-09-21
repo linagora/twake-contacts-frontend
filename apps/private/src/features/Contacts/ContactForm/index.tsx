@@ -50,6 +50,7 @@ export {
 }
 
 interface ContactFormProps {
+  title: string
   addressBooks: AddressBook[]
   initialValues: ContactFormValues
   addressBookDisabled?: boolean
@@ -59,6 +60,7 @@ interface ContactFormProps {
 }
 
 export const ContactForm: React.FC<ContactFormProps> = ({
+  title,
   addressBooks,
   initialValues,
   addressBookDisabled = false,
@@ -146,7 +148,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         {t('contacts.back')}
       </Button>
       <Grid container spacing={2}>
-        <AvatarHeader displayName={displayName} />
+        <AvatarHeader displayName={displayName} title={title} />
         <Stack direction="row" spacing={2}>
           <Button
             variant="contained"

@@ -89,7 +89,7 @@ export const EditContactPage: React.FC = () => {
 
   return (
     <ContactForm
-      title={t('contacts.form.editTitle')}
+      title=""
       addressBooks={book ? [book] : []}
       categoryOptions={categories}
       initialValues={initialValues}
