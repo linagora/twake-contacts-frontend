@@ -1,21 +1,7 @@
-import { resolveUriTemplate, UriTemplateContext } from './uriTemplateUtils'
-import { resolveUriTemplate, UriTemplateContext } from './uriTemplateUtils'
-
-/**
- * Resolve the CHAT_SPA_URL configuration entry.
- *
- * CHAT_SPA_URL is a URI template (RFC 6570 style).
- *
- * @returns the resolved base URL, or null when CHAT_SPA_URL is not configured.
- */
-export function resolveChatSpaUrl(
-  context: UriTemplateContext = {}
-): string | null {
-  const template = window.CHAT_SPA_URL
-  if (!template) return null
-
-  return resolveUriTemplate(template, context)
-}
+import {
+  resolveChatSpaUrl,
+  type UriTemplateContext
+} from '@linagora/twake-utils'
 
 /**
  * Open the chat with the given target in a new tab.
@@ -29,9 +15,16 @@ export function openChat(
   target: string,
   context: Omit<UriTemplateContext, 'target'> = {}
 ): boolean {
-  const chatSpaUrl = resolveChatSpaUrl({ ...context, target })
-  if (!chatSpaUrl) return false
+  const template = window.CHAT_SPA_URL
+  if (!template) return false
 
-  window.open(chatSpaUrl, '_blank', 'noopener,noreferrer')
+  const url = resolveChatSpaUrl(template, {
+    ...context,
+    target,
+    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+  })
+  if (!url) return false
+
+  window.open(url, '_blank', 'noopener,noreferrer')
   return true
 }

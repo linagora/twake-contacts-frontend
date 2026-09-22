@@ -14,7 +14,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import {
-  Calendar,
+  CalendarToday,
   Discuss,
   Copy,
   Email,
@@ -209,7 +209,7 @@ export const ContactPage: React.FC = () => {
                 variant="contained"
                 aria-label={t('contacts.menu.calendar')}
                 data-testid="contact-calendar-button"
-                startIcon={<Icon icon={Calendar} />}
+                startIcon={<Icon icon={CalendarToday} />}
                 onClick={handleCreateEvent}
               >
                 {t('contacts.menu.calendar')}

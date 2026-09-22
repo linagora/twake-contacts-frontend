@@ -36,7 +36,7 @@ const config: Config = {
           '<rootDir>/fileTransformer.ts'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons|mime|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
+        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|mime|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
       ],
 
       moduleNameMapper: {
@@ -48,7 +48,9 @@ const config: Config = {
         '^@private/(.*)$': '<rootDir>/apps/private/src/$1',
         '^@linagora/twake-mui$': '<rootDir>/node_modules/@linagora/twake-mui',
         '^@linagora/twake-icons$':
-          '<rootDir>/node_modules/@linagora/twake-icons'
+          '<rootDir>/node_modules/@linagora/twake-icons',
+        '^@linagora/twake-utils$':
+          '<rootDir>/node_modules/@linagora/twake-utils'
       },
       setupFilesAfterEnv: ['<rootDir>/common/src/setupTests.ts']
     },
@@ -74,7 +76,7 @@ const config: Config = {
         '^.+\\.(js|jsx|mjs)$': 'babel-jest'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
+        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
       ],
       setupFilesAfterEnv: ['<rootDir>/common/src/setupTests.ts'],
       moduleNameMapper: {
@@ -83,7 +85,9 @@ const config: Config = {
         '^@private/(.*)$': '<rootDir>/apps/private/src/$1',
         '^@linagora/twake-mui$': '<rootDir>/node_modules/@linagora/twake-mui',
         '^@linagora/twake-icons$':
-          '<rootDir>/node_modules/@linagora/twake-icons'
+          '<rootDir>/node_modules/@linagora/twake-icons',
+        '^@linagora/twake-utils$':
+          '<rootDir>/node_modules/@linagora/twake-utils'
       }
     }
   ]
