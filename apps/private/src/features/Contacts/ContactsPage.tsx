@@ -1,4 +1,10 @@
-import { Alert, CircularProgress, Container, Stack } from '@linagora/twake-mui'
+import {
+  Alert,
+  CircularProgress,
+  Content,
+  Layout,
+  Main
+} from '@linagora/twake-mui'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
 import { useEffect } from 'react'
@@ -18,13 +24,15 @@ export const ContactsPage: React.FC = () => {
   }, [openpaasId, domains, dispatch])
 
   return (
-    <Stack direction="row" spacing={2}>
+    <Layout withTopBar={false}>
       <ContactsSidebar />
-      <Container component="main">
-        {loading && <CircularProgress />}
-        {error && <Alert severity="error">{error}</Alert>}
-        {!loading && <Outlet />}
-      </Container>
-    </Stack>
+      <Main>
+        <Content className="u-p-1">
+          {loading && <CircularProgress />}
+          {error && <Alert severity="error">{error}</Alert>}
+          {!loading && <Outlet />}
+        </Content>
+      </Main>
+    </Layout>
   )
 }
