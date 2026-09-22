@@ -5,10 +5,7 @@ import {
   deleteContact,
   updateContact
 } from '@common/features/Contacts/ContactsSlice'
-import {
-  selectBook,
-  selectCategories
-} from '@common/features/Contacts/contactsSelectors'
+import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import {
@@ -25,7 +22,6 @@ export const EditContactPage: React.FC = () => {
   const { addressBookId = '', contactId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
-  const categories = useAppSelector(selectCategories)
   const contact = useAppSelector(state =>
     state.contacts.addressBooks[addressBookId]?.contacts.find(
       c => c.id === contactId
@@ -89,9 +85,7 @@ export const EditContactPage: React.FC = () => {
 
   return (
     <ContactForm
-      title=""
       addressBooks={book ? [book] : []}
-      categoryOptions={categories}
       initialValues={initialValues}
       addressBookDisabled
       backTo={backTo}

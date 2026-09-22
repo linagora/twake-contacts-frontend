@@ -50,7 +50,7 @@ export {
 }
 
 interface ContactFormProps {
-  title: string
+  title?: string
   addressBooks: AddressBook[]
   initialValues: ContactFormValues
   addressBookDisabled?: boolean

@@ -74,7 +74,7 @@ describe('CreateContactPage', () => {
   it('renders with empty form', () => {
     renderPage(['/contacts/new'])
 
-    expect(screen.getByText('New contact')).toBeInTheDocument()
+    expect(screen.getByText('Create contact')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
     expect(screen.getByLabelText('First name')).toHaveValue('')
     expect(screen.getByLabelText('Last name')).toHaveValue('')

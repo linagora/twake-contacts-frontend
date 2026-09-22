@@ -8,8 +8,10 @@ import {
   EMPTY_CONTACT_FORM_VALUES,
   makeContactFromForm
 } from './ContactForm'
+import { useI18n } from 'twake-i18n'
 
 export const CreateContactPage: React.FC = () => {
+  const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { addressBookId } = useParams()
@@ -50,6 +52,7 @@ export const CreateContactPage: React.FC = () => {
 
   return (
     <ContactForm
+      title={t('contacts.form.createTitle')}
       addressBooks={writableBooks}
       initialValues={initialValues}
       backTo={backTo}
