@@ -1,4 +1,22 @@
-import { useState } from 'react'
+import { useAppSelector } from '@common/app/hooks'
+import { ContactAddress } from '@common/features/Contacts/contactsTypes'
+import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
+import { openChat } from '@common/utils/chatSpaUrl'
+import { openMailComposer } from '@common/utils/mailSpaUrl'
+import {
+  CalendarToday,
+  Copy,
+  CrossSmall,
+  Discuss,
+  Email,
+  Icon,
+  Left,
+  Location,
+  Matrix,
+  People,
+  Phone
+} from '@linagora/twake-icons'
 import {
   Alert,
   Avatar,
@@ -14,24 +32,7 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import {
-  CalendarToday,
-  Discuss,
-  Copy,
-  Email,
-  Icon,
-  Left,
-  Location,
-  Matrix,
-  People,
-  Phone,
-  CrossSmall
-} from '@linagora/twake-icons'
-import { useAppSelector } from '@common/app/hooks'
-import { ContactAddress } from '@common/features/Contacts/contactsTypes'
-import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
-import { openMailComposer } from '@common/utils/mailSpaUrl'
-import { openChat } from '@common/utils/chatSpaUrl'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
@@ -138,7 +139,12 @@ export const ContactPage: React.FC = () => {
   const workplaceFqdn = useAppSelector(
     state => state.user.userData?.workplaceFqdn
   )
-  const handleDeleted = (): void => void navigate(`/contacts/${addressBookId}`)
+  const handleDeleted = (): void =>
+    void navigate(
+      isHiddenAddressBook(addressBookId)
+        ? '/contacts'
+        : `/contacts/${addressBookId}`
+    )
 
   const firstEmail = contact?.emails[0]?.value
   const matrixProfile = contact?.socialProfiles?.find(
@@ -165,7 +171,11 @@ export const ContactPage: React.FC = () => {
     <Stack spacing={3}>
       <Button
         component={Link}
-        to={`/contacts/${addressBookId}`}
+        to={
+          isHiddenAddressBook(addressBookId)
+            ? '/contacts'
+            : `/contacts/${addressBookId}`
+        }
         variant="text"
         startIcon={<Icon icon={Left} />}
       >

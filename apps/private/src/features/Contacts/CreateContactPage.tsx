@@ -1,15 +1,16 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
-import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
-import { useNavigate, useParams } from 'react-router-dom'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
+import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useI18n } from 'twake-i18n'
 import {
   ContactForm,
   ContactFormValues,
   EMPTY_CONTACT_FORM_VALUES,
   makeContactFromForm
 } from './ContactForm'
-import { useI18n } from 'twake-i18n'
 
 export const CreateContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -22,13 +23,13 @@ export const CreateContactPage: React.FC = () => {
   const initialValues: ContactFormValues = {
     ...EMPTY_CONTACT_FORM_VALUES,
     addressBookId: writableBooks.some(book => book.id === addressBookId)
-      ? (addressBookId ?? '')
-      : (writableBooks[0]?.id ?? '')
+      ? (addressBookId ?? DEFAULT_ADDRESS_BOOK_ID)
+      : DEFAULT_ADDRESS_BOOK_ID
   }
 
   const backTo =
     initialValues.addressBookId &&
-    initialValues.addressBookId !== DEFAULT_ADDRESS_BOOK_ID
+    !isHiddenAddressBook(initialValues.addressBookId)
       ? `/contacts/${initialValues.addressBookId}`
       : '/contacts'
 
@@ -43,7 +44,7 @@ export const CreateContactPage: React.FC = () => {
         })
       ).unwrap()
       void navigate(
-        values.addressBookId && values.addressBookId !== DEFAULT_ADDRESS_BOOK_ID
+        values.addressBookId && !isHiddenAddressBook(values.addressBookId)
           ? `/contacts/${values.addressBookId}`
           : '/contacts'
       )

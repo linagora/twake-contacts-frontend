@@ -1,3 +1,4 @@
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
   ContactAddress,
@@ -27,7 +28,7 @@ export const EMAIL_TYPES = ['work', 'home', 'other']
 export const ADDRESS_TYPES = ['home', 'work', 'other']
 
 export const EMPTY_CONTACT_FORM_VALUES: ContactFormValues = {
-  addressBookId: '',
+  addressBookId: DEFAULT_ADDRESS_BOOK_ID,
   givenName: '',
   familyName: '',
   categories: [],

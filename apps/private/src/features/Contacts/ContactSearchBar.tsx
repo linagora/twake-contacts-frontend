@@ -1,3 +1,10 @@
+import { useAppSelector } from '@common/app/hooks'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import { searchContacts } from '@common/features/Contacts/ContactsDao'
+import {
+  AddressBookWithContacts,
+  Contact
+} from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
   Avatar,
@@ -5,17 +12,10 @@ import {
   Stack,
   TextField
 } from '@linagora/twake-mui'
-import { useAppSelector } from '@common/app/hooks'
-import { searchContacts } from '@common/features/Contacts/ContactsDao'
-import {
-  Contact,
-  AddressBookWithContacts
-} from '@common/features/Contacts/contactsTypes'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
-import { getInitials } from './getInitials'
-import { useI18n } from 'twake-i18n'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useI18n } from 'twake-i18n'
+import { getInitials } from './getInitials'
 
 interface SearchOption {
   contact: Contact

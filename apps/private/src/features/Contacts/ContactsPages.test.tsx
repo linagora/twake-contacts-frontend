@@ -1,11 +1,12 @@
+import { setupStore } from '@common/app/store'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import { UserState } from '@common/features/User/UserSlice'
+import en from '@common/locales/en.json'
 import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
-import { setupStore } from '@common/app/store'
-import { UserState } from '@common/features/User/UserSlice'
-import en from '@common/locales/en.json'
 import { AddressBookPage } from './AddressBookPage'
 import { ContactPage } from './ContactPage'
 
@@ -30,6 +31,26 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
         } as UserState,
         contacts: {
           addressBooks: {
+            collected: {
+              id: 'collected',
+              userId: 'u1',
+              name: 'Collected',
+              contactsCount: 1,
+              acl: [],
+              canWrite: false,
+              contacts: [
+                { id: 'c3', displayName: 'Collected Contact', emails: [] }
+              ]
+            },
+            contacts: {
+              id: DEFAULT_ADDRESS_BOOK_ID,
+              userId: 'u1',
+              name: 'My contacts',
+              contactsCount: 1,
+              acl: [],
+              canWrite: true,
+              contacts: [{ id: 'c4', displayName: 'My Contact', emails: [] }]
+            },
             book2: {
               id: 'book2',
               userId: 'u1',
@@ -187,5 +208,14 @@ describe('ContactPage', () => {
     renderContacts('/contacts/book1/unknown')
 
     expect(screen.getByText('Contact not found')).toBeInTheDocument()
+  })
+
+  it('links back to main page for hidden address books', () => {
+    renderContacts('/contacts/contacts/c4')
+
+    expect(screen.getByRole('link', { name: /back/i })).toHaveAttribute(
+      'href',
+      '/contacts'
+    )
   })
 })

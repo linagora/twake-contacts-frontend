@@ -1,4 +1,5 @@
 import { createAppSlice } from '@common/app/createAppSlice'
+import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
 import { ContactsState } from './contactsTypes'
 import {
   createContactThunk,
@@ -15,7 +16,7 @@ const initialState: ContactsState = {
 }
 
 const ContactsSlice = createAppSlice({
-  name: 'contacts',
+  name: DEFAULT_ADDRESS_BOOK_ID,
   initialState,
   reducers: create => ({
     clearContactsError: create.reducer(state => {

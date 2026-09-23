@@ -1,3 +1,9 @@
+import { useAppSelector } from '@common/app/hooks'
+import {
+  getAddressBookDisplayName,
+  isHiddenAddressBook
+} from '@common/features/Contacts/contactsUtils'
+import { Company, Contacts, Icon, Plus } from '@linagora/twake-icons'
 import {
   Button,
   Box,
@@ -8,20 +14,24 @@ import {
   NavText,
   Sidebar
 } from '@linagora/twake-mui'
-import { Company, Contacts, Icon, Plus } from '@linagora/twake-icons'
-import { useAppSelector } from '@common/app/hooks'
-import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { Link, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 
 export const ContactsSidebar: React.FC = () => {
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
+  const currentBook = addressBookId ? addressBooks[addressBookId] : undefined
+  const canWriteCurrentBook =
+    (currentBook?.canWrite && addressBookId !== 'dab') ?? false
   const otherBooks = Object.values(addressBooks).filter(
-    book => book.id !== 'collected' && book.id !== DEFAULT_ADDRESS_BOOK_ID
+    book => !isHiddenAddressBook(book.id)
   )
+
+  const createLink =
+    addressBookId && canWriteCurrentBook
+      ? `/contacts/${addressBookId}/new`
+      : '/contacts/new'
 
   return (
     <Sidebar>
@@ -31,7 +41,7 @@ export const ContactsSidebar: React.FC = () => {
           fullWidth
           startIcon={<Icon size={12} icon={Plus} />}
           component={Link}
-          to="/contacts/new"
+          to={createLink}
           className="u-bdrs-6 u-fz-small"
         >
           {t('contacts.create')}

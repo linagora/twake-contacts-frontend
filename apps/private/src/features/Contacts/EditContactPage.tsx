@@ -1,12 +1,13 @@
-import { Button, Stack, Typography } from '@linagora/twake-mui'
-import { Icon, Left } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import {
   deleteContact,
   updateContact
 } from '@common/features/Contacts/ContactsSlice'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
-import { Link, useNavigate, useParams, Navigate } from 'react-router-dom'
+import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { Icon, Left } from '@linagora/twake-icons'
+import { Button, Stack, Typography } from '@linagora/twake-mui'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import {
   ContactForm,
@@ -37,7 +38,11 @@ export const EditContactPage: React.FC = () => {
       <Stack spacing={3}>
         <Button
           component={Link}
-          to={`/contacts/${addressBookId}`}
+          to={
+            isHiddenAddressBook(addressBookId)
+              ? '/contacts'
+              : `/contacts/${addressBookId}`
+          }
           variant="text"
           startIcon={<Icon icon={Left} />}
         >
@@ -81,7 +86,11 @@ export const EditContactPage: React.FC = () => {
           contactId
         })
       ).unwrap()
-      void navigate(`/contacts/${addressBookId}`)
+      void navigate(
+        isHiddenAddressBook(addressBookId)
+          ? '/contacts'
+          : `/contacts/${addressBookId}`
+      )
     } catch {
       // error is surfaced by the contacts slice
     }
