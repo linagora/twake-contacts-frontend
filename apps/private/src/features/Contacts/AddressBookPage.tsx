@@ -23,7 +23,7 @@ export const AddressBookPage: React.FC = () => {
     : t('contacts.myContacts')
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} className="u-flex-auto u-ov-hidden">
       <ContactSearchBar />
       <Typography variant="h4" gutterBottom>
         {title}

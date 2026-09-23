@@ -21,8 +21,6 @@ import { DeleteContactDialog } from './DeleteContactDialog'
 interface ContactRowActionsProps {
   contact: Contact
   addressBookId: string
-  onDeleted?: () => void
-  isHovered?: boolean
   readOnly?: boolean
 }
 
@@ -31,8 +29,6 @@ type OpenDialog = 'delete' | null
 export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   contact,
   addressBookId,
-  onDeleted,
-  isHovered,
   readOnly
 }) => {
   const { t } = useI18n()
@@ -46,7 +42,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   const isMenuOpen = Boolean(anchorEl)
 
-  if (!book?.canWrite) return null
+  if (readOnly || !book?.canWrite) return null
 
   const handleCloseDialog = (): void => setOpenDialog(null)
   const handleOpenDeleteDialog = (): void => {
@@ -55,17 +51,14 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   }
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
-    event.stopPropagation()
     setAnchorEl(event.currentTarget)
   }
 
-  const handleMenuClose = (event: React.MouseEvent): void => {
-    event.stopPropagation()
+  const handleMenuClose = (): void => {
     setAnchorEl(null)
   }
 
-  const handleEdit = (event: React.MouseEvent): void => {
-    event.stopPropagation()
+  const handleEdit = (): void => {
     void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
   }
 
@@ -80,7 +73,6 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
         })
       ).unwrap()
       setOpenDialog(null)
-      onDeleted?.()
     } catch (error: unknown) {
       const err = error as { message?: string }
       setDeleteError(err.message || t('error.unknown'))
@@ -89,55 +81,41 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   return (
     <>
-      <Stack direction="row" spacing={1} onClick={e => e.stopPropagation()}>
-        <div
-          style={{
-            display: 'flex',
-            gap: 1,
-            width: '50px',
-            marginLeft: 'auto'
-          }}
-        >
-          {!readOnly && (isHovered || isMenuOpen) && (
-            <>
-              <Tooltip title={t('contacts.menu.edit')}>
-                <IconButton
-                  size="xsmall"
-                  aria-label={t('contacts.menu.edit')}
-                  onClick={handleEdit}
-                >
-                  <Icon icon={Pen} />
-                </IconButton>
-              </Tooltip>
-            </>
-          )}
-        </div>
-        {!readOnly && (
-          <>
-            <Tooltip title={t('contacts.menu.more')}>
-              <IconButton
-                size="xsmall"
-                aria-label={t('contacts.menu.more')}
-                onClick={handleMenuOpen}
-              >
-                <Icon icon={Dots} />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              anchorEl={anchorEl}
-              open={isMenuOpen}
-              onClose={handleMenuClose}
-              onClick={e => e.stopPropagation()}
-            >
-              <MenuItem onClick={handleOpenDeleteDialog}>
-                <ListItemIcon>
-                  <Icon icon={Trash} />
-                </ListItemIcon>
-                <ListItemText>{t('contacts.menu.delete')}</ListItemText>
-              </MenuItem>
-            </Menu>
-          </>
-        )}
+      <Stack direction="row" spacing={1}>
+        {/* TEMPORARY: reveal on row hover through CSS until twake-mui ships a
+            MuiTableRow rule for hover-only actions. VirtualizedTable owns the
+            row, so the old isHovered state is no longer reachable from here.
+            The menu is portaled, so the row loses :hover while it is open. */}
+        <Tooltip title={t('contacts.menu.edit')}>
+          <IconButton
+            size="xsmall"
+            aria-label={t('contacts.menu.edit')}
+            onClick={handleEdit}
+            sx={{
+              visibility: isMenuOpen ? 'visible' : 'hidden',
+              '.MuiTableRow-root:hover &': { visibility: 'visible' }
+            }}
+          >
+            <Icon icon={Pen} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('contacts.menu.more')}>
+          <IconButton
+            size="xsmall"
+            aria-label={t('contacts.menu.more')}
+            onClick={handleMenuOpen}
+          >
+            <Icon icon={Dots} />
+          </IconButton>
+        </Tooltip>
+        <Menu anchorEl={anchorEl} open={isMenuOpen} onClose={handleMenuClose}>
+          <MenuItem onClick={handleOpenDeleteDialog}>
+            <ListItemIcon>
+              <Icon icon={Trash} />
+            </ListItemIcon>
+            <ListItemText>{t('contacts.menu.delete')}</ListItemText>
+          </MenuItem>
+        </Menu>
       </Stack>
       {openDialog === 'delete' && (
         <DeleteContactDialog

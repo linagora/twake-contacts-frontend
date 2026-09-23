@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
 import { UserState } from '@common/features/User/UserSlice'
@@ -72,19 +73,23 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
       })}
     >
       <I18n dictRequire={() => en} lang="en">
-        <MemoryRouter initialEntries={[path]}>
-          <Routes>
-            <Route path="/contacts" element={<AddressBookPage />} />
-            <Route
-              path="/contacts/:addressBookId"
-              element={<AddressBookPage />}
-            />
-            <Route
-              path="/contacts/:addressBookId/:contactId"
-              element={<ContactPage />}
-            />
-          </Routes>
-        </MemoryRouter>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 1000, itemHeight: 50 }}
+        >
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route path="/contacts" element={<AddressBookPage />} />
+              <Route
+                path="/contacts/:addressBookId"
+                element={<AddressBookPage />}
+              />
+              <Route
+                path="/contacts/:addressBookId/:contactId"
+                element={<ContactPage />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </VirtuosoMockContext.Provider>
       </I18n>
     </Provider>
   )

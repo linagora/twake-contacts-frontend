@@ -1,15 +1,13 @@
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  VirtualizedTable,
+  VirtualizedTableColumn,
+  VirtualizedTableRow
 } from '@linagora/twake-mui'
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-import { ContactRow } from './ContactRow'
+import { ContactCell } from './ContactCell'
 
 interface ContactsTableProps {
   entries: ContactEntry[]
@@ -21,30 +19,62 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   readOnly
 }) => {
   const { t } = useI18n()
+  const navigate = useNavigate()
+
+  // We don't sort using the virtualized tables as we load entries
+  // using lazy loading
+  const columns: VirtualizedTableColumn[] = [
+    {
+      id: 'contact.displayName',
+      label: t('contacts.name'),
+      sortable: false
+    },
+    {
+      id: 'contact.emails.0.value',
+      label: t('contacts.email'),
+      width: 200,
+      maxWidth: 200,
+      noWrap: true,
+      sortable: false
+    },
+    {
+      id: 'contact.phones.0.value',
+      label: t('contacts.phone'),
+      width: 150,
+      maxWidth: 150,
+      noWrap: true,
+      sortable: false
+    },
+    {
+      id: 'contact.categories',
+      label: t('contacts.team'),
+      width: 180,
+      sortable: false
+    },
+    { id: 'actions', width: 92, sortable: false, disableClick: true }
+  ]
+
+  const rows: VirtualizedTableRow[] = entries.map(entry => ({
+    id: `${entry.addressBookId}/${entry.contact.id}`,
+    ...entry
+  }))
+
+  const handleClick = (row: VirtualizedTableRow): void => {
+    const { addressBookId, contact } = row as unknown as ContactEntry
+    void navigate(`/contacts/${addressBookId}/${contact.id}`)
+  }
 
   return (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('contacts.name')}</TableCell>
-            <TableCell>{t('contacts.email')}</TableCell>
-            <TableCell>{t('contacts.phone')}</TableCell>
-            <TableCell>{t('contacts.team')}</TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {entries.map(({ addressBookId, contact }) => (
-            <ContactRow
-              key={`${addressBookId}/${contact.id}`}
-              contact={contact}
-              addressBookId={addressBookId}
-              readOnly={readOnly}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <VirtualizedTable
+      rows={rows}
+      columns={columns}
+      computeItemKey={(_, row) => String(row.id)}
+      componentsProps={{
+        rowContent: {
+          onClick: handleClick,
+          children: <ContactCell readOnly={readOnly} />
+        }
+      }}
+    />
   )
 }
