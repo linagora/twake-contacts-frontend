@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@contacts/common": "*",
-    "@linagora/twake-mui": "^9.2.0",
+    "@linagora/twake-mui": "^9.5.0",
     "@mui/icons-material": "^9.0.1",
     "@sentry/react": "^8.55.1",
     "cozy-external-bridge": "^1.2.1",
