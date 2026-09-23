@@ -18,7 +18,9 @@
     "notFound": "Contact not found",
     "empty": {
       "title": "No contacts yet",
-      "subtitle": "Your contacts will appear here once you add them."
+      "subtitle": "Your contacts will appear here once you add them.",
+      "import": "Import",
+      "uploadSuccess": "Import in progress. You'll receive an email when it's complete."
     },
     "form": {
       "createTitle": "Create contact",

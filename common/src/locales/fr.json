@@ -18,7 +18,9 @@
     "notFound": "Contact introuvable",
     "empty": {
       "title": "Aucun contact",
-      "subtitle": "Vos contacts apparaîtront ici une fois que vous les aurez ajoutés."
+      "subtitle": "Vos contacts apparaîtront ici une fois que vous les aurez ajoutés.",
+      "import": "Importer",
+      "uploadSuccess": "Importation en cours. Vous recevrez un email lorsque ce sera terminé."
     },
     "form": {
       "createTitle": "Créer un contact",

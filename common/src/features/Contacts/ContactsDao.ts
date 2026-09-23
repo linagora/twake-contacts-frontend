@@ -141,6 +141,28 @@ export async function deleteContact(
   await api.delete(`dav/addressbooks/${userId}/${bookId}/${contactId}.vcf`)
 }
 
+export async function uploadImportFile(file: File): Promise<string> {
+  const response = await api.post('api/files', {
+    searchParams: {
+      mimetype: file.type || 'text/vcard',
+      name: file.name,
+      size: String(file.size)
+    },
+    body: file
+  })
+  const data = await response.json()
+  return data._id ?? data.id ?? data.fileId
+}
+
+export async function importContacts(
+  fileId: string,
+  target: string
+): Promise<void> {
+  await api.post('linagora.esn.dav.import/api/import', {
+    json: { fileId, target }
+  })
+}
+
 export async function searchContacts(
   userId: string,
   search: string

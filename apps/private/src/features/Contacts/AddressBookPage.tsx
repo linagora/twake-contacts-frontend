@@ -54,7 +54,11 @@ export const AddressBookPage: React.FC = () => {
         />
       )
     }
-    return bookIdToLoadMore ? <CircularProgress /> : <NoContactsEmptyState />
+    return bookIdToLoadMore ? (
+      <CircularProgress />
+    ) : (
+      <NoContactsEmptyState addressBookId={addressBookId} />
+    )
   }
 
   return (

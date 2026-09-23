@@ -18,7 +18,9 @@
     "notFound": "Không tìm thấy liên hệ",
     "empty": {
       "title": "Chưa có liên hệ",
-      "subtitle": "Danh bạ của bạn sẽ xuất hiện ở đây sau khi bạn thêm."
+      "subtitle": "Danh bạ của bạn sẽ xuất hiện ở đây sau khi bạn thêm.",
+      "import": "Nhập",
+      "uploadSuccess": "Đang nhập danh bạ. Bạn sẽ nhận được email khi hoàn tất."
     },
     "form": {
       "createTitle": "Tạo liên hệ",

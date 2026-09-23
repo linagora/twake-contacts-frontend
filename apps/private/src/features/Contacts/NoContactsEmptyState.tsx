@@ -1,11 +1,21 @@
-import { Box, Typography } from '@linagora/twake-mui'
+import { Stack, Typography } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
+import { ImportContactsButton } from './ImportContactsButton'
 
-export const NoContactsEmptyState: React.FC = () => {
+interface NoContactsEmptyStateProps {
+  addressBookId?: string
+}
+
+export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
+  addressBookId
+}) => {
   const { t } = useI18n()
 
   return (
-    <Box>
+    <Stack
+      spacing={2}
+      sx={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}
+    >
       <img
         src="/assets/images/svg/no-contact.svg"
         alt=""
@@ -14,6 +24,7 @@ export const NoContactsEmptyState: React.FC = () => {
       />
       <Typography variant="h5">{t('contacts.empty.title')}</Typography>
       <Typography variant="body1">{t('contacts.empty.subtitle')}</Typography>
-    </Box>
+      <ImportContactsButton addressBookId={addressBookId} />
+    </Stack>
   )
 }
