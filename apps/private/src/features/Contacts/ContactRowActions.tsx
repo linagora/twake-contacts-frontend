@@ -88,7 +88,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             The menu is portaled, so the row loses :hover while it is open. */}
         <Tooltip title={t('contacts.menu.edit')}>
           <IconButton
-            size="xsmall"
+            size="medium"
             aria-label={t('contacts.menu.edit')}
             onClick={handleEdit}
             sx={{
@@ -101,7 +101,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
         </Tooltip>
         <Tooltip title={t('contacts.menu.more')}>
           <IconButton
-            size="xsmall"
+            size="medium"
             aria-label={t('contacts.menu.more')}
             onClick={handleMenuOpen}
           >
