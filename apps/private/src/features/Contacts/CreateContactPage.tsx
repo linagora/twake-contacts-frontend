@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { useNavigate, useParams } from 'react-router-dom'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   ContactForm,
   ContactFormValues,
@@ -26,7 +27,8 @@ export const CreateContactPage: React.FC = () => {
   }
 
   const backTo =
-    initialValues.addressBookId && initialValues.addressBookId !== 'contacts'
+    initialValues.addressBookId &&
+    initialValues.addressBookId !== DEFAULT_ADDRESS_BOOK_ID
       ? `/contacts/${initialValues.addressBookId}`
       : '/contacts'
 
@@ -41,7 +43,7 @@ export const CreateContactPage: React.FC = () => {
         })
       ).unwrap()
       void navigate(
-        values.addressBookId && values.addressBookId !== 'contacts'
+        values.addressBookId && values.addressBookId !== DEFAULT_ADDRESS_BOOK_ID
           ? `/contacts/${values.addressBookId}`
           : '/contacts'
       )

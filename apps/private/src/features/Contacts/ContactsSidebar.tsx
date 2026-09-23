@@ -13,15 +13,14 @@ import { useAppSelector } from '@common/app/hooks'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { Link, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-
-const MY_CONTACTS_ID = 'contacts'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 
 export const ContactsSidebar: React.FC = () => {
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const otherBooks = Object.values(addressBooks).filter(
-    book => book.id !== 'collected' && book.id !== MY_CONTACTS_ID
+    book => book.id !== 'collected' && book.id !== DEFAULT_ADDRESS_BOOK_ID
   )
 
   return (

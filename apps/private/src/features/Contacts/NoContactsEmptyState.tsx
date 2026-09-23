@@ -14,7 +14,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
   return (
     <Stack
       spacing={2}
-      sx={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}
+      className="u-flex u-flex-items-center u-flex-justify-center u-flex-grow-1"
     >
       <img
         src="/assets/images/svg/no-contact.svg"

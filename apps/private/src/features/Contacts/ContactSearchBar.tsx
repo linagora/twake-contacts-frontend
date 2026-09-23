@@ -11,6 +11,7 @@ import {
   Contact,
   AddressBookWithContacts
 } from '@common/features/Contacts/contactsTypes'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { getInitials } from './getInitials'
 import { useI18n } from 'twake-i18n'
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -29,7 +30,7 @@ function buildSearchOptions(
   return contacts.map(contact => {
     const addressBookId =
       addressBooks.find(book => book.contacts.some(c => c.id === contact.id))
-        ?.id ?? 'contacts' // id of default contacts addressbook
+        ?.id ?? DEFAULT_ADDRESS_BOOK_ID
     return {
       contact,
       addressBookId,

@@ -144,14 +144,15 @@ export async function deleteContact(
 export async function uploadImportFile(file: File): Promise<string> {
   const response = await api.post('api/files', {
     searchParams: {
-      mimetype: file.type || 'text/vcard',
+      mimetype: 'text/vcard',
       name: file.name,
       size: String(file.size)
     },
     body: file
   })
   const data = await response.json()
-  return data._id ?? data.id ?? data.fileId
+  console.log(data)
+  return data._id
 }
 
 export async function importContacts(

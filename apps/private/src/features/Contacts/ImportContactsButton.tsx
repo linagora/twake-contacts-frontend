@@ -5,11 +5,9 @@ import {
   importContacts,
   uploadImportFile
 } from '@common/features/Contacts/ContactsDao'
-import {
-  selectBook,
-  selectWritableBooks
-} from '@common/features/Contacts/contactsSelectors'
+import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
+import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
 
@@ -25,11 +23,11 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const userId = useAppSelector(state => state.user.userData.openpaasId)
-  const book = useAppSelector(state => selectBook(state, addressBookId))
-  const writableBooks = useAppSelector(selectWritableBooks)
-  const targetBook = book ?? writableBooks[0]
+  const targetBookId = addressBookId ?? DEFAULT_ADDRESS_BOOK_ID
+  const targetBook = useAppSelector(state => selectBook(state, targetBookId))
 
-  if (!targetBook) {
+  // Only show import on writable, non-domain address books
+  if (!targetBook?.canWrite || targetBook.id === 'dab') {
     return null
   }
 
