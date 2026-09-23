@@ -28,6 +28,16 @@ export const selectContactEntries = createSelector(
   }
 )
 
+// books load one after the other, in the same order as selectContactEntries
+export const selectBookIdToLoadMore = (
+  state: RootState,
+  addressBookId?: string
+): string | null => {
+  const books = selectAddressBooks(state)
+  const bookIds = addressBookId ? [addressBookId] : Object.keys(books)
+  return bookIds.find(bookId => books[bookId]?.hasMore) ?? null
+}
+
 export const selectCategories = createSelector(
   [selectAddressBooks],
   (books): string[] => [

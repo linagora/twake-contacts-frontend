@@ -49,15 +49,31 @@ export const fetchMoreContactsThunk = (
       }
     },
     {
-      pending: () => {
-        // Option: Add a loading state for fetching more contacts
+      options: {
+        // endReached can fire again while a page is in flight
+        condition: ({ bookId }, { getState }) => {
+          const state = getState() as { contacts: ContactsState }
+          return !state.contacts.addressBooks[bookId]?.isLoadingMore
+        }
+      },
+      pending: (state, action) => {
+        const book = state.addressBooks[action.meta.arg.bookId]
+        if (book) book.isLoadingMore = true
+      },
+      settled: (state, action) => {
+        const book = state.addressBooks[action.meta.arg.bookId]
+        if (book) book.isLoadingMore = false
       },
       fulfilled: (state, action) => {
         const { bookId, contacts, offset, hasMore } = action.payload
-        if (state.addressBooks[bookId]) {
-          state.addressBooks[bookId].contacts.push(...contacts)
-          state.addressBooks[bookId].offset = offset
-          state.addressBooks[bookId].hasMore = hasMore
+        const book = state.addressBooks[bookId]
+        if (book) {
+          // the DAV `sort=fn` order is not total, so consecutive pages can
+          // overlap; a repeated contact would give the table duplicate keys
+          const known = new Set(book.contacts.map(contact => contact.id))
+          book.contacts.push(...contacts.filter(c => !known.has(c.id)))
+          book.offset = offset
+          book.hasMore = hasMore
         }
       },
       rejected: (state, action) => {

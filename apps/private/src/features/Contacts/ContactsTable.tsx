@@ -12,11 +12,13 @@ import { ContactCell } from './ContactCell'
 interface ContactsTableProps {
   entries: ContactEntry[]
   readOnly?: boolean
+  onEndReached: () => void
 }
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({
   entries,
-  readOnly
+  readOnly,
+  onEndReached
 }) => {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -69,6 +71,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       rows={rows}
       columns={columns}
       computeItemKey={(_, row) => String(row.id)}
+      endReached={onEndReached}
       componentsProps={{
         rowContent: {
           onClick: handleClick,

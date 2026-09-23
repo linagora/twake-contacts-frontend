@@ -66,6 +66,7 @@ export interface AddressBookWithContacts extends AddressBook {
   contacts: Contact[]
   offset: number
   hasMore: boolean
+  isLoadingMore?: boolean
 }
 
 export interface ContactsState {
