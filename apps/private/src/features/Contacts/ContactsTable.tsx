@@ -29,13 +29,13 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     {
       id: 'contact.displayName',
       label: t('contacts.name'),
+      width: 300,
       sortable: false
     },
     {
       id: 'contact.emails.0.value',
       label: t('contacts.email'),
-      width: 200,
-      maxWidth: 200,
+      width: 300,
       noWrap: true,
       sortable: false
     },
@@ -51,9 +51,16 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       id: 'contact.categories',
       label: t('contacts.team'),
       width: 180,
+      maxWidth: 180,
       sortable: false
     },
-    { id: 'actions', width: 92, sortable: false, disableClick: true }
+    {
+      id: 'actions',
+      width: 92,
+      maxWidth: 92,
+      sortable: false,
+      disableClick: true
+    }
   ]
 
   const rows: VirtualizedTableRow[] = entries.map(entry => ({
