@@ -1,10 +1,10 @@
 import { useAppSelector } from '@common/app/hooks'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
-import { searchContacts } from '@common/features/Contacts/ContactsDao'
+
 import {
-  AddressBookWithContacts,
-  Contact
-} from '@common/features/Contacts/contactsTypes'
+  AddressBookRef,
+  searchContacts
+} from '@common/features/Contacts/ContactsDao'
+import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
   Avatar,
@@ -23,32 +23,32 @@ interface SearchOption {
   label: string
 }
 
-function buildSearchOptions(
-  contacts: Contact[],
-  addressBooks: AddressBookWithContacts[]
-): SearchOption[] {
-  return contacts.map(contact => {
-    const addressBookId =
-      addressBooks.find(book => book.contacts.some(c => c.id === contact.id))
-        ?.id ?? DEFAULT_ADDRESS_BOOK_ID
-    return {
-      contact,
-      addressBookId,
-      label: contact.displayName
-    }
-  })
+function buildSearchOptions(entries: ContactEntry[]): SearchOption[] {
+  return entries.map(entry => ({
+    contact: entry.contact,
+    addressBookId: entry.addressBookId,
+    label: entry.contact.displayName
+  }))
 }
 
 export const ContactSearchBar: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const addressBooksRecord = useAppSelector(
     state => state.contacts.addressBooks
   )
   const addressBooks = useMemo(
     () => Object.values(addressBooksRecord),
     [addressBooksRecord]
+  )
+
+  const addressBookRefs = useMemo<AddressBookRef[]>(
+    () =>
+      addressBooks.map(book => ({
+        userId: book.userId,
+        addressBookId: book.id === 'dab' ? 'domain-members' : book.id
+      })),
+    [addressBooks]
   )
 
   const [inputValue, setInputValue] = useState('')
@@ -58,7 +58,7 @@ export const ContactSearchBar: React.FC = () => {
 
   const fetchSearchResults = useCallback(
     async (search: string) => {
-      if (!openpaasId || !search.trim()) {
+      if (addressBookRefs.length === 0 || !search.trim()) {
         setOptions([])
         setLoading(false)
         return
@@ -66,15 +66,15 @@ export const ContactSearchBar: React.FC = () => {
 
       setLoading(true)
       try {
-        const contacts = await searchContacts(openpaasId, search)
-        setOptions(buildSearchOptions(contacts, addressBooks))
+        const entries = await searchContacts(addressBookRefs, search)
+        setOptions(buildSearchOptions(entries))
       } catch {
         setOptions([])
       } finally {
         setLoading(false)
       }
     },
-    [openpaasId, addressBooks]
+    [addressBookRefs]
   )
 
   useEffect(() => {

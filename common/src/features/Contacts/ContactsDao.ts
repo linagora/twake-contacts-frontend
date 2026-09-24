@@ -1,6 +1,6 @@
 import { api } from '@common/utils/apiUtils'
 import { DomainInfo } from '@common/features/User/userDataTypes'
-import { AddressBook, Contact } from './contactsTypes'
+import { AddressBook, Contact, ContactEntry } from './contactsTypes'
 import {
   DavAddressBookItem,
   DavAddressBooksResponse,
@@ -164,19 +164,42 @@ export async function importContacts(
   })
 }
 
+export interface AddressBookRef {
+  userId: string
+  addressBookId: string
+}
+
+export interface MultiAddressBookSearchRequest {
+  query: string
+  addressBooks: AddressBookRef[]
+}
+
+function extractAddressBookIdFromHref(href: string | undefined): string {
+  return href?.split('/').at(-2) ?? ''
+}
+
 export async function searchContacts(
-  userId: string,
+  addressBooks: AddressBookRef[],
   search: string
-): Promise<Contact[]> {
-  const response = api.get(`dav/addressbooks/${userId}.json/contacts`, {
+): Promise<ContactEntry[]> {
+  const requestBody: MultiAddressBookSearchRequest = {
+    query: search,
+    addressBooks
+  }
+
+  const response = api.post('contacts/api/contacts/search', {
+    headers: { 'Content-Type': 'application/json' },
     searchParams: {
       limit: String(SEARCH_LIMIT),
-      page: '1',
-      search
-    }
+      offset: '0'
+    },
+    json: requestBody
   })
   const data: DavContactsResponse = await response.json()
 
   const items = data._embedded?.['dav:item'] ?? []
-  return items.map(normalizeContact)
+  return items.map(item => ({
+    addressBookId: extractAddressBookIdFromHref(item._links?.self?.href),
+    contact: normalizeContact(item)
+  }))
 }
