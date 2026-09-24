@@ -1,4 +1,4 @@
-import { Button, IconButton, Stack } from '@linagora/twake-mui'
+import { Button, IconButton, Stack, Tooltip } from '@linagora/twake-mui'
 import { Icon, Trash } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { deleteContact } from '@common/features/Contacts/ContactsSlice'
@@ -68,12 +68,14 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
             <Button variant="contained" onClick={handleEdit}>
               {t('contacts.menu.edit')}
             </Button>
-            <IconButton
-              aria-label={t('contacts.menu.delete')}
-              onClick={handleOpenDeleteDialog}
-            >
-              <Icon icon={Trash} />
-            </IconButton>
+            <Tooltip title={t('contacts.menu.delete')}>
+              <IconButton
+                aria-label={t('contacts.menu.delete')}
+                onClick={handleOpenDeleteDialog}
+              >
+                <Icon icon={Trash} />
+              </IconButton>
+            </Tooltip>
           </>
         )}
       </Stack>

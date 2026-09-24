@@ -11,6 +11,7 @@ import {
   ListItemText,
   Snackbar,
   Stack,
+  Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import {
@@ -76,13 +77,15 @@ const ContactField: React.FC<ContactFieldProps> = ({
         disableGutters
         secondaryAction={
           copyLabel && (
-            <IconButton
-              size="small"
-              aria-label={copyLabel}
-              onClick={handleCopy}
-            >
-              <Icon icon={Copy} />
-            </IconButton>
+            <Tooltip title={copyLabel}>
+              <IconButton
+                size="small"
+                aria-label={copyLabel}
+                onClick={handleCopy}
+              >
+                <Icon icon={Copy} />
+              </IconButton>
+            </Tooltip>
           )
         }
       >

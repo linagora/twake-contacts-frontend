@@ -9,7 +9,8 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Grid
+  Grid,
+  Tooltip
 } from '@linagora/twake-mui'
 import {
   Icon,
@@ -158,12 +159,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({
             {t('contacts.form.save')}
           </Button>
           {onDelete && (
-            <IconButton
-              aria-label={t('contacts.menu.delete')}
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Icon icon={Trash} />
-            </IconButton>
+            <Tooltip title={t('contacts.menu.delete')}>
+              <IconButton
+                aria-label={t('contacts.menu.delete')}
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Icon icon={Trash} />
+              </IconButton>
+            </Tooltip>
           )}
         </Stack>
       </Grid>
