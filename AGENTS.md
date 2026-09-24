@@ -5,3 +5,4 @@
 - UI built with @linagora/twake-mui components, no local MUI overrides, no sx, no custom styles. Just plain component with standard API and styles.
 - Client-side routing via React Router
 - All user-facing strings must be internationalized from the start: no hardcoded strings, all 4 locales covered (en, fr, vi, ru)
+- Icon button must have a tooltip (except obvious ones like close button for a modal)
