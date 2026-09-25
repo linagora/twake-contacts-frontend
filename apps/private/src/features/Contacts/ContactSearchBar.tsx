@@ -124,6 +124,7 @@ export const ContactSearchBar: React.FC = () => {
       isOptionEqualToValue={(option, value): boolean =>
         option.contact.id === value.contact.id
       }
+      className="u-mb-1"
     />
   )
 }

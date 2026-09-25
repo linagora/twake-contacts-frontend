@@ -10,6 +10,7 @@ import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { ContactsSidebar } from './ContactsSidebar'
+import { ContactSearchBar } from './ContactSearchBar'
 
 export const ContactsPage: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -28,6 +29,7 @@ export const ContactsPage: React.FC = () => {
       <ContactsSidebar />
       <Main>
         <Content className="u-p-1">
+          <ContactSearchBar />
           {loading && <CircularProgress />}
           {error && <Alert severity="error">{error}</Alert>}
           {!loading && <Outlet />}

@@ -10,7 +10,6 @@ import { CircularProgress, Stack, Typography } from '@linagora/twake-mui'
 import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
-import { ContactSearchBar } from './ContactSearchBar'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 
@@ -63,7 +62,6 @@ export const AddressBookPage: React.FC = () => {
 
   return (
     <Stack spacing={2} className="u-flex-auto u-ov-hidden">
-      <ContactSearchBar />
       <Typography variant="h4" gutterBottom>
         {title}
       </Typography>

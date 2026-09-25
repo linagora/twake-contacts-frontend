@@ -5,12 +5,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
   Menu,
   MenuItem,
-  Stack,
-  Grid,
-  Tooltip
+  Stack
 } from '@linagora/twake-mui'
 import {
   Icon,
@@ -18,14 +15,14 @@ import {
   Location,
   Plus,
   Telephone,
-  Email,
-  Trash
+  Email
 } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { AvatarHeader } from './fields/AvatarHeader'
+import { ContactActionsBar } from '../ContactActionsMenu'
 import { NameFields } from './fields/NameFields'
 import { AddressBookField } from './fields/AddressBookField'
 import { MatrixIdField } from './fields/MatrixIdField'
@@ -140,36 +137,30 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <Stack spacing={3} useFlexGap>
-      <Button
-        component={Link}
-        to={backTo}
-        variant="text"
-        startIcon={<Icon icon={Left} />}
-      >
-        {t('contacts.back')}
-      </Button>
-      <Grid container spacing={2}>
-        <AvatarHeader displayName={displayName} title={title} />
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            disabled={!canSubmit}
-            onClick={() => void onSubmit(values)}
-          >
-            {t('contacts.form.save')}
-          </Button>
-          {onDelete && (
-            <Tooltip title={t('contacts.menu.delete')}>
-              <IconButton
-                aria-label={t('contacts.menu.delete')}
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Icon icon={Trash} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Stack>
-      </Grid>
+      <Stack direction="row" className="u-flex u-flex-justify-between">
+        <Button
+          component={Link}
+          to={backTo}
+          variant="text"
+          startIcon={<Icon icon={Left} />}
+        >
+          {t('contacts.back')}
+        </Button>
+        <ContactActionsBar
+          primaryAction={
+            <Button
+              variant="contained"
+              disabled={!canSubmit}
+              onClick={() => void onSubmit(values)}
+            >
+              {t('contacts.form.save')}
+            </Button>
+          }
+          onDelete={onDelete ? () => setShowDeleteDialog(true) : undefined}
+        />
+      </Stack>
+
+      <AvatarHeader displayName={displayName} title={title} />
       <Stack spacing={3}>
         <NameFields
           givenName={values.givenName}
@@ -253,7 +244,6 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           </Menu>
         </div>
       </Stack>
-
       {showDeleteDialog && onDelete && (
         <Dialog
           open

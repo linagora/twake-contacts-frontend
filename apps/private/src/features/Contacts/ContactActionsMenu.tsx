@@ -10,6 +10,35 @@ import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { DeleteContactDialog } from './DeleteContactDialog'
 
+interface ContactActionsBarProps {
+  primaryAction: React.ReactNode
+  onDelete?: () => void
+  readOnly?: boolean
+}
+
+export const ContactActionsBar: React.FC<ContactActionsBarProps> = ({
+  primaryAction,
+  onDelete,
+  readOnly
+}) => {
+  const { t } = useI18n()
+
+  if (readOnly) return null
+
+  return (
+    <Stack direction="row" spacing={1}>
+      {primaryAction}
+      {onDelete && (
+        <Tooltip title={t('contacts.menu.delete')}>
+          <IconButton aria-label={t('contacts.menu.delete')} onClick={onDelete}>
+            <Icon icon={Trash} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Stack>
+  )
+}
+
 interface ContactActionsMenuProps {
   contact: Contact
   addressBookId: string
@@ -62,23 +91,15 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
 
   return (
     <>
-      <Stack direction="row" spacing={1}>
-        {!readOnly && (
-          <>
-            <Button variant="contained" onClick={handleEdit}>
-              {t('contacts.menu.edit')}
-            </Button>
-            <Tooltip title={t('contacts.menu.delete')}>
-              <IconButton
-                aria-label={t('contacts.menu.delete')}
-                onClick={handleOpenDeleteDialog}
-              >
-                <Icon icon={Trash} />
-              </IconButton>
-            </Tooltip>
-          </>
-        )}
-      </Stack>
+      <ContactActionsBar
+        primaryAction={
+          <Button variant="contained" onClick={handleEdit}>
+            {t('contacts.menu.edit')}
+          </Button>
+        }
+        onDelete={handleOpenDeleteDialog}
+        readOnly={readOnly}
+      />
       {openDialog === 'delete' && (
         <DeleteContactDialog
           contact={contact}

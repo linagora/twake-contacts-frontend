@@ -174,7 +174,7 @@ describe('ContactPage', () => {
   it('renders the contact details', () => {
     renderContacts('/contacts/book1/c1')
 
-    expect(screen.getAllByText('Isabella Martinez')).toHaveLength(2)
+    expect(screen.getAllByText('Isabella Martinez')).toHaveLength(1)
     expect(screen.getByText('martinez@twake.app')).toBeInTheDocument()
     expect(screen.getByText('+3365024491')).toBeInTheDocument()
     expect(screen.getByText('Information')).toBeInTheDocument()

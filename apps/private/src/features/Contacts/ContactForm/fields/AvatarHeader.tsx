@@ -1,4 +1,4 @@
-import { Grid, Typography, Avatar } from '@linagora/twake-mui'
+import { Stack, Typography, Avatar } from '@linagora/twake-mui'
 import { getInitials } from '../../getInitials'
 
 interface AvatarHeaderProps {
@@ -11,13 +11,9 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
   title
 }) => {
   return (
-    <Grid container spacing={2}>
-      <Grid>
-        <Avatar size="xl">{getInitials(displayName)}</Avatar>
-      </Grid>
-      <Grid>
-        <Typography variant="h4">{displayName || title || ''}</Typography>
-      </Grid>
-    </Grid>
+    <Stack direction="row" spacing={2} className="u-flex u-flex-items-center">
+      <Avatar size={94}>{getInitials(displayName)}</Avatar>
+      <Typography variant="h4">{displayName || title || ''}</Typography>
+    </Stack>
   )
 }

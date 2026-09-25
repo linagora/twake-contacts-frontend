@@ -10,16 +10,16 @@ import {
   CrossSmall,
   Discuss,
   Email,
+  EmailOpen,
   Icon,
+  Label,
   Left,
   Location,
   Matrix,
-  People,
-  Phone
+  Telephone
 } from '@linagora/twake-icons'
 import {
   Alert,
-  Avatar,
   Button,
   Chip,
   IconButton,
@@ -33,10 +33,11 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useState } from 'react'
+
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
-import { getInitials } from './getInitials'
+import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
 
 const formatAddress = (address: ContactAddress): string =>
   [address.street, address.postalCode, address.locality, address.country]
@@ -77,28 +78,30 @@ const ContactField: React.FC<ContactFieldProps> = ({
       <ListItem
         disableGutters
         secondaryAction={
-          copyLabel && (
-            <Tooltip title={copyLabel}>
-              <IconButton
-                size="small"
-                aria-label={copyLabel}
-                onClick={handleCopy}
-              >
-                <Icon icon={Copy} />
-              </IconButton>
-            </Tooltip>
-          )
+          <div className="u-flex u-flex-items-center u-row-xs">
+            {type && (
+              <Typography variant="body2" color="text.secondary">
+                {type}
+              </Typography>
+            )}
+            {copyLabel && (
+              <Tooltip title={copyLabel}>
+                <IconButton
+                  size="small"
+                  aria-label={copyLabel}
+                  onClick={handleCopy}
+                >
+                  <Icon icon={Copy} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </div>
         }
       >
         <ListItemIcon>
           <Icon icon={icon} />
         </ListItemIcon>
         <ListItemText primary={value} />
-        {type && (
-          <Typography variant="body2" color="text.secondary">
-            {type}
-          </Typography>
-        )}
       </ListItem>
       {copyToastMessage && (
         <Snackbar
@@ -169,37 +172,38 @@ export const ContactPage: React.FC = () => {
 
   return (
     <Stack spacing={3}>
-      <Button
-        component={Link}
-        to={
-          isHiddenAddressBook(addressBookId)
-            ? '/contacts'
-            : `/contacts/${addressBookId}`
-        }
-        variant="text"
-        startIcon={<Icon icon={Left} />}
-      >
-        {t('contacts.back')}
-      </Button>
+      <Stack direction="row" className="u-flex u-flex-justify-between">
+        <Button
+          component={Link}
+          to={
+            isHiddenAddressBook(addressBookId)
+              ? '/contacts'
+              : `/contacts/${addressBookId}`
+          }
+          variant="text"
+          startIcon={<Icon icon={Left} />}
+        >
+          {t('contacts.back')}
+        </Button>
+        {contact && (
+          <ContactActionsMenu
+            contact={contact}
+            addressBookId={addressBookId ?? ''}
+            onDeleted={handleDeleted}
+            readOnly={addressBookId === 'dab'}
+          />
+        )}
+      </Stack>
       {!contact ? (
         <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
       ) : (
         <>
-          <Stack direction="row" spacing={2}>
-            <Avatar size="xl">{getInitials(contact.displayName)}</Avatar>
-            <Typography variant="h4">{contact.displayName}</Typography>
-            <ContactActionsMenu
-              contact={contact}
-              addressBookId={addressBookId ?? ''}
-              onDeleted={handleDeleted}
-              readOnly={addressBookId === 'dab'}
-            />
-          </Stack>
+          <AvatarHeader displayName={contact.displayName} />
           <Stack direction="row" spacing={2}>
             {firstEmail && (
               <Button
-                variant="contained"
-                startIcon={<Icon icon={Email} />}
+                variant="ghost"
+                startIcon={<Icon icon={EmailOpen} />}
                 aria-label={t('contacts.menu.mail')}
                 data-testid="contact-mail-button"
                 onClick={handleSendMail}
@@ -209,7 +213,7 @@ export const ContactPage: React.FC = () => {
             )}
             {chatTarget && (
               <Button
-                variant="contained"
+                variant="ghost"
                 aria-label={t('contacts.menu.chat')}
                 data-testid="contact-chat-button"
                 startIcon={<Icon icon={Discuss} />}
@@ -220,7 +224,7 @@ export const ContactPage: React.FC = () => {
             )}
             {firstEmail && (
               <Button
-                variant="contained"
+                variant="ghost"
                 aria-label={t('contacts.menu.calendar')}
                 data-testid="contact-calendar-button"
                 startIcon={<Icon icon={CalendarToday} />}
@@ -231,13 +235,10 @@ export const ContactPage: React.FC = () => {
             )}
           </Stack>
           <List>
-            <Typography variant="h5" component="li" gutterBottom>
-              {contact.displayName}
-            </Typography>
             {contact.categories && (
               <ListItem disableGutters>
                 <ListItemIcon>
-                  <Icon icon={People} />
+                  <Icon icon={Label} />
                 </ListItemIcon>
                 <Stack direction="row" spacing={1}>
                   {contact.categories.map(category => (
@@ -249,7 +250,7 @@ export const ContactPage: React.FC = () => {
             {contact.phones?.map(phone => (
               <ContactField
                 key={phone.value}
-                icon={Phone}
+                icon={Telephone}
                 value={phone.value}
                 type={phone.type}
                 copyLabel={t('contacts.copy')}
@@ -261,21 +262,21 @@ export const ContactPage: React.FC = () => {
                 key={email.value}
                 icon={Email}
                 value={email.value}
-                type={email.type}
                 copyLabel={t('contacts.copy')}
                 copyToastMessage={t('contacts.emailWasCopied')}
               />
             ))}
-            {contact.socialProfiles?.map(profile => (
-              <ContactField
-                key={profile.value}
-                icon={Matrix}
-                value={profile.value}
-                type={profile.type}
-                copyLabel={t('contacts.copy')}
-                copyToastMessage={t('contacts.socialProfileWasCopied')}
-              />
-            ))}
+            {contact.socialProfiles
+              ?.filter(profile => profile.type === 'matrix')
+              .map(profile => (
+                <ContactField
+                  key={profile.value}
+                  icon={Matrix}
+                  value={profile.value}
+                  copyLabel={t('contacts.copy')}
+                  copyToastMessage={t('contacts.socialProfileWasCopied')}
+                />
+              ))}
             {contact.addresses?.map(address => (
               <ContactField
                 key={formatAddress(address)}
