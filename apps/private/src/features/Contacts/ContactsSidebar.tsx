@@ -47,30 +47,32 @@ export const ContactsSidebar: React.FC = () => {
           {t('contacts.create')}
         </Button>
       </Box>
-      <Nav>
-        <NavItem>
-          <NavLink
-            component={Link}
-            to="/contacts"
-            selected={addressBookId === undefined}
-          >
-            <NavIcon icon={Contacts} />
-            <NavText>{t('contacts.myContacts')}</NavText>
-          </NavLink>
-        </NavItem>
-        {otherBooks.map(book => (
-          <NavItem key={book.id}>
+      <Box className="u-flex-auto u-ov-auto u-mt-1-half">
+        <Nav className="u-mv-0">
+          <NavItem>
             <NavLink
               component={Link}
-              to={`/contacts/${book.id}`}
-              selected={addressBookId === book.id}
+              to="/contacts"
+              selected={addressBookId === undefined}
             >
-              <NavIcon icon={Company} />
-              <NavText>{getAddressBookDisplayName(book, t)}</NavText>
+              <NavIcon icon={Contacts} />
+              <NavText>{t('contacts.myContacts')}</NavText>
             </NavLink>
           </NavItem>
-        ))}
-      </Nav>
+          {otherBooks.map(book => (
+            <NavItem key={book.id}>
+              <NavLink
+                component={Link}
+                to={`/contacts/${book.id}`}
+                selected={addressBookId === book.id}
+              >
+                <NavIcon icon={Company} />
+                <NavText>{getAddressBookDisplayName(book, t)}</NavText>
+              </NavLink>
+            </NavItem>
+          ))}
+        </Nav>
+      </Box>
     </Sidebar>
   )
 }
