@@ -24,9 +24,15 @@ export const ContactsSidebar: React.FC = () => {
   const currentBook = addressBookId ? addressBooks[addressBookId] : undefined
   const canWriteCurrentBook =
     (currentBook?.canWrite && addressBookId !== 'dab') ?? false
-  const otherBooks = Object.values(addressBooks).filter(
-    book => !isHiddenAddressBook(book.id)
-  )
+  const otherBooks = Object.values(addressBooks)
+    .filter(book => !isHiddenAddressBook(book.id))
+    .sort((a, b) =>
+      getAddressBookDisplayName(a, t).localeCompare(
+        getAddressBookDisplayName(b, t),
+        undefined,
+        { numeric: true }
+      )
+    )
 
   const createLink =
     addressBookId && canWriteCurrentBook

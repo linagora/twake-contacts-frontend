@@ -1,5 +1,6 @@
 import { setupStore } from '@common/app/store'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -9,11 +10,26 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import I18n from 'twake-i18n'
 import { ContactsSidebar } from './ContactsSidebar'
 
-function renderSidebar(path: string): ReturnType<typeof render> {
+const makeBook = (id: string, name: string): AddressBookWithContacts => ({
+  id,
+  userId: 'u1',
+  name,
+  contactsCount: 0,
+  acl: [],
+  canWrite: true,
+  contacts: [],
+  offset: 0,
+  hasMore: false
+})
+
+function renderSidebar(
+  path: string,
+  addressBooks?: Record<string, AddressBookWithContacts>
+): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: addressBooks ?? {
         contacts: {
           id: DEFAULT_ADDRESS_BOOK_ID,
           userId: 'u1',
@@ -90,5 +106,32 @@ describe('ContactsSidebar', () => {
       'href',
       '/contacts/new'
     )
+  })
+
+  it('lists address books in alphabetical order after My contacts', () => {
+    renderSidebar(
+      '/contacts',
+      Object.fromEntries(
+        [
+          makeBook(DEFAULT_ADDRESS_BOOK_ID, 'My contacts'),
+          makeBook('collected', 'Collected'),
+          makeBook('b1', 'zeta'),
+          makeBook('b2', '10 Team'),
+          makeBook('b3', 'Alpha'),
+          makeBook('b4', 'beta'),
+          makeBook('b5', '2 Team')
+        ].map(book => [book.id, book])
+      )
+    )
+
+    expect(screen.getAllByRole('link').map(link => link.textContent)).toEqual([
+      en.contacts.create,
+      en.contacts.myContacts,
+      '2 Team',
+      '10 Team',
+      'Alpha',
+      'beta',
+      'zeta'
+    ])
   })
 })
