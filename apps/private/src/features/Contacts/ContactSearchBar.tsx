@@ -16,7 +16,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { getInitials } from './getInitials'
-import './ContactSearchBar.styl'
 
 interface SearchOption {
   contact: Contact
