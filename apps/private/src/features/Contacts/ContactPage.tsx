@@ -77,31 +77,30 @@ const ContactField: React.FC<ContactFieldProps> = ({
     <>
       <ListItem
         disableGutters
-        secondaryAction={
-          <div className="u-flex u-flex-items-center u-row-xs">
-            {type && (
-              <Typography variant="body2" color="text.secondary">
-                {type}
-              </Typography>
-            )}
-            {copyLabel && (
-              <Tooltip title={copyLabel}>
-                <IconButton
-                  size="small"
-                  aria-label={copyLabel}
-                  onClick={handleCopy}
-                >
-                  <Icon icon={Copy} />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        }
+        className="u-flex u-flex-items-center"
+        style={{ width: 'fit-content', maxWidth: '50%' }}
       >
         <ListItemIcon>
           <Icon icon={icon} />
         </ListItemIcon>
-        <ListItemText primary={value} />
+        <ListItemText
+          primary={value}
+          slotProps={{ primary: { noWrap: true } }}
+        />
+        <div className="u-flex u-flex-items-center u-row-xs u-ml-auto u-ml-1">
+          {type && (
+            <Typography variant="body2" color="text.secondary">
+              {type}
+            </Typography>
+          )}
+          {copyLabel && (
+            <Tooltip title={copyLabel}>
+              <IconButton aria-label={copyLabel} onClick={handleCopy}>
+                <Icon icon={Copy} size={24} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </div>
       </ListItem>
       {copyToastMessage && (
         <Snackbar
