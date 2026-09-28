@@ -9,13 +9,14 @@ import {
   Autocomplete,
   Avatar,
   ListItem,
-  Stack,
-  TextField
+  SearchBar,
+  Stack
 } from '@linagora/twake-mui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from 'twake-i18n'
 import { getInitials } from './getInitials'
+import './ContactSearchBar.styl'
 
 interface SearchOption {
   contact: Contact
@@ -60,6 +61,7 @@ export const ContactSearchBar: React.FC = () => {
     async (search: string) => {
       if (!openpaasId || !search.trim()) {
         setOptions([])
+        setLoading(false)
         return
       }
 
@@ -94,23 +96,30 @@ export const ContactSearchBar: React.FC = () => {
 
   return (
     <Autocomplete
-      fullWidth
       open={open && inputValue.trim().length > 0}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
       options={options}
       getOptionLabel={option => option.label}
       inputValue={inputValue}
-      onInputChange={(_event, newInputValue) => setInputValue(newInputValue)}
+      onInputChange={(_event, newInputValue) => {
+        setInputValue(newInputValue)
+        setLoading(true)
+      }}
       onChange={handleChange}
       loading={loading}
       noOptionsText={t('contacts.search.noResults')}
       loadingText={t('contacts.search.loading')}
       renderInput={params => (
-        <TextField
-          {...params}
+        <SearchBar
+          ref={params.slotProps.input.ref}
+          onMouseDown={params.slotProps.input.onMouseDown}
+          value={inputValue}
           placeholder={t('contacts.search.placeholder')}
-          size="small"
+          onClear={() => setInputValue('')}
+          componentsProps={{
+            inputBase: { inputProps: params.slotProps.htmlInput }
+          }}
         />
       )}
       renderOption={(props, option) => (
@@ -124,7 +133,7 @@ export const ContactSearchBar: React.FC = () => {
       isOptionEqualToValue={(option, value): boolean =>
         option.contact.id === value.contact.id
       }
-      className="u-mb-1"
+      className="u-maw-7 u-mb-1"
     />
   )
 }
