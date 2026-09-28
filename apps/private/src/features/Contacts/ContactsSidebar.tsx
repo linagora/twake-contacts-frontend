@@ -1,6 +1,6 @@
 import {
   Button,
-  ListItem,
+  Box,
   Nav,
   NavIcon,
   NavItem,
@@ -26,18 +26,19 @@ export const ContactsSidebar: React.FC = () => {
 
   return (
     <Sidebar>
+      <Box className="u-mh-1 u-mt-1">
+        <Button
+          variant="contained"
+          fullWidth
+          startIcon={<Icon size={12} icon={Plus} />}
+          component={Link}
+          to="/contacts/new"
+          className="u-bdrs-6 u-fz-small"
+        >
+          {t('contacts.create')}
+        </Button>
+      </Box>
       <Nav>
-        <ListItem>
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<Icon icon={Plus} />}
-            component={Link}
-            to="/contacts/new"
-          >
-            {t('contacts.create')}
-          </Button>
-        </ListItem>
         <NavItem>
           <NavLink
             component={Link}
