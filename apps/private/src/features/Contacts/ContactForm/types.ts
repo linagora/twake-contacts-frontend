@@ -33,9 +33,9 @@ export const EMPTY_CONTACT_FORM_VALUES: ContactFormValues = {
   familyName: '',
   categories: [],
   matrixId: '',
-  phones: [{ type: 'cell', value: '' }],
-  emails: [{ type: 'work', value: '' }],
-  addresses: [{ type: 'home', value: '' }]
+  phones: [{ type: '', value: '' }],
+  emails: [{ type: '', value: '' }],
+  addresses: [{ type: '', value: '' }]
 }
 
 const MATRIX_TYPE = 'matrix'
@@ -64,7 +64,7 @@ export function makeFormValuesFromContact(
     type: string | null
     value: string
   }): ContactFormEntry => ({
-    type: entry.type ?? 'other',
+    type: entry.type ?? '',
     value: entry.value
   })
   return {

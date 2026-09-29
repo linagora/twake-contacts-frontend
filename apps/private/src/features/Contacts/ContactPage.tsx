@@ -90,7 +90,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
         <div className="u-flex u-flex-items-center u-row-xs u-ml-auto u-ml-1">
           {type && (
             <Typography variant="body2" color="text.secondary">
-              {type}
+              {t(`contacts.types.${type.toLowerCase()}`)}
             </Typography>
           )}
           {copyLabel && (

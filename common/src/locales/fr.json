@@ -38,6 +38,7 @@
       "addField": "Ajouter",
       "remove": "Supprimer",
       "type": "Type",
+      "typeLabel": "Label",
       "cancel": "Annuler",
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",

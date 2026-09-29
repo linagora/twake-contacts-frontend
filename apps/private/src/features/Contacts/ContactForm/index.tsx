@@ -113,12 +113,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [touchedEmails, setTouchedEmails] = useState<boolean[]>([])
 
   const ADD_FIELD_MAP: Record<'phone' | 'email' | 'address', () => void> = {
-    phone: () => addEntry('phones', 'cell'),
+    phone: () => addEntry('phones', ''),
     email: () => {
-      addEntry('emails', 'work')
+      addEntry('emails', '')
       setTouchedEmails(prev => [...prev, false])
     },
-    address: () => addEntry('addresses', 'home')
+    address: () => addEntry('addresses', '')
   }
 
   const handleAddField = (type: keyof typeof ADD_FIELD_MAP): void => {

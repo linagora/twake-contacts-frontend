@@ -38,6 +38,7 @@
       "addField": "Add",
       "remove": "Remove",
       "type": "Type",
+      "typeLabel": "Label",
       "cancel": "Cancel",
       "save": "Save",
       "addressBook": "Address book",

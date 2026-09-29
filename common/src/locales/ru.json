@@ -38,6 +38,7 @@
       "addField": "Добавить",
       "remove": "Удалить",
       "type": "Тип",
+      "typeLabel": "Метка",
       "cancel": "Отмена",
       "save": "Сохранить",
       "addressBook": "Адресная книга",

@@ -1,4 +1,11 @@
-import { Button, Grid, MenuItem, Stack, TextField } from '@linagora/twake-mui'
+import {
+  Button,
+  Grid,
+  MenuItem,
+  Select,
+  Stack,
+  TextField
+} from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { FormRow } from './FormRow'
@@ -63,22 +70,21 @@ export const EntryList: React.FC<EntryListProps> = ({
           </Grid>
           {showTypeSelector && (
             <Grid size={2}>
-              <TextField
-                select
+              <Select
                 fullWidth
                 variant="outlined"
-                value={entry.type}
+                value={entry.type || ''}
                 onChange={e => onChange(index, { type: e.target.value })}
-                slotProps={{
-                  select: { 'aria-label': t('contacts.form.type') }
-                }}
+                aria-label={t('contacts.form.type')}
+                displayEmpty
               >
+                <MenuItem value="">{t('contacts.form.typeLabel')}</MenuItem>
                 {types.map(type => (
                   <MenuItem key={type} value={type}>
                     {t(`contacts.types.${type}`)}
                   </MenuItem>
                 ))}
-              </TextField>
+              </Select>
             </Grid>
           )}
           <Grid size={1}>
