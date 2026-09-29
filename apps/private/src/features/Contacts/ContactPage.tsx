@@ -40,7 +40,13 @@ import { ContactActionsMenu } from './ContactActionsMenu'
 import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
 
 const formatAddress = (address: ContactAddress): string =>
-  [address.street, address.postalCode, address.locality, address.country]
+  [
+    address.address,
+    address.street,
+    address.postalCode,
+    address.locality,
+    address.country
+  ]
     .filter(Boolean)
     .join(', ')
 
