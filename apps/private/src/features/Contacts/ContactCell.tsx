@@ -78,9 +78,12 @@ export const ContactCell: React.FC<ContactCellProps> = ({
         <ContactPopover name={contact.displayName} email={firstEmail ?? ''}>
           {nameElement}
           <ContactPopover.Actions>
-            {mailUrl && <ContactPopover.EmailAction url={mailUrl} />}
-            {calendarUrl && <ContactPopover.CalendarAction url={calendarUrl} />}
-            {chatUrl && <ContactPopover.ChatAction url={chatUrl} />}
+            <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
+            <ContactPopover.CalendarAction
+              url={calendarUrl}
+              disabled={!calendarUrl}
+            />
+            <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
           </ContactPopover.Actions>
         </ContactPopover>
       )

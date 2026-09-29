@@ -6,7 +6,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@linagora/twake-icons": "^2.7.0",
-    "@linagora/twake-mui": "^9.9.1",
+    "@linagora/twake-mui": "^9.11.2",
     "@linagora/twake-utils": "^1.1.0",
     "@mui/icons-material": "^9.0.1",
     "@mui/material": "^9.0.1",
