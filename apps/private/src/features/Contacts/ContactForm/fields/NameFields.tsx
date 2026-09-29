@@ -19,6 +19,7 @@ export const NameFields: React.FC<NameFieldsProps> = ({
       <Grid size={4}>
         <TextField
           fullWidth
+          autoFocus
           variant="outlined"
           label={t('contacts.form.firstName')}
           value={givenName}
