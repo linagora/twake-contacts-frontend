@@ -95,6 +95,7 @@ export const ContactSearchBar: React.FC = () => {
 
   return (
     <Autocomplete
+      value={null}
       open={open && inputValue.trim().length > 0}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}

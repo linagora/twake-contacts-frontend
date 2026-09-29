@@ -155,6 +155,8 @@ describe('ContactSearchBar', () => {
         '/contacts/collected/c1'
       )
     })
+
+    expect(screen.getByPlaceholderText('Search contacts...')).toHaveValue('')
   })
 
   it('does not search when no address books are loaded', async () => {
