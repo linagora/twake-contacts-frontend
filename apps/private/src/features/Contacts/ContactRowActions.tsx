@@ -34,8 +34,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const isMenuOpen = Boolean(anchorEl)
-
-  if (readOnly || !book?.canWrite) return null
+  const isReadOnly = readOnly || !book?.canWrite
 
   const handleCloseDialog = (): void => setOpenDialog(null)
   const handleOpenDeleteDialog = (): void => {
@@ -74,24 +73,26 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   return (
     <>
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} className="u-flex-justify-end">
         {/* TEMPORARY: reveal on row hover through CSS until twake-mui ships a
             MuiTableRow rule for hover-only actions. VirtualizedTable owns the
             row, so the old isHovered state is no longer reachable from here.
             The menu is portaled, so the row loses :hover while it is open. */}
-        <Tooltip title={t('contacts.menu.edit')}>
-          <IconButton
-            size="medium"
-            aria-label={t('contacts.menu.edit')}
-            onClick={handleEdit}
-            sx={{
-              visibility: isMenuOpen ? 'visible' : 'hidden',
-              '.MuiTableRow-root:hover &': { visibility: 'visible' }
-            }}
-          >
-            <Icon icon={Pen} />
-          </IconButton>
-        </Tooltip>
+        {!isReadOnly && (
+          <Tooltip title={t('contacts.menu.edit')}>
+            <IconButton
+              size="medium"
+              aria-label={t('contacts.menu.edit')}
+              onClick={handleEdit}
+              sx={{
+                visibility: isMenuOpen ? 'visible' : 'hidden',
+                '.MuiTableRow-root:hover &': { visibility: 'visible' }
+              }}
+            >
+              <Icon icon={Pen} />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title={t('contacts.menu.more')}>
           <IconButton
             size="medium"
@@ -106,6 +107,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
           anchorEl={anchorEl}
           onClose={handleMenuClose}
           onOpenDeleteDialog={handleOpenDeleteDialog}
+          readOnly={isReadOnly}
         />
       </Stack>
       {openDialog === 'delete' && (

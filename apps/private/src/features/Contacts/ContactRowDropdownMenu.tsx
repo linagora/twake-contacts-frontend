@@ -18,6 +18,7 @@ interface ContactRowDropdownMenuProps {
   anchorEl: null | HTMLElement
   onClose: () => void
   onOpenDeleteDialog: () => void
+  readOnly?: boolean
 }
 
 const getFirstEmail = (contact: Contact): string => contact?.emails?.[0]?.value
@@ -33,7 +34,8 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
   contact,
   anchorEl,
   onClose,
-  onOpenDeleteDialog
+  onOpenDeleteDialog,
+  readOnly
 }) => {
   const { t } = useI18n()
   const isMenuOpen = Boolean(anchorEl)
@@ -100,12 +102,14 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
         </ListItemIcon>
         <ListItemText>{t('contacts.menu.createEvent')}</ListItemText>
       </MenuItem>
-      <MenuItem onClick={onOpenDeleteDialog}>
-        <ListItemIcon>
-          <Icon icon={Trash} />
-        </ListItemIcon>
-        <ListItemText>{t('contacts.menu.delete')}</ListItemText>
-      </MenuItem>
+      {!readOnly && (
+        <MenuItem onClick={onOpenDeleteDialog}>
+          <ListItemIcon>
+            <Icon icon={Trash} />
+          </ListItemIcon>
+          <ListItemText>{t('contacts.menu.delete')}</ListItemText>
+        </MenuItem>
+      )}
     </Menu>
   )
 }

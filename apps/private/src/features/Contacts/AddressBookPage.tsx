@@ -48,7 +48,6 @@ export const AddressBookPage: React.FC = () => {
         <ContactsTable
           key={addressBookId ?? 'all'}
           entries={entries}
-          readOnly={addressBookId === 'dab'}
           onEndReached={loadMore}
         />
       )

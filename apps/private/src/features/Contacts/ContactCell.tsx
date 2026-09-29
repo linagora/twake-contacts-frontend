@@ -21,17 +21,16 @@ interface ContactCellProps {
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
   cell?: unknown
-  readOnly?: boolean
 }
 
 export const ContactCell: React.FC<ContactCellProps> = ({
   row,
   column,
-  cell,
-  readOnly
+  cell
 }) => {
   if (!row || !column) return null
   const { contact, addressBookId } = row as unknown as ContactEntry
+  const readOnly = addressBookId === 'dab'
 
   switch (column.id) {
     case 'contact.displayName': {
