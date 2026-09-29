@@ -68,8 +68,9 @@ export const fetchMoreContactsThunk = (
         const { bookId, contacts, offset, hasMore } = action.payload
         const book = state.addressBooks[bookId]
         if (book) {
-          // the DAV `sort=fn` order is not total, so consecutive pages can
-          // overlap; a repeated contact would give the table duplicate keys
+          // Pages are fetched by offset, so a contact added while paging
+          // can come back in the next page; a repeated contact would
+          // give the table duplicate keys
           const known = new Set(book.contacts.map(contact => contact.id))
           book.contacts.push(...contacts.filter(c => !known.has(c.id)))
           book.offset = offset
