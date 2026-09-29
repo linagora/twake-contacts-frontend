@@ -3,7 +3,7 @@ import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
   ContactForm,

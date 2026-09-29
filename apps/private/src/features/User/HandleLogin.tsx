@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { setAppLoading } from '@common/app/loadingSlice'
 
 export const HandleLogin: React.FC = () => {

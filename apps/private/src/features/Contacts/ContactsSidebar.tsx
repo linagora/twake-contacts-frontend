@@ -14,7 +14,7 @@ import {
   NavText,
   Sidebar
 } from '@linagora/twake-mui'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 
 export const ContactsSidebar: React.FC = () => {

@@ -5,7 +5,7 @@ import {
   VirtualizedTableRow
 } from '@linagora/twake-mui'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactCell } from './ContactCell'
 

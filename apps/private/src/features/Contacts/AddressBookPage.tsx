@@ -8,7 +8,7 @@ import {
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { CircularProgress, Stack, Typography } from '@linagora/twake-mui'
 import { useCallback, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'

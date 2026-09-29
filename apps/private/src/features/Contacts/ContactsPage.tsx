@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
 import { useEffect } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router'
 import { ContactsSidebar } from './ContactsSidebar'
 import { ContactSearchBar } from './ContactSearchBar'
 

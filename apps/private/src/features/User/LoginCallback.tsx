@@ -13,7 +13,7 @@ import {
   UserInfoResponse
 } from 'openid-client'
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface RedirectState {
   code_verifier: string

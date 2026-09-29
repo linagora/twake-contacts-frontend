@@ -13,7 +13,7 @@ import {
   Stack
 } from '@linagora/twake-mui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { getInitials } from './getInitials'
 

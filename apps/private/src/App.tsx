@@ -8,7 +8,7 @@ import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import * as Sentry from '@sentry/react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router } from 'react-router'
 
 import {
   enGB,

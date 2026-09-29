@@ -14,7 +14,7 @@
     "react-dom": "^18.2.0",
     "react-error-boundary": "^6.1.1",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.18.3",
+    "react-router": "^7.18.3",
     "twake-i18n": "^0.5.0",
     "@linagora/twake-icons": "^2.7.0"
   },
