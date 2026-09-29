@@ -27,9 +27,15 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
       fulfilled: (state, action) => {
         const book = state.addressBooks[action.payload.addressBookId]
         if (!book) return
-        book.contacts = book.contacts.filter(
+        const contacts = book.contacts.filter(
           contact => contact.id !== action.payload.contactId
         )
+        // The next page is fetched by offset and the server list just lost
+        // one loaded contact, so keeping the offset would skip a contact
+        if (contacts.length < book.contacts.length) {
+          book.offset = Math.max(0, book.offset - 1)
+        }
+        book.contacts = contacts
         book.contactsCount -= 1
       },
       rejected: (state, action) => {
