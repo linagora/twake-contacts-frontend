@@ -1,4 +1,4 @@
-import { Grid, TextField } from '@linagora/twake-mui'
+import { Grid, InputAdornment, TextField } from '@linagora/twake-mui'
 import { Icon, Matrix } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { FormRow } from '../FormRow'
@@ -24,7 +24,13 @@ export const MatrixIdField: React.FC<MatrixIdFieldProps> = ({
           onChange={e => onChange(e.target.value)}
           slotProps={{
             htmlInput: { 'aria-label': t('contacts.form.matrixId') },
-            input: { startAdornment: <Icon icon={Matrix} /> }
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Icon icon={Matrix} />
+                </InputAdornment>
+              )
+            }
           }}
         />
       </Grid>

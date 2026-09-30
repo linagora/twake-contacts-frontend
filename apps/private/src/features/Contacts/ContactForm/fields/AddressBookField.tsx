@@ -1,4 +1,4 @@
-import { Grid, MenuItem, TextField } from '@linagora/twake-mui'
+import { Grid, InputAdornment, MenuItem, TextField } from '@linagora/twake-mui'
 import { Icon, People } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
@@ -31,7 +31,13 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
           onChange={e => onChange(e.target.value)}
           slotProps={{
             select: { 'aria-label': t('contacts.form.addressBook') },
-            input: { startAdornment: <Icon icon={People} /> }
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Icon icon={People} />
+                </InputAdornment>
+              )
+            }
           }}
         >
           {addressBooks.map(book => (

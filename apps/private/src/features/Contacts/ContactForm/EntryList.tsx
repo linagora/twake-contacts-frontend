@@ -1,6 +1,7 @@
 import {
   Button,
   Grid,
+  InputAdornment,
   MenuItem,
   Select,
   Stack,
@@ -63,7 +64,11 @@ export const EntryList: React.FC<EntryListProps> = ({
               slotProps={{
                 htmlInput: { 'aria-label': label },
                 input: {
-                  startAdornment: <Icon icon={icon} />
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Icon icon={icon} />
+                    </InputAdornment>
+                  )
                 }
               }}
             />
