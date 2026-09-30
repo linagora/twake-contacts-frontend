@@ -1,5 +1,5 @@
-import { useAppSelector } from '@common/app/hooks'
-
+import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
 import {
   AddressBookRef,
   searchContacts
@@ -34,6 +34,7 @@ function buildSearchOptions(entries: ContactEntry[]): SearchOption[] {
 export const ContactSearchBar: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const addressBooksRecord = useAppSelector(
     state => state.contacts.addressBooks
   )
@@ -87,7 +88,15 @@ export const ContactSearchBar: React.FC = () => {
 
   const handleChange = (_event: unknown, value: SearchOption | null): void => {
     if (value) {
-      void navigate(`/contacts/${value.addressBookId}/${value.contact.id}`)
+      const storeAddressBookId =
+        value.addressBookId === 'domain-members' ? 'dab' : value.addressBookId
+      dispatch(
+        addContactFromSearch({
+          addressBookId: storeAddressBookId,
+          contact: value.contact
+        })
+      )
+      void navigate(`/contacts/${storeAddressBookId}/${value.contact.id}`)
       setInputValue('')
       setOptions([])
     }

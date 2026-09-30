@@ -188,7 +188,6 @@ export async function searchContacts(
   }
 
   const response = api.post('contacts/api/contacts/search', {
-    headers: { 'Content-Type': 'application/json' },
     searchParams: {
       limit: String(SEARCH_LIMIT),
       offset: '0'
@@ -198,8 +197,15 @@ export async function searchContacts(
   const data: DavContactsResponse = await response.json()
 
   const items = data._embedded?.['dav:item'] ?? []
-  return items.map(item => ({
-    addressBookId: extractAddressBookIdFromHref(item._links?.self?.href),
-    contact: normalizeContact(item)
-  }))
+  return items.flatMap(item => {
+    const addressBookId = extractAddressBookIdFromHref(item._links?.self?.href)
+    return addressBookId
+      ? [
+          {
+            addressBookId,
+            contact: normalizeContact(item)
+          }
+        ]
+      : []
+  })
 }

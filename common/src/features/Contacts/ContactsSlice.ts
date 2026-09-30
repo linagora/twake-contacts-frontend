@@ -1,6 +1,6 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
-import { ContactsState } from './contactsTypes'
+import { Contact, ContactsState } from './contactsTypes'
 import {
   createContactThunk,
   deleteContactThunk,
@@ -22,6 +22,20 @@ const ContactsSlice = createAppSlice({
     clearContactsError: create.reducer(state => {
       state.error = null
     }),
+    addContactFromSearch: create.reducer(
+      (
+        state,
+        action: { payload: { addressBookId: string; contact: Contact } }
+      ) => {
+        const { addressBookId, contact } = action.payload
+        const book = state.addressBooks[addressBookId]
+        if (!book) return
+        const exists = book.contacts.some(c => c.id === contact.id)
+        if (!exists) {
+          book.contacts.push(contact)
+        }
+      }
+    ),
     fetchContacts: fetchContactsThunk(create),
     fetchMoreContacts: fetchMoreContactsThunk(create),
     createContact: createContactThunk(create),
@@ -31,6 +45,7 @@ const ContactsSlice = createAppSlice({
 })
 
 export const {
+  addContactFromSearch,
   clearContactsError,
   createContact,
   deleteContact,

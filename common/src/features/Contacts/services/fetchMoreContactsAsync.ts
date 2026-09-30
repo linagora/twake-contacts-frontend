@@ -71,8 +71,20 @@ export const fetchMoreContactsThunk = (
           // Pages are fetched by offset, so a contact added while paging
           // can come back in the next page; a repeated contact would
           // give the table duplicate keys
-          const known = new Set(book.contacts.map(contact => contact.id))
-          book.contacts.push(...contacts.filter(c => !known.has(c.id)))
+          // // Also handle contacts added from search that may be out of position
+          const toRemove = new Set<string>()
+          for (const contact of contacts) {
+            const existingIndex = book.contacts.findIndex(
+              c => c.id === contact.id
+            )
+            if (existingIndex !== -1) {
+              toRemove.add(contact.id)
+            }
+          }
+          // Remove contacts that will be re-fetched in correct position
+          book.contacts = book.contacts.filter(c => !toRemove.has(c.id))
+          // Add all new contacts in their proper sorted position
+          book.contacts.push(...contacts)
           book.offset = offset
           book.hasMore = hasMore
         }
