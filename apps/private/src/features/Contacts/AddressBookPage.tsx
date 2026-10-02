@@ -6,7 +6,12 @@ import {
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { CircularProgress, Stack, Typography } from '@linagora/twake-mui'
+import {
+  CircularProgress,
+  Skeleton,
+  Stack,
+  Typography
+} from '@linagora/twake-mui'
 import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
@@ -20,6 +25,7 @@ export const AddressBookPage: React.FC = () => {
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
+  const loading = useAppSelector(state => state.contacts.loading)
   const entries = useAppSelector(state =>
     selectContactEntries(state, addressBookId)
   )
@@ -44,12 +50,13 @@ export const AddressBookPage: React.FC = () => {
   }, [entries.length, loadMore])
 
   const renderContent = (): React.ReactNode => {
-    if (entries.length > 0) {
+    if (entries.length > 0 || loading) {
       return (
         <ContactsTable
           key={addressBookId ?? 'all'}
           entries={entries}
           onEndReached={loadMore}
+          loading={loading}
         />
       )
     }
@@ -66,7 +73,11 @@ export const AddressBookPage: React.FC = () => {
         direction="row"
         className="u-flex-justify-between u-flex-items-center"
       >
-        <Typography variant="h4">{title}</Typography>
+        {loading ? (
+          <Skeleton variant="text" width={200} height={40} />
+        ) : (
+          <Typography variant="h4">{title}</Typography>
+        )}
         {(addressBookId !== 'dab' || book?.canWrite) && (
           <ImportContactsButton addressBookId={addressBookId} />
         )}

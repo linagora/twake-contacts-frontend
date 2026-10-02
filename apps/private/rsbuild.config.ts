@@ -1,3 +1,4 @@
+
 import path from 'path'
 import { defineConfig } from '@rsbuild/core'
 import { pluginReact } from '@rsbuild/plugin-react'
@@ -51,7 +52,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@common': path.resolve(__dirname, '../../common/src'),
       react: require.resolve('react'),
-      'react-dom': require.resolve('react-dom')
+      'react-dom': require.resolve('react-dom'),
+      '@mui/material': require.resolve('@mui/material'),
+      '@mui/system': require.resolve('@mui/system'),
+      '@emotion/react': require.resolve('@emotion/react'),
+      'twake-i18n': require.resolve('twake-i18n'),
+      'react-router': require.resolve('react-router')
     }
   },
   tools: {

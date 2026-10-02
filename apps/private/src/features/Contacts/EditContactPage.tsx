@@ -15,6 +15,7 @@ import {
   makeContactFromForm,
   makeFormValuesFromContact
 } from './ContactForm'
+import { ContactFormSkeleton } from './ContactSkeletons'
 
 export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -28,9 +29,14 @@ export const EditContactPage: React.FC = () => {
       c => c.id === contactId
     )
   )
+  const loading = useAppSelector(state => state.contacts.loading)
 
   if (addressBookId === 'dab') {
     return <Navigate to={`/contacts/${addressBookId}/${contactId}`} replace />
+  }
+
+  if (loading && !contact) {
+    return <ContactFormSkeleton />
   }
 
   if (!contact) {
