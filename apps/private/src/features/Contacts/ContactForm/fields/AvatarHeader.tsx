@@ -1,4 +1,4 @@
-import { Stack, Typography, Avatar } from '@linagora/twake-mui'
+import { Stack, Typography, Avatar, Tooltip } from '@linagora/twake-mui'
 import { getInitials } from '../../getInitials'
 
 interface AvatarHeaderProps {
@@ -15,7 +15,11 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
       <Avatar size={94} color={displayName ? undefined : 'sunrise'}>
         {getInitials(displayName)}
       </Avatar>
-      <Typography variant="h4">{displayName || title || ''}</Typography>
+      <Tooltip title={displayName || title || ''}>
+        <Typography variant="h4" noWrap>
+          {displayName || title || ''}
+        </Typography>
+      </Tooltip>
     </Stack>
   )
 }

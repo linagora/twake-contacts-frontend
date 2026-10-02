@@ -65,7 +65,9 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       const nameElement = (
         <Stack direction="row" spacing={2}>
           <Avatar size="s">{getInitials(contact.displayName)}</Avatar>
-          <Typography>{contact.displayName}</Typography>
+          <Typography className="u-maw-6" noWrap>
+            {contact.displayName}
+          </Typography>
         </Stack>
       )
 
@@ -103,7 +105,13 @@ export const ContactCell: React.FC<ContactCellProps> = ({
           readOnly={readOnly}
         />
       )
-    default:
-      return <>{typeof cell === 'string' ? cell : '—'}</>
+    default: {
+      const text = typeof cell === 'string' ? cell : '—'
+      return (
+        <Typography className="u-maw-6" noWrap>
+          {text}
+        </Typography>
+      )
+    }
   }
 }
