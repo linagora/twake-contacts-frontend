@@ -1,0 +1,6 @@
+# Overlay on top of the twake-calendar e2e compose file: the contacts SPA takes the place of
+# the calendar one, on the same hostname, so the Dex client and the side service audience
+# configured there fit it unchanged.
+services:
+  frontend:
+    image: twake-contacts-web-qa

@@ -1,0 +1,9 @@
+# Build context: scripts/qa-environment/
+#
+# Layers the QA runtime configuration on top of the *production* image built from
+# apps/private/Dockerfile, so the artifact under test is the one we actually ship.
+ARG FRONTEND_IMAGE="twake-contacts-web-qa-base"
+
+FROM ${FRONTEND_IMAGE}
+
+COPY env.js /usr/share/nginx/html/.env.js
