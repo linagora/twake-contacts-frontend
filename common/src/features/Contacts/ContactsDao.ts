@@ -1,4 +1,5 @@
 import { api } from '@common/utils/apiUtils'
+import { fetchUserById } from '@common/features/User/UserDao'
 import { DomainInfo } from '@common/features/User/userDataTypes'
 import { AddressBook, Contact, ContactEntry } from './contactsTypes'
 import {
@@ -31,7 +32,36 @@ export async function fetchAddressBooks(
   const data: DavAddressBooksResponse = await response.json()
 
   const books = data._embedded?.['dav:addressbook'] ?? []
-  const userBooks = books.map(normalizeAddressBook)
+  const userBooks = await Promise.all(
+    books.map(async rawBook => {
+      const book = normalizeAddressBook(rawBook)
+      const source =
+        rawBook['{http://open-paas.org/contacts}source'] ||
+        rawBook['openpaas:source']
+
+      if (source) {
+        // e.g. /addressbooks/6498ffa1d48f620025cc9dc2/431ae469-dfee-4b0a-a976-e04a12661b34.json
+        const parts = source.split('/')
+        if (parts.length >= 3) {
+          const ownerId = parts[2]
+          if (ownerId && ownerId !== userId) {
+            try {
+              const user = await fetchUserById(ownerId)
+              const name = [user.firstname, user.lastname]
+                .filter(Boolean)
+                .join(' ')
+              if (name) {
+                book.ownerDisplayName = name
+              }
+            } catch (e) {
+              console.warn(`Failed to fetch owner for address book ${book.id}`)
+            }
+          }
+        }
+      }
+      return book
+    })
+  )
 
   if (domains && domains.length > 0) {
     const domainBooks = await fetchDomainAddressBooks(domains)
