@@ -1,10 +1,4 @@
-import {
-  Alert,
-  CircularProgress,
-  Content,
-  Layout,
-  Main
-} from '@linagora/twake-mui'
+import { Alert, Content, Layout, Main } from '@linagora/twake-mui'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
 import { useEffect } from 'react'
@@ -16,7 +10,6 @@ export const ContactsPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const domains = useAppSelector(state => state.user.userData.domains)
-  const loading = useAppSelector(state => state.contacts.loading)
   const error = useAppSelector(state => state.contacts.error)
   useEffect(() => {
     if (openpaasId) {
@@ -30,9 +23,8 @@ export const ContactsPage: React.FC = () => {
       <Main>
         <Content className="u-p-1">
           <ContactSearchBar />
-          {loading && <CircularProgress />}
           {error && <Alert severity="error">{error}</Alert>}
-          {!loading && <Outlet />}
+          <Outlet />
         </Content>
       </Main>
     </Layout>

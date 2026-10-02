@@ -1,5 +1,7 @@
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
+  Skeleton,
+  Stack,
   VirtualizedTable,
   VirtualizedTableColumn,
   VirtualizedTableRow
@@ -12,11 +14,13 @@ import { ContactCell } from './ContactCell'
 interface ContactsTableProps {
   entries: ContactEntry[]
   onEndReached: () => void
+  loading?: boolean
 }
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({
   entries,
-  onEndReached
+  onEndReached,
+  loading = false
 }) => {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -28,7 +32,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       id: 'contact.displayName',
       label: t('contacts.name'),
       width: 300,
-      sortable: false
+      sortable: false,
+      skeleton: (
+        <Stack direction="row" className="u-flex-items-center">
+          <Skeleton
+            className="u-mr-1"
+            animation="wave"
+            variant="circular"
+            width={24}
+            height={24}
+          />
+          <Skeleton animation="wave" variant="text" width={200} />
+        </Stack>
+      )
     },
     {
       id: 'contact.emails.0.value',
@@ -57,7 +73,16 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       width: 92,
       maxWidth: 92,
       sortable: false,
-      disableClick: true
+      disableClick: true,
+      skeleton: (
+        <Skeleton
+          className="u-ml-auto"
+          animation="wave"
+          variant="circular"
+          width={30}
+          height={30}
+        />
+      )
     }
   ]
 
@@ -83,6 +108,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
           children: <ContactCell />
         }
       }}
+      isLoading={loading}
     />
   )
 }

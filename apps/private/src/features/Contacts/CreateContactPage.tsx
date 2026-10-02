@@ -11,6 +11,7 @@ import {
   EMPTY_CONTACT_FORM_VALUES,
   makeContactFromForm
 } from './ContactForm'
+import { ContactFormSkeleton } from './ContactSkeletons'
 
 export const CreateContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -19,6 +20,11 @@ export const CreateContactPage: React.FC = () => {
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const writableBooks = useAppSelector(selectWritableBooks)
+  const loading = useAppSelector(state => state.contacts.loading)
+
+  if (loading && writableBooks.length === 0) {
+    return <ContactFormSkeleton />
+  }
 
   const initialValues: ContactFormValues = {
     ...EMPTY_CONTACT_FORM_VALUES,
