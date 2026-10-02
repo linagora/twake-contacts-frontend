@@ -1,4 +1,5 @@
 import { api } from '@common/utils/apiUtils'
+import { encodeDavSegment } from '@linagora/twake-utils'
 import { DomainInfo } from '@common/features/User/userDataTypes'
 import { AddressBook, Contact, ContactEntry } from './contactsTypes'
 import {
@@ -127,10 +128,14 @@ export async function saveContact(
   bookId: string,
   contact: Contact
 ): Promise<void> {
-  await api.put(`dav/addressbooks/${userId}/${bookId}/${contact.id}.vcf`, {
-    headers: { 'Content-Type': 'application/vcard+json' },
-    json: denormalizeContact(contact)
-  })
+  const encodedContactId = encodeDavSegment(contact.id)
+  await api.put(
+    `dav/addressbooks/${userId}/${bookId}/${encodedContactId}.vcf`,
+    {
+      headers: { 'Content-Type': 'application/vcard+json' },
+      json: denormalizeContact(contact)
+    }
+  )
 }
 
 export async function deleteContact(
@@ -138,7 +143,10 @@ export async function deleteContact(
   bookId: string,
   contactId: string
 ): Promise<void> {
-  await api.delete(`dav/addressbooks/${userId}/${bookId}/${contactId}.vcf`)
+  const encodedContactId = encodeDavSegment(contactId)
+  await api.delete(
+    `dav/addressbooks/${userId}/${bookId}/${encodedContactId}.vcf`
+  )
 }
 
 export async function uploadImportFile(file: File): Promise<string> {

@@ -42,13 +42,13 @@ export const ContactCell: React.FC<ContactCellProps> = ({
 
       const mailUrl =
         firstEmail && window.MAIL_SPA_URL
-          ? generateMailComposerUrl(window.MAIL_SPA_URL, firstEmail, {
+          ? generateMailComposerUrl(window.MAIL_SPA_URL, [firstEmail], {
               workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
             })
           : null
       const calendarUrl =
         firstEmail && window.CALENDAR_SPA_URL
-          ? generateCalendarEventUrl(window.CALENDAR_SPA_URL, firstEmail, {
+          ? generateCalendarEventUrl(window.CALENDAR_SPA_URL, [firstEmail], {
               workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
             })
           : null
