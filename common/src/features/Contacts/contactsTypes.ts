@@ -14,11 +14,14 @@ export interface ContactName {
   givenName: string
 }
 
+/** The seven vCard ADR components, in RFC 6350 order. */
 export interface ContactAddress {
   type: string | null
-  address: string
+  poBox: string
+  extended: string
   street: string
   locality: string
+  region: string
   postalCode: string
   country: string
 }

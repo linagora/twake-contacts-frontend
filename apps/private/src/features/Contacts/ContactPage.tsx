@@ -1,6 +1,8 @@
 import { useAppSelector } from '@common/app/hooks'
-import { ContactAddress } from '@common/features/Contacts/contactsTypes'
-import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import {
+  formatAddress,
+  isHiddenAddressBook
+} from '@common/features/Contacts/contactsUtils'
 import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
 import { openChat } from '@common/utils/chatSpaUrl'
 import { openMailComposer } from '@common/utils/mailSpaUrl'
@@ -38,17 +40,6 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
 import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
-
-const formatAddress = (address: ContactAddress): string =>
-  [
-    address.address,
-    address.street,
-    address.postalCode,
-    address.locality,
-    address.country
-  ]
-    .filter(Boolean)
-    .join(', ')
 
 interface ContactFieldProps {
   icon: React.ComponentType

@@ -77,10 +77,12 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
                   addresses: [
                     {
                       type: 'home',
-                      address: '',
+                      poBox: '',
+                      extended: '',
                       street: '23 Rue de Mogador',
                       postalCode: '75009',
                       locality: 'Paris',
+                      region: '',
                       country: ''
                     }
                   ]

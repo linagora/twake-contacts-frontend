@@ -6,7 +6,12 @@ import {
   getCardProperty,
   normalizeContact
 } from './transformer/ContactsTransformer'
-import { DavContactItem, DavContactsResponse, JCalCard } from './davTypes'
+import {
+  DavContactItem,
+  DavContactsResponse,
+  JCalCard,
+  JCalProperty
+} from './davTypes'
 
 /**
  * Synthetic data mirroring the shape of a real
@@ -179,13 +184,13 @@ describe('normalizeContact', () => {
             { type: 'Work' },
             'text',
             [
+              'poBox',
+              'extended',
               'street',
               'locality',
-              'adress',
+              'region',
               'postalCode',
-              'country',
-              'street',
-              ''
+              'country'
             ]
           ]
         ]
@@ -194,11 +199,38 @@ describe('normalizeContact', () => {
     expect(normalizeContact(withAdr).addresses).toEqual([
       {
         type: 'Work',
+        poBox: 'poBox',
+        extended: 'extended',
         street: 'street',
         locality: 'locality',
+        region: 'region',
         postalCode: 'postalCode',
-        country: 'country',
-        address: 'adress'
+        country: 'country'
+      }
+    ])
+  })
+
+  it('reads addresses with missing trailing components', () => {
+    const withShortAdr: DavContactItem = {
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['adr', {}, 'text', ['', '', '5 place Bellecour, Lyon']]
+        ]
+      ]
+    }
+    expect(normalizeContact(withShortAdr).addresses).toEqual([
+      {
+        type: null,
+        poBox: '',
+        extended: '',
+        street: '5 place Bellecour, Lyon',
+        locality: '',
+        region: '',
+        postalCode: '',
+        country: ''
       }
     ])
   })
@@ -312,4 +344,33 @@ describe('denormalizeContact', () => {
       ]
     ])
   })
+
+  it('writes back every address component it read', () => {
+    const adr = [
+      'PO 12',
+      'Building B',
+      '10 Avenue des Champs',
+      'Paris',
+      'IDF',
+      '75008',
+      'France'
+    ]
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['adr', { type: 'work' }, 'text', adr]
+        ]
+      ]
+    })
+    expect(getCardProperties(denormalizeContact(contact), 'adr')).toEqual([
+      ['adr', { type: 'work' }, 'text', adr]
+    ])
+  })
 })
+
+function getCardProperties(card: JCalCard, name: string): JCalProperty[] {
+  return card[1].filter(property => property[0] === name)
+}

@@ -82,17 +82,18 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
     .map((prop): ContactAddress | null => {
       const values = prop[3]
       if (!Array.isArray(values)) return null
-      const [street, locality, address, postalCode, country] = values.map(v =>
-        String(v ?? '')
-      )
+      const [poBox, extended, street, locality, region, postalCode, country] =
+        Array.from({ length: 7 }, (_, index) => String(values[index] ?? ''))
       const type = getTypeParam(prop[1])
       return {
         type,
+        poBox,
+        extended,
         street,
         locality,
+        region,
         postalCode,
-        country,
-        address
+        country
       }
     })
     .filter((a): a is ContactAddress => a !== null)
@@ -279,11 +280,11 @@ export function denormalizeContact(contact: Contact): JCalCard {
   contact.addresses?.forEach(address => {
     properties.push(
       makeTypedProperty('adr', address.type, [
-        '',
-        '',
+        address.poBox,
+        address.extended,
         address.street,
         address.locality,
-        '',
+        address.region,
         address.postalCode,
         address.country
       ])
