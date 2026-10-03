@@ -104,6 +104,34 @@ describe('CreateContactPage', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 
+  it('keeps the title when names contain only spaces', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: '   ' }
+    })
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: '  ' }
+    })
+
+    expect(screen.getByText('Create contact')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+  })
+
+  it('shows the trimmed name as title', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: ' Bob ' }
+    })
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: '  ' }
+    })
+
+    expect(screen.getByText('Bob')).toBeInTheDocument()
+    expect(screen.queryByText('Create contact')).not.toBeInTheDocument()
+  })
+
   it('adds phone entries', () => {
     renderPage(['/contacts/new'])
 

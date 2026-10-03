@@ -70,7 +70,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [values, setValues] = useState<ContactFormValues>(initialValues)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const displayName = [values.givenName, values.familyName]
+  const displayName = [values.givenName.trim(), values.familyName.trim()]
     .filter(Boolean)
     .join(' ')
 
