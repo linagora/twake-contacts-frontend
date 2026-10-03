@@ -103,6 +103,7 @@ export const EditContactPage: React.FC = () => {
       addressBookDisabled
       backTo={backTo}
       onSubmit={handleSubmit}
+      contact={contact}
       onDelete={handleDelete}
     />
   )

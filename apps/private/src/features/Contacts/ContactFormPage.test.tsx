@@ -2,7 +2,7 @@ import { setupStore } from '@common/app/store'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import I18n from 'twake-i18n'
@@ -175,6 +175,23 @@ describe('EditContactPage', () => {
     fireEvent.click(screen.getByRole('link', { name: /back/i }))
 
     expect(screen.getByText('Contact')).toBeInTheDocument()
+  })
+
+  it('shows the contact card in the delete dialog', () => {
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).getByText('Delete this contact?')
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('AR')).toBeInTheDocument()
+    expect(within(dialog).getByText('Alice Roche')).toBeInTheDocument()
+    expect(within(dialog).getByText('alice@example.com')).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('button', { name: 'Close' })
+    ).toBeInTheDocument()
   })
 
   it('shows not found for missing contact', () => {

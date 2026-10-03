@@ -1,14 +1,4 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Menu,
-  MenuItem,
-  Stack
-} from '@linagora/twake-mui'
+import { Button, Menu, MenuItem, Stack } from '@linagora/twake-mui'
 import {
   Icon,
   Left,
@@ -17,12 +7,13 @@ import {
   Telephone,
   Email
 } from '@linagora/twake-icons'
-import { AddressBook } from '@common/features/Contacts/contactsTypes'
+import { AddressBook, Contact } from '@common/features/Contacts/contactsTypes'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { AvatarHeader } from './fields/AvatarHeader'
 import { ContactActionsBar } from '../ContactActionsMenu'
+import { DeleteContactDialog } from '../DeleteContactDialog'
 import { NameFields } from './fields/NameFields'
 import { AddressBookField } from './fields/AddressBookField'
 import { MatrixIdField } from './fields/MatrixIdField'
@@ -54,6 +45,7 @@ interface ContactFormProps {
   addressBookDisabled?: boolean
   backTo: string
   onSubmit: (values: ContactFormValues) => void | Promise<void>
+  contact?: Contact
   onDelete?: () => void
 }
 
@@ -64,6 +56,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   addressBookDisabled = false,
   backTo,
   onSubmit,
+  contact,
   onDelete
 }) => {
   const { t } = useI18n()
@@ -156,7 +149,9 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               {t('contacts.form.save')}
             </Button>
           }
-          onDelete={onDelete ? () => setShowDeleteDialog(true) : undefined}
+          onDelete={
+            contact && onDelete ? () => setShowDeleteDialog(true) : undefined
+          }
         />
       </Stack>
 
@@ -244,38 +239,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           </Menu>
         </div>
       </Stack>
-      {showDeleteDialog && onDelete && (
-        <Dialog
-          open
+      {showDeleteDialog && contact && onDelete && (
+        <DeleteContactDialog
+          contact={contact}
           onClose={() => setShowDeleteDialog(false)}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>{t('contacts.delete.title')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t('contacts.delete.description')}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              variant="outlined"
-              onClick={() => setShowDeleteDialog(false)}
-            >
-              {t('contacts.form.cancel')}
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => {
-                setShowDeleteDialog(false)
-                onDelete()
-              }}
-            >
-              {t('contacts.delete.confirm')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onConfirm={() => {
+            setShowDeleteDialog(false)
+            onDelete()
+          }}
+        />
       )}
     </Stack>
   )
