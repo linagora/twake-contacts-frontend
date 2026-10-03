@@ -28,11 +28,13 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
         let remainingSlot = CONTACTS_PAGINATION_LIMIT
 
         for (const book of books) {
+          // an unknown count (shared books) may hide contacts
+          const mayHaveContacts = book.contactsCount !== 0
           let validContacts: Contact[] = []
-          let hasMoreForBook = book.contactsCount > 0
+          let hasMoreForBook = mayHaveContacts
           let newOffset = 0
 
-          if (remainingSlot > 0 && book.contactsCount > 0) {
+          if (remainingSlot > 0 && mayHaveContacts) {
             const requestedLimit = remainingSlot
             const result = await fetchPaginatedContacts(
               book,

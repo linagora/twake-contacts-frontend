@@ -36,7 +36,7 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
           book.offset = Math.max(0, book.offset - 1)
         }
         book.contacts = contacts
-        book.contactsCount -= 1
+        if (book.contactsCount !== null) book.contactsCount -= 1
       },
       rejected: (state, action) => {
         state.error = action.payload?.message ?? 'Failed to delete contact'

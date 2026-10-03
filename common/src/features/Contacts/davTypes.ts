@@ -73,17 +73,17 @@ export interface DavAddressBookItem {
   /** `/addressbooks/<userId>/<bookId>.json`, `userId` being the owner of the book. */
   _links?: DavLinks
   'dav:name'?: string
-  numberOfContacts?: number
+  numberOfContacts?: number | null
   'dav:acl'?: string[]
   'dav:share-access'?: number | null
   '{DAV:}displayname'?: string
   '{DAV:}acl'?: string[]
-  '{http://open-paas.org/contacts}numberOfContacts'?: number
+  '{http://open-paas.org/contacts}numberOfContacts'?: number | null
   '{http://open-paas.org/contacts}type'?: string
   '{http://open-paas.org/contacts}state'?: string
   '{http://open-paas.org/contacts}subscription-type'?: string
   '{http://open-paas.org/contacts}source'?: string
-  [key: `${string}numberOfContacts`]: number | undefined
+  [key: `${string}numberOfContacts`]: number | null | undefined
   [key: `${string}type`]: string | undefined
   [key: `${string}state`]: string | undefined
   [key: `${string}subscription-type`]: string | undefined

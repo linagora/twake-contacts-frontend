@@ -4,7 +4,8 @@ export interface AddressBook {
   id: string
   userId: string
   name: string
-  contactsCount: number
+  // null when the server does not report it, as for shared books
+  contactsCount: number | null
   acl: string[]
   canWrite: boolean
 }

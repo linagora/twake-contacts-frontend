@@ -4,11 +4,61 @@
 import { setupStore } from '@common/app/store'
 import {
   deleteContact as deleteContactDao,
+  fetchAddressBooks,
   fetchContactsForBook
 } from './ContactsDao'
-import { deleteContact, fetchMoreContacts } from './ContactsSlice'
+import {
+  deleteContact,
+  fetchContacts,
+  fetchMoreContacts
+} from './ContactsSlice'
 
 jest.mock('./ContactsDao')
+
+describe('fetchContacts', () => {
+  it('loads the contacts of a shared book whose count is unknown', async () => {
+    jest.mocked(fetchAddressBooks).mockResolvedValue([
+      {
+        id: 'shared',
+        userId: 'alice',
+        name: 'Team RW',
+        contactsCount: null,
+        acl: [],
+        canWrite: true
+      }
+    ])
+    jest.mocked(fetchContactsForBook).mockResolvedValue({
+      contacts: [{ id: 'c1', displayName: 'Shared Sam', emails: [] }],
+      hasMore: false
+    })
+    const store = setupStore()
+
+    await store.dispatch(fetchContacts({ userId: 'bob' }))
+
+    const { contacts } = store.getState().contacts.addressBooks.shared
+    expect(contacts.map(contact => contact.id)).toStrictEqual(['c1'])
+  })
+
+  it('does not request a book known to be empty', async () => {
+    jest.mocked(fetchContactsForBook).mockClear()
+    jest.mocked(fetchAddressBooks).mockResolvedValue([
+      {
+        id: 'empty',
+        userId: 'bob',
+        name: 'Empty',
+        contactsCount: 0,
+        acl: [],
+        canWrite: true
+      }
+    ])
+    const store = setupStore()
+
+    await store.dispatch(fetchContacts({ userId: 'bob' }))
+
+    expect(fetchContactsForBook).not.toHaveBeenCalled()
+    expect(store.getState().contacts.addressBooks.empty.hasMore).toBe(false)
+  })
+})
 
 describe('fetchMoreContacts', () => {
   it('ignores a request while the same book is already loading more', async () => {
