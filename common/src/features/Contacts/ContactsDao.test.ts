@@ -6,6 +6,7 @@ import {
   getCardProperty,
   normalizeContact
 } from './transformer/ContactsTransformer'
+import { formatAddress } from './contactsUtils'
 import { DavContactItem, DavContactsResponse, JCalCard } from './davTypes'
 
 /**
@@ -179,13 +180,13 @@ describe('normalizeContact', () => {
             { type: 'Work' },
             'text',
             [
-              'street',
-              'locality',
-              'adress',
-              'postalCode',
-              'country',
-              'street',
-              ''
+              '',
+              'Building B',
+              '10 Avenue des Champs',
+              'Paris',
+              '',
+              '75008',
+              'France'
             ]
           ]
         ]
@@ -194,11 +195,38 @@ describe('normalizeContact', () => {
     expect(normalizeContact(withAdr).addresses).toEqual([
       {
         type: 'Work',
-        street: 'street',
-        locality: 'locality',
-        postalCode: 'postalCode',
-        country: 'country',
-        address: 'adress'
+        poBox: '',
+        extended: 'Building B',
+        street: '10 Avenue des Champs',
+        locality: 'Paris',
+        region: '',
+        postalCode: '75008',
+        country: 'France'
+      }
+    ])
+  })
+
+  it('reads addresses with missing trailing components', () => {
+    const withShortAdr: DavContactItem = {
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['adr', {}, 'text', ['', '', '1 Main St', 'Springfield']]
+        ]
+      ]
+    }
+    expect(normalizeContact(withShortAdr).addresses).toEqual([
+      {
+        type: null,
+        poBox: '',
+        extended: '',
+        street: '1 Main St',
+        locality: 'Springfield',
+        region: '',
+        postalCode: '',
+        country: ''
       }
     ])
   })
@@ -311,5 +339,59 @@ describe('denormalizeContact', () => {
         ['socialprofile', { type: 'matrix' }, 'text', '@alice:twake.app']
       ]
     ])
+  })
+
+  it('writes every address component back in vCard order', () => {
+    const address = {
+      type: 'work',
+      poBox: 'BP 12',
+      extended: 'Building B',
+      street: '10 Avenue des Champs',
+      locality: 'Paris',
+      region: 'IDF',
+      postalCode: '75008',
+      country: 'France'
+    }
+    const card = denormalizeContact({
+      id: 'c-1',
+      displayName: 'Alice Roche',
+      emails: [],
+      addresses: [address]
+    })
+    expect(card[1]).toContainEqual([
+      'adr',
+      { type: 'work' },
+      'text',
+      [
+        'BP 12',
+        'Building B',
+        '10 Avenue des Champs',
+        'Paris',
+        'IDF',
+        '75008',
+        'France'
+      ]
+    ])
+    expect(
+      normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
+        .addresses
+    ).toEqual([address])
+  })
+})
+
+describe('formatAddress', () => {
+  it('joins the components in postal order', () => {
+    expect(
+      formatAddress({
+        type: 'work',
+        poBox: '',
+        extended: 'Building B',
+        street: '10 Avenue des Champs',
+        locality: 'Paris',
+        region: '',
+        postalCode: '75008',
+        country: 'France'
+      })
+    ).toBe('Building B, 10 Avenue des Champs, 75008 Paris, France')
   })
 })

@@ -77,10 +77,12 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
                   addresses: [
                     {
                       type: 'home',
-                      address: '',
+                      poBox: '',
+                      extended: '',
                       street: '23 Rue de Mogador',
                       postalCode: '75009',
                       locality: 'Paris',
+                      region: '',
                       country: ''
                     }
                   ]
@@ -179,7 +181,7 @@ describe('ContactPage', () => {
     expect(screen.getByText('+3365024491')).toBeInTheDocument()
     expect(screen.getByText('Information')).toBeInTheDocument()
     expect(
-      screen.getByText('23 Rue de Mogador, 75009, Paris')
+      screen.getByText('23 Rue de Mogador, 75009 Paris')
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /back/i })).toHaveAttribute(
       'href',

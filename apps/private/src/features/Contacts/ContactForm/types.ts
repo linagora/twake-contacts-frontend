@@ -1,9 +1,9 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
-  ContactAddress,
   ContactSocialProfile
 } from '@common/features/Contacts/contactsTypes'
+import { formatAddress } from '@common/features/Contacts/contactsUtils'
 
 export interface ContactFormEntry {
   type: string
@@ -45,11 +45,6 @@ export const hasValue = (entry: ContactFormEntry): boolean =>
 
 export const isMatrix = (profile: ContactSocialProfile): boolean =>
   profile.type?.toLowerCase() === MATRIX_TYPE
-
-export const formatAddress = (address: ContactAddress): string =>
-  [address.street, address.postalCode, address.locality, address.country]
-    .filter(Boolean)
-    .join(', ')
 
 export const orDefault = (
   entries: ContactFormEntry[],
@@ -100,9 +95,11 @@ export function makeContactFromForm(
       ? { ...original, type: entry.type }
       : {
           type: entry.type,
-          address: '',
+          poBox: '',
+          extended: '',
           street: entry.value.trim(),
           locality: '',
+          region: '',
           postalCode: '',
           country: ''
         }
