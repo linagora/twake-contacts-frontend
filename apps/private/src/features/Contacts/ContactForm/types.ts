@@ -64,7 +64,7 @@ export function makeFormValuesFromContact(
     type: string | null
     value: string
   }): ContactFormEntry => ({
-    type: entry.type ?? '',
+    type: entry.type?.toLowerCase() ?? '',
     value: entry.value
   })
   return {
@@ -77,7 +77,7 @@ export function makeFormValuesFromContact(
     emails: orDefault(contact.emails.map(toEntry), 'work'),
     addresses: orDefault(
       (contact.addresses ?? []).map(address => ({
-        type: address.type ?? 'other',
+        type: address.type?.toLowerCase() ?? 'other',
         value: formatAddress(address)
       })),
       'home'
