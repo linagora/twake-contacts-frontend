@@ -72,6 +72,13 @@
       "placeholder": "Search contacts...",
       "loading": "Loading...",
       "noResults": "No contacts found"
+    },
+    "errors": {
+      "load": "Failed to load contacts",
+      "create": "Failed to create contact",
+      "update": "Failed to update contact",
+      "delete": "Failed to delete contact",
+      "forbidden": "You don't have permission to modify this address book"
     }
   },
   "error": {

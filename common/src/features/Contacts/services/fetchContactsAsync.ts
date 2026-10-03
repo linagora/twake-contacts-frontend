@@ -8,6 +8,7 @@ import {
   Contact
 } from '../contactsTypes'
 import { CONTACTS_PAGINATION_LIMIT } from '../constants'
+import { toContactsErrorKey } from '../contactsUtils'
 import { fetchPaginatedContacts } from './fetchPaginatedContacts'
 
 export interface FetchContactsPayload {
@@ -71,7 +72,10 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
       rejected: (state, action) => {
         state.loading = false
         if (action.payload?.status !== 401) {
-          state.error = action.payload?.message ?? 'Failed to load contacts'
+          state.error = toContactsErrorKey(
+            action.payload,
+            'contacts.errors.load'
+          )
         }
       }
     }

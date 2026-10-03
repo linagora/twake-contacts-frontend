@@ -1,3 +1,4 @@
+import { READ_ONLY_SHARE_ACCESSES } from '../constants'
 import {
   AddressBook,
   Contact,
@@ -149,16 +150,24 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
   const userId = href?.split('/').at(-2) ?? ''
   const acl = raw['dav:acl'] ?? []
+  // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
+  const isReadOnlyShare = READ_ONLY_SHARE_ACCESSES.includes(
+    raw['dav:share-access'] ?? -1
+  )
   return {
     id,
     userId,
     name: raw['dav:name'] ?? id,
     contactsCount: raw.numberOfContacts ?? 0,
     acl,
-    canWrite: acl.some(
-      p =>
-        p === 'dav:write' || p === '{DAV:}write-content' || p === '{DAV:}bind'
-    )
+    canWrite:
+      !isReadOnlyShare &&
+      acl.some(
+        p =>
+          p === 'dav:write' ||
+          p === '{DAV:}write-content' ||
+          p === '{DAV:}bind'
+      )
   }
 }
 

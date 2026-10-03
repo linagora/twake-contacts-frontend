@@ -2,6 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ContactsState, Contact } from '../contactsTypes'
 import { CONTACTS_PAGINATION_LIMIT } from '../constants'
+import { toContactsErrorKey } from '../contactsUtils'
 import { fetchPaginatedContacts } from './fetchPaginatedContacts'
 
 export interface FetchMoreContactsPayload {
@@ -91,8 +92,10 @@ export const fetchMoreContactsThunk = (
       },
       rejected: (state, action) => {
         if (action.payload?.status !== 401) {
-          state.error =
-            action.payload?.message ?? 'Failed to load more contacts'
+          state.error = toContactsErrorKey(
+            action.payload,
+            'contacts.errors.load'
+          )
         }
       }
     }

@@ -2,6 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { saveContact } from '../ContactsDao'
 import { Contact, ContactsState } from '../contactsTypes'
+import { toContactsErrorKey } from '../contactsUtils'
 
 export interface CreateContactArgs {
   userId: string
@@ -31,7 +32,10 @@ export const createContactThunk = (create: ReducerCreators<ContactsState>) =>
         book.contactsCount += 1
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to create contact'
+        state.error = toContactsErrorKey(
+          action.payload,
+          'contacts.errors.create'
+        )
       }
     }
   )

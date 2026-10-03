@@ -2,6 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { deleteContact } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
+import { toContactsErrorKey } from '../contactsUtils'
 
 export interface DeleteContactArgs {
   userId: string
@@ -39,7 +40,10 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
         book.contactsCount -= 1
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to delete contact'
+        state.error = toContactsErrorKey(
+          action.payload,
+          'contacts.errors.delete'
+        )
       }
     }
   )

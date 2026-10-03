@@ -72,6 +72,13 @@
       "placeholder": "Rechercher des contacts...",
       "loading": "Chargement...",
       "noResults": "Aucun contact trouvé"
+    },
+    "errors": {
+      "load": "Échec du chargement des contacts",
+      "create": "Échec de la création du contact",
+      "update": "Échec de la modification du contact",
+      "delete": "Échec de la suppression du contact",
+      "forbidden": "Vous n'avez pas le droit de modifier ce carnet d'adresses"
     }
   },
   "error": {

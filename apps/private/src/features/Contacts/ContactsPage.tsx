@@ -9,10 +9,12 @@ import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
+import { useI18n } from 'twake-i18n'
 import { ContactsSidebar } from './ContactsSidebar'
 import { ContactSearchBar } from './ContactSearchBar'
 
 export const ContactsPage: React.FC = () => {
+  const { t } = useI18n()
   const dispatch = useAppDispatch()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const domains = useAppSelector(state => state.user.userData.domains)
@@ -31,7 +33,7 @@ export const ContactsPage: React.FC = () => {
         <Content className="u-p-1">
           <ContactSearchBar />
           {loading && <CircularProgress />}
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <Alert severity="error">{t(error)}</Alert>}
           {!loading && <Outlet />}
         </Content>
       </Main>

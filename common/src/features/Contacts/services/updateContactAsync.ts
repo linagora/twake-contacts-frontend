@@ -2,6 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { saveContact } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
+import { toContactsErrorKey } from '../contactsUtils'
 import { CreateContactArgs } from './createContactAsync'
 
 export const updateContactThunk = (create: ReducerCreators<ContactsState>) =>
@@ -29,7 +30,10 @@ export const updateContactThunk = (create: ReducerCreators<ContactsState>) =>
         )
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to update contact'
+        state.error = toContactsErrorKey(
+          action.payload,
+          'contacts.errors.update'
+        )
       }
     }
   )
