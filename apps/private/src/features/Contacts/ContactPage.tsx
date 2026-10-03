@@ -241,7 +241,7 @@ export const ContactPage: React.FC = () => {
             </Button>
           </Stack>
           <List>
-            {contact.categories && (
+            {!!contact.categories?.length && (
               <ListItem disableGutters>
                 <ListItemIcon>
                   <Icon icon={Label} />
