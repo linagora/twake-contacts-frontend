@@ -1,7 +1,8 @@
 import { useAppSelector } from '@common/app/hooks'
 import {
   getAddressBookDisplayName,
-  isHiddenAddressBook
+  isHiddenAddressBook,
+  sortAddressBooks
 } from '@common/features/Contacts/contactsUtils'
 import { Company, Contacts, Icon, Plus } from '@linagora/twake-icons'
 import {
@@ -24,15 +25,10 @@ export const ContactsSidebar: React.FC = () => {
   const currentBook = addressBookId ? addressBooks[addressBookId] : undefined
   const canWriteCurrentBook =
     (currentBook?.canWrite && addressBookId !== 'dab') ?? false
-  const otherBooks = Object.values(addressBooks)
-    .filter(book => !isHiddenAddressBook(book.id))
-    .sort((a, b) =>
-      getAddressBookDisplayName(a, t).localeCompare(
-        getAddressBookDisplayName(b, t),
-        undefined,
-        { numeric: true }
-      )
-    )
+  const otherBooks = sortAddressBooks(
+    Object.values(addressBooks).filter(book => !isHiddenAddressBook(book.id)),
+    t
+  )
 
   const createLink =
     addressBookId && canWriteCurrentBook
