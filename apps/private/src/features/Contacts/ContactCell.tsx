@@ -4,6 +4,7 @@ import {
   Chip,
   ContactPopover,
   Stack,
+  Tooltip,
   Typography,
   VirtualizedTableColumn,
   VirtualizedTableRow
@@ -14,6 +15,7 @@ import {
   resolveChatSpaUrl
 } from '@linagora/twake-utils'
 import React from 'react'
+import { useI18n } from 'twake-i18n'
 import { ContactRowActions } from './ContactRowActions'
 import { getInitials } from './getInitials'
 
@@ -28,6 +30,7 @@ export const ContactCell: React.FC<ContactCellProps> = ({
   column,
   cell
 }) => {
+  const { t } = useI18n()
   if (!row || !column) return null
   const { contact, addressBookId } = row as unknown as ContactEntry
   const readOnly = addressBookId === 'dab'
@@ -78,11 +81,19 @@ export const ContactCell: React.FC<ContactCellProps> = ({
           {nameElement}
           <ContactPopover.Actions>
             <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
-            <ContactPopover.CalendarAction
-              url={calendarUrl}
-              disabled={!calendarUrl}
-            />
-            <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
+            <Tooltip title={t('contacts.menu.createEvent')}>
+              <span>
+                <ContactPopover.CalendarAction
+                  url={calendarUrl}
+                  disabled={!calendarUrl}
+                />
+              </span>
+            </Tooltip>
+            <Tooltip title={t('contacts.menu.openChat')}>
+              <span>
+                <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
+              </span>
+            </Tooltip>
           </ContactPopover.Actions>
         </ContactPopover>
       )

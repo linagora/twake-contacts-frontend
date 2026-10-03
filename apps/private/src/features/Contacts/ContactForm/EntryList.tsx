@@ -5,7 +5,8 @@ import {
   MenuItem,
   Select,
   Stack,
-  TextField
+  TextField,
+  Tooltip
 } from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
@@ -94,13 +95,15 @@ export const EntryList: React.FC<EntryListProps> = ({
           )}
           <Grid size={1}>
             {index > 0 && (
-              <Button
-                variant="text"
-                onClick={() => onRemove(index)}
-                aria-label={t('contacts.form.remove')}
-              >
-                <Icon icon={Cross} />
-              </Button>
+              <Tooltip title={t('contacts.form.remove')}>
+                <Button
+                  variant="text"
+                  onClick={() => onRemove(index)}
+                  aria-label={t('contacts.form.remove')}
+                >
+                  <Icon icon={Cross} />
+                </Button>
+              </Tooltip>
             )}
           </Grid>
         </FormRow>
