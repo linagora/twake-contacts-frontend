@@ -116,6 +116,17 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
   )
 
 describe('AddressBookPage', () => {
+  it('shows a not found message for an unknown address book', () => {
+    renderContacts('/contacts/deleted-book')
+
+    expect(screen.getByText('Address book not found')).toBeInTheDocument()
+    expect(screen.queryByText('No contacts yet')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute(
+      'href',
+      '/contacts'
+    )
+  })
+
   it('lists contacts from every address book on My contacts', () => {
     renderContacts('/contacts')
 

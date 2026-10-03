@@ -16,6 +16,7 @@
     "emailWasCopied": "Đã sao chép địa chỉ email",
     "addressWasCopied": "Đã sao chép địa chỉ",
     "notFound": "Không tìm thấy liên hệ",
+    "addressBookNotFound": "Không tìm thấy sổ địa chỉ",
     "empty": {
       "title": "Chưa có liên hệ",
       "subtitle": "Danh bạ của bạn sẽ xuất hiện ở đây sau khi bạn thêm.",

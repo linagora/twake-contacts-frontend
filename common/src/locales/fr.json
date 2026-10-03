@@ -16,6 +16,7 @@
     "emailWasCopied": "Adresse e-mail copiée",
     "addressWasCopied": "Adresse copiée",
     "notFound": "Contact introuvable",
+    "addressBookNotFound": "Carnet d'adresses introuvable",
     "empty": {
       "title": "Aucun contact",
       "subtitle": "Vos contacts apparaîtront ici une fois que vous les aurez ajoutés.",

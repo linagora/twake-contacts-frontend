@@ -6,9 +6,15 @@ import {
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { CircularProgress, Stack, Typography } from '@linagora/twake-mui'
+import { Icon, Left } from '@linagora/twake-icons'
+import {
+  Button,
+  CircularProgress,
+  Stack,
+  Typography
+} from '@linagora/twake-mui'
 import { useCallback, useEffect } from 'react'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
@@ -42,6 +48,24 @@ export const AddressBookPage: React.FC = () => {
   useEffect(() => {
     if (entries.length === 0) loadMore()
   }, [entries.length, loadMore])
+
+  if (addressBookId && !book) {
+    return (
+      <Stack spacing={3}>
+        <Button
+          component={Link}
+          to="/contacts"
+          variant="text"
+          startIcon={<Icon icon={Left} />}
+        >
+          {t('contacts.back')}
+        </Button>
+        <Typography color="text.secondary">
+          {t('contacts.addressBookNotFound')}
+        </Typography>
+      </Stack>
+    )
+  }
 
   const renderContent = (): React.ReactNode => {
     if (entries.length > 0) {

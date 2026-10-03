@@ -16,6 +16,7 @@
     "emailWasCopied": "Email address copied",
     "addressWasCopied": "Address copied",
     "notFound": "Contact not found",
+    "addressBookNotFound": "Address book not found",
     "empty": {
       "title": "No contacts yet",
       "subtitle": "Your contacts will appear here once you add them.",
