@@ -54,6 +54,7 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
 
   const handleSendMail = (event: React.MouseEvent): void => {
     event.stopPropagation()
+    onClose()
     if (!firstEmail) return
 
     openMailComposer(firstEmail, { workplaceFqdn })
@@ -61,6 +62,7 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
 
   const handleOpenChat = (event: React.MouseEvent): void => {
     event.stopPropagation()
+    onClose()
     if (!chatTarget) return
 
     openChat(chatTarget, { workplaceFqdn })
@@ -68,6 +70,7 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
 
   const handleCreateEvent = (event: React.MouseEvent): void => {
     event.stopPropagation()
+    onClose()
     if (!firstEmail) return
 
     openCalendarEvent(firstEmail, {
