@@ -151,7 +151,6 @@ export async function uploadImportFile(file: File): Promise<string> {
     body: file
   })
   const data = await response.json()
-  console.log(data)
   return data._id
 }
 
