@@ -5,12 +5,15 @@ import {
   searchContacts
 } from '@common/features/Contacts/ContactsDao'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
+import { Cross, Icon } from '@linagora/twake-icons'
 import {
   Autocomplete,
   Avatar,
+  IconButton,
   ListItem,
   SearchBar,
-  Stack
+  Stack,
+  Tooltip
 } from '@linagora/twake-mui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -125,9 +128,24 @@ export const ContactSearchBar: React.FC = () => {
           onMouseDown={params.slotProps.input.onMouseDown}
           value={inputValue}
           placeholder={t('contacts.search.placeholder')}
-          onClear={() => setInputValue('')}
+          // twake-mui's built-in clear button has a hardcoded English
+          // aria-label, so we render our own translated one instead.
+          disabledClear
           componentsProps={{
-            inputBase: { inputProps: params.slotProps.htmlInput }
+            inputBase: {
+              inputProps: params.slotProps.htmlInput,
+              endAdornment: inputValue && (
+                <Tooltip title={t('contacts.search.clear')}>
+                  <IconButton
+                    size="small"
+                    aria-label={t('contacts.search.clear')}
+                    onClick={() => setInputValue('')}
+                  >
+                    <Icon icon={Cross} />
+                  </IconButton>
+                </Tooltip>
+              )
+            }
           }}
         />
       )}

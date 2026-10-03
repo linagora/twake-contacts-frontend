@@ -71,7 +71,8 @@
     "search": {
       "placeholder": "Search contacts...",
       "loading": "Loading...",
-      "noResults": "No contacts found"
+      "noResults": "No contacts found",
+      "clear": "Clear search"
     }
   },
   "error": {

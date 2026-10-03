@@ -71,7 +71,8 @@
     "search": {
       "placeholder": "Tìm kiếm liên hệ...",
       "loading": "Đang tải...",
-      "noResults": "Không tìm thấy liên hệ"
+      "noResults": "Không tìm thấy liên hệ",
+      "clear": "Xóa tìm kiếm"
     }
   },
   "error": {

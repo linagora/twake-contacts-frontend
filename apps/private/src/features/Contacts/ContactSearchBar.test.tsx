@@ -8,6 +8,7 @@ import { searchContacts } from '@common/features/Contacts/ContactsDao'
 import { UserState } from '@common/features/User/UserSlice'
 import { ContactsState } from '@common/features/Contacts/contactsTypes'
 import en from '@common/locales/en.json'
+import fr from '@common/locales/fr.json'
 import { ContactSearchBar } from './ContactSearchBar'
 
 jest.mock('@common/features/Contacts/ContactsDao')
@@ -21,7 +22,8 @@ function LocationDisplay(): JSX.Element {
 
 function renderSearchBar(
   contactsState: Partial<ContactsState> = {},
-  showLocation = false
+  showLocation = false,
+  lang: 'en' | 'fr' = 'en'
 ): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
@@ -36,7 +38,7 @@ function renderSearchBar(
   return render(
     <Provider store={store}>
       <TwakeMuiThemeProvider>
-        <I18n dictRequire={() => en} lang="en">
+        <I18n dictRequire={() => (lang === 'fr' ? fr : en)} lang={lang}>
           <MemoryRouter>
             <ContactSearchBar />
             {showLocation && <LocationDisplay />}
@@ -47,8 +49,11 @@ function renderSearchBar(
   )
 }
 
-async function typeSearchQuery(value: string): Promise<void> {
-  const input = screen.getByPlaceholderText('Search contacts...')
+async function typeSearchQuery(
+  value: string,
+  placeholder = 'Search contacts...'
+): Promise<void> {
+  const input = screen.getByPlaceholderText(placeholder)
   fireEvent.focus(input)
   fireEvent.input(input, { target: { value } })
 
@@ -169,5 +174,24 @@ describe('ContactSearchBar', () => {
     await waitFor(() => {
       expect(mockedSearchContacts).not.toHaveBeenCalled()
     })
+  })
+
+  it('clears the search with a translated clear button', async () => {
+    mockedSearchContacts.mockResolvedValue([])
+
+    renderSearchBar({}, false, 'fr')
+
+    await typeSearchQuery('alice', 'Rechercher des contacts...')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Effacer la recherche' })
+    )
+
+    expect(
+      screen.getByPlaceholderText('Rechercher des contacts...')
+    ).toHaveValue('')
+    expect(
+      screen.queryByRole('button', { name: 'Clear search' })
+    ).not.toBeInTheDocument()
   })
 })
