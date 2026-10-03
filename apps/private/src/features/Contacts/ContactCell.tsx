@@ -1,6 +1,7 @@
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Avatar,
+  Box,
   Chip,
   ContactPopover,
   Stack,
@@ -21,6 +22,15 @@ interface ContactCellProps {
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
   cell?: unknown
+}
+
+// The popover is portaled but React still bubbles its events (backdrop
+// included) through the component tree, up to the row click handler that
+// would open the contact owning the popover.
+const stopPortaledClickPropagation = (event: React.MouseEvent): void => {
+  if (!event.currentTarget.contains(event.target as Node)) {
+    event.stopPropagation()
+  }
 }
 
 export const ContactCell: React.FC<ContactCellProps> = ({
@@ -74,17 +84,19 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       }
 
       return (
-        <ContactPopover name={contact.displayName} email={firstEmail ?? ''}>
-          {nameElement}
-          <ContactPopover.Actions>
-            <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
-            <ContactPopover.CalendarAction
-              url={calendarUrl}
-              disabled={!calendarUrl}
-            />
-            <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
-          </ContactPopover.Actions>
-        </ContactPopover>
+        <Box onClick={stopPortaledClickPropagation}>
+          <ContactPopover name={contact.displayName} email={firstEmail ?? ''}>
+            {nameElement}
+            <ContactPopover.Actions>
+              <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
+              <ContactPopover.CalendarAction
+                url={calendarUrl}
+                disabled={!calendarUrl}
+              />
+              <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
+            </ContactPopover.Actions>
+          </ContactPopover>
+        </Box>
       )
     }
     case 'contact.categories':
