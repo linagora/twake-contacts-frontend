@@ -1,60 +1,19 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { setAppLoading } from '@common/app/loadingSlice'
-import { Callback } from '@common/features/User/oidcAuth'
 import {
   getOpenPaasUserData,
   setTokens,
   setUserData,
   setUserError
 } from '@common/features/User/UserSlice'
-import {
-  TokenEndpointResponse,
-  TokenEndpointResponseHelpers,
-  UserInfoResponse
-} from 'openid-client'
+import { completeLogin } from '@linagora/twake-oidc'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
-interface RedirectState {
-  code_verifier: string
-  state: string
-}
-
-const getSavedRedirectState = (): RedirectState | null => {
-  const item = sessionStorage.getItem('redirectState')
-  if (!item) return null
-  try {
-    const parsed = JSON.parse(item) as RedirectState
-
-    if (parsed.code_verifier && parsed.state) {
-      return parsed
-    }
-  } catch {
-    console.error('Invalid redirectState')
-  }
-  return null
-}
-
-const hasSavedToken = (): boolean => {
-  return sessionStorage.getItem('tokenSet') !== null
-}
+const DEFAULT_PATH = '/contacts'
 
 const getErrorMessage = (error: unknown): string => {
   return error instanceof Error ? error.message : 'OAuth callback failed'
-}
-
-const processCallbackData = async (
-  codeVerifier: string,
-  state: string
-): Promise<{
-  userinfo: UserInfoResponse
-  tokenSet: TokenEndpointResponse & TokenEndpointResponseHelpers
-}> => {
-  const data = await Callback(codeVerifier, state)
-  if (!data?.userinfo || !data?.tokenSet) {
-    throw new Error('OAuth callback failed')
-  }
-  return data
 }
 
 export const CallbackResume: React.FC = () => {
@@ -62,6 +21,7 @@ export const CallbackResume: React.FC = () => {
   const navigate = useNavigate()
   const hasRun = useRef(false)
   const hasNavigated = useRef(false)
+  const returnToRef = useRef(DEFAULT_PATH)
   const userData = useAppSelector(state => state.user)
 
   // Process callback and load data
@@ -72,36 +32,24 @@ export const CallbackResume: React.FC = () => {
     hasRun.current = true
 
     const runCallback = async (): Promise<void> => {
-      const saved = getSavedRedirectState()
-      const savedToken = hasSavedToken()
-
-      // If no redirectState but we have saved session, just go home
-      // This can happen if user refreshes callback page or gets redirected here after already logged in
-      if (!saved) {
-        if (!savedToken) {
-          console.warn('Missing redirectState')
-        }
-        sessionStorage.removeItem('redirectState')
-        navigate('/', { replace: true })
-        return
-      }
-
       try {
         dispatch(setAppLoading(true))
 
-        const data = await processCallbackData(saved.code_verifier, saved.state)
+        // Keeps the tokens for the API calls before resolving
+        const data = await completeLogin()
 
-        // IMPORTANT: Save tokens to sessionStorage FIRST before making any API calls
-        // because API calls will read token from sessionStorage
-        sessionStorage.setItem('tokenSet', JSON.stringify(data.tokenSet))
-        sessionStorage.setItem('userData', JSON.stringify(data.userinfo))
+        // No sign-in pending: the callback page was reloaded or opened directly
+        if (!data) {
+          dispatch(setAppLoading(false))
+          navigate('/', { replace: true })
+          return
+        }
 
+        returnToRef.current = data.returnTo
         dispatch(setUserData(data.userinfo))
         dispatch(setTokens(data.tokenSet))
 
         await dispatch(getOpenPaasUserData())
-
-        sessionStorage.removeItem('redirectState')
       } catch (e) {
         console.error('OIDC callback error:', e)
         dispatch(setAppLoading(false))
@@ -113,7 +61,7 @@ export const CallbackResume: React.FC = () => {
     void runCallback()
   }, [dispatch, navigate])
 
-  // Navigate to /contacts only when user data is ready
+  // Navigate back to where the sign-in started only when user data is ready
   useEffect(() => {
     if (hasNavigated.current) return
     if (userData.loading) return
@@ -132,7 +80,10 @@ export const CallbackResume: React.FC = () => {
       window.history.replaceState({}, '', window.location.pathname)
     }
 
-    navigate('/contacts', { replace: true })
+    const returnTo = returnToRef.current
+    navigate(returnTo.startsWith('/contacts') ? returnTo : DEFAULT_PATH, {
+      replace: true
+    })
   }, [
     userData.loading,
     userData.userData,

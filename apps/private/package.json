@@ -5,11 +5,11 @@
   "dependencies": {
     "@contacts/common": "*",
     "@linagora/twake-mui": "^9.11.2",
+    "@linagora/twake-oidc": "^1.0.0",
     "@mui/icons-material": "^9.0.1",
     "@sentry/react": "^8.55.1",
     "cozy-external-bridge": "^1.2.1",
     "date-fns": "^4.1.0",
-    "openid-client": "^6.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^6.1.1",

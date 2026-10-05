@@ -1,14 +1,8 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { setAppLoading } from '@common/app/loadingSlice'
-import { Auth } from '@common/features/User/oidcAuth'
-import {
-  getOpenPaasUserData,
-  setTokens,
-  setUserData
-} from '@common/features/User/UserSlice'
-import { redirectTo } from '@common/utils/apiUtils'
+import { getOpenPaasUserData } from '@common/features/User/UserSlice'
+import { getAccessToken, startLogin } from '@linagora/twake-oidc'
 import { useEffect, useRef } from 'react'
-import { type userData } from './userDataTypes'
 
 export const useInitializeApp = (): void => {
   const userData = useAppSelector(state => state.user)
@@ -24,20 +18,14 @@ export const useInitializeApp = (): void => {
     hasInitiatedRef.current = true
 
     const initiateLogin = async (): Promise<void> => {
-      const savedToken = sessionStorage.getItem('tokenSet')
-        ? (JSON.parse(sessionStorage.getItem('tokenSet') ?? '{}') as Record<
-            string,
-            string
-          >)
-        : null
-      const savedUser = sessionStorage.getItem('userData')
-        ? (JSON.parse(sessionStorage.getItem('userData') ?? '{}') as userData)
-        : null
+      // Former versions kept the tokens and the user info in sessionStorage
+      sessionStorage.removeItem('tokenSet')
+      sessionStorage.removeItem('userData')
 
-      if (savedToken && savedUser) {
+      // The tokens live in memory only: they are there when the application
+      // navigates without reloading, and a reload signs in through the SSO.
+      if (getAccessToken() && userData.userData) {
         dispatch(setAppLoading(true))
-        dispatch(setTokens(savedToken))
-        dispatch(setUserData(savedUser))
         try {
           await dispatch(getOpenPaasUserData())
         } finally {
@@ -47,15 +35,7 @@ export const useInitializeApp = (): void => {
         return
       }
 
-      const loginurl = await Auth()
-      sessionStorage.setItem(
-        'redirectState',
-        JSON.stringify({
-          code_verifier: loginurl.code_verifier,
-          state: loginurl.state
-        })
-      )
-      redirectTo(loginurl.redirectTo)
+      await startLogin()
     }
 
     void initiateLogin()
