@@ -1,0 +1,99 @@
+{
+  "locale": "es-es",
+  "contacts": {
+    "title": "Contactos",
+    "myContacts": "Mis contactos",
+    "domainAddressBook": "Libreta de direcciones del dominio",
+    "create": "Crear",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "team": "Equipo",
+    "back": "Volver",
+    "copy": "Copiar",
+    "phoneWasCopied": "Número de teléfono copiado",
+    "socialProfileWasCopied": "ID de Matrix copiado",
+    "emailWasCopied": "Dirección de correo electrónico copiada",
+    "addressWasCopied": "Dirección copiada",
+    "notFound": "Contacto no encontrado",
+    "addressBookNotFound": "Libreta de direcciones no encontrada",
+    "empty": {
+      "title": "Aún no hay contactos",
+      "subtitle": "Sus contactos aparecerán aquí cuando los añada.",
+      "import": "Importar",
+      "uploadSuccess": "Importación en curso. Recibirá un correo electrónico cuando finalice."
+    },
+    "form": {
+      "createTitle": "Crear contacto",
+      "close": "Cerrar",
+      "firstName": "Nombre",
+      "lastName": "Apellidos",
+      "addTeam": "Añadir equipo",
+      "matrixId": "ID de Matrix",
+      "phone": "Teléfono",
+      "addPhone": "Añadir teléfono",
+      "email": "Correo",
+      "addEmail": "Añadir correo",
+      "address": "Dirección",
+      "addAddress": "Añadir dirección",
+      "addField": "Añadir",
+      "remove": "Eliminar",
+      "type": "Tipo",
+      "typeLabel": "Etiqueta",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "addressBook": "Libreta de direcciones",
+      "editTitle": "Editar contacto",
+      "newContact": "Nuevo contacto",
+      "invalidEmail": "Dirección de correo electrónico no válida"
+    },
+    "types": {
+      "cell": "Móvil",
+      "work": "Trabajo",
+      "home": "Casa",
+      "other": "Otro"
+    },
+    "menu": {
+      "more": "Más acciones",
+      "sendMail": "Enviar correo",
+      "openChat": "Abrir chat",
+      "createEvent": "Crear evento",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "chat": "Chat",
+      "mail": "Enviar correo",
+      "schedule": "Programar"
+    },
+    "delete": {
+      "title": "¿Eliminar este contacto?",
+      "description": "Este contacto se eliminará de forma permanente de esta cuenta.",
+      "confirm": "Eliminar"
+    },
+    "search": {
+      "placeholder": "Buscar contactos...",
+      "loading": "Cargando...",
+      "noResults": "No se han encontrado contactos"
+    },
+    "errors": {
+      "load": "No se han podido cargar los contactos",
+      "create": "No se ha podido crear el contacto",
+      "update": "No se ha podido actualizar el contacto",
+      "delete": "No se ha podido eliminar el contacto",
+      "forbidden": "No tiene permiso para modificar esta libreta de direcciones"
+    }
+  },
+  "error": {
+    "title": "Se ha producido un error",
+    "unknown": "Se ha producido un error desconocido",
+    "retry": "Reintentar"
+  },
+  "common": {
+    "ok": "Aceptar"
+  },
+  "mobile": {
+    "comingSoon": {
+      "title": "Versión móvil próximamente",
+      "subtitle": "Abra Twake Contacts en un ordenador para disfrutar de todas las funciones. Pronto estará disponible una versión móvil totalmente optimizada."
+    }
+  }
+}

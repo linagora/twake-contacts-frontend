@@ -11,21 +11,35 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { BrowserRouter as Router } from 'react-router'
 
 import {
+  de as deLocale,
   enGB,
+  es as esLocale,
   fr as frLocale,
+  it as itLocale,
   ru as ruLocale,
   vi as viLocale
 } from 'date-fns/locale'
 
+import de from '@common/locales/de.json'
 import en from '@common/locales/en.json'
+import es from '@common/locales/es.json'
 import fr from '@common/locales/fr.json'
+import it from '@common/locales/it.json'
 import ru from '@common/locales/ru.json'
 import vi from '@common/locales/vi.json'
 import I18n from 'twake-i18n'
 import { AppRoutes } from './AppRoutes'
 
-const locale = { en, fr, ru, vi }
-const dateLocales = { en: enGB, fr: frLocale, ru: ruLocale, vi: viLocale }
+const locale = { en, fr, ru, vi, es, de, it }
+const dateLocales = {
+  en: enGB,
+  fr: frLocale,
+  ru: ruLocale,
+  vi: viLocale,
+  es: esLocale,
+  de: deLocale,
+  it: itLocale
+}
 
 const SUPPORTED_LANGUAGES = AVAILABLE_LANGUAGES.map(lang => lang.code)
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]

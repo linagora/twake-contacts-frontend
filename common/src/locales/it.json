@@ -1,0 +1,99 @@
+{
+  "locale": "it-it",
+  "contacts": {
+    "title": "Contatti",
+    "myContacts": "I miei contatti",
+    "domainAddressBook": "Rubrica del dominio",
+    "create": "Crea",
+    "name": "Nome",
+    "email": "Email",
+    "phone": "Telefono",
+    "team": "Team",
+    "back": "Indietro",
+    "copy": "Copia",
+    "phoneWasCopied": "Numero di telefono copiato",
+    "socialProfileWasCopied": "ID Matrix copiato",
+    "emailWasCopied": "Indirizzo email copiato",
+    "addressWasCopied": "Indirizzo copiato",
+    "notFound": "Contatto non trovato",
+    "addressBookNotFound": "Rubrica non trovata",
+    "empty": {
+      "title": "Ancora nessun contatto",
+      "subtitle": "I tuoi contatti appariranno qui dopo averli aggiunti.",
+      "import": "Importa",
+      "uploadSuccess": "Importazione in corso. Riceverai un'email al termine."
+    },
+    "form": {
+      "createTitle": "Crea contatto",
+      "close": "Chiudi",
+      "firstName": "Nome",
+      "lastName": "Cognome",
+      "addTeam": "Aggiungi team",
+      "matrixId": "ID Matrix",
+      "phone": "Telefono",
+      "addPhone": "Aggiungi telefono",
+      "email": "Email",
+      "addEmail": "Aggiungi email",
+      "address": "Indirizzo",
+      "addAddress": "Aggiungi indirizzo",
+      "addField": "Aggiungi",
+      "remove": "Rimuovi",
+      "type": "Tipo",
+      "typeLabel": "Etichetta",
+      "cancel": "Annulla",
+      "save": "Salva",
+      "addressBook": "Rubrica",
+      "editTitle": "Modifica contatto",
+      "newContact": "Nuovo contatto",
+      "invalidEmail": "Indirizzo email non valido"
+    },
+    "types": {
+      "cell": "Cellulare",
+      "work": "Lavoro",
+      "home": "Casa",
+      "other": "Altro"
+    },
+    "menu": {
+      "more": "Altre azioni",
+      "sendMail": "Invia email",
+      "openChat": "Apri chat",
+      "createEvent": "Crea evento",
+      "edit": "Modifica",
+      "delete": "Elimina",
+      "chat": "Chat",
+      "mail": "Invia email",
+      "schedule": "Pianifica"
+    },
+    "delete": {
+      "title": "Eliminare questo contatto?",
+      "description": "Questo contatto verrà eliminato definitivamente da questo account.",
+      "confirm": "Elimina"
+    },
+    "search": {
+      "placeholder": "Cerca contatti...",
+      "loading": "Caricamento...",
+      "noResults": "Nessun contatto trovato"
+    },
+    "errors": {
+      "load": "Impossibile caricare i contatti",
+      "create": "Impossibile creare il contatto",
+      "update": "Impossibile aggiornare il contatto",
+      "delete": "Impossibile eliminare il contatto",
+      "forbidden": "Non hai i permessi per modificare questa rubrica"
+    }
+  },
+  "error": {
+    "title": "Si è verificato un problema",
+    "unknown": "Si è verificato un errore sconosciuto",
+    "retry": "Riprova"
+  },
+  "common": {
+    "ok": "OK"
+  },
+  "mobile": {
+    "comingSoon": {
+      "title": "Versione mobile in arrivo",
+      "subtitle": "Apri Twake Contacts su un computer per usare tutte le funzionalità. Una versione mobile completamente ottimizzata sarà disponibile a breve."
+    }
+  }
+}

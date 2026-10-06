@@ -1,0 +1,99 @@
+{
+  "locale": "de-de",
+  "contacts": {
+    "title": "Kontakte",
+    "myContacts": "Meine Kontakte",
+    "domainAddressBook": "Domain-Adressbuch",
+    "create": "Erstellen",
+    "name": "Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "team": "Team",
+    "back": "Zurück",
+    "copy": "Kopieren",
+    "phoneWasCopied": "Telefonnummer kopiert",
+    "socialProfileWasCopied": "Matrix-ID kopiert",
+    "emailWasCopied": "E-Mail-Adresse kopiert",
+    "addressWasCopied": "Adresse kopiert",
+    "notFound": "Kontakt nicht gefunden",
+    "addressBookNotFound": "Adressbuch nicht gefunden",
+    "empty": {
+      "title": "Noch keine Kontakte",
+      "subtitle": "Ihre Kontakte werden hier angezeigt, sobald Sie sie hinzufügen.",
+      "import": "Importieren",
+      "uploadSuccess": "Import läuft. Sie erhalten eine E-Mail, sobald er abgeschlossen ist."
+    },
+    "form": {
+      "createTitle": "Kontakt erstellen",
+      "close": "Schließen",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "addTeam": "Team hinzufügen",
+      "matrixId": "Matrix-ID",
+      "phone": "Telefon",
+      "addPhone": "Telefonnummer hinzufügen",
+      "email": "E-Mail",
+      "addEmail": "E-Mail-Adresse hinzufügen",
+      "address": "Adresse",
+      "addAddress": "Adresse hinzufügen",
+      "addField": "Hinzufügen",
+      "remove": "Entfernen",
+      "type": "Typ",
+      "typeLabel": "Label",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "addressBook": "Adressbuch",
+      "editTitle": "Kontakt bearbeiten",
+      "newContact": "Neuer Kontakt",
+      "invalidEmail": "Ungültige E-Mail-Adresse"
+    },
+    "types": {
+      "cell": "Mobil",
+      "work": "Arbeit",
+      "home": "Privat",
+      "other": "Sonstige"
+    },
+    "menu": {
+      "more": "Weitere Aktionen",
+      "sendMail": "E-Mail senden",
+      "openChat": "Chat öffnen",
+      "createEvent": "Termin erstellen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "chat": "Chat",
+      "mail": "E-Mail senden",
+      "schedule": "Termin planen"
+    },
+    "delete": {
+      "title": "Diesen Kontakt löschen?",
+      "description": "Dieser Kontakt wird dauerhaft aus diesem Konto gelöscht.",
+      "confirm": "Löschen"
+    },
+    "search": {
+      "placeholder": "Kontakte suchen...",
+      "loading": "Wird geladen...",
+      "noResults": "Keine Kontakte gefunden"
+    },
+    "errors": {
+      "load": "Kontakte konnten nicht geladen werden",
+      "create": "Kontakt konnte nicht erstellt werden",
+      "update": "Kontakt konnte nicht aktualisiert werden",
+      "delete": "Kontakt konnte nicht gelöscht werden",
+      "forbidden": "Sie haben keine Berechtigung, dieses Adressbuch zu ändern"
+    }
+  },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "unknown": "Ein unbekannter Fehler ist aufgetreten",
+    "retry": "Erneut versuchen"
+  },
+  "common": {
+    "ok": "OK"
+  },
+  "mobile": {
+    "comingSoon": {
+      "title": "Mobile Version in Kürze verfügbar",
+      "subtitle": "Bitte öffnen Sie Twake Contacts auf einem Computer, um alle Funktionen nutzen zu können. Eine vollständig optimierte mobile Version ist bald verfügbar."
+    }
+  }
+}
