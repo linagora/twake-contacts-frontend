@@ -136,7 +136,7 @@ export async function fetchContactsForBook(
   userId: string,
   limit: number = CONTACTS_PAGINATION_LIMIT,
   offset: number = 0
-): Promise<{ contacts: Contact[]; hasMore: boolean }> {
+): Promise<{ contacts: Contact[]; hasMore: boolean; syncToken: number }> {
   const isDomainBook = book.id === 'dab'
 
   const url = isDomainBook
@@ -153,8 +153,9 @@ export async function fetchContactsForBook(
   const items = data._embedded?.['dav:item'] ?? []
   const contacts = items.map(normalizeContact)
   const hasMore = data._links?.next?.href !== undefined
+  const syncToken = Number(data['dav:syncToken'] ?? 1)
 
-  return { contacts, hasMore }
+  return { contacts, hasMore, syncToken }
 }
 
 export async function saveContact(

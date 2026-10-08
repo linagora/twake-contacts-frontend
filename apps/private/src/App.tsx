@@ -28,6 +28,7 @@ import it from '@common/locales/it.json'
 import ru from '@common/locales/ru.json'
 import vi from '@common/locales/vi.json'
 import I18n from 'twake-i18n'
+import { WebSocketGate } from '@common/websocket/WebSocketGate'
 import { AppRoutes } from './AppRoutes'
 
 const locale = { en, fr, ru, vi, es, de, it }
@@ -90,6 +91,7 @@ export default function App(): JSX.Element {
             }}
           >
             <Suspense fallback={<Loading />}>
+              <WebSocketGate />
               <Router>
                 <AppRoutes />
               </Router>

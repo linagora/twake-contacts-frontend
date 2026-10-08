@@ -9,6 +9,7 @@
     "@linagora/twake-icons": "^2.13.0",
     "@linagora/twake-mui": "^10.3.0",
     "@linagora/twake-oidc": "^1.0.0",
+    "@linagora/twake-websocket": "^1.0.0",
     "@mui/icons-material": "^9.0.1",
     "@mui/material": "^9.0.1",
     "@reduxjs/toolkit": "^2.8.2",

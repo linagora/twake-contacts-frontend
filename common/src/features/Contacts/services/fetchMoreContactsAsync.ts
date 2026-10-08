@@ -14,7 +14,13 @@ export const fetchMoreContactsThunk = (
   create: ReducerCreators<ContactsState>
 ) =>
   create.asyncThunk<
-    { bookId: string; contacts: Contact[]; offset: number; hasMore: boolean },
+    {
+      bookId: string
+      contacts: Contact[]
+      offset: number
+      hasMore: boolean
+      syncToken: number
+    },
     FetchMoreContactsPayload,
     { rejectValue: RejectedError }
   >(
@@ -28,7 +34,8 @@ export const fetchMoreContactsThunk = (
             bookId,
             contacts: [],
             offset: bookWithContacts?.offset || 0,
-            hasMore: false
+            hasMore: false,
+            syncToken: bookWithContacts?.syncToken ?? 1
           }
         }
 
@@ -43,7 +50,8 @@ export const fetchMoreContactsThunk = (
           bookId,
           contacts: result.contacts,
           offset: result.offset,
-          hasMore: result.hasMore
+          hasMore: result.hasMore,
+          syncToken: result.syncToken
         }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
@@ -66,7 +74,7 @@ export const fetchMoreContactsThunk = (
         if (book) book.isLoadingMore = false
       },
       fulfilled: (state, action) => {
-        const { bookId, contacts, offset, hasMore } = action.payload
+        const { bookId, contacts, offset, hasMore, syncToken } = action.payload
         const book = state.addressBooks[bookId]
         if (book) {
           // Pages are fetched by offset, so a contact added while paging
@@ -88,6 +96,7 @@ export const fetchMoreContactsThunk = (
           book.contacts.push(...contacts)
           book.offset = offset
           book.hasMore = hasMore
+          book.syncToken = syncToken
         }
       },
       rejected: (state, action) => {

@@ -34,6 +34,7 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
           let validContacts: Contact[] = []
           let hasMoreForBook = mayHaveContacts
           let newOffset = 0
+          let syncToken = 1
 
           if (remainingSlot > 0 && mayHaveContacts) {
             const requestedLimit = remainingSlot
@@ -47,13 +48,15 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
             hasMoreForBook = result.hasMore
             newOffset = result.offset
             remainingSlot -= validContacts.length
+            syncToken = result.syncToken
           }
 
           addressBooks[book.id] = {
             ...book,
             contacts: validContacts,
             offset: newOffset,
-            hasMore: hasMoreForBook
+            hasMore: hasMoreForBook,
+            syncToken
           }
         }
 

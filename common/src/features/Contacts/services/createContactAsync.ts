@@ -25,12 +25,6 @@ export const createContactThunk = (create: ReducerCreators<ContactsState>) =>
       }
     },
     {
-      fulfilled: (state, action) => {
-        const book = state.addressBooks[action.payload.addressBookId]
-        if (!book) return
-        book.contacts.push(action.payload.contact)
-        if (book.contactsCount !== null) book.contactsCount += 1
-      },
       rejected: (state, action) => {
         state.error = toContactsErrorKey(
           action.payload,

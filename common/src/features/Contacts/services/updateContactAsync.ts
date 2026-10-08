@@ -20,15 +20,6 @@ export const updateContactThunk = (create: ReducerCreators<ContactsState>) =>
       }
     },
     {
-      fulfilled: (state, action) => {
-        const book = state.addressBooks[action.payload.addressBookId]
-        if (!book) return
-        book.contacts = book.contacts.map(contact =>
-          contact.id === action.payload.contact.id
-            ? action.payload.contact
-            : contact
-        )
-      },
       rejected: (state, action) => {
         state.error = toContactsErrorKey(
           action.payload,

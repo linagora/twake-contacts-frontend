@@ -6,8 +6,13 @@ export async function fetchPaginatedContacts(
   userId: string,
   limit: number,
   offset: number
-): Promise<{ contacts: Contact[]; offset: number; hasMore: boolean }> {
-  const { contacts, hasMore } = await fetchContactsForBook(
+): Promise<{
+  contacts: Contact[]
+  offset: number
+  hasMore: boolean
+  syncToken: number
+}> {
+  const { contacts, hasMore, syncToken } = await fetchContactsForBook(
     book,
     userId,
     limit,
@@ -18,6 +23,7 @@ export async function fetchPaginatedContacts(
   return {
     contacts: validContacts,
     offset: offset + validContacts.length,
-    hasMore
+    hasMore,
+    syncToken
   }
 }

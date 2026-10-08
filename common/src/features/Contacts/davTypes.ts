@@ -73,6 +73,7 @@ export interface DavAddressBookItem {
   /** `/addressbooks/<userId>/<bookId>.json`, `userId` being the owner of the book. */
   _links?: DavLinks
   'dav:name'?: string
+  'dav:syncToken': number
   numberOfContacts?: number | null
   'dav:acl'?: string[]
   'dav:share-access'?: number | null

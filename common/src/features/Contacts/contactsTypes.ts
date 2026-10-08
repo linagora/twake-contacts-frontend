@@ -9,6 +9,7 @@ export interface AddressBook {
   acl: string[]
   canWrite: boolean
   ownerDisplayName?: string
+  syncToken?: number
 }
 
 export interface ContactName {
