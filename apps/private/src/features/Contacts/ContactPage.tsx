@@ -34,6 +34,7 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
+import cx from 'classnames'
 import { useState } from 'react'
 
 import { Link, useNavigate, useParams } from 'react-router'
@@ -76,7 +77,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
       <ListItem
         disableGutters
         className="u-flex u-flex-items-center"
-        style={{ width: 'fit-content', maxWidth: '50%' }}
+        style={{ width: 'fit-content', maxWidth: '50%', gap: 4 }}
       >
         <ListItemIcon>
           <Icon icon={icon} />
@@ -87,7 +88,11 @@ const ContactField: React.FC<ContactFieldProps> = ({
             slotProps={{ primary: { noWrap: true } }}
           />
         </Tooltip>
-        <div className="u-flex u-flex-items-center u-row-xs u-ml-auto u-ml-1">
+        <div
+          className={cx('u-flex u-flex-items-center u-row-xs', {
+            'u-ml-half': !!type
+          })}
+        >
           {type && (
             <Typography variant="body2" color="text.secondary">
               {t(`contacts.types.${type.toLowerCase()}`)}
@@ -99,6 +104,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
                 aria-label={copyLabel}
                 onClick={handleCopy}
                 size="small"
+                className="u-mr-auto"
               >
                 <Icon icon={Copy} />
               </IconButton>
@@ -134,6 +140,9 @@ const ContactField: React.FC<ContactFieldProps> = ({
     </>
   )
 }
+
+const getButtonVariant = (value?: string): 'contained' | 'ghost' =>
+  !value ? 'contained' : 'ghost'
 
 export const ContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -209,7 +218,7 @@ export const ContactPage: React.FC = () => {
           <AvatarHeader displayName={contact.displayName} />
           <Stack direction="row" spacing={2}>
             <Button
-              variant="ghost"
+              variant={getButtonVariant(firstEmail)}
               startIcon={<Icon icon={EmailOpen} />}
               aria-label={t('contacts.menu.mail')}
               data-testid="contact-mail-button"
@@ -219,7 +228,7 @@ export const ContactPage: React.FC = () => {
               {t('contacts.menu.mail')}
             </Button>
             <Button
-              variant="ghost"
+              variant={getButtonVariant(chatTarget)}
               aria-label={t('contacts.menu.chat')}
               data-testid="contact-chat-button"
               startIcon={<Icon icon={Discuss} />}
@@ -229,7 +238,7 @@ export const ContactPage: React.FC = () => {
               {t('contacts.menu.chat')}
             </Button>
             <Button
-              variant="ghost"
+              variant={getButtonVariant(firstEmail)}
               aria-label={t('contacts.menu.schedule')}
               data-testid="contact-calendar-button"
               startIcon={<Icon icon={CalendarToday} />}
