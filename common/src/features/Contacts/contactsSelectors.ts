@@ -12,15 +12,31 @@ export const selectBook = createSelector(
   (books, addressBookId) => (addressBookId ? books[addressBookId] : undefined)
 )
 
+export type BookScope = 'mine' | 'shared'
+
+const matchesScope = (
+  book: AddressBook,
+  scope?: BookScope,
+  userId?: string
+): boolean =>
+  !scope ||
+  (scope === 'shared'
+    ? book.ownerId !== undefined && book.ownerId !== userId && book.id !== 'dab'
+    : true)
 export const selectContactEntries = createSelector(
   [
     selectAddressBooks,
-    (_state: RootState, addressBookId?: string) => addressBookId
+    (_state: RootState, addressBookId?: string) => addressBookId,
+    (_state: RootState, _id?: string, scope?: BookScope) => scope,
+    (_state: RootState, _id?: string, _scope?: BookScope, userId?: string) =>
+      userId
   ],
-  (books, addressBookId): ContactEntry[] => {
-    const bookIds = addressBookId ? [addressBookId] : Object.keys(books)
+  (books, addressBookId, scope, userId): ContactEntry[] => {
+    const bookIds = (
+      addressBookId ? [addressBookId] : Object.keys(books)
+    ).filter(id => books[id] && matchesScope(books[id], scope, userId))
     return bookIds.flatMap(bookId =>
-      (books[bookId]?.contacts ?? []).map(contact => ({
+      (books[bookId].contacts ?? []).map(contact => ({
         addressBookId: bookId,
         contact
       }))
@@ -31,11 +47,18 @@ export const selectContactEntries = createSelector(
 // books load one after the other, in the same order as selectContactEntries
 export const selectBookIdToLoadMore = (
   state: RootState,
-  addressBookId?: string
+  addressBookId?: string,
+  scope?: BookScope,
+  userId?: string
 ): string | null => {
   const books = selectAddressBooks(state)
   const bookIds = addressBookId ? [addressBookId] : Object.keys(books)
-  return bookIds.find(bookId => books[bookId]?.hasMore) ?? null
+  return (
+    bookIds.find(
+      bookId =>
+        books[bookId]?.hasMore && matchesScope(books[bookId], scope, userId)
+    ) ?? null
+  )
 }
 
 export const selectCategories = createSelector(

@@ -62,6 +62,7 @@ async function enrichAddressBookOwner(
 
   const ownerId = parts[2]
   if (!ownerId || ownerId === userId) return book
+  book.ownerId = ownerId
 
   try {
     const user = await fetchUserById(ownerId)

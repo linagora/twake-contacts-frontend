@@ -2,6 +2,7 @@
   "locale": "de-de",
   "contacts": {
     "title": "Kontakte",
+    "tabs": { "mine": "Meine Kontakte", "shared": "Geteilte Kontakte" },
     "myContacts": "Meine Kontakte",
     "domainAddressBook": "Domain-Adressbuch",
     "create": "Erstellen",

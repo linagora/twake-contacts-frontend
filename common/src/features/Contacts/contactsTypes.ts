@@ -3,6 +3,7 @@ import { JCalProperty } from './davTypes'
 export interface AddressBook {
   id: string
   userId: string
+  ownerId?: string
   name: string
   // null when the server does not report it, as for shared books
   contactsCount: number | null

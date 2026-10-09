@@ -139,7 +139,7 @@ describe('AddressBookPage', () => {
   it('lists contacts from every address book on My contacts', () => {
     renderContacts('/contacts')
 
-    expect(screen.getByText('My contacts')).toBeInTheDocument()
+    expect(screen.getAllByText('My contacts')).toHaveLength(2)
     expect(screen.getByText('Isabella Martinez')).toBeInTheDocument()
     expect(screen.getByText('Alice Roche')).toBeInTheDocument()
   })

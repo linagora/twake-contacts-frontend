@@ -1,13 +1,12 @@
 import { Stack, Typography } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
-import { ImportContactsButton } from './ImportContactsButton'
 
 interface NoContactsEmptyStateProps {
-  addressBookId?: string
+  action: React.ReactNode
 }
 
 export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
-  addressBookId
+  action
 }) => {
   const { t } = useI18n()
 
@@ -24,7 +23,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
       />
       <Typography variant="h5">{t('contacts.empty.title')}</Typography>
       <Typography variant="body1">{t('contacts.empty.subtitle')}</Typography>
-      <ImportContactsButton addressBookId={addressBookId} />
+      {action}
     </Stack>
   )
 }

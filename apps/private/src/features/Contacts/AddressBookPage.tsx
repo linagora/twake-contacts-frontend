@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { fetchMoreContacts } from '@common/features/Contacts/ContactsSlice'
 import {
+  BookScope,
   selectBook,
   selectBookIdToLoadMore,
   selectContactEntries
@@ -12,9 +13,11 @@ import {
   CircularProgress,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   Typography
 } from '@linagora/twake-mui'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
@@ -28,12 +31,19 @@ export const AddressBookPage: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)
+
+  const [selectedTab, setSelectedTab] = useState<BookScope>('mine')
+
+  const scope = addressBookId ? undefined : selectedTab
+
   const entries = useAppSelector(state =>
-    selectContactEntries(state, addressBookId)
+    selectContactEntries(state, addressBookId, scope, openpaasId)
   )
+
   const bookIdToLoadMore = useAppSelector(state =>
-    selectBookIdToLoadMore(state, addressBookId)
+    selectBookIdToLoadMore(state, addressBookId, scope, openpaasId)
   )
+
   const title = addressBookId
     ? getAddressBookDisplayName(book, t)
     : t('contacts.myContacts')
@@ -73,7 +83,7 @@ export const AddressBookPage: React.FC = () => {
     if (entries.length > 0 || loading) {
       return (
         <ContactsTable
-          key={addressBookId ?? 'all'}
+          key={`${addressBookId ?? 'all'}-${scope ?? ''}`}
           entries={entries}
           onEndReached={loadMore}
           loading={loading}
@@ -83,7 +93,13 @@ export const AddressBookPage: React.FC = () => {
     return bookIdToLoadMore ? (
       <CircularProgress />
     ) : (
-      <NoContactsEmptyState addressBookId={addressBookId} />
+      <NoContactsEmptyState
+        action={
+          scope === 'shared' ? null : (
+            <ImportContactsButton addressBookId={addressBookId} />
+          )
+        }
+      />
     )
   }
 
@@ -96,7 +112,19 @@ export const AddressBookPage: React.FC = () => {
         {loading ? (
           <Skeleton variant="text" width={200} height={40} />
         ) : (
-          <Typography variant="h4">{title}</Typography>
+          <Stack direction="row" className="u-flex-items-center" spacing={2}>
+            <Typography variant="h4">{title}</Typography>
+            {!addressBookId && (
+              <Tabs
+                value={selectedTab}
+                onChange={(_e, value: BookScope) => setSelectedTab(value)}
+                segmented
+              >
+                <Tab value="mine" label={t('contacts.tabs.mine')} />
+                <Tab value="shared" label={t('contacts.tabs.shared')} />
+              </Tabs>
+            )}
+          </Stack>
         )}
         {(addressBookId !== 'dab' || book?.canWrite) && (
           <ImportContactsButton addressBookId={addressBookId} />
