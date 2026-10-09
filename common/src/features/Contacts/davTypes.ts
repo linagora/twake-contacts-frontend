@@ -68,6 +68,21 @@ export interface DavContactsResponse {
   }
 }
 
+export enum AddressBookAccessLevel {
+  Owner = 1,
+  Viewer = 2,
+  Editor = 3,
+  None = 4
+}
+
+export interface DavInvite {
+  access: AddressBookAccessLevel
+  comment: null
+  href: string
+  inviteStatus: number
+  principal: string
+}
+
 /** One address book, as embedded under `dav:addressbook`. */
 export interface DavAddressBookItem {
   /** `/addressbooks/<userId>/<bookId>.json`, `userId` being the owner of the book. */
@@ -89,6 +104,7 @@ export interface DavAddressBookItem {
   [key: `${string}subscription-type`]: string | undefined
   [key: `${string}source`]: string | undefined
   '{DAV:}share-access'?: number | null
+  '{DAV:}invite'?: DavInvite[]
 }
 
 /** `GET /addressbooks/<userId>.json` */

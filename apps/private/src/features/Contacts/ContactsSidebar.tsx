@@ -5,7 +5,15 @@ import {
   isHiddenAddressBook,
   sortAddressBooks
 } from '@common/features/Contacts/contactsUtils'
-import { Company, Icon, Plus, ContactList } from '@linagora/twake-icons'
+import {
+  Company,
+  Icon,
+  Plus,
+  ContactList,
+  Dots,
+  ShareExternal,
+  Peoples
+} from '@linagora/twake-icons'
 import {
   Box,
   Nav,
@@ -17,16 +25,19 @@ import {
   Button,
   Tooltip,
   NavDropdown,
-  IconButton
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText
 } from '@linagora/twake-mui'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
-import { Peoples } from '@linagora/twake-icons'
-
 import {
   AddressBook,
   AddressBookWithContacts
 } from '@common/features/Contacts/contactsTypes'
+import { ShareAddressBookDialog } from './ShareAddressBook/ShareAddressBookDialog'
 
 interface ContactsSidebarProps {
   onOpenCreateBook: () => void
@@ -128,24 +139,11 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
 
           {isMyContactsExpanded &&
             otherBooks.map(book => (
-              <NavItem key={book.id} variant="secondary">
-                <NavLink
-                  onClick={() => {
-                    void navigate(`/contacts/${book.id}`)
-                  }}
-                  selected={addressBookId === book.id}
-                >
-                  <NavIcon icon={Peoples} />
-                  <Tooltip title={getAddressBookDisplayName(book, t)}>
-                    <NavText
-                      className="u-midellipsis"
-                      secondaryText={book.ownerDisplayName}
-                    >
-                      {getAddressBookDisplayName(book, t)}
-                    </NavText>
-                  </Tooltip>
-                </NavLink>
-              </NavItem>
+              <AddressBookNavItem
+                key={book.id}
+                book={book}
+                selected={addressBookId === book.id}
+              />
             ))}
 
           {domainBooks.map(book => (
@@ -168,5 +166,93 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
         </Nav>
       </Box>
     </Sidebar>
+  )
+}
+
+const AddressBookNavItem: React.FC<{
+  book: AddressBook
+  selected: boolean
+}> = ({ book, selected }) => {
+  const { t } = useI18n()
+  const navigate = useNavigate()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
+    event.stopPropagation()
+    event.preventDefault()
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = (): void => {
+    setAnchorEl(null)
+  }
+
+  const handleShare = (event: React.MouseEvent): void => {
+    event.stopPropagation()
+    event.preventDefault()
+    setIsShareDialogOpen(true)
+    handleMenuClose()
+  }
+
+  const isMenuOpen = Boolean(anchorEl)
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <NavItem
+        key={book.id}
+        variant="secondary"
+        secondaryAction={
+          (isHovered || isMenuOpen) && book.canWrite ? (
+            <>
+              <Tooltip title={t('contacts.menu.more')}>
+                <IconButton size="xsmall" onClick={handleMenuOpen}>
+                  <Icon icon={Dots} size={10} rotate={90} />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={anchorEl}
+                open={isMenuOpen}
+                onClose={handleMenuClose}
+                onClick={e => e.stopPropagation()}
+              >
+                <MenuItem onClick={handleShare}>
+                  <ListItemIcon>
+                    <Icon icon={ShareExternal} />
+                  </ListItemIcon>
+                  <ListItemText>{t('contacts.menu.share')}</ListItemText>
+                </MenuItem>
+              </Menu>
+            </>
+          ) : null
+        }
+      >
+        <NavLink
+          onClick={() => {
+            void navigate(`/contacts/${book.id}`)
+          }}
+          selected={selected}
+        >
+          <NavIcon icon={Peoples} />
+          <Tooltip title={getAddressBookDisplayName(book, t)}>
+            <NavText className="u-mr-1" secondaryText={book.ownerDisplayName}>
+              <Box className="u-ellipsis">
+                {getAddressBookDisplayName(book, t)}
+              </Box>
+            </NavText>
+          </Tooltip>
+        </NavLink>
+      </NavItem>
+      {isShareDialogOpen && (
+        <ShareAddressBookDialog
+          addressBookId={book.id}
+          onClose={() => setIsShareDialogOpen(false)}
+        />
+      )}
+    </div>
   )
 }

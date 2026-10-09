@@ -62,7 +62,8 @@
       "delete": "Eliminar",
       "chat": "Chat",
       "mail": "Enviar correo",
-      "schedule": "Programar"
+      "schedule": "Programar",
+      "share": "Share"
     },
     "delete": {
       "title": "¿Eliminar este contacto?",
@@ -88,6 +89,20 @@
       "cancel": "Cancelar",
       "save": "Crear",
       "createSuccess": "Libreta de direcciones creada exitosamente"
+    },
+    "share": {
+      "title": "Compartir %{name}",
+      "invitePeople": "Invitar personas",
+      "addContacts": "Añadir contactos",
+      "send": "Enviar",
+      "owner": "Propietario",
+      "emptyTitle": "Nadie ha sido añadido aún",
+      "emptySubtitle": "Las personas invitadas a unirse aparecerán aquí",
+      "editor": "Editor",
+      "viewer": "Lector",
+      "contactsCount": "%{count} contactos",
+      "you": "Tú",
+      "defaultAddressBookName": "Libreta de direcciones"
     }
   },
   "error": {

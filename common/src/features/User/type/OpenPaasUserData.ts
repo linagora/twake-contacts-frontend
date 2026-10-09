@@ -18,6 +18,8 @@ export interface OpenPaasUserData {
     modules?: ModuleConfiguration[]
   }
   emails: string[]
+  emailAddresses?: { value: string }[]
+  names?: { displayName: string }[]
   resource?: boolean
   administrators?: {
     _id: string
@@ -38,12 +40,34 @@ export function normalizeOpenPaasUser(
   return user
 }
 
+const extractEmail = (openpaas: OpenPaasUserData): string => {
+  const rawEmailAddresses = openpaas.emailAddresses || []
+  return (
+    openpaas.preferredEmail ??
+    openpaas.emails?.[0] ??
+    rawEmailAddresses[0]?.value ??
+    ''
+  )
+}
+
+const extractName = (
+  openpaas: OpenPaasUserData,
+  givenName: string,
+  familyName: string
+): string => {
+  return (
+    openpaas.names?.[0]?.displayName ||
+    [givenName, familyName].filter(Boolean).join(' ') ||
+    ''
+  )
+}
+
 export function ToUserData(
   openpaas: OpenPaasUserData | undefined
 ): userData | undefined {
   if (!openpaas) return undefined
-  const email = openpaas.preferredEmail ?? openpaas.emails?.[0] ?? ''
 
+  const email = extractEmail(openpaas)
   const given_name = openpaas.firstname ?? ''
   const family_name = openpaas.lastname ?? ''
 
@@ -51,7 +75,7 @@ export function ToUserData(
     email,
     given_name,
     family_name,
-    name: [given_name, family_name].filter(Boolean).join(' '),
+    name: extractName(openpaas, given_name, family_name),
     sid: openpaas.id ?? '',
     sub: openpaas.id ?? '',
     openpaasId: openpaas.id,

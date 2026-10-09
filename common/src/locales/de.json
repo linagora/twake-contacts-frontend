@@ -62,7 +62,8 @@
       "delete": "Löschen",
       "chat": "Chat",
       "mail": "E-Mail senden",
-      "schedule": "Termin planen"
+      "schedule": "Termin planen",
+      "share": "Share"
     },
     "delete": {
       "title": "Diesen Kontakt löschen?",
@@ -88,6 +89,20 @@
       "cancel": "Abbrechen",
       "save": "Erstellen",
       "createSuccess": "Adressbuch erfolgreich erstellt"
+    },
+    "share": {
+      "title": "%{name} teilen",
+      "invitePeople": "Personen einladen",
+      "addContacts": "Kontakte hinzufügen",
+      "send": "Senden",
+      "owner": "Eigentümer",
+      "emptyTitle": "Noch niemand hinzugefügt",
+      "emptySubtitle": "Personen, die eingeladen wurden, werden hier aufgelistet",
+      "editor": "Bearbeiter",
+      "viewer": "Betrachter",
+      "contactsCount": "%{count} Kontakte",
+      "you": "Du",
+      "defaultAddressBookName": "Adressbuch"
     }
   },
   "error": {

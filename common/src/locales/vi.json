@@ -62,7 +62,8 @@
       "delete": "Xóa",
       "chat": "Trò chuyện",
       "mail": "Gửi email",
-      "schedule": "Lên lịch"
+      "schedule": "Lên lịch",
+      "share": "Share"
     },
     "delete": {
       "title": "Xóa liên hệ này?",
@@ -88,6 +89,20 @@
       "cancel": "Hủy",
       "save": "Tạo",
       "createSuccess": "Đã tạo sổ địa chỉ thành công"
+    },
+    "share": {
+      "title": "Chia sẻ %{name}",
+      "invitePeople": "Mời người khác",
+      "addContacts": "Thêm liên hệ",
+      "send": "Gửi",
+      "owner": "Chủ sở hữu",
+      "emptyTitle": "Chưa có ai được thêm",
+      "emptySubtitle": "Những người được mời tham gia sẽ được liệt kê ở đây",
+      "editor": "Người chỉnh sửa",
+      "viewer": "Người xem",
+      "contactsCount": "%{count} liên hệ",
+      "you": "Bạn",
+      "defaultAddressBookName": "Sổ địa chỉ"
     }
   },
   "error": {

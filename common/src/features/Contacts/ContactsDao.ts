@@ -4,9 +4,11 @@ import { fetchUserById } from '@common/features/User/UserDao'
 import { DomainInfo } from '@common/features/User/userDataTypes'
 import { AddressBook, Contact, ContactEntry } from './contactsTypes'
 import {
+  AddressBookAccessLevel,
   DavAddressBookItem,
   DavAddressBooksResponse,
-  DavContactsResponse
+  DavContactsResponse,
+  DavInvite
 } from './davTypes'
 import {
   denormalizeContact,
@@ -14,6 +16,8 @@ import {
   normalizeContact
 } from './transformer/ContactsTransformer'
 import { CONTACTS_PAGINATION_LIMIT, SEARCH_LIMIT } from './constants'
+import { ToUserData } from '../User/type/OpenPaasUserData'
+import { userData } from '../User/userDataTypes'
 
 const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
 
@@ -288,4 +292,76 @@ export async function createAddressBook(
     acl: ['dav:read', 'dav:write'],
     canWrite: true
   }
+}
+export async function fetchAddressBookDetails(
+  userId: string,
+  addressBookId: string
+): Promise<userData[]> {
+  try {
+    const response = await api(
+      `dav/addressbooks/${userId}/${addressBookId}.json`,
+      {
+        method: 'PROPFIND',
+        json: {
+          properties: ['{DAV:}invite']
+        }
+      }
+    ).json<DavAddressBookItem>()
+
+    const invites = response['{DAV:}invite']
+
+    if (!invites) return []
+
+    const members = await Promise.all(
+      invites.map(async (invite: DavInvite) => {
+        const principalStr = invite.principal || invite.href || ''
+        const memberUserId = principalStr.split('/').pop()
+
+        if (!memberUserId) return null
+
+        try {
+          const user = await fetchUserById(memberUserId)
+          const mappedUser = ToUserData(user)
+          if (!mappedUser) return undefined
+          mappedUser.role = invite.access
+          mappedUser.href = invite.href
+          return mappedUser
+        } catch (e) {
+          console.warn('Failed to fetch user', memberUserId, e)
+          return undefined
+        }
+      })
+    )
+
+    return members.filter((user): user is userData => user != null)
+  } catch (error) {
+    console.error('Failed to fetch address book details:', error)
+    return []
+  }
+}
+
+export interface ShareeUpdate {
+  userId: string
+  access: AddressBookAccessLevel
+  href: string
+}
+
+export async function updateAddressBookShares(
+  userId: string,
+  addressBookId: string,
+  sharees: ShareeUpdate[]
+): Promise<void> {
+  await api.post(`dav/addressbooks/${userId}/${addressBookId}.json`, {
+    headers: {
+      Accept: 'application/vcard+json'
+    },
+    json: {
+      'dav:share-resource': {
+        'dav:sharee': sharees.map(s => ({
+          'dav:href': s.href,
+          'dav:share-access': s.access
+        }))
+      }
+    }
+  })
 }

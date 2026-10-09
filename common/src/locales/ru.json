@@ -62,7 +62,8 @@
       "delete": "Удалить",
       "chat": "Чат",
       "mail": "Отправить письмо",
-      "schedule": "Запланировать"
+      "schedule": "Запланировать",
+      "share": "Share"
     },
     "delete": {
       "title": "Удалить этот контакт?",
@@ -88,6 +89,20 @@
       "cancel": "Отмена",
       "save": "Создать",
       "createSuccess": "Адресная книга успешно создана"
+    },
+    "share": {
+      "title": "Поделиться %{name}",
+      "invitePeople": "Пригласить людей",
+      "addContacts": "Добавить контакты",
+      "send": "Отправить",
+      "owner": "Владелец",
+      "emptyTitle": "Пока никто не добавлен",
+      "emptySubtitle": "Здесь будут перечислены приглашенные люди",
+      "editor": "Редактор",
+      "viewer": "Читатель",
+      "contactsCount": "%{count} контактов",
+      "you": "Вы",
+      "defaultAddressBookName": "Адресная книга"
     }
   },
   "error": {

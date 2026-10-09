@@ -1,3 +1,5 @@
+import { AddressBookAccessLevel } from '../Contacts/davTypes'
+
 export interface DomainInfo {
   domainId: string
   joinedAt: string
@@ -15,6 +17,8 @@ export interface userData {
   timezone?: string | null
   workplaceFqdn?: string
   domains?: DomainInfo[]
+  role?: AddressBookAccessLevel
+  href?: string
 }
 
 export interface UserConfigurations {

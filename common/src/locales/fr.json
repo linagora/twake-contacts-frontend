@@ -62,7 +62,8 @@
       "delete": "Supprimer",
       "chat": "Discuter",
       "mail": "Envoyer un email",
-      "schedule": "Planifier"
+      "schedule": "Planifier",
+      "share": "Share"
     },
     "delete": {
       "title": "Supprimer ce contact ?",
@@ -88,6 +89,20 @@
       "cancel": "Annuler",
       "save": "Créer",
       "createSuccess": "Carnet d'adresses créé avec succès"
+    },
+    "share": {
+      "title": "Partager %{name}",
+      "invitePeople": "Inviter des personnes",
+      "addContacts": "Ajouter des contacts",
+      "send": "Envoyer",
+      "owner": "Propriétaire",
+      "emptyTitle": "Personne n'a encore été ajouté",
+      "emptySubtitle": "Les personnes invitées à rejoindre seront listées ici",
+      "editor": "Éditeur",
+      "viewer": "Spectateur",
+      "contactsCount": "%{count} contacts",
+      "you": "Vous",
+      "defaultAddressBookName": "Carnet d'adresses"
     }
   },
   "error": {

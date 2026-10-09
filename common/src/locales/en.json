@@ -70,7 +70,8 @@
       "delete": "Delete",
       "chat": "Chat",
       "mail": "Send email",
-      "schedule": "Schedule"
+      "schedule": "Schedule",
+      "share": "Share"
     },
     "delete": {
       "title": "Delete this contact?",
@@ -88,6 +89,20 @@
       "update": "Failed to update contact",
       "delete": "Failed to delete contact",
       "forbidden": "You don't have permission to modify this address book"
+    },
+    "share": {
+      "title": "Share %{name}",
+      "invitePeople": "Invite people",
+      "addContacts": "Add contacts",
+      "send": "Send",
+      "owner": "Owner",
+      "emptyTitle": "No one has been added yet",
+      "emptySubtitle": "People invited to join will be listed here",
+      "editor": "Editor",
+      "viewer": "Viewer",
+      "contactsCount": "%{count} contacts",
+      "you": "You",
+      "defaultAddressBookName": "Address book"
     }
   },
   "error": {
