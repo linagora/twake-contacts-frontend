@@ -6,7 +6,7 @@
     "@contacts/common": "*",
     "@linagora/twake-css": "^1.0.0",
     "@linagora/twake-icons": "^2.13.0",
-    "@linagora/twake-mui": "^10.3.0",
+    "@linagora/twake-mui": "^12.0.0",
     "@linagora/twake-oidc": "^1.0.0",
     "@mui/icons-material": "^9.0.1",
     "@sentry/react": "^8.55.1",

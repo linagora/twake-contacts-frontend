@@ -51,7 +51,8 @@ const config: Config = {
           '<rootDir>/node_modules/@linagora/twake-icons',
         '^@linagora/twake-utils$':
           '<rootDir>/node_modules/@linagora/twake-utils',
-        '^@linagora/twake-oidc$': '<rootDir>/node_modules/@linagora/twake-oidc'
+        '^@linagora/twake-oidc$': '<rootDir>/node_modules/@linagora/twake-oidc',
+        '^(react-markdown|remark-gfm)$': '<rootDir>/esmStub.cjs'
       },
       setupFilesAfterEnv: ['<rootDir>/common/src/setupTests.ts']
     },
@@ -89,7 +90,8 @@ const config: Config = {
           '<rootDir>/node_modules/@linagora/twake-icons',
         '^@linagora/twake-utils$':
           '<rootDir>/node_modules/@linagora/twake-utils',
-        '^@linagora/twake-oidc$': '<rootDir>/node_modules/@linagora/twake-oidc'
+        '^@linagora/twake-oidc$': '<rootDir>/node_modules/@linagora/twake-oidc',
+        '^(react-markdown|remark-gfm)$': '<rootDir>/esmStub.cjs'
       }
     }
   ]
