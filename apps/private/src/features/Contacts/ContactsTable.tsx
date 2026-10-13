@@ -27,12 +27,14 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const location = useLocation()
 
   // We don't sort using the virtualized tables as we load entries
-  // using lazy loading
+  // using lazy loading.
+  // maxWidth 0 on name and email: they share the space left by the fixed
+  // columns, so a long value in the rendered rows can't resize the columns
   const columns: VirtualizedTableColumn[] = [
     {
       id: 'contact.displayName',
       label: t('contacts.name'),
-      width: 300,
+      maxWidth: 0,
       sortable: false,
       skeleton: (
         <Stack direction="row" className="u-flex-items-center">
@@ -50,7 +52,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     {
       id: 'contact.emails.0.value',
       label: t('contacts.email'),
-      width: 300,
+      maxWidth: 0,
       noWrap: true,
       sortable: false
     },
