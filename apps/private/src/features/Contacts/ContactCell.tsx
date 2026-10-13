@@ -3,6 +3,7 @@ import {
   Box,
   Chip,
   ContactPopover,
+  Skeleton,
   Stack,
   Tooltip,
   Typography,
@@ -45,6 +46,9 @@ export const ContactCell: React.FC<ContactCellProps> = ({
     state => state.user.userData?.workplaceFqdn
   )
   if (!row || !column) return null
+  if (row.loadingMore) {
+    return column.skeleton ?? <Skeleton animation="wave" variant="text" />
+  }
   const { contact, addressBookId } = row as unknown as ContactEntry
   const readOnly = addressBookId === 'dab'
 

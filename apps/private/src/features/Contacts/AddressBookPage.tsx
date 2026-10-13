@@ -44,6 +44,12 @@ export const AddressBookPage: React.FC = () => {
     selectBookIdToLoadMore(state, addressBookId, scope, openpaasId)
   )
 
+  const loadingMore = useAppSelector(
+    state =>
+      !!bookIdToLoadMore &&
+      !!state.contacts.addressBooks[bookIdToLoadMore]?.isLoadingMore
+  )
+
   const title = addressBookId
     ? getAddressBookDisplayName(book, t)
     : t('contacts.myContacts')
@@ -87,6 +93,7 @@ export const AddressBookPage: React.FC = () => {
           entries={entries}
           onEndReached={loadMore}
           loading={loading}
+          loadingMore={loadingMore}
         />
       )
     }

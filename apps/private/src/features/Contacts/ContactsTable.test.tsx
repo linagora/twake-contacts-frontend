@@ -18,7 +18,7 @@ const jane: ContactEntry = {
   }
 }
 
-const renderTable = (): ReturnType<typeof render> =>
+const renderTable = (loadingMore = false): ReturnType<typeof render> =>
   render(
     <Provider
       store={setupStore({
@@ -36,7 +36,11 @@ const renderTable = (): ReturnType<typeof render> =>
                 <Route
                   path="/contacts/:addressBookId"
                   element={
-                    <ContactsTable entries={[jane]} onEndReached={jest.fn()} />
+                    <ContactsTable
+                      entries={[jane]}
+                      onEndReached={jest.fn()}
+                      loadingMore={loadingMore}
+                    />
                   }
                 />
                 <Route
@@ -68,6 +72,13 @@ describe('ContactsTable', () => {
       jest.advanceTimersByTime(1000)
     })
   }
+
+  it('adds two skeleton rows while fetching more contacts', () => {
+    renderTable(true)
+
+    // header + Jane + 2 skeletons
+    expect(screen.getAllByRole('row')).toHaveLength(4)
+  })
 
   it('opens the contact when clicking its row', () => {
     renderTable()

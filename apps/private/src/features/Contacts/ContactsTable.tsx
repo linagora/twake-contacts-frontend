@@ -15,12 +15,19 @@ interface ContactsTableProps {
   entries: ContactEntry[]
   onEndReached: () => void
   loading?: boolean
+  loadingMore?: boolean
 }
+
+const LOADING_MORE_ROWS: VirtualizedTableRow[] = [0, 1].map(i => ({
+  id: `loading-more-${i}`,
+  loadingMore: true
+}))
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({
   entries,
   onEndReached,
-  loading = false
+  loading = false,
+  loadingMore = false
 }) => {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -87,12 +94,16 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     }
   ]
 
-  const rows: VirtualizedTableRow[] = entries.map(entry => ({
-    id: `${entry.addressBookId}/${entry.contact.id}`,
-    ...entry
-  }))
+  const rows: VirtualizedTableRow[] = [
+    ...entries.map(entry => ({
+      id: `${entry.addressBookId}/${entry.contact.id}`,
+      ...entry
+    })),
+    ...(loadingMore ? LOADING_MORE_ROWS : [])
+  ]
 
   const handleClick = (row: VirtualizedTableRow): void => {
+    if (row.loadingMore) return
     const { addressBookId, contact } = row as unknown as ContactEntry
     void navigate(`/contacts/${addressBookId}/${contact.id}`, {
       state: { from: location.pathname }
