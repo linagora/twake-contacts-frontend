@@ -6,7 +6,7 @@ import {
   Contact,
   ContactsState
 } from '../contactsTypes'
-import { placeContact } from '../contactsUtils'
+import { placeContactInListings } from '../contactListings'
 
 export interface MoveContactArgs {
   userId: string
@@ -19,13 +19,9 @@ function removeContactFromBook(
   book: AddressBookWithContacts,
   contactId: string
 ): AddressBookWithContacts {
-  const previousLength = book.contacts.length
-  const contacts = book.contacts.filter(contact => contact.id !== contactId)
-  const wasRemoved = contacts.length < previousLength
   return {
     ...book,
-    contacts,
-    offset: wasRemoved ? Math.max(0, book.offset - 1) : book.offset,
+    contacts: book.contacts.filter(contact => contact.id !== contactId),
     contactsCount:
       typeof book.contactsCount === 'number'
         ? book.contactsCount - 1
@@ -37,13 +33,15 @@ function addOrReplaceContactInBook(
   book: AddressBookWithContacts,
   contact: Contact
 ): AddressBookWithContacts {
-  const contacts = placeContact(book.contacts, contact)
-  if (book.contacts.some(c => c.id === contact.id)) {
+  const index = book.contacts.findIndex(c => c.id === contact.id)
+  if (index !== -1) {
+    const contacts = [...book.contacts]
+    contacts[index] = contact
     return { ...book, contacts }
   }
   return {
     ...book,
-    contacts,
+    contacts: [...book.contacts, contact],
     contactsCount:
       typeof book.contactsCount === 'number'
         ? book.contactsCount + 1
@@ -72,17 +70,28 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
     },
     {
       fulfilled: (state, action) => {
-        const fromBook = state.addressBooks[action.payload.fromAddressBookId]
+        const { fromAddressBookId, toAddressBookId, contact } = action.payload
+        const fromBook = state.addressBooks[fromAddressBookId]
         if (fromBook) {
-          state.addressBooks[action.payload.fromAddressBookId] =
-            removeContactFromBook(fromBook, action.payload.contact.id)
+          state.addressBooks[fromAddressBookId] = removeContactFromBook(
+            fromBook,
+            contact.id
+          )
         }
 
-        const toBook = state.addressBooks[action.payload.toAddressBookId]
+        const toBook = state.addressBooks[toAddressBookId]
         if (toBook) {
-          state.addressBooks[action.payload.toAddressBookId] =
-            addOrReplaceContactInBook(toBook, action.payload.contact)
+          state.addressBooks[toAddressBookId] = addOrReplaceContactInBook(
+            toBook,
+            contact
+          )
         }
+
+        placeContactInListings(
+          state,
+          { addressBookId: toAddressBookId, contactId: contact.id },
+          { addressBookId: fromAddressBookId, contactId: contact.id }
+        )
       },
       rejected: (state, action) => {
         state.error = action.payload?.message ?? 'Failed to move contact'

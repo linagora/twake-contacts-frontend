@@ -33,6 +33,7 @@ describe('ContactActionsMenu', () => {
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
         },
+        listings: {},
         loading: false,
         error: null
       }

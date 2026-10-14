@@ -69,14 +69,31 @@ export interface Contact {
 }
 
 export interface AddressBookWithContacts extends AddressBook {
+  // the contacts loaded so far, in no particular order: listings order them
   contacts: Contact[]
-  offset: number
+}
+
+export interface ContactRef {
+  addressBookId: string
+  contactId: string
+}
+
+/** A sorted list of contacts, read page after page with the server cursor. */
+export interface ContactListing {
+  refs: ContactRef[]
+  // cursor of the next page, null before the first page and after the last one
+  next: string | null
   hasMore: boolean
-  isLoadingMore?: boolean
+  // the page in flight, whose result is the only one the listing takes
+  loadingRequestId: string | null
+  // restarted from its first page after the server rejected its cursor
+  restarted?: boolean
 }
 
 export interface ContactsState {
   addressBooks: Record<string, AddressBookWithContacts>
+  // keyed by ALL_CONTACTS_LISTING or by address book id
+  listings: Record<string, ContactListing>
   loading: boolean
   error: string | null
 }

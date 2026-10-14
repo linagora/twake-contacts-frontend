@@ -32,9 +32,7 @@ const defaultPreloadedState = {
         contactsCount: 0,
         acl: [],
         canWrite: true,
-        contacts: [],
-        offset: 0,
-        hasMore: false
+        contacts: []
       },
       book1: {
         id: 'book1',
@@ -43,11 +41,10 @@ const defaultPreloadedState = {
         contactsCount: 0,
         acl: [],
         canWrite: true,
-        contacts: [],
-        offset: 0,
-        hasMore: false
+        contacts: []
       }
     },
+    listings: {},
     loading: false,
     error: null
   }
@@ -115,11 +112,10 @@ describe('ImportContactsButton', () => {
             contactsCount: 0,
             acl: [],
             canWrite: true,
-            contacts: [],
-            offset: 0,
-            hasMore: false
+            contacts: []
           }
         },
+        listings: {},
         loading: false,
         error: null
       }
@@ -216,11 +212,10 @@ describe('ImportContactsButton', () => {
             contactsCount: 0,
             acl: [],
             canWrite: false,
-            contacts: [],
-            offset: 0,
-            hasMore: false
+            contacts: []
           }
         },
+        listings: {},
         loading: false,
         error: null
       }
@@ -243,11 +238,10 @@ describe('ImportContactsButton', () => {
             contactsCount: 0,
             acl: [],
             canWrite: true,
-            contacts: [],
-            offset: 0,
-            hasMore: false
+            contacts: []
           }
         },
+        listings: {},
         loading: false,
         error: null
       }

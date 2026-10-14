@@ -2,6 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { deleteContact } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
+import { placeContactInListings } from '../contactListings'
 import { toContactsErrorKey } from '../contactsUtils'
 
 export interface DeleteContactArgs {
@@ -26,18 +27,14 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
     },
     {
       fulfilled: (state, action) => {
-        const book = state.addressBooks[action.payload.addressBookId]
+        const { addressBookId, contactId } = action.payload
+        const book = state.addressBooks[addressBookId]
         if (!book) return
-        const contacts = book.contacts.filter(
-          contact => contact.id !== action.payload.contactId
+        book.contacts = book.contacts.filter(
+          contact => contact.id !== contactId
         )
-        // The next page is fetched by offset and the server list just lost
-        // one loaded contact, so keeping the offset would skip a contact
-        if (contacts.length < book.contacts.length) {
-          book.offset = Math.max(0, book.offset - 1)
-        }
-        book.contacts = contacts
         if (book.contactsCount !== null) book.contactsCount -= 1
+        placeContactInListings(state, { addressBookId, contactId })
       },
       rejected: (state, action) => {
         state.error = toContactsErrorKey(

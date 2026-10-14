@@ -7,9 +7,10 @@ import {
   normalizeContact
 } from './transformer/ContactsTransformer'
 import { api } from '@common/utils/apiUtils'
-import { fetchContact } from './ContactsDao'
+import { fetchContact, fetchContactsPage } from './ContactsDao'
 import { formatAddress } from './contactsUtils'
 import { DavContactItem, DavContactsResponse, JCalCard } from './davTypes'
+import { AddressBook } from './contactsTypes'
 
 jest.mock('@common/utils/apiUtils', () => ({ api: { get: jest.fn() } }))
 
@@ -446,6 +447,77 @@ describe('fetchContact', () => {
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/domain-1/domain-members/m1.vcf',
       expect.anything()
+    )
+  })
+})
+
+describe('fetchContactsPage', () => {
+  const card: JCalCard = ['vcard', [['fn', {}, 'text', 'Alice Roche']]]
+  const book: AddressBook = {
+    id: 'book1',
+    userId: 'u1',
+    name: 'Book 1',
+    contactsCount: null,
+    acl: [],
+    canWrite: true
+  }
+
+  const mockResponse = (response: DavContactsResponse): void => {
+    jest
+      .mocked(api.get)
+      .mockReturnValue({ json: () => Promise.resolve(response) } as never)
+  }
+
+  it('reads the contacts of every address book, domain members included', async () => {
+    mockResponse({
+      _embedded: {
+        'dav:item': [
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+            data: card
+          },
+          {
+            _links: {
+              self: { href: '/addressbooks/d1/domain-members/c2.vcf' }
+            },
+            data: card
+          }
+        ]
+      },
+      next: 'cursor2'
+    })
+
+    const page = await fetchContactsPage('u1', null, null)
+
+    expect(api.get).toHaveBeenCalledWith('dav/contacts/u1.json', {
+      searchParams: { domainMember: 'true', sort: 'fn', limit: '50' }
+    })
+    expect(page.entries.map(entry => entry.addressBookId)).toStrictEqual([
+      'book1',
+      'dab'
+    ])
+    expect(page.next).toBe('cursor2')
+  })
+
+  it('reads the page of a book after the cursor', async () => {
+    mockResponse({})
+
+    const page = await fetchContactsPage('u1', book, 'cursor1')
+
+    expect(api.get).toHaveBeenCalledWith('dav/addressbooks/u1/book1.json', {
+      searchParams: { sort: 'fn', limit: '50', after: 'cursor1' }
+    })
+    expect(page).toStrictEqual({ entries: [], next: null })
+  })
+
+  it('reads the domain book from its members', async () => {
+    mockResponse({})
+
+    await fetchContactsPage('u1', { ...book, id: 'dab', userId: 'd1' }, null)
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/d1/domain-members.json',
+      { searchParams: { userId: 'u1', sort: 'fn', limit: '50' } }
     )
   })
 })

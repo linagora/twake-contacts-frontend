@@ -1,6 +1,10 @@
 import { setupStore } from '@common/app/store'
 import { fetchContact } from '@common/features/Contacts/ContactsDao'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import {
+  ALL_CONTACTS_LISTING,
+  DEFAULT_ADDRESS_BOOK_ID
+} from '@common/features/Contacts/constants'
+import { ContactListing } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -17,6 +21,16 @@ jest.mock('@common/features/Contacts/ContactsDao', () => ({
   ...jest.requireActual('@common/features/Contacts/ContactsDao'),
   fetchContact: jest.fn()
 }))
+
+const makeListing = (refs: [string, string][]): ContactListing => ({
+  refs: refs.map(([addressBookId, contactId]) => ({
+    addressBookId,
+    contactId
+  })),
+  next: null,
+  hasMore: false,
+  loadingRequestId: null
+})
 
 const renderWithStore = (
   path: string,
@@ -137,6 +151,16 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
               }
             ]
           }
+        },
+        listings: {
+          [ALL_CONTACTS_LISTING]: makeListing([
+            ['book2', 'c2'],
+            ['collected', 'c3'],
+            ['book1', 'c1'],
+            [DEFAULT_ADDRESS_BOOK_ID, 'c4']
+          ]),
+          book1: makeListing([['book1', 'c1']]),
+          book2: makeListing([['book2', 'c2']])
         },
         loading: false,
         error: null

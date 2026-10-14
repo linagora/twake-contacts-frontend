@@ -14,7 +14,9 @@ import {
 
 const initialState: ContactsState = {
   addressBooks: {},
-  // address books are not loaded yet: pages show skeletons, not empty states
+  listings: {},
+  // address books are not loaded yet: pages show skeletons, not empty
+  // states, and wait for them to place the contacts they read
   loading: true,
   error: null
 }
@@ -26,6 +28,8 @@ const ContactsSlice = createAppSlice({
     clearContactsError: create.reducer(state => {
       state.error = null
     }),
+    // stores the contact for its page without listing it: if it is in a
+    // loaded range it is listed already, otherwise the next pages bring it
     addContactFromSearch: create.reducer(
       (
         state,

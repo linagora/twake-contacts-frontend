@@ -59,9 +59,11 @@ export interface DavContactItem {
   data: JCalCard
 }
 
-/** `GET /addressbooks/<userId>/<bookId>.json` */
+/** `GET /addressbooks/<userId>/<bookId>.json` or `GET /contacts/<userId>.json` */
 export interface DavContactsResponse {
   _links?: DavLinks
+  // cursor of the next page, absent on the last one
+  next?: string
   'dav:syncToken'?: number
   _embedded?: {
     'dav:item'?: DavContactItem[]

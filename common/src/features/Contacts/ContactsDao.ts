@@ -133,30 +133,63 @@ function normalizeDomainAddressBook(
   }
 }
 
-export async function fetchContactsForBook(
-  book: AddressBook,
+function getContactsPageUrl(
   userId: string,
-  limit: number = CONTACTS_PAGINATION_LIMIT,
-  offset: number = 0
-): Promise<{ contacts: Contact[]; hasMore: boolean }> {
-  const isDomainBook = book.id === 'dab'
+  book: AddressBook | null
+): { url: string; searchParams: Record<string, string> } {
+  if (!book) {
+    return {
+      url: `dav/contacts/${userId}.json`,
+      searchParams: { domainMember: 'true' }
+    }
+  }
+  if (book.id === 'dab') {
+    return {
+      url: `dav/addressbooks/${book.userId}/domain-members.json`,
+      searchParams: { userId }
+    }
+  }
+  return {
+    url: `dav/addressbooks/${book.userId}/${book.id}.json`,
+    searchParams: {}
+  }
+}
 
-  const url = isDomainBook
-    ? `dav/addressbooks/${book.userId}/domain-members.json`
-    : `dav/addressbooks/${book.userId}/${book.id}.json`
-
-  const searchParams = isDomainBook
-    ? { limit: limit.toString(), offset: offset.toString(), sort: 'fn', userId }
-    : { limit: limit.toString(), offset: offset.toString(), sort: 'fn' }
-
-  const response = api.get(url, { searchParams })
-  const data: DavContactsResponse = await response.json()
+/**
+ * One page of the contacts of a book, or of every book of the user when book
+ * is null, sorted by full name. after is the next cursor of the previous page.
+ */
+export async function fetchContactsPage(
+  userId: string,
+  book: AddressBook | null,
+  after: string | null
+): Promise<{ entries: ContactEntry[]; next: string | null }> {
+  const { url, searchParams } = getContactsPageUrl(userId, book)
+  const data: DavContactsResponse = await api
+    .get(url, {
+      searchParams: {
+        ...searchParams,
+        sort: 'fn',
+        limit: String(CONTACTS_PAGINATION_LIMIT),
+        ...(after ? { after } : {})
+      }
+    })
+    .json()
 
   const items = data._embedded?.['dav:item'] ?? []
-  const contacts = items.map(normalizeContact)
-  const hasMore = data._links?.next?.href !== undefined
+  return {
+    entries: items.map(item => ({
+      addressBookId: book?.id ?? toStoreAddressBookId(item._links?.self?.href),
+      contact: normalizeContact(item)
+    })),
+    next: data.next ?? null
+  }
+}
 
-  return { contacts, hasMore }
+// The domain book is stored as dab, while its contacts are in domain-members
+function toStoreAddressBookId(href: string | undefined): string {
+  const addressBookId = extractAddressBookIdFromHref(href)
+  return addressBookId === 'domain-members' ? 'dab' : addressBookId
 }
 
 export async function fetchContact(
