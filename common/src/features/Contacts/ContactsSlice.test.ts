@@ -72,6 +72,23 @@ const getListedIds = (state: ContactsState, listingKey: string): string[] =>
   state.listings[listingKey].refs.map(ref => ref.contactId)
 
 describe('fetchContacts', () => {
+  it('keeps the loaded contacts of the books loaded again', async () => {
+    jest
+      .mocked(fetchAddressBooks)
+      .mockResolvedValue([makeBook('book1', [], null)])
+    const store = makeStore(
+      { book1: makeBook('book1', [alice]), gone: makeBook('gone', [bob]) },
+      { book1: makeListing([['book1', alice]], 'cursor') }
+    )
+
+    await store.dispatch(fetchContacts({ userId: 'u1' }))
+
+    const { addressBooks, listings } = store.getState().contacts
+    expect(addressBooks.book1.contacts).toStrictEqual([alice])
+    expect(addressBooks.gone).toBe(undefined)
+    expect(listings.book1).toBe(undefined)
+  })
+
   it('is loading until the address books are fetched', async () => {
     jest.mocked(fetchAddressBooks).mockResolvedValue([])
     const store = setupStore()
@@ -143,6 +160,22 @@ describe('fetchContact', () => {
 })
 
 describe('fetchMoreContacts', () => {
+  it('requests the domain members only with the domain book', async () => {
+    jest
+      .mocked(fetchContactsPage)
+      .mockResolvedValue({ entries: [], next: null })
+    const store = makeStore({
+      book1: makeBook('book1', []),
+      dab: makeBook('dab', [])
+    })
+
+    await store.dispatch(
+      fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
+    )
+
+    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, true)
+  })
+
   it('ignores a request while the same listing is already loading', async () => {
     jest.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
@@ -178,7 +211,8 @@ describe('fetchMoreContacts', () => {
     expect(fetchContactsPage).toHaveBeenLastCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'cursor1'
+      'cursor1',
+      false
     )
     const state = store.getState().contacts
     expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2'])
@@ -201,7 +235,7 @@ describe('fetchMoreContacts', () => {
       fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
     )
 
-    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null)
+    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, false)
     expect(
       getListedIds(store.getState().contacts, ALL_CONTACTS_LISTING)
     ).toStrictEqual(['c1'])

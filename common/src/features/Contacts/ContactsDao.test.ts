@@ -487,7 +487,7 @@ describe('fetchContactsPage', () => {
       next: 'cursor2'
     })
 
-    const page = await fetchContactsPage('u1', null, null)
+    const page = await fetchContactsPage('u1', null, null, true)
 
     expect(api.get).toHaveBeenCalledWith('dav/contacts/u1.json', {
       searchParams: { domainMember: 'true', sort: 'fn', limit: '50' }
@@ -499,10 +499,20 @@ describe('fetchContactsPage', () => {
     expect(page.next).toBe('cursor2')
   })
 
+  it('reads the contacts of every address book without the domain members', async () => {
+    mockResponse({})
+
+    await fetchContactsPage('u1', null, null, false)
+
+    expect(api.get).toHaveBeenCalledWith('dav/contacts/u1.json', {
+      searchParams: { domainMember: 'false', sort: 'fn', limit: '50' }
+    })
+  })
+
   it('reads the page of a book after the cursor', async () => {
     mockResponse({})
 
-    const page = await fetchContactsPage('u1', book, 'cursor1')
+    const page = await fetchContactsPage('u1', book, 'cursor1', false)
 
     expect(api.get).toHaveBeenCalledWith('dav/addressbooks/u1/book1.json', {
       searchParams: { sort: 'fn', limit: '50', after: 'cursor1' }
@@ -513,7 +523,12 @@ describe('fetchContactsPage', () => {
   it('reads the domain book from its members', async () => {
     mockResponse({})
 
-    await fetchContactsPage('u1', { ...book, id: 'dab', userId: 'd1' }, null)
+    await fetchContactsPage(
+      'u1',
+      { ...book, id: 'dab', userId: 'd1' },
+      null,
+      false
+    )
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/d1/domain-members.json',

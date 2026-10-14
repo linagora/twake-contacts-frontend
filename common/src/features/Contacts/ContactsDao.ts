@@ -135,12 +135,13 @@ function normalizeDomainAddressBook(
 
 function getContactsPageUrl(
   userId: string,
-  book: AddressBook | null
+  book: AddressBook | null,
+  withDomainMembers: boolean
 ): { url: string; searchParams: Record<string, string> } {
   if (!book) {
     return {
       url: `dav/contacts/${userId}.json`,
-      searchParams: { domainMember: 'true' }
+      searchParams: { domainMember: String(withDomainMembers) }
     }
   }
   if (book.id === 'dab') {
@@ -157,14 +158,20 @@ function getContactsPageUrl(
 
 /**
  * One page of the contacts of a book, or of every book of the user when book
- * is null, sorted by full name. after is the next cursor of the previous page.
+ * is null, sorted by full name. after is the next cursor of the previous page,
+ * withDomainMembers adds the domain members to the contacts of every book.
  */
 export async function fetchContactsPage(
   userId: string,
   book: AddressBook | null,
-  after: string | null
+  after: string | null,
+  withDomainMembers: boolean
 ): Promise<{ entries: ContactEntry[]; next: string | null }> {
-  const { url, searchParams } = getContactsPageUrl(userId, book)
+  const { url, searchParams } = getContactsPageUrl(
+    userId,
+    book,
+    withDomainMembers
+  )
   const data: DavContactsResponse = await api
     .get(url, {
       searchParams: {

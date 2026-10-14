@@ -101,7 +101,8 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'cursor1'
+      'cursor1',
+      false
     )
   })
 
@@ -119,7 +120,8 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenLastCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      null
+      null,
+      false
     )
   })
 
@@ -133,7 +135,8 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      null
+      null,
+      false
     )
   })
 
@@ -141,7 +144,7 @@ describe('AddressBookPage lazy loading', () => {
     renderPage('/contacts', { book1: makeBook('book1', []) })
 
     expect(await screen.findByText('Bob Martin')).toBeInTheDocument()
-    expect(fetchContactsPage).toHaveBeenCalledWith('u1', null, null)
+    expect(fetchContactsPage).toHaveBeenCalledWith('u1', null, null, false)
   })
 
   it('loads the first page again when the books are loaded again meanwhile', async () => {
@@ -199,7 +202,8 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'shared2' }),
-      null
+      null,
+      false
     )
   })
 })

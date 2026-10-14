@@ -28,7 +28,9 @@ export const fetchMoreContactsThunk = (
         const { entries, next } = await fetchContactsPage(
           userId,
           addressBooks[listingKey] ?? null,
-          listings[listingKey]?.next ?? null
+          listings[listingKey]?.next ?? null,
+          // without the domain book, its members could not be listed
+          addressBooks.dab !== undefined
         )
         return {
           // contacts of books the app does not list, such as group
