@@ -30,11 +30,16 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
       },
       fulfilled: (state, action) => {
         state.loading = false
-        // The listings restart from their first page with the new books
+        // The listings restart from their first page with the new books, while
+        // the loaded contacts stay, as the one a contact page shows
+        const previousBooks = state.addressBooks
         state.addressBooks = {}
         state.listings = {}
         for (const book of action.payload) {
-          state.addressBooks[book.id] = { ...book, contacts: [] }
+          state.addressBooks[book.id] = {
+            ...book,
+            contacts: previousBooks[book.id]?.contacts ?? []
+          }
           if (book.contactsCount === 0) {
             state.listings[book.id] = {
               refs: [],
