@@ -33,6 +33,14 @@ export const AddressBookPage: React.FC = () => {
   const loading = useAppSelector(state => state.contacts.loading)
 
   const [selectedTab, setSelectedTab] = useState<BookScope>('mine')
+  const [tabBookId, setTabBookId] = useState(addressBookId)
+
+  // the /contacts and /contacts/:addressBookId routes share this instance, so
+  // the tab is reset when leaving My contacts to start again on 'mine'
+  if (tabBookId !== addressBookId) {
+    setTabBookId(addressBookId)
+    setSelectedTab('mine')
+  }
 
   const scope = addressBookId ? undefined : selectedTab
 

@@ -24,28 +24,29 @@ export function AppRoutes(): JSX.Element {
     }
   }, [error, navigate])
 
-  if (isMobile) {
-    return <MobileWarning />
-  }
-
+  // Routes stay mounted while hidden so crossing the mobile breakpoint
+  // does not wipe local state (unsaved forms, dialogs, search...)
   return (
     <>
-      <Routes>
-        <Route path="/" element={<HandleLogin />} />
-        <Route path="/contacts" element={<ContactsPage />}>
-          <Route index element={<AddressBookPage />} />
-          <Route path="new" element={<CreateContactPage />} />
-          <Route path=":addressBookId/new" element={<CreateContactPage />} />
-          <Route path=":addressBookId" element={<AddressBookPage />} />
-          <Route path=":addressBookId/:contactId" element={<ContactPage />} />
-          <Route
-            path=":addressBookId/:contactId/edit"
-            element={<EditContactPage />}
-          />
-        </Route>
-        <Route path="/callback" element={<CallbackResume />} />
-        <Route path="/error" element={<ErrorPage />} />
-      </Routes>
+      {isMobile && <MobileWarning />}
+      <div hidden={isMobile} className="u-h-100">
+        <Routes>
+          <Route path="/" element={<HandleLogin />} />
+          <Route path="/contacts" element={<ContactsPage />}>
+            <Route index element={<AddressBookPage />} />
+            <Route path="new" element={<CreateContactPage />} />
+            <Route path=":addressBookId/new" element={<CreateContactPage />} />
+            <Route path=":addressBookId" element={<AddressBookPage />} />
+            <Route path=":addressBookId/:contactId" element={<ContactPage />} />
+            <Route
+              path=":addressBookId/:contactId/edit"
+              element={<EditContactPage />}
+            />
+          </Route>
+          <Route path="/callback" element={<CallbackResume />} />
+          <Route path="/error" element={<ErrorPage />} />
+        </Routes>
+      </div>
       <ErrorSnackbar error={error} />
     </>
   )

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { AppStore, setupStore } from '@common/app/store'
@@ -67,6 +67,8 @@ const renderPage = (
           value={{ viewportHeight: 1000, itemHeight: 50 }}
         >
           <MemoryRouter initialEntries={[path]}>
+            <Link to="/contacts">Go to My contacts</Link>
+            <Link to="/contacts/book1">Go to book1</Link>
             <Routes>
               <Route path="/contacts" element={<AddressBookPage />} />
               <Route
@@ -205,5 +207,41 @@ describe('AddressBookPage lazy loading', () => {
       null,
       false
     )
+  })
+})
+
+describe('AddressBookPage tabs', () => {
+  it('starts again on My contacts after visiting an address book', () => {
+    renderPage(
+      '/contacts',
+      {
+        book1: makeBook('book1', [alice], 'u1'),
+        shared: makeBook('shared', [bob], 'u2')
+      },
+      {
+        [ALL_CONTACTS_LISTING]: {
+          ...makeListing('book1', [alice], null),
+          refs: [
+            { addressBookId: 'book1', contactId: alice.id },
+            { addressBookId: 'shared', contactId: bob.id }
+          ]
+        },
+        book1: makeListing('book1', [alice], null),
+        shared: makeListing('shared', [bob], null)
+      }
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Shared contacts' }))
+    expect(screen.queryByText('Alice Roche')).toBe(null)
+
+    fireEvent.click(screen.getByText('Go to book1'))
+    fireEvent.click(screen.getByText('Go to My contacts'))
+
+    expect(screen.getByRole('tab', { name: 'My contacts' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    expect(screen.getByText('Alice Roche')).toBeInTheDocument()
+    expect(screen.getByText('Bob Martin')).toBeInTheDocument()
   })
 })
