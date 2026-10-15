@@ -1,57 +1,29 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAppSelector } from '@common/app/hooks'
-import {
-  getAddressBookDisplayName,
-  isHiddenAddressBook,
-  sortAddressBooks
-} from '@common/features/Contacts/contactsUtils'
-import { Company, Icon, Plus, ContactList } from '@linagora/twake-icons'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { Company, Icon, Plus } from '@linagora/twake-icons'
 import {
   Box,
+  Button,
   Nav,
+  NavDesktopDropdown,
   NavIcon,
   NavItem,
   NavLink,
   NavText,
-  Sidebar,
-  Button,
-  Tooltip,
-  NavDropdown,
-  IconButton,
-  NavDesktopDropdown
+  Sidebar
 } from '@linagora/twake-mui'
-import { Link, NavigateFunction, useNavigate, useParams } from 'react-router'
+import { Link, useMatch, useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
-import { Peoples } from '@linagora/twake-icons'
-
+import { AddressBookNavItem } from './ContactsSidebar/AddressBookNavItem'
+import { MyContactsNavItem } from './ContactsSidebar/MyContactsNavItem'
 import {
-  AddressBook,
-  AddressBookWithContacts
-} from '@common/features/Contacts/contactsTypes'
-import { matchesScope } from '@common/features/Contacts/contactsSelectors'
+  categorizeAddressBooks,
+  getCreateContactLink
+} from './ContactsSidebar/sidebarHelpers'
 
-interface ContactsSidebarProps {
+export interface ContactsSidebarProps {
   onOpenCreateBook: () => void
-}
-
-const CreateAddressBookButton: React.FC<{ onClick: () => void }> = ({
-  onClick
-}) => {
-  const { t } = useI18n()
-  return (
-    <Tooltip title={t('contacts.addressBook.createTitle')}>
-      <IconButton
-        size="xsmall"
-        aria-label={t('contacts.addressBook.createTitle')}
-        onClick={e => {
-          e.stopPropagation()
-          onClick()
-        }}
-      >
-        <Icon icon={Plus} size={14} />
-      </IconButton>
-    </Tooltip>
-  )
 }
 
 export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
@@ -61,34 +33,16 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const navigate = useNavigate()
+  const isOnMyContacts = useMatch('/contacts') !== null
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const currentBook = addressBookId ? addressBooks[addressBookId] : undefined
-  const canWriteCurrentBook =
-    (currentBook?.canWrite && addressBookId !== 'dab') ?? false
-  const otherBooks = sortAddressBooks(
-    Object.values(addressBooks).filter(
-      (book: AddressBookWithContacts) =>
-        !isHiddenAddressBook(book.id) && book.id !== 'dab'
-    ) as AddressBook[],
+  const createLink = getCreateContactLink(addressBookId, currentBook)
+  const { personalBooks, sharedBooks, domainBooks } = categorizeAddressBooks(
+    addressBooks,
+    openpaasId,
     t
   )
-
-  const personnalBooks = otherBooks.filter(book =>
-    matchesScope(book, 'onlyMine', openpaasId)
-  )
-  const sharedBooks = otherBooks.filter(book =>
-    matchesScope(book, 'shared', openpaasId)
-  )
-
-  const domainBooks = Object.values(addressBooks).filter(
-    (book: AddressBookWithContacts) => book.id === 'dab'
-  ) as AddressBook[]
-
-  const createLink =
-    addressBookId && canWriteCurrentBook
-      ? `/contacts/${addressBookId}/new`
-      : '/contacts/new'
 
   return (
     <Sidebar>
@@ -106,45 +60,31 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
       </Box>
       <Box className="u-flex-auto u-ov-auto u-mt-1-half">
         <Nav className="u-mv-0">
-          <NavItem
-            secondaryAction={
-              <CreateAddressBookButton onClick={onOpenCreateBook} />
-            }
-          >
-            {personnalBooks.length === 0 ? (
-              <NavLink
-                selected={addressBookId === undefined}
-                onClick={() => {
-                  void navigate('/contacts')
-                }}
-              >
-                <NavIcon icon={ContactList} />
-                <NavText>{t('contacts.myContacts')}</NavText>
-              </NavLink>
-            ) : (
-              <NavDropdown
-                open={isMyContactsExpanded}
-                onToggle={() => setIsMyContactsExpanded(!isMyContactsExpanded)}
-                selected={addressBookId === undefined}
-                onClick={() => {
-                  void navigate('/contacts')
-                }}
-              >
-                <NavIcon icon={ContactList} />
-                <NavText>{t('contacts.myContacts')}</NavText>
-              </NavDropdown>
-            )}
-          </NavItem>
+          <MyContactsNavItem
+            hasBooks={personalBooks.length > 0}
+            isExpanded={isMyContactsExpanded}
+            isSelected={addressBookId === undefined}
+            onToggle={() => setIsMyContactsExpanded(!isMyContactsExpanded)}
+            onNavigate={() => {
+              // NavDropdown has a single click target: toggle when already
+              // on /contacts, otherwise navigate there with books shown
+              if (isOnMyContacts) {
+                setIsMyContactsExpanded(!isMyContactsExpanded)
+              } else {
+                setIsMyContactsExpanded(true)
+                void navigate('/contacts')
+              }
+            }}
+            onOpenCreateBook={onOpenCreateBook}
+          />
 
           {isMyContactsExpanded &&
-            personnalBooks.map(book => (
-              <ContactRow
+            personalBooks.map(book => (
+              <AddressBookNavItem
                 key={book.id}
                 book={book}
                 variant="secondary"
-                navigate={navigate}
-                addressBookId={addressBookId}
-                t={t}
+                selected={addressBookId === book.id}
               />
             ))}
 
@@ -166,53 +106,17 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
             </NavItem>
           ))}
           <NavDesktopDropdown label={t('contacts.shared')} limit={0}>
-            {sharedBooks?.map(book => (
-              <ContactRow
+            {sharedBooks.map(book => (
+              <AddressBookNavItem
                 key={book.id}
                 book={book}
                 variant="primary"
-                navigate={navigate}
-                addressBookId={addressBookId}
-                t={t}
+                selected={addressBookId === book.id}
               />
             ))}
           </NavDesktopDropdown>
         </Nav>
       </Box>
     </Sidebar>
-  )
-}
-
-function ContactRow({
-  book,
-  variant,
-  navigate,
-  addressBookId,
-  t
-}: {
-  book: AddressBook
-  variant: 'primary' | 'secondary' | 'tertiary' | undefined
-  navigate: NavigateFunction
-  addressBookId?: string
-  t: (key: string, param?: Record<string, string>) => string
-}) {
-  return (
-    <NavItem variant={variant}>
-      <NavLink
-        onClick={() => {
-          void navigate(`/contacts/${book.id}`)
-        }}
-        selected={addressBookId === book.id}
-      >
-        <NavIcon icon={Peoples} />
-        <Tooltip title={getAddressBookDisplayName(book, t)}>
-          <NavText secondaryText={book.ownerDisplayName}>
-            <span className="u-ellipsis u-db">
-              {getAddressBookDisplayName(book, t)}
-            </span>
-          </NavText>
-        </Tooltip>
-      </NavLink>
-    </NavItem>
   )
 }

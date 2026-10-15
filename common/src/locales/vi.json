@@ -64,7 +64,8 @@
       "delete": "Xóa",
       "chat": "Trò chuyện",
       "mail": "Gửi email",
-      "schedule": "Lên lịch"
+      "schedule": "Lên lịch",
+      "share": "Chia sẻ"
     },
     "delete": {
       "title": "Xóa liên hệ này?",
@@ -81,7 +82,8 @@
       "create": "Không thể tạo liên hệ",
       "update": "Không thể cập nhật liên hệ",
       "delete": "Không thể xóa liên hệ",
-      "forbidden": "Bạn không có quyền chỉnh sửa sổ địa chỉ này"
+      "forbidden": "Bạn không có quyền chỉnh sửa sổ địa chỉ này",
+      "share": "Không thể chia sẻ sổ địa chỉ"
     },
     "addressBook": {
       "createTitle": "Sổ địa chỉ mới",
@@ -90,6 +92,20 @@
       "cancel": "Hủy",
       "save": "Tạo",
       "createSuccess": "Đã tạo sổ địa chỉ thành công"
+    },
+    "share": {
+      "title": "Chia sẻ %{name}",
+      "invitePeople": "Mời người khác",
+      "addContacts": "Thêm liên hệ",
+      "send": "Gửi",
+      "owner": "Chủ sở hữu",
+      "emptyTitle": "Chưa có ai được thêm",
+      "emptySubtitle": "Những người được mời tham gia sẽ được liệt kê ở đây",
+      "editor": "Người chỉnh sửa",
+      "viewer": "Người xem",
+      "contactsCount": "%{count} liên hệ",
+      "you": "Bạn",
+      "defaultAddressBookName": "Sổ địa chỉ"
     }
   },
   "error": {

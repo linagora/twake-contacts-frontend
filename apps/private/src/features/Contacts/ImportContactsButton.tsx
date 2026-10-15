@@ -84,7 +84,7 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
         onClose={handleCloseSuccess}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity="info" onClose={handleCloseSuccess}>
+        <Alert variant="filled" severity="info" onClose={handleCloseSuccess}>
           {t('contacts.empty.uploadSuccess')}
         </Alert>
       </Snackbar>

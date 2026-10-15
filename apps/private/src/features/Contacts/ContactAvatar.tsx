@@ -1,10 +1,22 @@
-import { Avatar, AvatarProps, nameToColor } from '@linagora/twake-mui'
+import {
+  Avatar,
+  AvatarProps,
+  nameToColor,
+  Typography,
+  TypographyProps
+} from '@linagora/twake-mui'
 import { getInitials } from './getInitials'
 
 interface ContactAvatarProps {
   displayName: string
   size: AvatarProps['size']
   src?: string
+  /**
+   * twake-mui sizes the initials at half the avatar diameter, which lets wide
+   * initials such as "MW" touch the border of large avatars: a typography
+   * variant renders them smaller instead.
+   */
+  initialsVariant?: TypographyProps['variant']
 }
 
 /**
@@ -14,9 +26,20 @@ interface ContactAvatarProps {
 export const ContactAvatar: React.FC<ContactAvatarProps> = ({
   displayName,
   size,
-  src
-}) => (
-  <Avatar size={size} src={src} color={nameToColor(displayName) ?? 'sunrise'}>
-    {getInitials(displayName)}
-  </Avatar>
-)
+  src,
+  initialsVariant
+}) => {
+  const initials = getInitials(displayName)
+
+  return (
+    <Avatar size={size} src={src} color={nameToColor(displayName) ?? 'sunrise'}>
+      {initialsVariant ? (
+        <Typography variant={initialsVariant} component="span" color="inherit">
+          {initials}
+        </Typography>
+      ) : (
+        initials
+      )}
+    </Avatar>
+  )
+}

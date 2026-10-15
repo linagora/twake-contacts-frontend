@@ -8,11 +8,12 @@ import {
 } from '@linagora/twake-mui'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import {
+  clearContactsError,
   fetchContacts,
   createAddressBook
 } from '@common/features/Contacts/ContactsSlice'
 import { useEffect, useState } from 'react'
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsSidebar } from './ContactsSidebar'
 import { ContactSearchBar } from './ContactSearchBar'
@@ -28,6 +29,11 @@ export const ContactsPage: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const domains = useAppSelector(state => state.user.userData.domains)
   const error = useAppSelector(state => state.contacts.error)
+  const { pathname } = useLocation()
+  useEffect(() => {
+    // an error belongs to the page where the action failed
+    dispatch(clearContactsError())
+  }, [pathname, dispatch])
   useEffect(() => {
     if (openpaasId) {
       void dispatch(fetchContacts({ userId: openpaasId, domains }))
@@ -46,7 +52,14 @@ export const ContactsPage: React.FC = () => {
             <ContactSearchBar />
             {window.DEBUG && <ThemeToggle />}
           </Stack>
-          {error && <Alert severity="error">{t(error)}</Alert>}
+          {error && (
+            <Alert
+              severity="error"
+              onClose={() => dispatch(clearContactsError())}
+            >
+              {t(error)}
+            </Alert>
+          )}
           <Outlet />
         </Content>
       </Main>
@@ -85,7 +98,11 @@ export const ContactsPage: React.FC = () => {
         onClose={() => setCreateSuccess(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity="success" onClose={() => setCreateSuccess(false)}>
+        <Alert
+          variant="filled"
+          severity="success"
+          onClose={() => setCreateSuccess(false)}
+        >
           {t('contacts.addressBook.createSuccess')}
         </Alert>
       </Snackbar>

@@ -162,6 +162,25 @@ describe('ImportContactsButton', () => {
     })
   })
 
+  it('renders the success toast as an opaque filled alert', async () => {
+    mockUploadImportFile.mockResolvedValue('file123')
+    mockImportContacts.mockResolvedValue(undefined)
+
+    const { container } = renderButton('book1')
+    selectFile(container)
+
+    expect(await screen.findByRole('alert')).toHaveClass('MuiAlert-filled')
+  })
+
+  it('renders the error toast as an opaque filled alert', async () => {
+    mockUploadImportFile.mockRejectedValue(new Error('Upload failed'))
+
+    const { container } = renderButton('book1')
+    selectFile(container)
+
+    expect(await screen.findByRole('alert')).toHaveClass('MuiAlert-filled')
+  })
+
   it('shows error snackbar when upload fails', async () => {
     mockUploadImportFile.mockRejectedValue(new Error('Upload failed'))
 

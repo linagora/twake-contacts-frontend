@@ -1,4 +1,6 @@
 import { READ_ONLY_SHARE_ACCESSES } from '../constants'
+import { userData as UserDataType } from '@common/features/User/userDataTypes'
+import { AddressBookAccessLevel } from '../davTypes'
 import {
   AddressBook,
   Contact,
@@ -326,4 +328,40 @@ export function denormalizeContact(contact: Contact): JCalCard {
   })
   properties.push(...(contact.passthroughProps ?? []))
   return ['vcard', properties]
+}
+
+export const buildFullShareesList = (
+  userDataId: string | undefined,
+  invitedMembers: UserDataType[],
+  updates: { userId: string; role: AddressBookAccessLevel; href: string }[]
+): { userId: string; access: AddressBookAccessLevel; href: string }[] => {
+  if (!userDataId) return []
+  const shareesMap = new Map<
+    string,
+    { role: AddressBookAccessLevel; href: string }
+  >()
+
+  shareesMap.set(userDataId, {
+    role: AddressBookAccessLevel.Owner,
+    href: `principals/users/${userDataId}`
+  })
+
+  invitedMembers.forEach(m => {
+    if (m.openpaasId) {
+      shareesMap.set(m.openpaasId, {
+        role: m.role ?? AddressBookAccessLevel.Viewer,
+        href: m.href || `mailto:${m.email}`
+      })
+    }
+  })
+
+  updates.forEach(u => {
+    shareesMap.set(u.userId, { role: u.role, href: u.href })
+  })
+
+  return Array.from(shareesMap.entries()).map(([userId, data]) => ({
+    userId,
+    access: data.role,
+    href: data.href
+  }))
 }

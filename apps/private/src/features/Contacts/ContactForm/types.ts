@@ -46,10 +46,9 @@ export const hasValue = (entry: ContactFormEntry): boolean =>
 export const isMatrix = (profile: ContactSocialProfile): boolean =>
   profile.type?.toLowerCase() === MATRIX_TYPE
 
-export const orDefault = (
-  entries: ContactFormEntry[],
-  type: string
-): ContactFormEntry[] => (entries.length ? entries : [{ type, value: '' }])
+export const orEmptyEntry = (
+  entries: ContactFormEntry[]
+): ContactFormEntry[] => (entries.length ? entries : [{ type: '', value: '' }])
 
 export function makeFormValuesFromContact(
   contact: Contact,
@@ -68,14 +67,13 @@ export function makeFormValuesFromContact(
     familyName: contact.name?.familyName ?? '',
     categories: contact.categories ?? [],
     matrixId: contact.socialProfiles?.find(isMatrix)?.value ?? '',
-    phones: orDefault((contact.phones ?? []).map(toEntry), 'cell'),
-    emails: orDefault(contact.emails.map(toEntry), 'work'),
-    addresses: orDefault(
+    phones: orEmptyEntry((contact.phones ?? []).map(toEntry)),
+    emails: orEmptyEntry(contact.emails.map(toEntry)),
+    addresses: orEmptyEntry(
       (contact.addresses ?? []).map(address => ({
         type: address.type?.toLowerCase() ?? '',
         value: formatAddress(address)
-      })),
-      'home'
+      }))
     )
   }
 }

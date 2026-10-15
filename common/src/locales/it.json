@@ -64,7 +64,8 @@
       "delete": "Elimina",
       "chat": "Chat",
       "mail": "Invia email",
-      "schedule": "Pianifica"
+      "schedule": "Pianifica",
+      "share": "Condividi"
     },
     "delete": {
       "title": "Eliminare questo contatto?",
@@ -81,7 +82,8 @@
       "create": "Impossibile creare il contatto",
       "update": "Impossibile aggiornare il contatto",
       "delete": "Impossibile eliminare il contatto",
-      "forbidden": "Non hai i permessi per modificare questa rubrica"
+      "forbidden": "Non hai i permessi per modificare questa rubrica",
+      "share": "Impossibile condividere la rubrica"
     },
     "addressBook": {
       "createTitle": "Nuova rubrica",
@@ -90,6 +92,20 @@
       "cancel": "Annulla",
       "save": "Crea",
       "createSuccess": "Rubrica creata con successo"
+    },
+    "share": {
+      "title": "Condividi %{name}",
+      "invitePeople": "Invita persone",
+      "addContacts": "Aggiungi contatti",
+      "send": "Invia",
+      "owner": "Proprietario",
+      "emptyTitle": "Nessuno è stato ancora aggiunto",
+      "emptySubtitle": "Le persone invitate a partecipare verranno elencate qui",
+      "editor": "Editor",
+      "viewer": "Spettatore",
+      "contactsCount": "%{count} contatti",
+      "you": "Tu",
+      "defaultAddressBookName": "Rubrica"
     }
   },
   "error": {

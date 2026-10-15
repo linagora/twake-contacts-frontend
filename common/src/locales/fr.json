@@ -64,7 +64,8 @@
       "delete": "Supprimer",
       "chat": "Discuter",
       "mail": "Envoyer un e-mail",
-      "schedule": "Planifier"
+      "schedule": "Planifier",
+      "share": "Partager"
     },
     "delete": {
       "title": "Supprimer ce contact ?",
@@ -81,7 +82,8 @@
       "create": "Échec de la création du contact",
       "update": "Échec de la modification du contact",
       "delete": "Échec de la suppression du contact",
-      "forbidden": "Vous n'avez pas le droit de modifier ce carnet d'adresses"
+      "forbidden": "Vous n'avez pas le droit de modifier ce carnet d'adresses",
+      "share": "Échec du partage du carnet d'adresses"
     },
     "addressBook": {
       "createTitle": "Nouveau carnet d'adresses",
@@ -90,6 +92,20 @@
       "cancel": "Annuler",
       "save": "Créer",
       "createSuccess": "Carnet d'adresses créé avec succès"
+    },
+    "share": {
+      "title": "Partager %{name}",
+      "invitePeople": "Inviter des personnes",
+      "addContacts": "Ajouter des contacts",
+      "send": "Envoyer",
+      "owner": "Propriétaire",
+      "emptyTitle": "Personne n'a encore été ajouté",
+      "emptySubtitle": "Les personnes invitées à rejoindre seront listées ici",
+      "editor": "Éditeur",
+      "viewer": "Lecteur",
+      "contactsCount": "%{count} contacts",
+      "you": "Vous",
+      "defaultAddressBookName": "Carnet d'adresses"
     }
   },
   "error": {

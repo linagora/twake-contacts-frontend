@@ -26,6 +26,17 @@ describe('makeFormValuesFromContact', () => {
 
     expect(values.addresses.map(address => address.type)).toEqual(['', 'work'])
   })
+
+  it('gives no type to the empty rows of missing lists', () => {
+    const values = makeFormValuesFromContact(
+      { ...contact, addresses: undefined, phones: undefined },
+      'book'
+    )
+
+    expect(values.phones).toEqual([{ type: '', value: '' }])
+    expect(values.emails).toEqual([{ type: '', value: '' }])
+    expect(values.addresses).toEqual([{ type: '', value: '' }])
+  })
 })
 
 describe('makeContactFromForm', () => {

@@ -64,7 +64,8 @@
       "delete": "Eliminar",
       "chat": "Chat",
       "mail": "Enviar correo",
-      "schedule": "Programar"
+      "schedule": "Programar",
+      "share": "Compartir"
     },
     "delete": {
       "title": "¿Eliminar este contacto?",
@@ -81,7 +82,8 @@
       "create": "No se ha podido crear el contacto",
       "update": "No se ha podido actualizar el contacto",
       "delete": "No se ha podido eliminar el contacto",
-      "forbidden": "No tiene permiso para modificar esta libreta de direcciones"
+      "forbidden": "No tiene permiso para modificar esta libreta de direcciones",
+      "share": "No se ha podido compartir la libreta de direcciones"
     },
     "addressBook": {
       "createTitle": "Nueva libreta de direcciones",
@@ -90,6 +92,20 @@
       "cancel": "Cancelar",
       "save": "Crear",
       "createSuccess": "Libreta de direcciones creada exitosamente"
+    },
+    "share": {
+      "title": "Compartir %{name}",
+      "invitePeople": "Invitar personas",
+      "addContacts": "Añadir contactos",
+      "send": "Enviar",
+      "owner": "Propietario",
+      "emptyTitle": "Nadie ha sido añadido aún",
+      "emptySubtitle": "Las personas invitadas a unirse aparecerán aquí",
+      "editor": "Editor",
+      "viewer": "Lector",
+      "contactsCount": "%{count} contactos",
+      "you": "Tú",
+      "defaultAddressBookName": "Libreta de direcciones"
     }
   },
   "error": {

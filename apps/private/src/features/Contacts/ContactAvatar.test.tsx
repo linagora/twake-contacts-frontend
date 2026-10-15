@@ -27,6 +27,38 @@ describe('ContactAvatar', () => {
     expect(backgroundOf('AD')).toContain('#6DCFFF')
   })
 
+  it('renders the initials with the given typography variant', () => {
+    render(
+      <TwakeMuiThemeProvider>
+        <ContactAvatar
+          size={94}
+          initialsVariant="h2"
+          displayName="Maximilian Wolfe"
+        />
+      </TwakeMuiThemeProvider>
+    )
+
+    expect(screen.getByText('MW')).toHaveClass('MuiTypography-h2')
+  })
+
+  it('keeps the colour from the display name with a typography variant', () => {
+    const { container } = render(
+      <TwakeMuiThemeProvider>
+        <ContactAvatar
+          size={94}
+          initialsVariant="h2"
+          displayName="Anna Default"
+        />
+      </TwakeMuiThemeProvider>
+    )
+
+    expect(
+      getComputedStyle(
+        container.querySelector('.MuiAvatar-root') as HTMLElement
+      ).background
+    ).toContain('#6DCFFF')
+  })
+
   it('falls back to the sunrise colour without a display name', () => {
     const { container } = render(
       <TwakeMuiThemeProvider>

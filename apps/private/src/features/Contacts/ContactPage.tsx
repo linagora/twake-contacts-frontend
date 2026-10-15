@@ -121,12 +121,14 @@ const ContactField: React.FC<ContactFieldProps> = ({
           onClose={handleCloseSnackbar}
         >
           <Alert
+            variant="filled"
             severity="success"
             onClose={handleCloseSnackbar}
             sx={{ width: '100%' }}
             action={
               <IconButton
                 size="small"
+                color="inherit"
                 aria-label={t('common.ok')}
                 onClick={handleCloseSnackbar}
               >

@@ -29,3 +29,28 @@ export async function fetchUserById(id: string): Promise<OpenPaasUserData> {
   }
   return normalizeOpenPaasUser(entity.user)
 }
+
+export async function searchUsers(
+  q: string,
+  excludes: string[] = []
+): Promise<OpenPaasUserData[]> {
+  if (!q.trim()) return []
+
+  const payload = {
+    q,
+    objectTypes: ['user'],
+    limit: 5,
+    excludes: excludes.map(id => ({ id, objectType: 'user' }))
+  }
+
+  try {
+    const response: OpenPaasUserData[] = await api
+      .post(`api/people/search`, { json: payload })
+      .json()
+
+    return response.map(normalizeOpenPaasUser)
+  } catch (error) {
+    console.error('Failed to search users:', error)
+    return []
+  }
+}

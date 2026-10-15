@@ -64,7 +64,8 @@
       "delete": "Löschen",
       "chat": "Chat",
       "mail": "E-Mail senden",
-      "schedule": "Termin planen"
+      "schedule": "Termin planen",
+      "share": "Teilen"
     },
     "delete": {
       "title": "Diesen Kontakt löschen?",
@@ -81,7 +82,8 @@
       "create": "Kontakt konnte nicht erstellt werden",
       "update": "Kontakt konnte nicht aktualisiert werden",
       "delete": "Kontakt konnte nicht gelöscht werden",
-      "forbidden": "Sie haben keine Berechtigung, dieses Adressbuch zu ändern"
+      "forbidden": "Sie haben keine Berechtigung, dieses Adressbuch zu ändern",
+      "share": "Adressbuch konnte nicht freigegeben werden"
     },
     "addressBook": {
       "createTitle": "Neues Adressbuch",
@@ -90,6 +92,20 @@
       "cancel": "Abbrechen",
       "save": "Erstellen",
       "createSuccess": "Adressbuch erfolgreich erstellt"
+    },
+    "share": {
+      "title": "%{name} teilen",
+      "invitePeople": "Personen einladen",
+      "addContacts": "Kontakte hinzufügen",
+      "send": "Senden",
+      "owner": "Eigentümer",
+      "emptyTitle": "Noch niemand hinzugefügt",
+      "emptySubtitle": "Personen, die eingeladen wurden, werden hier aufgelistet",
+      "editor": "Bearbeiter",
+      "viewer": "Betrachter",
+      "contactsCount": "%{count} Kontakte",
+      "you": "Du",
+      "defaultAddressBookName": "Adressbuch"
     }
   },
   "error": {
