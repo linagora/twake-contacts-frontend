@@ -45,10 +45,11 @@ async function reloadListingEnd(
   return { listingKey, pageCount, fromPage, pages, next }
 }
 
+// false when the reload is dropped, the listing keeping its old contacts
 function replaceListingEnd(
   state: ContactsState,
   { listingKey, pageCount, fromPage, pages, next }: ReloadedListing
-): void {
+): boolean {
   const listing = state.listings[listingKey]
   // the listing restarted or another page came meanwhile
   if (
@@ -56,7 +57,7 @@ function replaceListingEnd(
     listing.pages[fromPage].after !== pages[0]?.after ||
     listing.loadingRequestId !== null
   ) {
-    return
+    return false
   }
   listing.refs = listing.refs.slice(0, listing.pages[fromPage].refIndex)
   listing.pages = listing.pages.slice(0, fromPage)
@@ -65,6 +66,7 @@ function replaceListingEnd(
   }
   listing.next = next
   listing.hasMore = next !== null
+  return true
 }
 
 // A change in a book, pushed by the server, reloads the last pages of the
@@ -99,10 +101,14 @@ export const fetchUpdatedContactsThunk = (
         }
       },
       fulfilled: (state, action) => {
-        const book = state.addressBooks[action.meta.arg.bookId]
-        if (book) book.syncToken = action.meta.arg.newSyncToken
-        for (const reloaded of action.payload) {
+        const applied = action.payload.map(reloaded =>
           replaceListingEnd(state, reloaded)
+        )
+        // the token moves once every listing shows the change: the same push
+        // reloads again a listing whose reload was dropped
+        const book = state.addressBooks[action.meta.arg.bookId]
+        if (book && applied.every(Boolean)) {
+          book.syncToken = action.meta.arg.newSyncToken
         }
       }
       // a failed reload leaves the listings as they were, until the next change

@@ -443,7 +443,7 @@ describe('fetchUpdatedContacts', () => {
     expect(fetchContactsPage).not.toHaveBeenCalled()
   })
 
-  it('leaves a listing loading another page meanwhile', async () => {
+  it('leaves a listing loading another page meanwhile, for the same push to reload it', async () => {
     jest.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
@@ -465,6 +465,9 @@ describe('fetchUpdatedContacts', () => {
     expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
       'c1'
     ])
+    expect(store.getState().contacts.addressBooks.book1.syncToken).toBe(
+      undefined
+    )
   })
 })
 
