@@ -27,6 +27,7 @@ const makeListing = (refs: [string, string][]): ContactListing => ({
     addressBookId,
     contactId
   })),
+  pages: [{ after: null, refIndex: 0 }],
   next: null,
   hasMore: false,
   loadingRequestId: null

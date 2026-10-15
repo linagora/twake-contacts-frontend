@@ -12,6 +12,7 @@ export interface AddressBook {
   canWrite: boolean
   ownerDisplayName?: string
   invitedMembers?: userData[]
+  syncToken?: number
 }
 
 export interface ContactName {
@@ -80,9 +81,16 @@ export interface ContactRef {
   contactId: string
 }
 
+/** Where a loaded page starts: the cursor it was read after, its first ref. */
+export interface ContactListingPage {
+  after: string | null
+  refIndex: number
+}
+
 /** A sorted list of contacts, read page after page with the server cursor. */
 export interface ContactListing {
   refs: ContactRef[]
+  pages: ContactListingPage[]
   // cursor of the next page, null before the first page and after the last one
   next: string | null
   hasMore: boolean

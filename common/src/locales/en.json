@@ -2,7 +2,7 @@
   "locale": "en-gb",
   "contacts": {
     "title": "Contacts",
-    "tabs": { "mine": "My contacts", "shared": "Shared contacts" },
+    "tabs": { "mine": "My contacts", "shared": "Shared with me" },
     "myContacts": "My contacts",
     "shared": "Shared",
     "domainAddressBook": "Domain Address Book",

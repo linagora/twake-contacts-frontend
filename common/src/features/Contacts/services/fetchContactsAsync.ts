@@ -43,6 +43,7 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
           if (book.contactsCount === 0) {
             state.listings[book.id] = {
               refs: [],
+              pages: [],
               next: null,
               hasMore: false,
               loadingRequestId: null

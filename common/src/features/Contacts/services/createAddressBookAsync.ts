@@ -30,6 +30,7 @@ export const createAddressBookThunk = (
         state.addressBooks[book.id] = { ...book, contacts: [] }
         state.listings[book.id] = {
           refs: [],
+          pages: [],
           next: null,
           hasMore: false,
           loadingRequestId: null

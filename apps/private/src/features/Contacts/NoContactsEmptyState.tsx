@@ -24,7 +24,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
         <img
           src={ILLUSTRATION_BY_THEME[themeMode]}
           alt=""
-          width={200}
+          width={100}
           height={80}
         />
       }

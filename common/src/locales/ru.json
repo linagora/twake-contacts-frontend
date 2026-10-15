@@ -2,7 +2,7 @@
   "locale": "ru-ru",
   "contacts": {
     "title": "Контакты",
-    "tabs": { "mine": "Мои контакты", "shared": "Общие контакты" },
+    "tabs": { "mine": "Мои контакты", "shared": "Поделились со мной" },
     "myContacts": "Мои контакты",
     "shared": "Общие",
     "domainAddressBook": "Доменная адресная книга",

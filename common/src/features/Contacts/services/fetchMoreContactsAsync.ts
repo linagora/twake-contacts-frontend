@@ -3,7 +3,7 @@ import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { fetchContactsPage } from '../ContactsDao'
 import { ContactEntry, ContactsState } from '../contactsTypes'
 import { ALL_CONTACTS_LISTING } from '../constants'
-import { isSameContactRef } from '../contactListings'
+import { appendListingPage } from '../contactListings'
 import { toContactsErrorKey } from '../contactsUtils'
 
 export interface FetchMoreContactsPayload {
@@ -12,36 +12,47 @@ export interface FetchMoreContactsPayload {
   listingKey: string
 }
 
+/**
+ * The page of a listing read after the cursor after, without the contacts of
+ * books the app does not list, such as group delegations, as the book list.
+ */
+export async function fetchListingPage(
+  { addressBooks }: ContactsState,
+  userId: string,
+  listingKey: string,
+  after: string | null
+): Promise<{ entries: ContactEntry[]; next: string | null }> {
+  const { entries, next } = await fetchContactsPage(
+    userId,
+    addressBooks[listingKey] ?? null,
+    after,
+    // without the domain book, its members could not be listed
+    addressBooks.dab !== undefined
+  )
+  return {
+    entries: entries.filter(({ addressBookId }) => {
+      if (addressBooks[addressBookId]) return true
+      console.warn(`Contact of unknown address book ${addressBookId}`)
+      return false
+    }),
+    next
+  }
+}
+
 export const fetchMoreContactsThunk = (
   create: ReducerCreators<ContactsState>
 ) =>
   create.asyncThunk<
-    { entries: ContactEntry[]; next: string | null },
+    { entries: ContactEntry[]; next: string | null; after: string | null },
     FetchMoreContactsPayload,
     { rejectValue: RejectedError }
   >(
     async ({ userId, listingKey }, { getState, rejectWithValue }) => {
-      const { addressBooks, listings } = (
-        getState() as { contacts: ContactsState }
-      ).contacts
+      const { contacts } = getState() as { contacts: ContactsState }
+      const after = contacts.listings[listingKey]?.next ?? null
       try {
-        const { entries, next } = await fetchContactsPage(
-          userId,
-          addressBooks[listingKey] ?? null,
-          listings[listingKey]?.next ?? null,
-          // without the domain book, its members could not be listed
-          addressBooks.dab !== undefined
-        )
-        return {
-          // contacts of books the app does not list, such as group
-          // delegations, are left out as from the book list
-          entries: entries.filter(({ addressBookId }) => {
-            if (addressBooks[addressBookId]) return true
-            console.warn(`Contact of unknown address book ${addressBookId}`)
-            return false
-          }),
-          next
-        }
+        const page = await fetchListingPage(contacts, userId, listingKey, after)
+        return { ...page, after }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
@@ -65,6 +76,7 @@ export const fetchMoreContactsThunk = (
         const { listingKey } = action.meta.arg
         state.listings[listingKey] ??= {
           refs: [],
+          pages: [],
           next: null,
           hasMore: true,
           loadingRequestId: null
@@ -78,21 +90,8 @@ export const fetchMoreContactsThunk = (
         if (listing?.loadingRequestId !== action.meta.requestId) return
         listing.loadingRequestId = null
 
-        const { entries, next } = action.payload
-        const refs = entries.flatMap(({ addressBookId, contact }) => {
-          const book = state.addressBooks[addressBookId]
-          if (!book) return []
-          const index = book.contacts.findIndex(c => c.id === contact.id)
-          if (index === -1) book.contacts.push(contact)
-          else book.contacts[index] = contact
-          return [{ addressBookId, contactId: contact.id }]
-        })
-        // a contact can come back in a page after being placed in the listing,
-        // as when its name changed: the table needs unique keys
-        listing.refs = listing.refs.filter(
-          ref => !refs.some(other => isSameContactRef(ref, other))
-        )
-        listing.refs.push(...refs)
+        const { entries, next, after } = action.payload
+        appendListingPage(state, listing, after, entries)
         listing.next = next
         listing.hasMore = next !== null
       },
@@ -109,6 +108,7 @@ export const fetchMoreContactsThunk = (
         if (cursorRejected && !listing.restarted) {
           state.listings[listingKey] = {
             refs: [],
+            pages: [],
             next: null,
             hasMore: true,
             loadingRequestId: null,

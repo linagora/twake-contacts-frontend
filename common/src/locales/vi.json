@@ -2,7 +2,7 @@
   "locale": "vi",
   "contacts": {
     "title": "Danh bạ",
-    "tabs": { "mine": "Danh bạ của tôi", "shared": "Danh bạ được chia sẻ" },
+    "tabs": { "mine": "Danh bạ của tôi", "shared": "Đã chia sẻ với tôi" },
     "myContacts": "Danh bạ của tôi",
     "shared": "Được chia sẻ",
     "domainAddressBook": "Sổ địa chỉ miền",

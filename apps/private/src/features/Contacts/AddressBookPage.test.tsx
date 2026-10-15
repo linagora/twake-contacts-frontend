@@ -45,6 +45,7 @@ const makeListing = (
   next: string | null
 ): ContactListing => ({
   refs: contacts.map(contact => ({ addressBookId, contactId: contact.id })),
+  pages: [{ after: null, refIndex: 0 }],
   next,
   hasMore: next !== null,
   loadingRequestId: null
@@ -231,7 +232,7 @@ describe('AddressBookPage tabs', () => {
       }
     )
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Shared contacts' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Shared with me' }))
     expect(screen.queryByText('Alice Roche')).toBe(null)
 
     fireEvent.click(screen.getByText('Go to book1'))

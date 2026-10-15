@@ -3,21 +3,17 @@
  */
 import { setupStore } from '@common/app/store'
 import {
-  deleteContact as deleteContactDao,
   fetchAddressBooks,
   fetchContact as fetchContactDao,
   fetchContactsPage,
-  moveContact as moveContactDao,
-  saveContact
+  moveContact as moveContactDao
 } from './ContactsDao'
 import {
-  createContact,
-  deleteContact,
   fetchContact,
   fetchContacts,
   fetchMoreContacts,
-  moveContact,
-  updateContact
+  fetchUpdatedContacts,
+  moveContact
 } from './ContactsSlice'
 import { ALL_CONTACTS_LISTING } from './constants'
 import {
@@ -32,6 +28,7 @@ jest.mock('./ContactsDao')
 const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
 const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
 const carl: Contact = { id: 'c3', displayName: 'Carl Dubois', emails: [] }
+const dora: Contact = { id: 'c4', displayName: 'Dora Lenz', emails: [] }
 
 const makeBook = (
   id: string,
@@ -47,14 +44,17 @@ const makeBook = (
   contacts
 })
 
+// a listing of a single page, unless the starts of its pages are given
 const makeListing = (
   refs: [string, Contact][],
-  next: string | null = null
+  next: string | null = null,
+  pages: ContactListing['pages'] = [{ after: null, refIndex: 0 }]
 ): ContactListing => ({
   refs: refs.map(([addressBookId, contact]) => ({
     addressBookId,
     contactId: contact.id
   })),
+  pages,
   next,
   hasMore: next !== null,
   loadingRequestId: null
@@ -217,6 +217,10 @@ describe('fetchMoreContacts', () => {
     const state = store.getState().contacts
     expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2'])
     expect(state.listings.book1.next).toBe('cursor2')
+    expect(state.listings.book1.pages).toStrictEqual([
+      { after: null, refIndex: 0 },
+      { after: 'cursor1', refIndex: 1 }
+    ])
     expect(state.listings.book1.hasMore).toBe(true)
   })
 
@@ -341,247 +345,130 @@ describe('fetchMoreContacts', () => {
   })
 })
 
-describe('createContact', () => {
-  beforeEach(() => {
-    jest.mocked(saveContact).mockResolvedValue()
-  })
-
-  it('places the contact at its sorted place among the loaded ones', async () => {
+describe('fetchUpdatedContacts', () => {
+  it('reloads the last two pages of the listings showing the book', async () => {
+    jest
+      .mocked(fetchContactsPage)
+      .mockResolvedValueOnce({
+        entries: [
+          { addressBookId: 'book1', contact: { ...bob, displayName: 'Bo' } },
+          { addressBookId: 'book1', contact: dora }
+        ],
+        next: 'n3'
+      })
+      .mockResolvedValueOnce({
+        entries: [{ addressBookId: 'book1', contact: carl }],
+        next: 'n4'
+      })
     const store = makeStore(
-      { book1: makeBook('book1', [alice, carl]) },
+      { book1: makeBook('book1', [alice, bob, carl]) },
       {
-        [ALL_CONTACTS_LISTING]: makeListing(
-          [
-            ['book1', alice],
-            ['book1', carl]
-          ],
-          'cursor'
-        ),
         book1: makeListing(
           [
             ['book1', alice],
+            ['book1', bob],
             ['book1', carl]
           ],
-          'cursor'
+          'p4',
+          [
+            { after: null, refIndex: 0 },
+            { after: 'p2', refIndex: 1 },
+            { after: 'p3', refIndex: 2 }
+          ]
         )
       }
     )
 
     await store.dispatch(
-      createContact({ userId: 'u1', addressBookId: 'book1', contact: bob })
+      fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
     )
 
+    expect(fetchContactsPage).toHaveBeenNthCalledWith(
+      1,
+      'u1',
+      expect.objectContaining({ id: 'book1' }),
+      'p2',
+      false
+    )
+    expect(fetchContactsPage).toHaveBeenNthCalledWith(
+      2,
+      'u1',
+      expect.objectContaining({ id: 'book1' }),
+      'n3',
+      false
+    )
     const state = store.getState().contacts
-    expect(getListedIds(state, ALL_CONTACTS_LISTING)).toStrictEqual([
-      'c1',
-      'c2',
-      'c3'
+    expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2', 'c4', 'c3'])
+    expect(state.listings.book1.pages).toStrictEqual([
+      { after: null, refIndex: 0 },
+      { after: 'p2', refIndex: 1 },
+      { after: 'n3', refIndex: 3 }
     ])
-    expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2', 'c3'])
+    expect(state.listings.book1.next).toBe('n4')
+    expect(state.addressBooks.book1.contacts[1].displayName).toBe('Bo')
+    expect(state.addressBooks.book1.syncToken).toBe(7)
   })
 
-  it('leaves a contact sorted after the loaded ones to the next pages', async () => {
+  it('reloads the listing of every book too', async () => {
+    jest.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [{ addressBookId: 'book1', contact: bob }],
+      next: null
+    })
     const store = makeStore(
       { book1: makeBook('book1', [alice]) },
-      { book1: makeListing([['book1', alice]], 'cursor') }
+      { [ALL_CONTACTS_LISTING]: makeListing([['book1', alice]]) }
     )
 
     await store.dispatch(
-      createContact({ userId: 'u1', addressBookId: 'book1', contact: carl })
+      fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
+    )
+
+    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, false)
+    expect(
+      getListedIds(store.getState().contacts, ALL_CONTACTS_LISTING)
+    ).toStrictEqual(['c2'])
+  })
+
+  it('skips a change already loaded', async () => {
+    jest.mocked(fetchContactsPage).mockClear()
+    const store = makeStore(
+      { book1: { ...makeBook('book1', [alice]), syncToken: 7 } },
+      { book1: makeListing([['book1', alice]]) }
+    )
+
+    await store.dispatch(
+      fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
+    )
+
+    expect(fetchContactsPage).not.toHaveBeenCalled()
+  })
+
+  it('leaves a listing loading another page meanwhile', async () => {
+    jest.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [{ addressBookId: 'book1', contact: bob }],
+      next: null
+    })
+    const store = makeStore(
+      { book1: makeBook('book1', [alice]) },
+      {
+        book1: {
+          ...makeListing([['book1', alice]], 'p2'),
+          loadingRequestId: 'page-in-flight'
+        }
+      }
+    )
+
+    await store.dispatch(
+      fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
     )
 
     expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
       'c1'
     ])
   })
-
-  it('appends a contact sorted last to a complete listing', async () => {
-    const store = makeStore(
-      { book1: makeBook('book1', [alice]) },
-      { book1: makeListing([['book1', alice]]) }
-    )
-
-    await store.dispatch(
-      createContact({ userId: 'u1', addressBookId: 'book1', contact: carl })
-    )
-
-    expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
-      'c1',
-      'c3'
-    ])
-  })
-})
-
-describe('updateContact', () => {
-  beforeEach(() => {
-    jest.mocked(saveContact).mockResolvedValue()
-  })
-
-  it('moves a renamed contact to its new sorted place', async () => {
-    const store = makeStore(
-      { book1: makeBook('book1', [alice, bob]) },
-      {
-        book1: makeListing([
-          ['book1', alice],
-          ['book1', bob]
-        ])
-      }
-    )
-
-    await store.dispatch(
-      updateContact({
-        userId: 'u1',
-        addressBookId: 'book1',
-        contact: { ...alice, displayName: 'Zoe Roche' }
-      })
-    )
-
-    const state = store.getState().contacts
-    expect(getListedIds(state, 'book1')).toStrictEqual(['c2', 'c1'])
-    expect(state.addressBooks.book1.contacts[0].displayName).toBe('Zoe Roche')
-  })
-
-  it('keeps the last loaded contact listed, as the next pages start after it', async () => {
-    const store = makeStore(
-      { book1: makeBook('book1', [alice, bob]) },
-      {
-        book1: makeListing(
-          [
-            ['book1', alice],
-            ['book1', bob]
-          ],
-          'cursor'
-        )
-      }
-    )
-
-    await store.dispatch(
-      updateContact({
-        userId: 'u1',
-        addressBookId: 'book1',
-        contact: { ...bob, emails: [{ type: null, value: 'bob@twake.app' }] }
-      })
-    )
-
-    expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
-      'c1',
-      'c2'
-    ])
-  })
-})
-
-describe('deleteContact', () => {
-  it('removes the contact from its book and from the listings', async () => {
-    jest.mocked(deleteContactDao).mockResolvedValue()
-    const store = makeStore(
-      { book1: makeBook('book1', [alice, bob]) },
-      {
-        [ALL_CONTACTS_LISTING]: makeListing(
-          [
-            ['book1', alice],
-            ['book1', bob]
-          ],
-          'cursor'
-        ),
-        book1: makeListing([
-          ['book1', alice],
-          ['book1', bob]
-        ])
-      }
-    )
-
-    await store.dispatch(
-      deleteContact({ userId: 'u1', addressBookId: 'book1', contactId: 'c1' })
-    )
-
-    const state = store.getState().contacts
-    expect(state.addressBooks.book1.contacts).toStrictEqual([bob])
-    expect(state.addressBooks.book1.contactsCount).toBe(1)
-    expect(getListedIds(state, ALL_CONTACTS_LISTING)).toStrictEqual(['c2'])
-    expect(getListedIds(state, 'book1')).toStrictEqual(['c2'])
-  })
 })
 
 describe('moveContact', () => {
-  beforeEach(() => {
-    jest.mocked(moveContactDao).mockResolvedValue()
-  })
-
-  it('moves the contact to the target book and its listings', async () => {
-    const store = makeStore(
-      { book1: makeBook('book1', [alice]), book2: makeBook('book2', [bob]) },
-      {
-        [ALL_CONTACTS_LISTING]: makeListing([
-          ['book1', alice],
-          ['book2', bob]
-        ]),
-        book1: makeListing([['book1', alice]]),
-        book2: makeListing([['book2', bob]])
-      }
-    )
-
-    await store.dispatch(
-      moveContact({
-        userId: 'u1',
-        fromAddressBookId: 'book1',
-        toAddressBookId: 'book2',
-        contact: alice
-      })
-    )
-
-    const state = store.getState().contacts
-    expect(state.addressBooks.book1.contacts).toHaveLength(0)
-    expect(state.addressBooks.book1.contactsCount).toBe(0)
-    expect(state.addressBooks.book2.contactsCount).toBe(2)
-    expect(getListedIds(state, 'book1')).toStrictEqual([])
-    expect(getListedIds(state, 'book2')).toStrictEqual(['c1', 'c2'])
-    expect(state.listings[ALL_CONTACTS_LISTING].refs[0]).toStrictEqual({
-      addressBookId: 'book2',
-      contactId: 'c1'
-    })
-  })
-
-  it('replaces the contact if it already exists in the target book', async () => {
-    const store = makeStore({
-      book1: makeBook('book1', [alice]),
-      book2: makeBook('book2', [{ ...alice, displayName: 'Alice Old' }])
-    })
-
-    await store.dispatch(
-      moveContact({
-        userId: 'u1',
-        fromAddressBookId: 'book1',
-        toAddressBookId: 'book2',
-        contact: { ...alice, displayName: 'Alice Updated' }
-      })
-    )
-
-    const { addressBooks } = store.getState().contacts
-    expect(addressBooks.book1.contacts).toHaveLength(0)
-    expect(addressBooks.book2.contacts[0].displayName).toBe('Alice Updated')
-    expect(addressBooks.book2.contactsCount).toBe(1)
-  })
-
-  it('does not change contactsCount when it is null', async () => {
-    const store = makeStore({
-      book1: makeBook('book1', [alice], null),
-      book2: makeBook('book2', [], null)
-    })
-
-    await store.dispatch(
-      moveContact({
-        userId: 'u1',
-        fromAddressBookId: 'book1',
-        toAddressBookId: 'book2',
-        contact: alice
-      })
-    )
-
-    const { addressBooks } = store.getState().contacts
-    expect(addressBooks.book1.contactsCount).toBeNull()
-    expect(addressBooks.book2.contactsCount).toBeNull()
-  })
-
   it('sets an error when the move fails', async () => {
     jest.mocked(moveContactDao).mockRejectedValue(new Error('Move failed'))
     const store = makeStore({ book1: makeBook('book1', [alice]) })

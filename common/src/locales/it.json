@@ -2,7 +2,7 @@
   "locale": "it-it",
   "contacts": {
     "title": "Contatti",
-    "tabs": { "mine": "I miei contatti", "shared": "Contatti condivisi" },
+    "tabs": { "mine": "I miei contatti", "shared": "Condiviso con me" },
     "myContacts": "I miei contatti",
     "shared": "Condivisi",
     "domainAddressBook": "Rubrica del dominio",
