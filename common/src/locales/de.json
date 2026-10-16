@@ -65,7 +65,8 @@
       "chat": "Chat",
       "mail": "E-Mail senden",
       "schedule": "Termin planen",
-      "share": "Teilen"
+      "share": "Teilen",
+      "remove": "Aus meiner Liste entfernen"
     },
     "delete": {
       "title": "Diesen Kontakt löschen?",

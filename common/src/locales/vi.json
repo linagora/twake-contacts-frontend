@@ -65,7 +65,8 @@
       "chat": "Trò chuyện",
       "mail": "Gửi email",
       "schedule": "Lên lịch",
-      "share": "Chia sẻ"
+      "share": "Chia sẻ",
+      "remove": "Gỡ khỏi danh sách của tôi"
     },
     "delete": {
       "title": "Xóa liên hệ này?",

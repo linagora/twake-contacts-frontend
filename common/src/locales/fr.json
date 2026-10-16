@@ -65,7 +65,8 @@
       "chat": "Discuter",
       "mail": "Envoyer un e-mail",
       "schedule": "Planifier",
-      "share": "Partager"
+      "share": "Partager",
+      "remove": "Retirer de ma liste"
     },
     "delete": {
       "title": "Supprimer ce contact ?",

@@ -65,7 +65,8 @@
       "chat": "Chat",
       "mail": "Invia email",
       "schedule": "Pianifica",
-      "share": "Condividi"
+      "share": "Condividi",
+      "remove": "Rimuovi dalla mia lista"
     },
     "delete": {
       "title": "Eliminare questo contatto?",
@@ -84,7 +85,7 @@
       "delete": "Impossibile eliminare il contatto",
       "forbidden": "Non hai i permessi per modificare questa rubrica",
       "share": "Impossibile condividere la rubrica",
-      "forbidden": "Non hai i permessi per modificare questa rubrica"
+      "subscribe": "Impossibile aggiungere la rubrica"
     },
     "addressBook": {
       "createTitle": "Nuova rubrica",

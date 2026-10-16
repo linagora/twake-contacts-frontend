@@ -474,3 +474,12 @@ export async function subscribeToAddressBook(
     ownerDisplayName
   }
 }
+
+export async function deleteAddressBook(
+  userId: string,
+  addressBookId: string
+): Promise<void> {
+  await api.delete(`dav/addressbooks/${userId}/${addressBookId}.json`, {
+    headers: { Accept: 'application/vcard+json' }
+  })
+}

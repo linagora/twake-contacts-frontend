@@ -83,7 +83,8 @@
       "chat": "Chat",
       "mail": "Send email",
       "schedule": "Schedule",
-      "share": "Share"
+      "share": "Share",
+      "remove": "Remove from my list"
     },
     "delete": {
       "title": "Delete this contact?",

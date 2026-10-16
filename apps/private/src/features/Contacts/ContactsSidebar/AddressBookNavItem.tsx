@@ -1,7 +1,13 @@
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { Dots, Icon, Peoples, ShareExternal } from '@linagora/twake-icons'
+import {
+  Trash,
+  Dots,
+  Icon,
+  Peoples,
+  ShareExternal
+} from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -18,6 +24,8 @@ import {
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ShareAddressBookDialog } from '../ShareAddressBook/ShareAddressBookDialog'
+import { useAppDispatch } from '@common/app/hooks'
+import { deleteAddressBook } from '@common/features/Contacts/ContactsSlice'
 
 export interface AddressBookNavItemProps {
   book: AddressBook
@@ -35,7 +43,22 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const dispatch = useAppDispatch()
+  const isCopy = Boolean(book.ownerId)
 
+  const handleDelete = (event: React.MouseEvent): void => {
+    event.stopPropagation()
+    event.preventDefault()
+    handleMenuClose()
+    void dispatch(
+      deleteAddressBook({ userId: book.userId, addressBookId: book.id })
+    )
+      .unwrap()
+      .then(() => {
+        if (selected) void navigate('/contacts')
+      })
+      .catch(() => {})
+  }
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
     event.stopPropagation()
     event.preventDefault()
@@ -64,7 +87,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
         key={book.id}
         variant={variant}
         secondaryAction={
-          (isHovered || isMenuOpen) && book.canWrite ? (
+          isHovered || isMenuOpen ? (
             <>
               <Tooltip title={t('contacts.menu.more')}>
                 <IconButton size="xsmall" onClick={handleMenuOpen}>
@@ -77,11 +100,23 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                 onClose={handleMenuClose}
                 onClick={e => e.stopPropagation()}
               >
-                <MenuItem onClick={handleShare}>
+                {book.canWrite && (
+                  <MenuItem onClick={handleShare}>
+                    <ListItemIcon>
+                      <Icon icon={ShareExternal} />
+                    </ListItemIcon>
+                    <ListItemText>{t('contacts.menu.share')}</ListItemText>
+                  </MenuItem>
+                )}
+                <MenuItem onClick={handleDelete}>
                   <ListItemIcon>
-                    <Icon icon={ShareExternal} />
+                    <Icon icon={Trash} />
                   </ListItemIcon>
-                  <ListItemText>{t('contacts.menu.share')}</ListItemText>
+                  <ListItemText>
+                    {t(
+                      isCopy ? 'contacts.menu.remove' : 'contacts.menu.delete'
+                    )}
+                  </ListItemText>
                 </MenuItem>
               </Menu>
             </>
