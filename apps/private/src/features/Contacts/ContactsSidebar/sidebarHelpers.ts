@@ -16,12 +16,13 @@ export interface SidebarBooks {
 
 export const getCreateContactLink = (
   addressBookId?: string,
-  currentBook?: AddressBookWithContacts
+  currentBook?: AddressBookWithContacts,
+  loading = false
 ): string => {
-  const canWriteCurrentBook = Boolean(
-    currentBook?.canWrite && addressBookId !== 'dab'
-  )
-  return addressBookId && canWriteCurrentBook
+  // While the books are loading, keep the book of the URL: the create page
+  // waits for the books and falls back to the default one if not writable
+  const mayWriteCurrentBook = currentBook ? currentBook.canWrite : loading
+  return addressBookId && addressBookId !== 'dab' && mayWriteCurrentBook
     ? `/contacts/${addressBookId}/new`
     : '/contacts/new'
 }

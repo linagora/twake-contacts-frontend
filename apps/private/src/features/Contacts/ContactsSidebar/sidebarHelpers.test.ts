@@ -38,6 +38,25 @@ describe('sidebarHelpers', () => {
       const book = makeBook('b1', 'u1', true)
       expect(getCreateContactLink('b1', book)).toBe('/contacts/b1/new')
     })
+
+    it('keeps the book of the URL while the books are loading', () => {
+      expect(getCreateContactLink('b1', undefined, true)).toBe(
+        '/contacts/b1/new'
+      )
+    })
+
+    it('returns /contacts/new when the loaded books do not contain the book', () => {
+      expect(getCreateContactLink('b1', undefined, false)).toBe('/contacts/new')
+    })
+
+    it('returns /contacts/new when a loaded book cannot be written to while loading', () => {
+      const book = makeBook('b1', 'u1', false)
+      expect(getCreateContactLink('b1', book, true)).toBe('/contacts/new')
+    })
+
+    it('returns /contacts/new for dab while the books are loading', () => {
+      expect(getCreateContactLink('dab', undefined, true)).toBe('/contacts/new')
+    })
   })
 
   describe('categorizeAddressBooks', () => {
