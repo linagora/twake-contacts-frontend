@@ -3,7 +3,8 @@ import {
   Autocomplete,
   InputAdornment,
   ListItem,
-  Stack,
+  ListItemAvatar,
+  ListItemText,
   TextField
 } from '@linagora/twake-mui'
 import { Icon, People } from '@linagora/twake-icons'
@@ -12,46 +13,58 @@ import { UserResult } from '@common/features/Contacts/contactsTypes'
 import { ContactAvatar } from './ContactAvatar'
 import { useUserSearch } from './useUserSearch'
 
+const primaryEmail = (user: UserResult): string => user.emails[0]?.value ?? ''
+
+const userLabel = (user: UserResult): string =>
+  user.displayName || primaryEmail(user)
+
 export const UserAutocomplete: React.FC<{
   onSelect: (user: UserResult) => void
   onType: () => void
 }> = ({ onSelect, onType }) => {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
-  const { users, loading } = useUserSearch(query)
+  const [selected, setSelected] = useState<UserResult | null>(null)
+  // the picked user stays in the field: no need to search for its label
+  const { users, loading } = useUserSearch(selected ? '' : query)
   const [open, setOpen] = useState(false)
 
   return (
     <Autocomplete
       fullWidth
-      options={users}
-      open={open && query.trim().length > 0}
+      options={selected ? [selected] : users}
+      open={open && !selected && query.trim().length > 0}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
       loading={loading}
       loadingText={t('contacts.search.loading')}
-      value={null}
+      value={selected}
       inputValue={query}
       onInputChange={(_, value, reason) => {
         if (reason === 'reset') return
         setQuery(value)
+        setSelected(null)
         onType()
       }}
-      onChange={(_, selected) => {
-        if (!selected) return
-        onSelect(selected)
-        setQuery('')
+      onChange={(_, user) => {
+        if (!user) return
+        setSelected(user)
+        setQuery(userLabel(user))
+        onSelect(user)
       }}
       filterOptions={x => x}
-      getOptionLabel={option => option.displayName}
+      getOptionLabel={userLabel}
       isOptionEqualToValue={(option, v) => option.id === v.id}
       noOptionsText={query.trim() ? t('contacts.addressBook.noUserFound') : ''}
       renderOption={(props, option) => (
         <ListItem {...props} key={option.id}>
-          <Stack direction="row" spacing={1}>
+          <ListItemAvatar>
             <ContactAvatar size="s" displayName={option.displayName} />
-            <span>{option.displayName}</span>
-          </Stack>
+          </ListItemAvatar>
+          <ListItemText
+            primary={option.displayName}
+            secondary={primaryEmail(option)}
+          />
         </ListItem>
       )}
       renderInput={params => (
@@ -59,6 +72,7 @@ export const UserAutocomplete: React.FC<{
           {...params}
           autoFocus
           placeholder={t('contacts.addressBook.userPlaceholder')}
+          helperText={selected ? primaryEmail(selected) : undefined}
           slotProps={{
             ...params.slotProps,
             input: {
