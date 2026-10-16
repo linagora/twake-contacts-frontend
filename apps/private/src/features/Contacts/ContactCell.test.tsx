@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import {
   TwakeMuiThemeProvider,
@@ -74,4 +74,64 @@ describe('ContactCell', () => {
       ).toBeInTheDocument()
     }
   )
+
+  describe('name popover', () => {
+    const sendMailLink = (): HTMLElement | null =>
+      screen.queryByRole('link', { name: enLocale.contacts.menu.sendMail })
+
+    const hoverName = (): void => {
+      fireEvent.mouseEnter(screen.getByText('Anna Default'))
+      act(() => {
+        jest.advanceTimersByTime(1000)
+      })
+    }
+
+    const pressEscape = (): void => {
+      fireEvent.keyDown(screen.getByRole('presentation'), { key: 'Escape' })
+      act(() => {
+        jest.advanceTimersByTime(1000)
+      })
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    it('does not reopen after Escape while the pointer is still on the name', () => {
+      renderCell('en')
+      hoverName()
+      expect(sendMailLink()).toBeInTheDocument()
+
+      pressEscape()
+      hoverName()
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+    })
+
+    it('opens again on hover once the pointer has left the name', () => {
+      renderCell('en')
+      hoverName()
+      pressEscape()
+
+      fireEvent.mouseMove(document.body)
+      hoverName()
+
+      expect(sendMailLink()).toBeInTheDocument()
+    })
+
+    it('stays closed while the pointer moves over the name after Escape', () => {
+      renderCell('en')
+      hoverName()
+      pressEscape()
+
+      fireEvent.mouseMove(screen.getByText('Anna Default'))
+      hoverName()
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+    })
+  })
 })
