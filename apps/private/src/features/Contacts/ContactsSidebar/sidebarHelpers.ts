@@ -52,3 +52,8 @@ export const categorizeAddressBooks = (
     ) as AddressBook[]
   }
 }
+
+// twake-mui NavLink only reflects `selected` visually: expose it to
+// assistive technologies too
+export const getAriaCurrent = (selected: boolean): 'page' | undefined =>
+  selected ? 'page' : undefined

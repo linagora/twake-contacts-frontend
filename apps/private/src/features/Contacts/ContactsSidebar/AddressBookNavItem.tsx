@@ -18,6 +18,7 @@ import {
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ShareAddressBookDialog } from '../ShareAddressBook/ShareAddressBookDialog'
+import { getAriaCurrent } from './sidebarHelpers'
 
 export interface AddressBookNavItemProps {
   book: AddressBook
@@ -93,6 +94,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
             void navigate(`/contacts/${book.id}`)
           }}
           selected={selected}
+          aria-current={getAriaCurrent(selected)}
         >
           <NavIcon icon={Peoples} />
           <Tooltip

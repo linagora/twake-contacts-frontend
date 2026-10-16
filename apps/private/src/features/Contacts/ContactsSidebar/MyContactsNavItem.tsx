@@ -8,6 +8,7 @@ import {
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { CreateAddressBookButton } from './CreateAddressBookButton'
+import { getAriaCurrent } from './sidebarHelpers'
 
 export interface MyContactsNavItemProps {
   hasBooks: boolean
@@ -42,13 +43,18 @@ export const MyContactsNavItem: React.FC<MyContactsNavItemProps> = ({
           open={isExpanded}
           onToggle={onToggle}
           selected={isSelected}
+          aria-current={getAriaCurrent(isSelected)}
           onClick={onNavigate}
         >
           <NavIcon icon={ContactList} />
           <NavText>{t('contacts.myContacts')}</NavText>
         </NavDropdown>
       ) : (
-        <NavLink selected={isSelected} onClick={onNavigate}>
+        <NavLink
+          selected={isSelected}
+          aria-current={getAriaCurrent(isSelected)}
+          onClick={onNavigate}
+        >
           <NavIcon icon={ContactList} />
           <NavText>{t('contacts.myContacts')}</NavText>
         </NavLink>

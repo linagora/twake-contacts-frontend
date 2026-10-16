@@ -20,6 +20,7 @@ import { AddressBookNavItem } from './ContactsSidebar/AddressBookNavItem'
 import { MyContactsNavItem } from './ContactsSidebar/MyContactsNavItem'
 import {
   categorizeAddressBooks,
+  getAriaCurrent,
   getCreateContactLink
 } from './ContactsSidebar/sidebarHelpers'
 import { CreateAddressBookButton } from './ContactsSidebar/CreateAddressBookButton'
@@ -99,6 +100,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
                   void navigate(`/contacts/${book.id}`)
                 }}
                 selected={addressBookId === book.id}
+                aria-current={getAriaCurrent(addressBookId === book.id)}
               >
                 <NavIcon icon={Company} />
                 <NavText>

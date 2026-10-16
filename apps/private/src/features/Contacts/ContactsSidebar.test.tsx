@@ -178,6 +178,48 @@ describe('ContactsSidebar', () => {
     expect(tooltip).not.toHaveClass('MuiTooltip-popperInteractive')
   })
 
+  describe('current address book', () => {
+    const books = Object.fromEntries(
+      [
+        makeBook(DEFAULT_ADDRESS_BOOK_ID, 'My contacts'),
+        makeBook('book1', 'Book 1'),
+        makeBook('dab', 'Domain')
+      ].map(book => [book.id, book])
+    )
+
+    const getEntry = (name: string): HTMLElement =>
+      screen.getByRole('button', { name: new RegExp(`^${name}`) })
+
+    const getCurrentEntries = (): (string | null)[] =>
+      screen
+        .getAllByRole('button')
+        .filter(entry => entry.getAttribute('aria-current') === 'page')
+        .map(entry => entry.textContent)
+
+    it('announces My contacts as the current page on /contacts', () => {
+      renderSidebar('/contacts', books)
+
+      expect(getEntry(en.contacts.myContacts)).toHaveAttribute(
+        'aria-current',
+        'page'
+      )
+      expect(getCurrentEntries()).toEqual([en.contacts.myContacts])
+    })
+
+    it.each([
+      ['book1', 'Book 1'],
+      ['dab', 'Domain']
+    ])('announces only %s as the current page', (id, name) => {
+      renderSidebar(`/contacts/${id}`, books)
+
+      expect(getEntry(name)).toHaveAttribute('aria-current', 'page')
+      expect(getEntry(en.contacts.myContacts)).not.toHaveAttribute(
+        'aria-current'
+      )
+      expect(getCurrentEntries()).toHaveLength(1)
+    })
+  })
+
   describe('My contacts dropdown', () => {
     const getMyContacts = (): HTMLElement =>
       screen.getByRole('button', { name: en.contacts.myContacts })
