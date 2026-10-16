@@ -27,6 +27,7 @@ function renderSearchBar(
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
       addressBooks: {},
+      listings: {},
       loading: false,
       error: null,
       ...contactsState

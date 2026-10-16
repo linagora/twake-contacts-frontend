@@ -17,9 +17,7 @@ const makeBook = (id: string, name: string): AddressBookWithContacts => ({
   contactsCount: 0,
   acl: [],
   canWrite: true,
-  contacts: [],
-  offset: 0,
-  hasMore: false
+  contacts: []
 })
 
 function LocationDisplay(): React.ReactElement {
@@ -63,6 +61,7 @@ function renderSidebar(
           contacts: []
         }
       },
+      listings: {},
       loading: false,
       error: null
     }

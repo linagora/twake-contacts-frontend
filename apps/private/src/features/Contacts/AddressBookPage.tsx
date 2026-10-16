@@ -3,8 +3,8 @@ import { fetchMoreContacts } from '@common/features/Contacts/ContactsSlice'
 import {
   BookScope,
   selectBook,
-  selectBookIdToLoadMore,
-  selectContactEntries
+  selectContactEntries,
+  selectListingKeyToLoadMore
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { Icon, Left } from '@linagora/twake-icons'
@@ -48,32 +48,38 @@ export const AddressBookPage: React.FC = () => {
     selectContactEntries(state, addressBookId, scope, openpaasId)
   )
 
-  const bookIdToLoadMore = useAppSelector(state =>
-    selectBookIdToLoadMore(state, addressBookId, scope, openpaasId)
+  const listingKeyToLoadMore = useAppSelector(state =>
+    selectListingKeyToLoadMore(state, addressBookId, scope, openpaasId)
   )
 
-  const loadingMore = useAppSelector(
-    state =>
-      !!bookIdToLoadMore &&
-      !!state.contacts.addressBooks[bookIdToLoadMore]?.isLoadingMore
+  const listingToLoadMore = useAppSelector(state =>
+    listingKeyToLoadMore
+      ? state.contacts.listings[listingKeyToLoadMore]
+      : undefined
   )
+  const loadingMore = !!listingToLoadMore?.loadingRequestId
 
   const title = addressBookId
     ? getAddressBookDisplayName(book, t)
     : t('contacts.myContacts')
 
   const loadMore = useCallback(() => {
-    if (!openpaasId || !bookIdToLoadMore) return
+    // pages are read once the books are known, to place their contacts
+    if (!openpaasId || loading || !listingKeyToLoadMore) return
     void dispatch(
-      fetchMoreContacts({ userId: openpaasId, bookId: bookIdToLoadMore })
+      fetchMoreContacts({
+        userId: openpaasId,
+        listingKey: listingKeyToLoadMore
+      })
     )
-  }, [dispatch, openpaasId, bookIdToLoadMore])
+  }, [dispatch, openpaasId, loading, listingKeyToLoadMore])
 
-  // the table never reports the end of an empty list, so the first page of a
-  // book the initial fetch skipped is requested here
+  // The table only reports the end of the rows it shows: the first page of a
+  // listing, as after the books are loaded again, and the pages of a list
+  // still showing nothing are requested here
   useEffect(() => {
-    if (entries.length === 0) loadMore()
-  }, [entries.length, loadMore])
+    if (!listingToLoadMore || entries.length === 0) loadMore()
+  }, [listingToLoadMore, entries.length, loadMore])
 
   if (addressBookId && !book && !loading) {
     return (
@@ -105,7 +111,7 @@ export const AddressBookPage: React.FC = () => {
         />
       )
     }
-    return bookIdToLoadMore ? (
+    return listingKeyToLoadMore ? (
       <CircularProgress />
     ) : (
       <NoContactsEmptyState

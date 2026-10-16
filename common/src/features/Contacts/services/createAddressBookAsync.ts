@@ -27,11 +27,13 @@ export const createAddressBookThunk = (
     {
       fulfilled: (state, action) => {
         const book = action.payload
-        state.addressBooks[book.id] = {
-          ...book,
-          contacts: [],
-          offset: 0,
-          hasMore: false
+        state.addressBooks[book.id] = { ...book, contacts: [] }
+        state.listings[book.id] = {
+          refs: [],
+          pages: [],
+          next: null,
+          hasMore: false,
+          loadingRequestId: null
         }
       },
       rejected: (state, action) => {
