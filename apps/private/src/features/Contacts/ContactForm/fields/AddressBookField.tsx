@@ -4,6 +4,7 @@ import {
   ListItemText,
   ListSubheader,
   MenuItem,
+  ListSubheaderProps,
   TextField
 } from '@linagora/twake-mui'
 import { Icon, People } from '@linagora/twake-icons'
@@ -23,6 +24,14 @@ interface AddressBookFieldProps {
   disabled?: boolean
   onChange: (value: string) => void
 }
+
+// Select clones every child as an option: restore the caption semantics
+// once its props are applied so the group label is not announced as a choice
+const GroupCaption: React.FC<ListSubheaderProps> = ({
+  role: _role,
+  'aria-selected': _ariaSelected,
+  ...props
+}) => <ListSubheader {...props} role="presentation" />
 
 export const AddressBookField: React.FC<AddressBookFieldProps> = ({
   addressBooks,
@@ -74,7 +83,7 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
         >
           {ownBooks.map(renderOption)}
           {sharedBooks.length > 0 && (
-            <ListSubheader>{t('contacts.shared')}</ListSubheader>
+            <GroupCaption>{t('contacts.shared')}</GroupCaption>
           )}
           {sharedBooks.map(renderOption)}
         </TextField>

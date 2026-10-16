@@ -242,13 +242,17 @@ describe('CreateContactPage', () => {
 
     expect(
       listbox.getAllByRole('option').map(option => option.textContent)
-    ).toEqual([
-      'My contacts',
-      'Book 1',
-      'Book 2',
-      'Shared',
-      'Alpha SharedBob Owner'
-    ])
+    ).toEqual(['My contacts', 'Book 1', 'Book 2', 'Alpha SharedBob Owner'])
+  })
+
+  it('exposes the shared caption as a presentation element, not an option', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    const caption = within(screen.getByRole('listbox')).getByText('Shared')
+
+    expect(caption).toHaveAttribute('role', 'presentation')
+    expect(caption).not.toHaveAttribute('aria-selected')
   })
 
   it('links back to main page for hidden address books', () => {
