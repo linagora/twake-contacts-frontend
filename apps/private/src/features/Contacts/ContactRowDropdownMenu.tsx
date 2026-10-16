@@ -1,4 +1,9 @@
-import { Menu, MenuItem, ListItemIcon, ListItemText } from '@linagora/twake-mui'
+import {
+  ActionsMenu,
+  ActionsMenuItem,
+  ListItemIcon,
+  ListItemText
+} from '@linagora/twake-mui'
 import {
   Icon,
   Trash,
@@ -47,29 +52,21 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
   const firstEmail = getFirstEmail(contact)
   const chatTarget = getChatTarget(contact)
 
-  const handleMenuClose = (event: React.MouseEvent): void => {
-    event.stopPropagation()
-    onClose()
-  }
-
-  const handleSendMail = (event: React.MouseEvent): void => {
-    event.stopPropagation()
+  const handleSendMail = (): void => {
     onClose()
     if (!firstEmail) return
 
     openMailComposer(firstEmail, { workplaceFqdn })
   }
 
-  const handleOpenChat = (event: React.MouseEvent): void => {
-    event.stopPropagation()
+  const handleOpenChat = (): void => {
     onClose()
     if (!chatTarget) return
 
     openChat(chatTarget, { workplaceFqdn })
   }
 
-  const handleCreateEvent = (event: React.MouseEvent): void => {
-    event.stopPropagation()
+  const handleCreateEvent = (): void => {
     onClose()
     if (!firstEmail) return
 
@@ -79,40 +76,40 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
   }
 
   return (
-    <Menu
-      anchorEl={anchorEl}
+    <ActionsMenu
+      ref={{ current: anchorEl }}
       open={isMenuOpen}
-      onClose={handleMenuClose}
+      onClose={onClose}
       onClick={e => e.stopPropagation()}
     >
-      <MenuItem onClick={handleSendMail} disabled={!firstEmail}>
+      <ActionsMenuItem onClick={handleSendMail} disabled={!firstEmail}>
         <ListItemIcon>
           <Icon icon={EmailOpen} />
         </ListItemIcon>
         <ListItemText>{t('contacts.menu.sendMail')}</ListItemText>
-      </MenuItem>
+      </ActionsMenuItem>
       {chatTarget && (
-        <MenuItem onClick={handleOpenChat}>
+        <ActionsMenuItem onClick={handleOpenChat}>
           <ListItemIcon>
             <Icon icon={Discuss} />
           </ListItemIcon>
           <ListItemText>{t('contacts.menu.openChat')}</ListItemText>
-        </MenuItem>
+        </ActionsMenuItem>
       )}
-      <MenuItem onClick={handleCreateEvent} disabled={!firstEmail}>
+      <ActionsMenuItem onClick={handleCreateEvent} disabled={!firstEmail}>
         <ListItemIcon>
           <Icon icon={CalendarToday} />
         </ListItemIcon>
         <ListItemText>{t('contacts.menu.createEvent')}</ListItemText>
-      </MenuItem>
+      </ActionsMenuItem>
       {!readOnly && (
-        <MenuItem onClick={onOpenDeleteDialog}>
+        <ActionsMenuItem onClick={onOpenDeleteDialog}>
           <ListItemIcon>
             <Icon icon={Trash} />
           </ListItemIcon>
           <ListItemText>{t('contacts.menu.delete')}</ListItemText>
-        </MenuItem>
+        </ActionsMenuItem>
       )}
-    </Menu>
+    </ActionsMenu>
   )
 }

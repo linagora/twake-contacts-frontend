@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { Link, MemoryRouter, Route, Routes } from 'react-router'
-import { VirtuosoMockContext } from '@linagora/twake-mui'
+import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
 import { fetchContactsForBook } from '@common/features/Contacts/ContactsDao'
@@ -45,23 +45,25 @@ const renderPage = (
         contacts: { addressBooks, loading: false, error: null }
       })}
     >
-      <I18n dictRequire={() => en} lang="en">
-        <VirtuosoMockContext.Provider
-          value={{ viewportHeight: 1000, itemHeight: 50 }}
-        >
-          <MemoryRouter initialEntries={[path]}>
-            <Link to="/contacts">Go to My contacts</Link>
-            <Link to="/contacts/book1">Go to book1</Link>
-            <Routes>
-              <Route path="/contacts" element={<AddressBookPage />} />
-              <Route
-                path="/contacts/:addressBookId"
-                element={<AddressBookPage />}
-              />
-            </Routes>
-          </MemoryRouter>
-        </VirtuosoMockContext.Provider>
-      </I18n>
+      <TwakeMuiThemeProvider>
+        <I18n dictRequire={() => en} lang="en">
+          <VirtuosoMockContext.Provider
+            value={{ viewportHeight: 1000, itemHeight: 50 }}
+          >
+            <MemoryRouter initialEntries={[path]}>
+              <Link to="/contacts">Go to My contacts</Link>
+              <Link to="/contacts/book1">Go to book1</Link>
+              <Routes>
+                <Route path="/contacts" element={<AddressBookPage />} />
+                <Route
+                  path="/contacts/:addressBookId"
+                  element={<AddressBookPage />}
+                />
+              </Routes>
+            </MemoryRouter>
+          </VirtuosoMockContext.Provider>
+        </I18n>
+      </TwakeMuiThemeProvider>
     </Provider>
   )
 

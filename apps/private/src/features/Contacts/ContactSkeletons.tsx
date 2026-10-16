@@ -3,7 +3,8 @@ import {
   Stack,
   Button,
   ListSkeleton,
-  Grid
+  Grid,
+  useBreakpoints
 } from '@linagora/twake-mui'
 import { Icon, Left } from '@linagora/twake-icons'
 import React from 'react'
@@ -11,6 +12,7 @@ import { useI18n } from 'twake-i18n'
 
 export const ContactFormSkeleton: React.FC = () => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
 
   return (
     <Stack spacing={3} useFlexGap>
@@ -31,12 +33,12 @@ export const ContactFormSkeleton: React.FC = () => {
         <Skeleton variant="text" width={200} height={40} />
       </Stack>
 
-      <Stack spacing={3} className="u-maw-7">
+      <Stack spacing={3} className={isMobile ? 'u-w-100' : 'u-maw-7'}>
         <Grid container spacing={2}>
-          <Grid size={4}>
+          <Grid size={isMobile ? 12 : 4}>
             <Skeleton variant="rounded" height={56} />
           </Grid>
-          <Grid size={4}>
+          <Grid size={isMobile ? 12 : 4}>
             <Skeleton variant="rounded" height={56} />
           </Grid>
         </Grid>

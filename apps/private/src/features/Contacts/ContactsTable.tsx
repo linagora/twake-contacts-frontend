@@ -2,6 +2,7 @@ import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Skeleton,
   Stack,
+  useBreakpoints,
   VirtualizedTable,
   VirtualizedTableColumn,
   VirtualizedTableRow
@@ -32,12 +33,13 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
+  const { isMobile } = useBreakpoints()
 
   // We don't sort using the virtualized tables as we load entries
   // using lazy loading.
   // maxWidth 0 on name and email: they share the space left by the fixed
   // columns, so a long value in the rendered rows can't resize the columns
-  const columns: VirtualizedTableColumn[] = [
+  const allColumns: VirtualizedTableColumn[] = [
     {
       id: 'contact.displayName',
       label: t('contacts.name'),
@@ -95,6 +97,12 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       )
     }
   ]
+
+  const columns = isMobile
+    ? allColumns.filter(
+        col => col.id === 'contact.displayName' || col.id === 'actions'
+      )
+    : allColumns
 
   const rows: VirtualizedTableRow[] = [
     ...entries.map(entry => ({

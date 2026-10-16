@@ -1,4 +1,4 @@
-import { Grid, TextField } from '@linagora/twake-mui'
+import { Grid, TextField, useBreakpoints } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { FormRow } from '../FormRow'
 
@@ -14,9 +14,10 @@ export const NameFields: React.FC<NameFieldsProps> = ({
   onChange
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   return (
     <FormRow>
-      <Grid size={4}>
+      <Grid size={isMobile ? 12 : 4}>
         <TextField
           fullWidth
           autoFocus
@@ -29,7 +30,7 @@ export const NameFields: React.FC<NameFieldsProps> = ({
           }}
         />
       </Grid>
-      <Grid size={4}>
+      <Grid size={isMobile ? 12 : 4}>
         <TextField
           fullWidth
           variant="outlined"

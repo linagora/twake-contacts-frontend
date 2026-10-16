@@ -1,4 +1,4 @@
-import { Stack, Typography, Tooltip } from '@linagora/twake-mui'
+import { Stack, Typography, Tooltip, useBreakpoints } from '@linagora/twake-mui'
 import { ContactAvatar } from '../../ContactAvatar'
 
 interface AvatarHeaderProps {
@@ -10,8 +10,13 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
   displayName,
   title
 }) => {
+  const { isMobile } = useBreakpoints()
   return (
-    <Stack direction="row" spacing={2} className="u-flex u-flex-items-center">
+    <Stack
+      direction={isMobile ? 'column' : 'row'}
+      spacing={2}
+      className="u-flex u-flex-items-center"
+    >
       <ContactAvatar size={94} initialsVariant="h2" displayName={displayName} />
       <Tooltip title={displayName || title || ''}>
         <Typography variant="h4" noWrap>

@@ -1,8 +1,6 @@
 import { useAppSelector } from '@common/app/hooks'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { MobileWarning } from '@common/components/MobileWarning/MobileWarning'
-import { useBreakpoints } from '@linagora/twake-mui'
 import { useEffect } from 'react'
 import { Route, Routes, useNavigate } from 'react-router'
 import { AddressBookPage } from './features/Contacts/AddressBookPage'
@@ -16,7 +14,6 @@ import { CallbackResume } from './features/User/LoginCallback'
 export function AppRoutes(): JSX.Element {
   const error = useAppSelector(state => state.user.error)
   const navigate = useNavigate()
-  const { isMobile } = useBreakpoints()
 
   useEffect(() => {
     if (error) {
@@ -24,29 +21,24 @@ export function AppRoutes(): JSX.Element {
     }
   }, [error, navigate])
 
-  // Routes stay mounted while hidden so crossing the mobile breakpoint
-  // does not wipe local state (unsaved forms, dialogs, search...)
   return (
     <>
-      {isMobile && <MobileWarning />}
-      <div hidden={isMobile} className="u-h-100">
-        <Routes>
-          <Route path="/" element={<HandleLogin />} />
-          <Route path="/contacts" element={<ContactsPage />}>
-            <Route index element={<AddressBookPage />} />
-            <Route path="new" element={<CreateContactPage />} />
-            <Route path=":addressBookId/new" element={<CreateContactPage />} />
-            <Route path=":addressBookId" element={<AddressBookPage />} />
-            <Route path=":addressBookId/:contactId" element={<ContactPage />} />
-            <Route
-              path=":addressBookId/:contactId/edit"
-              element={<EditContactPage />}
-            />
-          </Route>
-          <Route path="/callback" element={<CallbackResume />} />
-          <Route path="/error" element={<ErrorPage />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<HandleLogin />} />
+        <Route path="/contacts" element={<ContactsPage />}>
+          <Route index element={<AddressBookPage />} />
+          <Route path="new" element={<CreateContactPage />} />
+          <Route path=":addressBookId/new" element={<CreateContactPage />} />
+          <Route path=":addressBookId" element={<AddressBookPage />} />
+          <Route path=":addressBookId/:contactId" element={<ContactPage />} />
+          <Route
+            path=":addressBookId/:contactId/edit"
+            element={<EditContactPage />}
+          />
+        </Route>
+        <Route path="/callback" element={<CallbackResume />} />
+        <Route path="/error" element={<ErrorPage />} />
+      </Routes>
       <ErrorSnackbar error={error} />
     </>
   )

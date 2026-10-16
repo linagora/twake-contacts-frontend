@@ -1,18 +1,11 @@
-import { useAppSelector } from '@common/app/hooks'
 import {
   formatAddress,
   isHiddenAddressBook
 } from '@common/features/Contacts/contactsUtils'
-import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
-import { openChat } from '@common/utils/chatSpaUrl'
-import { openMailComposer } from '@common/utils/mailSpaUrl'
 import {
-  CalendarToday,
   Copy,
   CrossSmall,
-  Discuss,
   Email,
-  EmailOpen,
   Icon,
   Label,
   Left,
@@ -32,7 +25,8 @@ import {
   Snackbar,
   Stack,
   Tooltip,
-  Typography
+  Typography,
+  useBreakpoints
 } from '@linagora/twake-mui'
 import cx from 'classnames'
 import { useState } from 'react'
@@ -41,6 +35,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
 import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
+import { ContactQuickActions } from './ContactQuickActions'
 import { ContactDetailsSkeleton } from './ContactSkeletons'
 import { useContact } from './useContact'
 
@@ -61,6 +56,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
 }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
 
   const handleCopy = (): void => {
     void navigator.clipboard.writeText(value)
@@ -78,7 +74,11 @@ const ContactField: React.FC<ContactFieldProps> = ({
       <ListItem
         disableGutters
         className="u-flex u-flex-items-center"
-        style={{ width: 'fit-content', maxWidth: '50%', gap: 4 }}
+        style={{
+          width: 'fit-content',
+          maxWidth: isMobile ? '100%' : '50%',
+          gap: 4
+        }}
       >
         <ListItemIcon>
           <Icon icon={icon} />
@@ -148,18 +148,12 @@ interface ContactPageLocationState {
   from?: string
 }
 
-const getButtonVariant = (value?: string): 'contained' | 'ghost' =>
-  !value ? 'contained' : 'ghost'
-
 export const ContactPage: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const { addressBookId = '', contactId } = useParams()
   const { contact, loading } = useContact(addressBookId, contactId)
-  const workplaceFqdn = useAppSelector(
-    state => state.user.userData?.workplaceFqdn
-  )
   // The list the contact was opened from, falling back to its own book
   const backTo =
     (location.state as ContactPageLocationState | null)?.from ??
@@ -167,27 +161,6 @@ export const ContactPage: React.FC = () => {
       ? '/contacts'
       : `/contacts/${addressBookId}`)
   const handleDeleted = (): void => void navigate(backTo)
-
-  const firstEmail = contact?.emails[0]?.value
-  const matrixProfile = contact?.socialProfiles?.find(
-    p => p.type?.toLowerCase() === 'matrix'
-  )
-  const chatTarget = matrixProfile?.value
-
-  const handleSendMail = (): void => {
-    if (!firstEmail) return
-    openMailComposer(firstEmail, { workplaceFqdn })
-  }
-
-  const handleOpenChat = (): void => {
-    if (!chatTarget) return
-    openChat(chatTarget, { workplaceFqdn })
-  }
-
-  const handleCreateEvent = (): void => {
-    if (!firstEmail) return
-    openCalendarEvent(firstEmail, { workplaceFqdn })
-  }
 
   if (loading) {
     return <ContactDetailsSkeleton />
@@ -218,38 +191,7 @@ export const ContactPage: React.FC = () => {
       ) : (
         <>
           <AvatarHeader displayName={contact.displayName} />
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant={getButtonVariant(firstEmail)}
-              startIcon={<Icon icon={EmailOpen} />}
-              aria-label={t('contacts.menu.mail')}
-              data-testid="contact-mail-button"
-              onClick={handleSendMail}
-              disabled={!firstEmail}
-            >
-              {t('contacts.menu.mail')}
-            </Button>
-            <Button
-              variant={getButtonVariant(chatTarget)}
-              aria-label={t('contacts.menu.chat')}
-              data-testid="contact-chat-button"
-              startIcon={<Icon icon={Discuss} />}
-              onClick={handleOpenChat}
-              disabled={!chatTarget}
-            >
-              {t('contacts.menu.chat')}
-            </Button>
-            <Button
-              variant={getButtonVariant(firstEmail)}
-              aria-label={t('contacts.menu.schedule')}
-              data-testid="contact-calendar-button"
-              startIcon={<Icon icon={CalendarToday} />}
-              onClick={handleCreateEvent}
-              disabled={!firstEmail}
-            >
-              {t('contacts.menu.schedule')}
-            </Button>
-          </Stack>
+          <ContactQuickActions contact={contact} />
           <List>
             {!!contact.categories?.length && (
               <ListItem disableGutters>

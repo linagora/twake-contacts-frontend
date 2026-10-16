@@ -1,4 +1,4 @@
-import { Button, Snackbar, Alert } from '@linagora/twake-mui'
+import { Button, Snackbar, Alert, useBreakpoints } from '@linagora/twake-mui'
 import { Icon, Upload } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
 import {
@@ -19,6 +19,7 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
   addressBookId
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
@@ -62,6 +63,7 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
   return (
     <>
       <Button
+        size={isMobile ? 'small' : 'medium'}
         variant="outlined"
         component="label"
         startIcon={<Icon icon={Upload} />}

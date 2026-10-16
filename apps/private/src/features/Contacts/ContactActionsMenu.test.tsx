@@ -15,9 +15,32 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactActionsMenu } from './ContactActionsMenu'
 
+const mockUseBreakpoints = jest.fn(() => ({
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  isExtraLarge: false
+}))
+
+jest.mock('@linagora/twake-mui', () => {
+  const actual = jest.requireActual('@linagora/twake-mui')
+  return {
+    ...actual,
+    useBreakpoints: () => mockUseBreakpoints()
+  }
+})
+
 jest.mock('@common/features/Contacts/ContactsDao')
 
 describe('ContactActionsMenu', () => {
+  beforeEach(() => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+      isExtraLarge: false
+    })
+  })
   it('deletes the contact after confirmation', async () => {
     const store = setupStore({
       user: { userData: { openpaasId: 'u1' } } as UserState,
@@ -62,5 +85,91 @@ describe('ContactActionsMenu', () => {
 
     await waitFor(() => expect(onDeleted).toHaveBeenCalled())
     expect(deleteContact).toHaveBeenCalledWith('u1', 'book1', 'c1')
+  })
+
+  it('renders a Button with text label on desktop', () => {
+    const store = setupStore({
+      user: { userData: { openpaasId: 'u1' } } as UserState,
+      contacts: {
+        addressBooks: {
+          book1: {
+            id: 'book1',
+            userId: 'u1',
+            name: 'Book 1',
+            contactsCount: 1,
+            acl: [],
+            canWrite: true,
+            contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
+          }
+        },
+        loading: false,
+        error: null
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <TwakeMuiThemeProvider>
+          <I18n dictRequire={() => en} lang="en">
+            <MemoryRouter>
+              <ContactActionsMenu
+                contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
+                addressBookId="book1"
+              />
+            </MemoryRouter>
+          </I18n>
+        </TwakeMuiThemeProvider>
+      </Provider>
+    )
+
+    const editButton = screen.getByRole('button', { name: 'Edit' })
+    expect(editButton).toHaveTextContent('Edit')
+  })
+
+  it('renders an IconButton with Pen icon and tooltip on mobile', () => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: true,
+      isTablet: false,
+      isDesktop: false,
+      isExtraLarge: false
+    })
+
+    const store = setupStore({
+      user: { userData: { openpaasId: 'u1' } } as UserState,
+      contacts: {
+        addressBooks: {
+          book1: {
+            id: 'book1',
+            userId: 'u1',
+            name: 'Book 1',
+            contactsCount: 1,
+            acl: [],
+            canWrite: true,
+            contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
+          }
+        },
+        loading: false,
+        error: null
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <TwakeMuiThemeProvider>
+          <I18n dictRequire={() => en} lang="en">
+            <MemoryRouter>
+              <ContactActionsMenu
+                contact={{ id: 'c1', displayName: 'Alice Roche', emails: [] }}
+                addressBookId="book1"
+              />
+            </MemoryRouter>
+          </I18n>
+        </TwakeMuiThemeProvider>
+      </Provider>
+    )
+
+    const editButton = screen.getByRole('button', { name: 'Edit' })
+    expect(editButton).toBeInTheDocument()
+    expect(editButton).not.toHaveTextContent('Edit')
   })
 })

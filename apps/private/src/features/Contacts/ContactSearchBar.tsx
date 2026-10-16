@@ -5,7 +5,13 @@ import {
   searchContacts
 } from '@common/features/Contacts/ContactsDao'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
-import { Autocomplete, ListItem, SearchBar, Stack } from '@linagora/twake-mui'
+import {
+  Autocomplete,
+  ListItem,
+  SearchBar,
+  Stack,
+  useBreakpoints
+} from '@linagora/twake-mui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
@@ -28,6 +34,7 @@ function buildSearchOptions(entries: ContactEntry[]): SearchOption[] {
 export const ContactSearchBar: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
   const addressBooksRecord = useAppSelector(
     state => state.contacts.addressBooks
@@ -136,7 +143,7 @@ export const ContactSearchBar: React.FC = () => {
       isOptionEqualToValue={(option, value): boolean =>
         option.contact.id === value.contact.id
       }
-      className="u-miw-7 "
+      className={isMobile ? 'u-w-100' : 'u-miw-7'}
     />
   )
 }

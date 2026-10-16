@@ -6,7 +6,8 @@ import {
   Select,
   Stack,
   TextField,
-  Tooltip
+  Tooltip,
+  useBreakpoints
 } from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
@@ -41,6 +42,8 @@ export const EntryList: React.FC<EntryListProps> = ({
   touched = []
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
+
   if (entries.length === 0) return null
 
   const getError = (value: string, index: number): boolean => {
@@ -48,11 +51,25 @@ export const EntryList: React.FC<EntryListProps> = ({
     return !validate(value)
   }
 
+  const hasMultiple = entries.length > 1
+  const textFieldSize = isMobile
+    ? showTypeSelector
+      ? hasMultiple
+        ? 6
+        : 8
+      : hasMultiple
+        ? 10
+        : 12
+    : showTypeSelector
+      ? 5
+      : 8
+  const shouldRenderRemoveGrid = !isMobile || hasMultiple
+
   return (
     <Stack spacing={3}>
       {entries.map((entry, index) => (
         <FormRow key={index}>
-          <Grid size={showTypeSelector ? 5 : 8}>
+          <Grid size={textFieldSize}>
             <TextField
               fullWidth
               variant="outlined"
@@ -75,7 +92,7 @@ export const EntryList: React.FC<EntryListProps> = ({
             />
           </Grid>
           {showTypeSelector && (
-            <Grid size={3}>
+            <Grid size={isMobile ? 4 : 3}>
               <Select
                 fullWidth
                 variant="outlined"
@@ -93,19 +110,21 @@ export const EntryList: React.FC<EntryListProps> = ({
               </Select>
             </Grid>
           )}
-          <Grid size={1}>
-            {index > 0 && (
-              <Tooltip title={t('contacts.form.remove')}>
-                <Button
-                  variant="text"
-                  onClick={() => onRemove(index)}
-                  aria-label={t('contacts.form.remove')}
-                >
-                  <Icon icon={Cross} />
-                </Button>
-              </Tooltip>
-            )}
-          </Grid>
+          {shouldRenderRemoveGrid && (
+            <Grid size={isMobile ? 2 : 1}>
+              {index > 0 && (
+                <Tooltip title={t('contacts.form.remove')}>
+                  <Button
+                    variant="text"
+                    onClick={() => onRemove(index)}
+                    aria-label={t('contacts.form.remove')}
+                  >
+                    <Icon icon={Cross} />
+                  </Button>
+                </Tooltip>
+              )}
+            </Grid>
+          )}
         </FormRow>
       ))}
     </Stack>

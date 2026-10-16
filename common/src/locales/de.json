@@ -77,6 +77,11 @@
       "loading": "Wird geladen...",
       "noResults": "Keine Kontakte gefunden"
     },
+    "nav": {
+      "menu": "Menü",
+      "settings": "Einstellungen",
+      "search": "Suchen"
+    },
     "errors": {
       "load": "Kontakte konnten nicht geladen werden",
       "create": "Kontakt konnte nicht erstellt werden",

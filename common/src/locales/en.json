@@ -85,6 +85,11 @@
       "loading": "Loading...",
       "noResults": "No contacts found"
     },
+    "nav": {
+      "menu": "Menu",
+      "settings": "Settings",
+      "search": "Search"
+    },
     "errors": {
       "load": "Failed to load contacts",
       "create": "Failed to create contact",

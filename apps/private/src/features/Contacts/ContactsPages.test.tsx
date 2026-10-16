@@ -6,12 +6,27 @@ import en from '@common/locales/en.json'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { VirtuosoMockContext } from '@linagora/twake-mui'
+import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { AddressBookPage } from './AddressBookPage'
 import { ContactPage } from './ContactPage'
 import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
+
+const mockUseBreakpoints = jest.fn(() => ({
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  isExtraLarge: false
+}))
+
+jest.mock('@linagora/twake-mui', () => {
+  const actual = jest.requireActual('@linagora/twake-mui')
+  return {
+    ...actual,
+    useBreakpoints: () => mockUseBreakpoints()
+  }
+})
 
 jest.mock('@common/features/Contacts/ContactsDao', () => ({
   ...jest.requireActual('@common/features/Contacts/ContactsDao'),
@@ -24,30 +39,32 @@ const renderWithStore = (
 ): ReturnType<typeof render> =>
   render(
     <Provider store={store}>
-      <I18n dictRequire={() => en} lang="en">
-        <VirtuosoMockContext.Provider
-          value={{ viewportHeight: 1000, itemHeight: 50 }}
-        >
-          <MemoryRouter initialEntries={[path]}>
-            <Routes>
-              <Route path="/contacts" element={<AddressBookPage />} />
-              <Route
-                path="/contacts/:addressBookId"
-                element={<AddressBookPage />}
-              />
-              <Route
-                path="/contacts/:addressBookId/:contactId"
-                element={<ContactPage />}
-              />
-              <Route path="/contacts/new" element={<CreateContactPage />} />
-              <Route
-                path="/contacts/:addressBookId/:contactId/edit"
-                element={<EditContactPage />}
-              />
-            </Routes>
-          </MemoryRouter>
-        </VirtuosoMockContext.Provider>
-      </I18n>
+      <TwakeMuiThemeProvider>
+        <I18n dictRequire={() => en} lang="en">
+          <VirtuosoMockContext.Provider
+            value={{ viewportHeight: 1000, itemHeight: 50 }}
+          >
+            <MemoryRouter initialEntries={[path]}>
+              <Routes>
+                <Route path="/contacts" element={<AddressBookPage />} />
+                <Route
+                  path="/contacts/:addressBookId"
+                  element={<AddressBookPage />}
+                />
+                <Route
+                  path="/contacts/:addressBookId/:contactId"
+                  element={<ContactPage />}
+                />
+                <Route path="/contacts/new" element={<CreateContactPage />} />
+                <Route
+                  path="/contacts/:addressBookId/:contactId/edit"
+                  element={<EditContactPage />}
+                />
+              </Routes>
+            </MemoryRouter>
+          </VirtuosoMockContext.Provider>
+        </I18n>
+      </TwakeMuiThemeProvider>
     </Provider>
   )
 
@@ -182,6 +199,12 @@ describe('ContactPage', () => {
   ).CALENDAR_SPA_URL
 
   beforeEach(() => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+      isExtraLarge: false
+    })
     ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
       'https://mail.example.com'
     ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
@@ -227,11 +250,41 @@ describe('ContactPage', () => {
     )
   })
 
-  it('shows quick action buttons when contact has email', () => {
+  it('shows quick action buttons with labels on desktop', () => {
     renderContacts('/contacts/book1/c1')
 
-    expect(screen.getByTestId('contact-mail-button')).toBeInTheDocument()
-    expect(screen.getByTestId('contact-calendar-button')).toBeInTheDocument()
+    const mailButton = screen.getByTestId('contact-mail-button')
+    const chatButton = screen.getByTestId('contact-chat-button')
+    const calendarButton = screen.getByTestId('contact-calendar-button')
+
+    expect(mailButton).toBeInTheDocument()
+    expect(chatButton).toBeInTheDocument()
+    expect(calendarButton).toBeInTheDocument()
+    expect(mailButton).toHaveTextContent('Send email')
+    expect(chatButton).toHaveTextContent('Chat')
+    expect(calendarButton).toHaveTextContent('Schedule')
+  })
+
+  it('shows quick action buttons without labels on mobile', () => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: true,
+      isTablet: false,
+      isDesktop: false,
+      isExtraLarge: false
+    })
+
+    renderContacts('/contacts/book1/c1')
+
+    const mailButton = screen.getByTestId('contact-mail-button')
+    const chatButton = screen.getByTestId('contact-chat-button')
+    const calendarButton = screen.getByTestId('contact-calendar-button')
+
+    expect(mailButton).toBeInTheDocument()
+    expect(chatButton).toBeInTheDocument()
+    expect(calendarButton).toBeInTheDocument()
+    expect(mailButton).not.toHaveTextContent('Send email')
+    expect(chatButton).not.toHaveTextContent('Chat')
+    expect(calendarButton).not.toHaveTextContent('Schedule')
   })
 
   it('disable quick action buttons when contact has no email', () => {

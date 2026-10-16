@@ -73,7 +73,12 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   return (
     <>
-      <Stack direction="row" spacing={1} className="u-flex-justify-end">
+      <Stack
+        direction="row"
+        spacing={1}
+        className="u-flex-justify-end"
+        onClick={event => event.stopPropagation()}
+      >
         {/* TEMPORARY: reveal on row hover through CSS until twake-mui ships a
             MuiTableRow rule for hover-only actions. VirtualizedTable owns the
             row, so the old isHovered state is no longer reachable from here.

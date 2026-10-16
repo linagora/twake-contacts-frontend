@@ -1,4 +1,10 @@
-import { Button, Menu, MenuItem, Stack } from '@linagora/twake-mui'
+import {
+  Button,
+  Menu,
+  MenuItem,
+  Stack,
+  useBreakpoints
+} from '@linagora/twake-mui'
 import {
   Icon,
   Left,
@@ -60,6 +66,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   onDelete
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   const [values, setValues] = useState<ContactFormValues>(initialValues)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -156,7 +163,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       </Stack>
 
       <AvatarHeader displayName={displayName} title={title} />
-      <Stack spacing={3} className="u-maw-7">
+      <Stack spacing={3} className={isMobile ? 'u-w-100' : 'u-maw-7'}>
         <NameFields
           givenName={values.givenName}
           familyName={values.familyName}

@@ -1,5 +1,11 @@
-import { Button, IconButton, Stack, Tooltip } from '@linagora/twake-mui'
-import { Icon, Trash } from '@linagora/twake-icons'
+import {
+  Button,
+  IconButton,
+  Stack,
+  Tooltip,
+  useBreakpoints
+} from '@linagora/twake-mui'
+import { Icon, Pen, Trash } from '@linagora/twake-icons'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { deleteContact } from '@common/features/Contacts/ContactsSlice'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
@@ -55,6 +61,7 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   readOnly
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
@@ -93,9 +100,20 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
     <>
       <ContactActionsBar
         primaryAction={
-          <Button variant="contained" onClick={handleEdit}>
-            {t('contacts.menu.edit')}
-          </Button>
+          isMobile ? (
+            <Tooltip title={t('contacts.menu.edit')}>
+              <IconButton
+                aria-label={t('contacts.menu.edit')}
+                onClick={handleEdit}
+              >
+                <Icon icon={Pen} />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Button variant="contained" onClick={handleEdit}>
+              {t('contacts.menu.edit')}
+            </Button>
+          )
         }
         onDelete={handleOpenDeleteDialog}
         readOnly={readOnly}

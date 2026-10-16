@@ -77,6 +77,11 @@
       "loading": "Đang tải...",
       "noResults": "Không tìm thấy liên hệ"
     },
+    "nav": {
+      "menu": "Menu",
+      "settings": "Cài đặt",
+      "search": "Tìm kiếm"
+    },
     "errors": {
       "load": "Không thể tải danh bạ",
       "create": "Không thể tạo liên hệ",

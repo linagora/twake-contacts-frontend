@@ -15,10 +15,11 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography
+  Typography,
+  useBreakpoints
 } from '@linagora/twake-mui'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
@@ -26,20 +27,23 @@ import { ImportContactsButton } from './ImportContactsButton'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)
 
-  const [selectedTab, setSelectedTab] = useState<BookScope>('mine')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedTab: BookScope =
+    searchParams.get('scope') === 'shared' ? 'shared' : 'mine'
   const [tabBookId, setTabBookId] = useState(addressBookId)
 
   // the /contacts and /contacts/:addressBookId routes share this instance, so
   // the tab is reset when leaving My contacts to start again on 'mine'
   if (tabBookId !== addressBookId) {
     setTabBookId(addressBookId)
-    setSelectedTab('mine')
+    setSearchParams('mine')
   }
 
   const scope = addressBookId ? undefined : selectedTab
@@ -127,12 +131,24 @@ export const AddressBookPage: React.FC = () => {
         {loading ? (
           <Skeleton variant="text" width={200} height={40} />
         ) : (
-          <Stack direction="row" className="u-flex-items-center" spacing={2}>
-            <Typography variant="h4">{title}</Typography>
+          <Stack
+            direction="row"
+            className="u-flex-items-center u-w-100"
+            spacing={2}
+          >
+            {!isMobile && <Typography variant="h4">{title}</Typography>}
             {!addressBookId && (
               <Tabs
+                className={isMobile ? 'u-w-100' : ''}
                 value={selectedTab}
-                onChange={(_e, value: BookScope) => setSelectedTab(value)}
+                onChange={(_e, value: BookScope) =>
+                  setSearchParams(previous => {
+                    const next = new URLSearchParams(previous)
+                    if (value === 'shared') next.set('scope', value)
+                    else next.delete('scope')
+                    return next
+                  })
+                }
                 segmented
               >
                 <Tab value="mine" label={t('contacts.tabs.mine')} />
@@ -141,9 +157,11 @@ export const AddressBookPage: React.FC = () => {
             )}
           </Stack>
         )}
-        {(addressBookId !== 'dab' || book?.canWrite) && (
-          <ImportContactsButton addressBookId={addressBookId} />
-        )}
+        {!isMobile &&
+          (addressBookId !== 'dab' || book?.canWrite) &&
+          entries.length > 0 && (
+            <ImportContactsButton addressBookId={addressBookId} />
+          )}
       </Stack>
       {renderContent()}
     </Stack>

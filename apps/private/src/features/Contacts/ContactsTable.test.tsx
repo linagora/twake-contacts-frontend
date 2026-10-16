@@ -9,6 +9,21 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactsTable } from './ContactsTable'
 
+const mockUseBreakpoints = jest.fn(() => ({
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  isExtraLarge: false
+}))
+
+jest.mock('@linagora/twake-mui', () => {
+  const actual = jest.requireActual('@linagora/twake-mui')
+  return {
+    ...actual,
+    useBreakpoints: () => mockUseBreakpoints()
+  }
+})
+
 const jane: ContactEntry = {
   addressBookId: 'book1',
   contact: {
@@ -59,6 +74,12 @@ describe('ContactsTable', () => {
   beforeEach(() => {
     jest.useFakeTimers()
     window.MAIL_SPA_URL = 'https://mail.example.com'
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+      isExtraLarge: false
+    })
   })
 
   afterEach(() => {
@@ -78,6 +99,31 @@ describe('ContactsTable', () => {
 
     // header + Jane + 2 skeletons
     expect(screen.getAllByRole('row')).toHaveLength(4)
+  })
+
+  it('renders all columns on desktop', () => {
+    renderTable()
+
+    expect(screen.getByText(en.contacts.name)).toBeInTheDocument()
+    expect(screen.getByText(en.contacts.email)).toBeInTheDocument()
+    expect(screen.getByText(en.contacts.phone)).toBeInTheDocument()
+    expect(screen.getByText(en.contacts.team)).toBeInTheDocument()
+  })
+
+  it('renders only name and actions columns on mobile', () => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: true,
+      isTablet: false,
+      isDesktop: false,
+      isExtraLarge: false
+    })
+
+    renderTable()
+
+    expect(screen.getByText(en.contacts.name)).toBeInTheDocument()
+    expect(screen.queryByText(en.contacts.email)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.contacts.phone)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.contacts.team)).not.toBeInTheDocument()
   })
 
   it('opens the contact when clicking its row', () => {

@@ -77,6 +77,11 @@
       "loading": "Cargando...",
       "noResults": "No se han encontrado contactos"
     },
+    "nav": {
+      "menu": "Menú",
+      "settings": "Configuración",
+      "search": "Buscar"
+    },
     "errors": {
       "load": "No se han podido cargar los contactos",
       "create": "No se ha podido crear el contacto",

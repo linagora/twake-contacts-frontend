@@ -1,4 +1,10 @@
-import { Grid, InputAdornment, MenuItem, TextField } from '@linagora/twake-mui'
+import {
+  Grid,
+  InputAdornment,
+  MenuItem,
+  TextField,
+  useBreakpoints
+} from '@linagora/twake-mui'
 import { Icon, People } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import {
@@ -22,9 +28,10 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
   onChange
 }) => {
   const { t } = useI18n()
+  const { isMobile } = useBreakpoints()
   return (
     <FormRow>
-      <Grid size={8}>
+      <Grid size={isMobile ? 12 : 8}>
         <TextField
           select
           fullWidth

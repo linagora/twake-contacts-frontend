@@ -10,6 +10,21 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import I18n from 'twake-i18n'
 import { ContactsSidebar } from './ContactsSidebar'
 
+const mockUseBreakpoints = jest.fn(() => ({
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  isExtraLarge: false
+}))
+
+jest.mock('@linagora/twake-mui', () => {
+  const actual = jest.requireActual('@linagora/twake-mui')
+  return {
+    ...actual,
+    useBreakpoints: () => mockUseBreakpoints()
+  }
+})
+
 const makeBook = (id: string, name: string): AddressBookWithContacts => ({
   id,
   userId: 'u1',
@@ -166,6 +181,21 @@ describe('ContactsSidebar', () => {
 
     expect(label).toHaveClass('u-ellipsis')
     expect(label.closest('.u-midellipsis')).toBeNull()
+  })
+
+  it('hides create button on mobile', () => {
+    mockUseBreakpoints.mockReturnValueOnce({
+      isMobile: true,
+      isTablet: false,
+      isDesktop: false,
+      isExtraLarge: false
+    })
+
+    renderSidebar('/contacts')
+
+    expect(
+      screen.queryByRole('link', { name: en.contacts.create })
+    ).not.toBeInTheDocument()
   })
 
   describe('My contacts dropdown', () => {
