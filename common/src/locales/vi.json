@@ -28,6 +28,7 @@
     "form": {
       "createTitle": "Tạo liên hệ",
       "close": "Đóng",
+      "open": "Mở",
       "firstName": "Tên",
       "lastName": "Họ",
       "addTeam": "Thêm nhóm",

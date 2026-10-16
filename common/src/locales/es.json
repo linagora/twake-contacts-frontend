@@ -28,6 +28,7 @@
     "form": {
       "createTitle": "Crear contacto",
       "close": "Cerrar",
+      "open": "Abrir",
       "firstName": "Nombre",
       "lastName": "Apellidos",
       "addTeam": "Añadir equipo",

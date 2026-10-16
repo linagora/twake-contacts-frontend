@@ -2,6 +2,7 @@ import { setupStore } from '@common/app/store'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
+import fr from '@common/locales/fr.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -19,7 +20,9 @@ const failUpdate = (store: ReturnType<typeof setupStore>): void => {
   })
 }
 
-function renderPage(): ReturnType<typeof setupStore> {
+function renderPage(
+  locale: { lang: string; dict: typeof en } = { lang: 'en', dict: en }
+): ReturnType<typeof setupStore> {
   const store = setupStore({
     user: { userData: {} } as UserState,
     contacts: {
@@ -51,7 +54,7 @@ function renderPage(): ReturnType<typeof setupStore> {
   render(
     <Provider store={store}>
       <TwakeMuiThemeProvider>
-        <I18n dictRequire={() => en} lang="en">
+        <I18n dictRequire={() => locale.dict} lang={locale.lang}>
           <MemoryRouter initialEntries={['/contacts']}>
             <Routes>
               <Route path="/contacts" element={<ContactsPage />}>
@@ -89,5 +92,14 @@ describe('ContactsPage error banner', () => {
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(store.getState().contacts.error).toBeNull()
+  })
+
+  it('labels the banner close button in the user language', () => {
+    const store = renderPage({ lang: 'fr', dict: fr })
+    failUpdate(store)
+
+    expect(
+      screen.getByRole('button', { name: fr.contacts.form.close })
+    ).toBeInTheDocument()
   })
 })

@@ -28,6 +28,7 @@
     "form": {
       "createTitle": "Создать контакт",
       "close": "Закрыть",
+      "open": "Открыть",
       "firstName": "Имя",
       "lastName": "Фамилия",
       "addTeam": "Добавить команду",

@@ -362,7 +362,11 @@ export const ShareAddressBookDialog: React.FC<ShareAddressBookDialogProps> = ({
           {t('contacts.share.title', {
             name: book?.name || t('contacts.share.defaultAddressBookName')
           })}
-          <IconButton edge="end" aria-label="close" onClick={onClose}>
+          <IconButton
+            edge="end"
+            aria-label={t('contacts.form.close')}
+            onClick={onClose}
+          >
             <Icon icon={Cross} />
           </IconButton>
         </Stack>

@@ -63,6 +63,7 @@ export const ContactsPage: React.FC = () => {
           {error && (
             <Alert
               severity="error"
+              closeText={t('contacts.form.close')}
               onClose={() => dispatch(clearContactsError())}
             >
               {t(error)}
@@ -148,6 +149,7 @@ export const ContactsPage: React.FC = () => {
         <Alert
           variant="filled"
           severity="success"
+          closeText={t('contacts.form.close')}
           onClose={() => setCreateSuccess(false)}
         >
           {t('contacts.addressBook.createSuccess')}
@@ -159,7 +161,11 @@ export const ContactsPage: React.FC = () => {
         onClose={() => setSubscribeSuccess(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity="success" onClose={() => setSubscribeSuccess(false)}>
+        <Alert
+          severity="success"
+          closeText={t('contacts.form.close')}
+          onClose={() => setSubscribeSuccess(false)}
+        >
           {t('contacts.addressBook.subscribeSuccess')}
         </Alert>
       </Snackbar>
