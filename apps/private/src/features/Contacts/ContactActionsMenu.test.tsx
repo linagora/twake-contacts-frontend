@@ -62,5 +62,6 @@ describe('ContactActionsMenu', () => {
 
     await waitFor(() => expect(onDeleted).toHaveBeenCalled())
     expect(deleteContact).toHaveBeenCalledWith('u1', 'book1', 'c1')
+    expect(store.getState().contacts.addressBooks.book1.contacts).toEqual([])
   })
 })
