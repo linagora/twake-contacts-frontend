@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useRef } from 'react'
 import {
   Stack,
   Typography,
@@ -39,6 +39,8 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
   const [selectedRole, setSelectedRole] = useState(
     AddressBookAccessLevel.Viewer
   )
+  // Send gets disabled while focused: keep the focus inside the dialog
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const nonInvitableIds = useMemo(
     () => getNonInvitableUserIds(invitedMembers, currentUserId),
@@ -108,6 +110,8 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             renderInput={params => (
               <TextField
                 {...params}
+                inputRef={searchInputRef}
+                autoFocus
                 placeholder={t('contacts.share.addContacts')}
                 slotProps={{
                   ...params.slotProps,
@@ -143,6 +147,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             onShare(selectedUsers, selectedRole)
             setSelectedUsers([])
             setSelectedRole(AddressBookAccessLevel.Viewer)
+            searchInputRef.current?.focus()
           }}
         >
           {t('contacts.share.send')}
