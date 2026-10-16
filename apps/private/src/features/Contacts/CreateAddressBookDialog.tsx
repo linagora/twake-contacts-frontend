@@ -25,9 +25,21 @@ export const CreateAddressBookDialog: React.FC<
 > = ({ isCreating, onClose, onConfirm }) => {
   const { t } = useI18n()
   const [name, setName] = useState('')
+  const canSubmit = !!name.trim() && !isCreating
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault()
+    if (canSubmit) onConfirm(name.trim())
+  }
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
+    >
       <DialogTitle>
         <ListItem
           disableGutters
@@ -70,11 +82,7 @@ export const CreateAddressBookDialog: React.FC<
         <Button variant="text" onClick={onClose}>
           {t('contacts.addressBook.cancel')}
         </Button>
-        <Button
-          variant="contained"
-          disabled={!name.trim() || isCreating}
-          onClick={() => onConfirm(name.trim())}
-        >
+        <Button variant="contained" type="submit" disabled={!canSubmit}>
           {t('contacts.addressBook.save')}
         </Button>
       </DialogActions>
