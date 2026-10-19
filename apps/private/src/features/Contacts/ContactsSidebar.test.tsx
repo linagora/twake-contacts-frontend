@@ -4,7 +4,8 @@ import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import I18n from 'twake-i18n'
@@ -276,6 +277,47 @@ describe('ContactsSidebar', () => {
 
       expect(getMyContacts()).toHaveAttribute('aria-expanded', 'true')
       expect(screen.getByText('Book 1')).toBeInTheDocument()
+    })
+  })
+
+  describe('Shared caption', () => {
+    const getShared = (): HTMLElement =>
+      screen.getByRole('button', { name: en.contacts.shared })
+
+    it('toggles the shared books from the keyboard and exposes its state', async () => {
+      renderSidebar('/contacts', {
+        [DEFAULT_ADDRESS_BOOK_ID]: makeBook(
+          DEFAULT_ADDRESS_BOOK_ID,
+          'My contacts'
+        ),
+        shared1: { ...makeBook('shared1', 'Alpha Shared'), ownerId: 'bob' }
+      })
+
+      await act(async () => getShared().focus())
+      expect(getShared()).toHaveFocus()
+      expect(getShared()).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByText('Alpha Shared')).toBeInTheDocument()
+
+      await act(async () => userEvent.keyboard('{Enter}'))
+
+      expect(getShared()).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.queryByText('Alpha Shared')).not.toBeInTheDocument()
+
+      await act(async () => userEvent.keyboard(' '))
+
+      expect(getShared()).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByText('Alpha Shared')).toBeInTheDocument()
+    })
+
+    it('keeps the subscribe button outside of the toggle', () => {
+      renderSidebar('/contacts', {
+        shared1: { ...makeBook('shared1', 'Alpha Shared'), ownerId: 'bob' }
+      })
+
+      const subscribe = screen.getByRole('button', {
+        name: en.contacts.addressBook.subscribeTitle
+      })
+      expect(getShared()).not.toContainElement(subscribe)
     })
   })
 })
