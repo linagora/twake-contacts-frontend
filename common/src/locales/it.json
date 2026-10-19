@@ -119,6 +119,7 @@
       "emptyTitle": "Nessuno è stato ancora aggiunto",
       "emptySubtitle": "Le persone invitate a partecipare verranno elencate qui",
       "editor": "Editor",
+      "readWrite": "Lettura e scrittura",
       "viewer": "Spettatore",
       "contactsCount": "%{smart_count} contatto |||| %{smart_count} contatti",
       "you": "Tu",

@@ -119,6 +119,7 @@
       "emptyTitle": "Пока никто не добавлен",
       "emptySubtitle": "Здесь будут перечислены приглашенные люди",
       "editor": "Редактор",
+      "readWrite": "Чтение и запись",
       "viewer": "Читатель",
       "contactsCount": "%{smart_count} контакт |||| %{smart_count} контакта |||| %{smart_count} контактов",
       "you": "Вы",

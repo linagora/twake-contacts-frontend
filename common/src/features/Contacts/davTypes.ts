@@ -73,6 +73,8 @@ export interface DavContactsResponse {
 export enum AddressBookAccessLevel {
   Owner = 1,
   Viewer = 2,
+  // sabre/dav ACCESS_READWRITE, granted by other clients: edits the contacts, cannot share
+  ReadWrite = 3,
   Editor = 5,
   None = 4
 }

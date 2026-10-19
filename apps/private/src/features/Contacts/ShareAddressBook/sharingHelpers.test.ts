@@ -110,6 +110,9 @@ describe('sharingHelpers', () => {
       expect(getRoleTranslationKey(AddressBookAccessLevel.Viewer)).toBe(
         'contacts.share.viewer'
       )
+      expect(getRoleTranslationKey(AddressBookAccessLevel.ReadWrite)).toBe(
+        'contacts.share.readWrite'
+      )
     })
 
     it('returns empty string for None or undefined role', () => {

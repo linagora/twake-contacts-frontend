@@ -54,6 +54,8 @@ export const getRoleTranslationKey = (
 ): string => {
   if (role === AddressBookAccessLevel.Owner) return 'contacts.share.owner'
   if (role === AddressBookAccessLevel.Editor) return 'contacts.share.editor'
+  if (role === AddressBookAccessLevel.ReadWrite)
+    return 'contacts.share.readWrite'
   if (role === AddressBookAccessLevel.Viewer) return 'contacts.share.viewer'
   return ''
 }

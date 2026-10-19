@@ -119,6 +119,7 @@
       "emptyTitle": "No one has been added yet",
       "emptySubtitle": "People invited to join will be listed here",
       "editor": "Editor",
+      "readWrite": "Read & write",
       "viewer": "Viewer",
       "contactsCount": "%{smart_count} contact |||| %{smart_count} contacts",
       "you": "You",

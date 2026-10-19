@@ -119,6 +119,7 @@
       "emptyTitle": "Personne n'a encore été ajouté",
       "emptySubtitle": "Les personnes invitées à rejoindre seront listées ici",
       "editor": "Éditeur",
+      "readWrite": "Lecture et écriture",
       "viewer": "Lecteur",
       "contactsCount": "%{smart_count} contact |||| %{smart_count} contacts",
       "you": "Vous",

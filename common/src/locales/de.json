@@ -119,6 +119,7 @@
       "emptyTitle": "Noch niemand hinzugefügt",
       "emptySubtitle": "Personen, die eingeladen wurden, werden hier aufgelistet",
       "editor": "Bearbeiter",
+      "readWrite": "Lesen und Schreiben",
       "viewer": "Betrachter",
       "contactsCount": "%{smart_count} Kontakt |||| %{smart_count} Kontakte",
       "you": "Du",
