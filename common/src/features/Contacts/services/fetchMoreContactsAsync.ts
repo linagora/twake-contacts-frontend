@@ -1,58 +1,58 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
-import { ContactsState, Contact } from '../contactsTypes'
-import { CONTACTS_PAGINATION_LIMIT } from '../constants'
+import { fetchContactsPage } from '../ContactsDao'
+import { ContactEntry, ContactsState } from '../contactsTypes'
+import { ALL_CONTACTS_LISTING } from '../constants'
+import { appendListingPage } from '../contactListings'
 import { toContactsErrorKey } from '../contactsUtils'
-import { fetchPaginatedContacts } from './fetchPaginatedContacts'
 
 export interface FetchMoreContactsPayload {
   userId: string
-  bookId: string
+  // ALL_CONTACTS_LISTING or an address book id
+  listingKey: string
+}
+
+/**
+ * The page of a listing read after the cursor after, without the contacts of
+ * books the app does not list, such as group delegations, as the book list.
+ */
+export async function fetchListingPage(
+  { addressBooks }: ContactsState,
+  userId: string,
+  listingKey: string,
+  after: string | null
+): Promise<{ entries: ContactEntry[]; next: string | null }> {
+  const { entries, next } = await fetchContactsPage(
+    userId,
+    addressBooks[listingKey] ?? null,
+    after,
+    // without the domain book, its members could not be listed
+    addressBooks.dab !== undefined
+  )
+  return {
+    entries: entries.filter(({ addressBookId }) => {
+      if (addressBooks[addressBookId]) return true
+      console.warn(`Contact of unknown address book ${addressBookId}`)
+      return false
+    }),
+    next
+  }
 }
 
 export const fetchMoreContactsThunk = (
   create: ReducerCreators<ContactsState>
 ) =>
   create.asyncThunk<
-    {
-      bookId: string
-      contacts: Contact[]
-      offset: number
-      hasMore: boolean
-      syncToken: number
-    },
+    { entries: ContactEntry[]; next: string | null; after: string | null },
     FetchMoreContactsPayload,
     { rejectValue: RejectedError }
   >(
-    async ({ userId, bookId }, { getState, rejectWithValue }) => {
+    async ({ userId, listingKey }, { getState, rejectWithValue }) => {
+      const { contacts } = getState() as { contacts: ContactsState }
+      const after = contacts.listings[listingKey]?.next ?? null
       try {
-        const state = getState() as { contacts: ContactsState }
-        const bookWithContacts = state.contacts.addressBooks[bookId]
-
-        if (!bookWithContacts || !bookWithContacts.hasMore) {
-          return {
-            bookId,
-            contacts: [],
-            offset: bookWithContacts?.offset || 0,
-            hasMore: false,
-            syncToken: bookWithContacts?.syncToken ?? 1
-          }
-        }
-
-        const result = await fetchPaginatedContacts(
-          bookWithContacts,
-          userId,
-          CONTACTS_PAGINATION_LIMIT,
-          bookWithContacts.offset
-        )
-
-        return {
-          bookId,
-          contacts: result.contacts,
-          offset: result.offset,
-          hasMore: result.hasMore,
-          syncToken: result.syncToken
-        }
+        const page = await fetchListingPage(contacts, userId, listingKey, after)
+        return { ...page, after }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
@@ -60,46 +60,64 @@ export const fetchMoreContactsThunk = (
     {
       options: {
         // endReached can fire again while a page is in flight
-        condition: ({ bookId }, { getState }) => {
-          const state = getState() as { contacts: ContactsState }
-          return !state.contacts.addressBooks[bookId]?.isLoadingMore
+        condition: ({ listingKey }, { getState }) => {
+          const { addressBooks, listings } = (
+            getState() as { contacts: ContactsState }
+          ).contacts
+          const listing = listings[listingKey]
+          return (
+            (listingKey === ALL_CONTACTS_LISTING ||
+              addressBooks[listingKey] !== undefined) &&
+            (!listing || (listing.hasMore && listing.loadingRequestId === null))
+          )
         }
       },
       pending: (state, action) => {
-        const book = state.addressBooks[action.meta.arg.bookId]
-        if (book) book.isLoadingMore = true
-      },
-      settled: (state, action) => {
-        const book = state.addressBooks[action.meta.arg.bookId]
-        if (book) book.isLoadingMore = false
+        const { listingKey } = action.meta.arg
+        state.listings[listingKey] ??= {
+          refs: [],
+          pages: [],
+          next: null,
+          hasMore: true,
+          loadingRequestId: null
+        }
+        state.listings[listingKey].loadingRequestId = action.meta.requestId
       },
       fulfilled: (state, action) => {
-        const { bookId, contacts, offset, hasMore, syncToken } = action.payload
-        const book = state.addressBooks[bookId]
-        if (book) {
-          // Pages are fetched by offset, so a contact added while paging
-          // can come back in the next page; a repeated contact would
-          // give the table duplicate keys
-          // // Also handle contacts added from search that may be out of position
-          const toRemove = new Set<string>()
-          for (const contact of contacts) {
-            const existingIndex = book.contacts.findIndex(
-              c => c.id === contact.id
-            )
-            if (existingIndex !== -1) {
-              toRemove.add(contact.id)
-            }
-          }
-          // Remove contacts that will be re-fetched in correct position
-          book.contacts = book.contacts.filter(c => !toRemove.has(c.id))
-          // Add all new contacts in their proper sorted position
-          book.contacts.push(...contacts)
-          book.offset = offset
-          book.hasMore = hasMore
-          book.syncToken = syncToken
-        }
+        const listing = state.listings[action.meta.arg.listingKey]
+        // the listing restarted while the page was in flight, as when the
+        // books were loaded again
+        if (listing?.loadingRequestId !== action.meta.requestId) return
+        listing.loadingRequestId = null
+
+        const { entries, next, after } = action.payload
+        appendListingPage(state, listing, after, entries)
+        listing.next = next
+        listing.hasMore = next !== null
       },
       rejected: (state, action) => {
+        const { listingKey } = action.meta.arg
+        const listing = state.listings[listingKey]
+        if (listing?.loadingRequestId !== action.meta.requestId) return
+        listing.loadingRequestId = null
+
+        // A cursor the server no longer accepts: the listing restarts from its
+        // first page once, a cursor rejected again being reported
+        const cursorRejected =
+          action.payload?.status === 400 && listing.next !== null
+        if (cursorRejected && !listing.restarted) {
+          state.listings[listingKey] = {
+            refs: [],
+            pages: [],
+            next: null,
+            hasMore: true,
+            loadingRequestId: null,
+            restarted: true
+          }
+          return
+        }
+        // the api already retried: the listing stops until the next reload
+        listing.hasMore = false
         if (action.payload?.status !== 401) {
           state.error = toContactsErrorKey(
             action.payload,

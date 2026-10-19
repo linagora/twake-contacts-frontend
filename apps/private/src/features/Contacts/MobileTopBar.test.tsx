@@ -35,6 +35,7 @@ const defaultPreloadedState = {
         contacts: []
       }
     },
+    listings: {},
     loading: false,
     error: null
   }

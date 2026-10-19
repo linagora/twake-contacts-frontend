@@ -1,10 +1,6 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
-import { AddressBook, Contact } from './contactsTypes'
-import {
-  getAddressBookDisplayName,
-  placeContact,
-  sortAddressBooks
-} from './contactsUtils'
+import { AddressBook } from './contactsTypes'
+import { getAddressBookDisplayName, sortAddressBooks } from './contactsUtils'
 
 const makeBook = (id: string, name: string): AddressBook => ({
   id,
@@ -78,71 +74,5 @@ describe('getAddressBookDisplayName', () => {
     expect(getAddressBookDisplayName(makeBook('api-empty', ''), t)).toBe(
       'api-empty'
     )
-  })
-})
-
-const makeContact = (id: string, displayName: string): Contact => ({
-  id,
-  displayName,
-  emails: []
-})
-
-const names = (contacts: Contact[]): string[] =>
-  contacts.map(contact => contact.displayName)
-
-describe('placeContact', () => {
-  const contacts = [
-    makeContact('aaron', 'Aaron Analyse'),
-    makeContact('imp', 'Imp Alphab'),
-    makeContact('mover', 'Mover Test'),
-    makeContact('rita', 'Read Only Rita')
-  ]
-
-  it('inserts a new contact after the contacts sharing its first letter', () => {
-    expect(
-      names(placeContact(contacts, makeContact('abel', 'Abel Second')))
-    ).toEqual([
-      'Aaron Analyse',
-      'Abel Second',
-      'Imp Alphab',
-      'Mover Test',
-      'Read Only Rita'
-    ])
-  })
-
-  it('ignores case and accents like the server', () => {
-    expect(
-      names(placeContact(contacts, makeContact('emile', 'émile Zola')))
-    ).toEqual([
-      'Aaron Analyse',
-      'émile Zola',
-      'Imp Alphab',
-      'Mover Test',
-      'Read Only Rita'
-    ])
-  })
-
-  it('puts a name not starting with a letter first', () => {
-    expect(
-      names(placeContact(contacts, makeContact('n', '42 Street')))
-    ).toEqual([
-      '42 Street',
-      'Aaron Analyse',
-      'Imp Alphab',
-      'Mover Test',
-      'Read Only Rita'
-    ])
-  })
-
-  it('moves a renamed contact whose first letter changes', () => {
-    expect(
-      names(placeContact(contacts, makeContact('aaron', 'Zoe Analyse')))
-    ).toEqual(['Imp Alphab', 'Mover Test', 'Read Only Rita', 'Zoe Analyse'])
-  })
-
-  it('keeps in place a renamed contact whose first letter is unchanged', () => {
-    expect(
-      names(placeContact(contacts, makeContact('imp', 'Ivan Alphab')))
-    ).toEqual(['Aaron Analyse', 'Ivan Alphab', 'Mover Test', 'Read Only Rita'])
   })
 })

@@ -46,6 +46,7 @@ function renderPage(
           contacts: []
         }
       },
+      listings: {},
       loading: false,
       error: null
     }

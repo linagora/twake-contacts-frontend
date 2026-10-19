@@ -38,6 +38,7 @@ const renderRowActions = (): void => {
           contacts: [contact]
         }
       },
+      listings: {},
       loading: false,
       error: null
     }

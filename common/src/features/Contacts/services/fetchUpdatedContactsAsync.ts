@@ -1,9 +1,9 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
-import { ContactsState, Contact } from '../contactsTypes'
-import { CONTACTS_PAGINATION_LIMIT } from '../constants'
-import { toContactsErrorKey } from '../contactsUtils'
-import { fetchPaginatedContacts } from './fetchPaginatedContacts'
+import { ContactEntry, ContactsState } from '../contactsTypes'
+import { ALL_CONTACTS_LISTING } from '../constants'
+import { appendListingPage } from '../contactListings'
+import { fetchListingPage } from './fetchMoreContactsAsync'
 
 export interface FetchUpdatedContactsPayload {
   userId: string
@@ -11,109 +11,111 @@ export interface FetchUpdatedContactsPayload {
   newSyncToken: number
 }
 
-type FetchUpdatedContactsResult =
-  | { bookId: string; updated: false }
-  | {
-      bookId: string
-      updated: true
-      contacts: Contact[]
-      offset: number
-      hasMore: boolean
-      syncToken: number
-    }
+// ponytail: only the last pages show a change, as the ones on screen after
+// scrolling; changes above them wait for a reload. The precise way is the
+// sync-token REPORT of the book (linagora/esn-sabre#459) applying its changes
+const RELOADED_PAGES = 2
 
+interface ReloadedListing {
+  listingKey: string
+  // pages of the listing when the reload started and first one reloaded
+  pageCount: number
+  fromPage: number
+  pages: { after: string | null; entries: ContactEntry[] }[]
+  next: string | null
+}
+
+// an empty listing, as the one of an empty book, starts its first page there
+const LISTING_START = { after: null, refIndex: 0 }
+
+async function reloadListingEnd(
+  contacts: ContactsState,
+  userId: string,
+  listingKey: string
+): Promise<ReloadedListing> {
+  const pageCount = contacts.listings[listingKey].pages.length
+  const fromPage = Math.max(0, pageCount - RELOADED_PAGES)
+  const pages: ReloadedListing['pages'] = []
+  let after = (contacts.listings[listingKey].pages[fromPage] ?? LISTING_START)
+    .after
+  let next: string | null = null
+  while (pages.length < Math.max(1, pageCount - fromPage)) {
+    const page = await fetchListingPage(contacts, userId, listingKey, after)
+    pages.push({ after, entries: page.entries })
+    next = page.next
+    if (next === null) break
+    after = next
+  }
+  return { listingKey, pageCount, fromPage, pages, next }
+}
+
+// false when the reload is dropped, the listing keeping its old contacts
+function replaceListingEnd(
+  state: ContactsState,
+  { listingKey, pageCount, fromPage, pages, next }: ReloadedListing
+): boolean {
+  const listing = state.listings[listingKey]
+  const start = listing?.pages[fromPage] ?? LISTING_START
+  // the listing restarted or another page came meanwhile
+  if (
+    listing?.pages.length !== pageCount ||
+    start.after !== pages[0]?.after ||
+    listing.loadingRequestId !== null
+  ) {
+    return false
+  }
+  listing.refs = listing.refs.slice(0, start.refIndex)
+  listing.pages = listing.pages.slice(0, fromPage)
+  for (const page of pages) {
+    appendListingPage(state, listing, page.after, page.entries)
+  }
+  listing.next = next
+  listing.hasMore = next !== null
+  return true
+}
+
+// A change in a book, pushed by the server, reloads the last pages of the
+// listings showing it: its own and every book one
 export const fetchUpdatedContactsThunk = (
   create: ReducerCreators<ContactsState>
 ) =>
   create.asyncThunk<
-    FetchUpdatedContactsResult,
+    ReloadedListing[],
     FetchUpdatedContactsPayload,
     { rejectValue: RejectedError }
   >(
-    async ({ userId, bookId, newSyncToken }, { getState, rejectWithValue }) => {
+    async ({ userId, bookId }, { getState, rejectWithValue }) => {
+      const { contacts } = getState() as { contacts: ContactsState }
       try {
-        const state = getState() as { contacts: ContactsState }
-        const book = state.contacts.addressBooks[bookId]
-
-        // Unknown book, nothing loaded yet (the initial fetch will see the
-        // changes), or already up to date
-        if (!book || book.offset === 0 || book.syncToken === newSyncToken) {
-          return { bookId, updated: false }
-        }
-
-        // Re-fetch only the window already loaded: [0, book.offset).
-        // Done page by page so a server-side cap on `limit` can't truncate it.
-        const target = book.offset
-        const contacts: Contact[] = []
-        let offset = 0
-        let hasMore = true
-        // Keep the token of the FIRST page: later pages may be newer, and
-        // storing a newer token than the oldest data we hold could hide a change
-        let syncToken: number | undefined
-
-        while (offset < target && hasMore) {
-          const page = await fetchPaginatedContacts(
-            book,
-            userId,
-            Math.min(CONTACTS_PAGINATION_LIMIT, target - offset),
-            offset
-          )
-          syncToken ??= page.syncToken
-          contacts.push(...page.contacts)
-          offset = page.offset
-          hasMore = page.hasMore
-          if (page.contacts.length === 0) break
-        }
-
-        return {
-          bookId,
-          updated: true,
-          contacts,
-          offset,
-          hasMore,
-          syncToken: syncToken ?? newSyncToken
-        }
+        return await Promise.all(
+          [bookId, ALL_CONTACTS_LISTING]
+            .filter(key => contacts.listings[key] !== undefined)
+            .map(key => reloadListingEnd(contacts, userId, key))
+        )
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
     },
     {
       options: {
-        // Don't run concurrently with a page load or another refresh
-        condition: ({ bookId }, { getState }) => {
-          const state = getState() as { contacts: ContactsState }
-          return !state.contacts.addressBooks[bookId]?.isLoadingMore
+        // an unknown book, or a change already loaded
+        condition: ({ bookId, newSyncToken }, { getState }) => {
+          const book = (getState() as { contacts: ContactsState }).contacts
+            .addressBooks[bookId]
+          return book !== undefined && book.syncToken !== newSyncToken
         }
-      },
-      pending: (state, action) => {
-        const book = state.addressBooks[action.meta.arg.bookId]
-        if (book) book.isLoadingMore = true
-      },
-      settled: (state, action) => {
-        const book = state.addressBooks[action.meta.arg.bookId]
-        if (book) book.isLoadingMore = false
       },
       fulfilled: (state, action) => {
-        if (!action.payload.updated) return
-
-        const { bookId, contacts, offset, hasMore, syncToken } = action.payload
-        const book = state.addressBooks[bookId]
-        if (!book) return
-
-        // Replace the loaded window wholesale: edits, deletions and
-        // re-sorted contacts all come out right, and no duplicate keys
-        book.contacts = contacts
-        book.offset = offset
-        book.hasMore = hasMore
-        book.syncToken = syncToken
-      },
-      rejected: (state, action) => {
-        if (action.payload?.status !== 401) {
-          state.error = toContactsErrorKey(
-            action.payload,
-            'contacts.errors.load'
-          )
+        const applied = action.payload.map(reloaded =>
+          replaceListingEnd(state, reloaded)
+        )
+        // the token moves once every listing shows the change: the same push
+        // reloads again a listing whose reload was dropped
+        const book = state.addressBooks[action.meta.arg.bookId]
+        if (book && applied.every(Boolean)) {
+          book.syncToken = action.meta.arg.newSyncToken
         }
       }
+      // a failed reload leaves the listings as they were, until the next change
     }
   )

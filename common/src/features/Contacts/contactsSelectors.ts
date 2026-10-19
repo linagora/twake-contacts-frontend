@@ -1,8 +1,15 @@
 import { createSelector } from '@reduxjs/toolkit'
 import { RootState } from '@common/app/store'
-import { AddressBook, ContactEntry } from './contactsTypes'
+import { ALL_CONTACTS_LISTING } from './constants'
+import { makeContactLookup } from './contactListings'
+import {
+  AddressBook,
+  AddressBookWithContacts,
+  ContactEntry
+} from './contactsTypes'
 
 const selectAddressBooks = (state: RootState) => state.contacts.addressBooks
+const selectListings = (state: RootState) => state.contacts.listings
 
 export const selectBook = createSelector(
   [
@@ -37,7 +44,24 @@ export const matchesScope = (
   }
 }
 
-export const selectContactEntries = createSelector(
+// The server lists the contacts of every book, but not those of some books
+// only: these are shown book after book
+const getViewListingKeys = (
+  books: Record<string, AddressBookWithContacts>,
+  addressBookId?: string,
+  scope?: BookScope,
+  userId?: string
+): string[] => {
+  if (addressBookId) return [addressBookId]
+  if (scope && scope !== 'mine') {
+    return Object.keys(books).filter(id =>
+      matchesScope(books[id], scope, userId)
+    )
+  }
+  return [ALL_CONTACTS_LISTING]
+}
+
+const selectViewListingKeys = createSelector(
   [
     selectAddressBooks,
     (_state: RootState, addressBookId?: string) => addressBookId,
@@ -45,32 +69,40 @@ export const selectContactEntries = createSelector(
     (_state: RootState, _id?: string, _scope?: BookScope, userId?: string) =>
       userId
   ],
-  (books, addressBookId, scope, userId): ContactEntry[] => {
-    const bookIds = (
-      addressBookId ? [addressBookId] : Object.keys(books)
-    ).filter(id => books[id] && matchesScope(books[id], scope, userId))
-    return bookIds.flatMap(bookId =>
-      (books[bookId].contacts ?? []).map(contact => ({
-        addressBookId: bookId,
-        contact
-      }))
-    )
+  getViewListingKeys
+)
+
+export const selectContactEntries = createSelector(
+  [selectAddressBooks, selectListings, selectViewListingKeys],
+  (books, listings, listingKeys): ContactEntry[] => {
+    const findContact = makeContactLookup(books)
+    const entries: ContactEntry[] = []
+    for (const key of listingKeys) {
+      const listing = listings[key]
+      if (!listing) break
+      for (const ref of listing.refs) {
+        const contact = findContact(ref)
+        if (contact) entries.push({ addressBookId: ref.addressBookId, contact })
+      }
+      // a listing shows once the previous ones are complete, so that loading
+      // it adds rows at the end only
+      if (listing.hasMore) break
+    }
+    return entries
   }
 )
 
-// books load one after the other, in the same order as selectContactEntries
-export const selectBookIdToLoadMore = (
+// the first listing of the view with more contacts to load
+export const selectListingKeyToLoadMore = (
   state: RootState,
   addressBookId?: string,
   scope?: BookScope,
   userId?: string
 ): string | null => {
-  const books = selectAddressBooks(state)
-  const bookIds = addressBookId ? [addressBookId] : Object.keys(books)
+  const listings = selectListings(state)
   return (
-    bookIds.find(
-      bookId =>
-        books[bookId]?.hasMore && matchesScope(books[bookId], scope, userId)
+    selectViewListingKeys(state, addressBookId, scope, userId).find(
+      key => !listings[key] || listings[key].hasMore
     ) ?? null
   )
 }

@@ -13,9 +13,7 @@ const makeBook = (
   contactsCount: 0,
   acl: [],
   canWrite,
-  contacts: [],
-  offset: 0,
-  hasMore: false
+  contacts: []
 })
 
 describe('sidebarHelpers', () => {

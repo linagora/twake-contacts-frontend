@@ -99,6 +99,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
           contacts: []
         }
       },
+      listings: {},
       loading: false,
       error: null
     }

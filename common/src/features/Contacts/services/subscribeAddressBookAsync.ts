@@ -2,6 +2,7 @@ import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { subscribeToAddressBook } from '../ContactsDao'
 import { AddressBook, ContactsState } from '../contactsTypes'
+import { ALL_CONTACTS_LISTING } from '../constants'
 import { toContactsErrorKey } from '../contactsUtils'
 
 export interface SubscribeAddressBookArgs {
@@ -28,12 +29,10 @@ export const subscribeAddressBookThunk = (
     {
       fulfilled: (state, action) => {
         const book = action.payload
-        state.addressBooks[book.id] = {
-          ...book,
-          contacts: [],
-          offset: 0,
-          hasMore: true
-        }
+        state.addressBooks[book.id] = { ...book, contacts: [] }
+        // My contacts restarts from its first page to list the new contacts
+        // at their place, as when the books are loaded again
+        delete state.listings[ALL_CONTACTS_LISTING]
       },
       rejected: (state, action) => {
         state.error = toContactsErrorKey(
