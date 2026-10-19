@@ -143,6 +143,7 @@ interface HandleShareParams {
   invitedMembers: UserDataType[]
   dispatch: ReturnType<typeof useAppDispatch>
   setIsSharing: (s: boolean) => void
+  setRemovedIds: React.Dispatch<React.SetStateAction<string[]>>
   reportError: (errorKey: string | null) => void
 }
 
@@ -153,6 +154,7 @@ const createHandleShare =
     invitedMembers,
     dispatch,
     setIsSharing,
+    setRemovedIds,
     reportError
   }: HandleShareParams): ((
     users: UserDataType[],
@@ -177,6 +179,11 @@ const createHandleShare =
       invitedMembers,
       dispatch,
       updates,
+      // A member removed earlier in this dialog session must show up again
+      onSuccess: () => {
+        const sharedIds = updates.map(u => u.userId)
+        setRemovedIds(prev => prev.filter(id => !sharedIds.includes(id)))
+      },
       onSettled: () => setIsSharing(false),
       reportError
     })
@@ -276,6 +283,7 @@ const useAddressBookSharingActions = ({
         invitedMembers,
         dispatch,
         setIsSharing,
+        setRemovedIds,
         reportError
       })
       await handler(users, role)
@@ -286,6 +294,7 @@ const useAddressBookSharingActions = ({
       invitedMembers,
       dispatch,
       setIsSharing,
+      setRemovedIds,
       reportError
     ]
   )
