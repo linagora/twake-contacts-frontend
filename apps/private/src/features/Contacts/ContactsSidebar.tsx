@@ -11,8 +11,9 @@ import {
   NavText,
   Sidebar,
   Button,
-  NavDesktopDropdown,
-  Stack,
+  DropdownButton,
+  DropdownText,
+  ListItem,
   useBreakpoints
 } from '@linagora/twake-mui'
 import { Link, useMatch, useNavigate, useParams } from 'react-router'
@@ -40,6 +41,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   onClose
 }) => {
   const [isMyContactsExpanded, setIsMyContactsExpanded] = useState(true)
+  const [isSharedExpanded, setIsSharedExpanded] = useState(true)
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const navigate = useNavigate()
@@ -131,22 +133,43 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
               </NavLink>
             </NavItem>
           ))}
-          <NavDesktopDropdown
-            label={
-              <Stack
-                direction="row"
-                className="u-flex-justify-between u-flex-items-center"
-              >
-                <span>{t('contacts.shared')}</span>
-                <CreateAddressBookButton
-                  onClick={onOpenSubscribe}
-                  label={t('contacts.addressBook.subscribeTitle')}
-                />
-              </Stack>
+          {/* Not NavDesktopDropdown: its caption toggle is a click-only div,
+              unreachable with the keyboard and without aria-expanded */}
+          <ListItem
+            size="small"
+            secondaryAction={
+              <CreateAddressBookButton
+                onClick={onOpenSubscribe}
+                label={t('contacts.addressBook.subscribeTitle')}
+              />
             }
-            limit={0}
           >
-            {sharedBooks?.map(book => (
+            {sharedBooks.length > 0 ? (
+              <DropdownButton
+                fullWidth
+                spaceBetween
+                textVariant="caption"
+                aria-expanded={isSharedExpanded}
+                onClick={() => setIsSharedExpanded(!isSharedExpanded)}
+                dropdownTextProps={{
+                  color: 'textSecondary',
+                  innerIconProps: { rotate: isSharedExpanded ? 0 : -90 }
+                }}
+              >
+                {t('contacts.shared')}
+              </DropdownButton>
+            ) : (
+              <DropdownText
+                variant="caption"
+                color="textSecondary"
+                innerIconProps={{ display: 'none' }}
+              >
+                {t('contacts.shared')}
+              </DropdownText>
+            )}
+          </ListItem>
+          {isSharedExpanded &&
+            sharedBooks.map(book => (
               <AddressBookNavItem
                 key={book.id}
                 book={book}
@@ -154,7 +177,6 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
                 selected={addressBookId === book.id}
               />
             ))}
-          </NavDesktopDropdown>
         </Nav>
       </Box>
     </Sidebar>
