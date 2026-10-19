@@ -7,12 +7,20 @@ import {
   normalizeContact
 } from './transformer/ContactsTransformer'
 import { api } from '@common/utils/apiUtils'
-import { fetchContact, fetchContactsPage } from './ContactsDao'
+import { fetchUserById } from '@common/features/User/UserDao'
+import {
+  fetchContact,
+  fetchContactsPage,
+  subscribeToAddressBook
+} from './ContactsDao'
 import { formatAddress } from './contactsUtils'
 import { DavContactItem, DavContactsResponse, JCalCard } from './davTypes'
 import { AddressBook } from './contactsTypes'
 
-jest.mock('@common/utils/apiUtils', () => ({ api: { get: jest.fn() } }))
+jest.mock('@common/utils/apiUtils', () => ({
+  api: { get: jest.fn(), post: jest.fn() }
+}))
+jest.mock('@common/features/User/UserDao', () => ({ fetchUserById: jest.fn() }))
 
 /**
  * Synthetic data mirroring the shape of a real
@@ -534,5 +542,50 @@ describe('fetchContactsPage', () => {
       'dav/addressbooks/d1/domain-members.json',
       { searchParams: { userId: 'u1', sort: 'fn', limit: '50' } }
     )
+  })
+})
+
+describe('subscribeToAddressBook', () => {
+  const source: AddressBook = {
+    id: 'public1',
+    userId: 'alice-id',
+    name: 'Alice Public Read',
+    contactsCount: 1,
+    acl: ['dav:read'],
+    canWrite: false
+  }
+
+  beforeEach(() => {
+    jest.mocked(api.post).mockResolvedValue({} as never)
+    jest.mocked(fetchUserById).mockReset()
+  })
+
+  it('names the owner from the profile, as when the books are loaded', async () => {
+    jest
+      .mocked(fetchUserById)
+      .mockResolvedValue({ firstname: 'alice', lastname: 'alice' } as never)
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(fetchUserById).toHaveBeenCalledWith('alice-id')
+    expect(book.ownerId).toBe('alice-id')
+    expect(book.ownerDisplayName).toBe('alice alice')
+  })
+
+  it('keeps the given owner name when the profile cannot be read', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    jest.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(book.ownerDisplayName).toBe('alice')
+  })
+
+  it('keeps the given owner name when the profile has no name', async () => {
+    jest.mocked(fetchUserById).mockResolvedValue({} as never)
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(book.ownerDisplayName).toBe('alice')
   })
 })

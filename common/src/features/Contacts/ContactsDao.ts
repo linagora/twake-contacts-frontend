@@ -70,17 +70,27 @@ async function enrichAddressBookOwner(
   book.ownerId = ownerId
   book.sourceBookId = parts[3]?.replace('.json', '')
 
-  try {
-    const user = await fetchUserById(ownerId)
-    const name = [user.firstname, user.lastname].filter(Boolean).join(' ')
-    if (name) {
-      book.ownerDisplayName = name
-    }
-  } catch {
-    console.warn(`Failed to fetch owner for address book ${book.id}`)
+  const name = await fetchOwnerDisplayName(ownerId)
+  if (name) {
+    book.ownerDisplayName = name
   }
 
   return book
+}
+
+// The owner of a shared or subscribed book is named from the profile, so that
+// the label stays the same however the book entered the list
+async function fetchOwnerDisplayName(
+  ownerId: string
+): Promise<string | undefined> {
+  try {
+    const user = await fetchUserById(ownerId)
+    const name = [user.firstname, user.lastname].filter(Boolean).join(' ')
+    return name || undefined
+  } catch {
+    console.warn(`Failed to fetch owner ${ownerId}`)
+    return undefined
+  }
 }
 
 async function fetchDomainAddressBooks(
@@ -510,6 +520,7 @@ export async function subscribeToAddressBook(
     acl: ['dav:read'],
     canWrite: false,
     ownerId: source.userId,
-    ownerDisplayName
+    ownerDisplayName:
+      (await fetchOwnerDisplayName(source.userId)) ?? ownerDisplayName
   }
 }
