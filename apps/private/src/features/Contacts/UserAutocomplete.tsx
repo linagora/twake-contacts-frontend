@@ -40,6 +40,7 @@ export const UserAutocomplete: React.FC<{
       loadingText={t('contacts.search.loading')}
       openText={t('contacts.form.open')}
       closeText={t('contacts.form.close')}
+      clearText={t('contacts.form.clear')}
       value={selected}
       inputValue={query}
       onInputChange={(_, value, reason) => {

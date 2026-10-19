@@ -64,6 +64,19 @@ describe('UserAutocomplete', () => {
     ).toBeInTheDocument()
   })
 
+  it('labels the clear button in the user language', async () => {
+    renderAutocomplete(jest.fn(), jest.fn(), { lang: 'fr', dict: fr })
+
+    await pickCarol()
+
+    // MUI hides the clear button with CSS until the field is hovered or
+    // focused, so jsdom gives it no accessible name: match its aria-label
+    expect(screen.getByLabelText(fr.contacts.form.clear)).toHaveAttribute(
+      'type',
+      'button'
+    )
+  })
+
   it('shows the email of each suggested user', async () => {
     renderAutocomplete()
 
