@@ -17,7 +17,7 @@ export interface FetchMoreContactsPayload {
  * books the app does not list, such as group delegations, as the book list.
  */
 export async function fetchListingPage(
-  { addressBooks }: ContactsState,
+  { addressBooks, sort }: ContactsState,
   userId: string,
   listingKey: string,
   after: string | null
@@ -25,7 +25,7 @@ export async function fetchListingPage(
   const { entries, next } = await fetchContactsPage(
     userId,
     addressBooks[listingKey] ?? null,
-    after,
+    { after, sort },
     // without the domain book, its members could not be listed
     addressBooks.dab !== undefined
   )

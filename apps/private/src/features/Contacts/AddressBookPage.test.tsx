@@ -9,7 +9,10 @@ import {
   fetchContactsPage
 } from '@common/features/Contacts/ContactsDao'
 import { fetchContacts } from '@common/features/Contacts/ContactsSlice'
-import { ALL_CONTACTS_LISTING } from '@common/features/Contacts/constants'
+import {
+  ALL_CONTACTS_LISTING,
+  DEFAULT_CONTACT_SORT
+} from '@common/features/Contacts/constants'
 import {
   AddressBookWithContacts,
   Contact,
@@ -59,7 +62,13 @@ const renderPage = (
 ): AppStore => {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
-    contacts: { addressBooks, listings, loading, error: null }
+    contacts: {
+      addressBooks,
+      listings,
+      sort: DEFAULT_CONTACT_SORT,
+      loading,
+      error: null
+    }
   })
   render(
     <Provider store={store}>
@@ -106,7 +115,7 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'cursor1',
+      { after: 'cursor1', sort: DEFAULT_CONTACT_SORT },
       false
     )
   })
@@ -125,7 +134,7 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenLastCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
       false
     )
   })
@@ -140,7 +149,7 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
       false
     )
   })
@@ -149,7 +158,12 @@ describe('AddressBookPage lazy loading', () => {
     renderPage('/contacts', { book1: makeBook('book1', []) })
 
     expect(await screen.findByText('Bob Martin')).toBeInTheDocument()
-    expect(fetchContactsPage).toHaveBeenCalledWith('u1', null, null, false)
+    expect(fetchContactsPage).toHaveBeenCalledWith(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
   })
 
   it('loads the first page again when the books are loaded again meanwhile', async () => {
@@ -207,7 +221,40 @@ describe('AddressBookPage lazy loading', () => {
     expect(fetchContactsPage).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ id: 'shared2' }),
-      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
+  })
+})
+
+describe('AddressBookPage sort', () => {
+  it('loads the first page again in the order of a clicked column', async () => {
+    jest.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [{ addressBookId: 'book1', contact: bob }],
+      next: null
+    })
+    renderPage(
+      '/contacts/book1',
+      { book1: makeBook('book1', [alice]) },
+      { book1: makeListing('book1', [alice], null) }
+    )
+
+    const table = screen.getByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: en.contacts.email }))
+
+    // the table and the page header stay while the first page loads, with
+    // a page of skeleton rows, not the two rows under a loaded list
+    expect(screen.getByRole('table')).toBe(table)
+    expect(screen.getAllByRole('row').length).toBeGreaterThan(3)
+    expect(
+      screen.getByRole('button', { name: en.contacts.empty.import })
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Bob Martin')).toBeInTheDocument()
+    expect(screen.queryByText('Alice Roche')).not.toBeInTheDocument()
+    expect(fetchContactsPage).toHaveBeenLastCalledWith(
+      'u1',
+      expect.objectContaining({ id: 'book1' }),
+      { after: null, sort: { by: 'email', order: 'asc' } },
       false
     )
   })

@@ -2,7 +2,8 @@ import { setupStore } from '@common/app/store'
 import { fetchContact } from '@common/features/Contacts/ContactsDao'
 import {
   ALL_CONTACTS_LISTING,
-  DEFAULT_ADDRESS_BOOK_ID
+  DEFAULT_ADDRESS_BOOK_ID,
+  DEFAULT_CONTACT_SORT
 } from '@common/features/Contacts/constants'
 import { ContactListing } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
@@ -180,6 +181,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
           book1: makeListing([['book1', 'c1']]),
           book2: makeListing([['book2', 'c2']])
         },
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }

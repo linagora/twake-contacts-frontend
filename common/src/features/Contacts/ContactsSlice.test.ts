@@ -19,14 +19,17 @@ import {
   fetchMoreContacts,
   fetchUpdatedContacts,
   moveContact,
+  setContactSort,
   subscribeAddressBook,
   updateContact
 } from './ContactsSlice'
-import { ALL_CONTACTS_LISTING } from './constants'
+import { ALL_CONTACTS_LISTING, DEFAULT_CONTACT_SORT } from './constants'
 import {
   AddressBookWithContacts,
   Contact,
+  ContactEntry,
   ContactListing,
+  ContactSort,
   ContactsState
 } from './contactsTypes'
 
@@ -69,14 +72,36 @@ const makeListing = (
 
 const makeStore = (
   addressBooks: Record<string, AddressBookWithContacts>,
-  listings: Record<string, ContactListing> = {}
+  listings: Record<string, ContactListing> = {},
+  sort: ContactSort = DEFAULT_CONTACT_SORT
 ): ReturnType<typeof setupStore> =>
   setupStore({
-    contacts: { addressBooks, listings, loading: false, error: null }
+    contacts: {
+      addressBooks,
+      listings,
+      sort,
+      loading: false,
+      error: null
+    }
   })
 
 const getListedIds = (state: ContactsState, listingKey: string): string[] =>
   state.listings[listingKey].refs.map(ref => ref.contactId)
+
+describe('setContactSort', () => {
+  it('restarts the listings, loaded in the previous order', () => {
+    const store = makeStore(
+      { book1: makeBook('book1', [alice]) },
+      { book1: makeListing([['book1', alice]], 'cursor') }
+    )
+
+    store.dispatch(setContactSort({ by: 'email', order: 'desc' }))
+
+    const state = store.getState().contacts
+    expect(state.sort).toStrictEqual({ by: 'email', order: 'desc' })
+    expect(state.listings).toStrictEqual({})
+  })
+})
 
 describe('fetchContacts', () => {
   it('keeps the loaded contacts of the books loaded again', async () => {
@@ -180,7 +205,12 @@ describe('fetchMoreContacts', () => {
       fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
     )
 
-    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, true)
+    expect(fetchContactsPage).toHaveBeenLastCalledWith(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      true
+    )
   })
 
   it('ignores a request while the same listing is already loading', async () => {
@@ -218,7 +248,7 @@ describe('fetchMoreContacts', () => {
     expect(fetchContactsPage).toHaveBeenLastCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'cursor1',
+      { after: 'cursor1', sort: DEFAULT_CONTACT_SORT },
       false
     )
     const state = store.getState().contacts
@@ -246,7 +276,12 @@ describe('fetchMoreContacts', () => {
       fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
     )
 
-    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, false)
+    expect(fetchContactsPage).toHaveBeenLastCalledWith(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
     expect(
       getListedIds(store.getState().contacts, ALL_CONTACTS_LISTING)
     ).toStrictEqual(['c1'])
@@ -389,6 +424,44 @@ describe('createContact', () => {
       'c3'
     ])
     expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2', 'c3'])
+  })
+
+  it('places the contact in the sort order, one without email last in descending order', async () => {
+    const withEmail = (contact: Contact, email: string): Contact => ({
+      ...contact,
+      emails: [{ type: null, value: email }]
+    })
+    // the names in the opposite order of the emails
+    const first = withEmail(alice, 'b@example.org')
+    const second = withEmail(bob, 'a@example.org')
+    const store = makeStore(
+      { book1: makeBook('book1', [first, second]) },
+      {
+        book1: makeListing([
+          ['book1', first],
+          ['book1', second]
+        ])
+      },
+      { by: 'email', order: 'desc' }
+    )
+
+    await store.dispatch(
+      createContact({
+        userId: 'u1',
+        addressBookId: 'book1',
+        contact: withEmail(dora, 'c@example.org')
+      })
+    )
+    await store.dispatch(
+      createContact({ userId: 'u1', addressBookId: 'book1', contact: carl })
+    )
+
+    expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
+      'c4',
+      'c1',
+      'c2',
+      'c3'
+    ])
   })
 
   it('leaves a contact sorted after the loaded ones to the next pages', async () => {
@@ -691,14 +764,14 @@ describe('fetchUpdatedContacts', () => {
       1,
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'p2',
+      { after: 'p2', sort: DEFAULT_CONTACT_SORT },
       false
     )
     expect(fetchContactsPage).toHaveBeenNthCalledWith(
       2,
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      'n3',
+      { after: 'n3', sort: DEFAULT_CONTACT_SORT },
       false
     )
     const state = store.getState().contacts
@@ -727,7 +800,12 @@ describe('fetchUpdatedContacts', () => {
       fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
     )
 
-    expect(fetchContactsPage).toHaveBeenLastCalledWith('u1', null, null, false)
+    expect(fetchContactsPage).toHaveBeenLastCalledWith(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
     expect(
       getListedIds(store.getState().contacts, ALL_CONTACTS_LISTING)
     ).toStrictEqual(['c2'])
@@ -750,7 +828,7 @@ describe('fetchUpdatedContacts', () => {
     expect(fetchContactsPage).toHaveBeenLastCalledWith(
       'u1',
       expect.objectContaining({ id: 'book1' }),
-      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
       false
     )
     const state = store.getState().contacts
@@ -759,6 +837,41 @@ describe('fetchUpdatedContacts', () => {
       { after: null, refIndex: 0 }
     ])
     expect(state.addressBooks.book1.syncToken).toBe(7)
+  })
+
+  it('drops a reload read in the order the listings left meanwhile', async () => {
+    let resolveReload: (page: {
+      entries: ContactEntry[]
+      next: string | null
+    }) => void = () => undefined
+    jest
+      .mocked(fetchContactsPage)
+      .mockReturnValueOnce(new Promise(resolve => (resolveReload = resolve)))
+      .mockResolvedValueOnce({
+        entries: [{ addressBookId: 'book1', contact: bob }],
+        next: null
+      })
+    const store = makeStore(
+      { book1: makeBook('book1', [alice, bob]) },
+      { book1: makeListing([['book1', alice]]) }
+    )
+
+    const reload = store.dispatch(
+      fetchUpdatedContacts({ userId: 'u1', bookId: 'book1', newSyncToken: 7 })
+    )
+    store.dispatch(setContactSort({ by: 'email', order: 'asc' }))
+    await store.dispatch(
+      fetchMoreContacts({ userId: 'u1', listingKey: 'book1' })
+    )
+    resolveReload({
+      entries: [{ addressBookId: 'book1', contact: alice }],
+      next: null
+    })
+    await reload
+
+    expect(getListedIds(store.getState().contacts, 'book1')).toStrictEqual([
+      'c2'
+    ])
   })
 
   it('skips a change already loaded', async () => {

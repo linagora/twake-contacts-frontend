@@ -5,14 +5,28 @@ import {
   ContactEntry,
   ContactListing,
   ContactRef,
+  ContactSort,
   ContactsState
 } from './contactsTypes'
 
 // Same order as the server: English, ignoring case and accents
 const collator = new Intl.Collator('en', { sensitivity: 'base' })
 
-export function compareContacts(a: Contact, b: Contact): number {
-  return collator.compare(a.displayName.trim(), b.displayName.trim())
+// The server sorts by the preferred email, which it lists first, a contact
+// without email coming first
+function getSortKey(contact: Contact, by: ContactSort['by']): string {
+  return (
+    by === 'fn' ? contact.displayName : (contact.emails[0]?.value ?? '')
+  ).trim()
+}
+
+function compareContacts(
+  a: Contact,
+  b: Contact,
+  { by, order }: ContactSort
+): number {
+  const result = collator.compare(getSortKey(a, by), getSortKey(b, by))
+  return order === 'asc' ? result : -result
 }
 
 export function makeContactLookup(
@@ -87,15 +101,10 @@ function shiftPages(
 function insertContactRef(
   listing: ContactListing,
   ref: ContactRef,
-  findContact: (ref: ContactRef) => Contact | undefined,
+  isBefore: (listed: ContactRef) => boolean,
   wasListed: boolean
 ): void {
-  const contact = findContact(ref)
-  if (!contact) return
-  const index = listing.refs.findIndex(r => {
-    const other = findContact(r)
-    return other !== undefined && compareContacts(contact, other) < 0
-  })
+  const index = listing.refs.findIndex(isBefore)
   if (index !== -1) {
     listing.refs.splice(index, 0, ref)
     shiftPages(listing, index, 1)
@@ -115,6 +124,16 @@ export function placeContactInListings(
   previousRef: ContactRef = ref
 ): void {
   const findContact = makeContactLookup(state.addressBooks)
+  const contact = findContact(ref)
+  // whether the contact goes before a listed one, in the order of the server
+  const isBefore = (listed: ContactRef): boolean => {
+    const other = findContact(listed)
+    return (
+      contact !== undefined &&
+      other !== undefined &&
+      compareContacts(contact, other, state.sort) < 0
+    )
+  }
 
   for (const [key, listing] of Object.entries(state.listings)) {
     const index = listing.refs.findIndex(r => isSameContactRef(r, previousRef))
@@ -122,8 +141,8 @@ export function placeContactInListings(
       listing.refs.splice(index, 1)
       shiftPages(listing, index + 1, -1)
     }
-    if (isListingOfBook(key, ref.addressBookId)) {
-      insertContactRef(listing, ref, findContact, index !== -1)
+    if (contact && isListingOfBook(key, ref.addressBookId)) {
+      insertContactRef(listing, ref, isBefore, index !== -1)
     }
   }
 }

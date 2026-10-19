@@ -1,3 +1,4 @@
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
@@ -28,6 +29,7 @@ function renderSearchBar(
     contacts: {
       addressBooks: {},
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null,
       ...contactsState

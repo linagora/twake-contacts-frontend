@@ -4,7 +4,10 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
-import { ContactEntry } from '@common/features/Contacts/contactsTypes'
+import {
+  ContactEntry,
+  ContactSort
+} from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactsTable } from './ContactsTable'
@@ -33,7 +36,11 @@ const jane: ContactEntry = {
   }
 }
 
-const renderTable = (loadingMore = false): ReturnType<typeof render> =>
+const renderTable = (
+  loadingMore = false,
+  sort: ContactSort = { by: 'fn', order: 'asc' },
+  onSortChange: (sort: ContactSort) => void = jest.fn()
+): ReturnType<typeof render> =>
   render(
     <Provider
       store={setupStore({
@@ -54,6 +61,8 @@ const renderTable = (loadingMore = false): ReturnType<typeof render> =>
                     <ContactsTable
                       entries={[jane]}
                       onEndReached={jest.fn()}
+                      sort={sort}
+                      onSortChange={onSortChange}
                       loadingMore={loadingMore}
                     />
                   }
@@ -124,6 +133,20 @@ describe('ContactsTable', () => {
     expect(screen.queryByText(en.contacts.email)).not.toBeInTheDocument()
     expect(screen.queryByText(en.contacts.phone)).not.toBeInTheDocument()
     expect(screen.queryByText(en.contacts.team)).not.toBeInTheDocument()
+  })
+
+  it('maps the sort of the store to and from its columns', () => {
+    const onSortChange = jest.fn()
+    renderTable(false, { by: 'email', order: 'desc' }, onSortChange)
+
+    expect(screen.getByRole('columnheader', { name: /Email/ })).toHaveAttribute(
+      'aria-sort',
+      'descending'
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Name/ }))
+
+    expect(onSortChange).toHaveBeenCalledWith({ by: 'fn', order: 'asc' })
   })
 
   it('opens the contact when clicking its row', () => {

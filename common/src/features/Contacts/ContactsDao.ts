@@ -2,7 +2,13 @@ import { api } from '@common/utils/apiUtils'
 import { encodeDavSegment } from '@linagora/twake-utils'
 import { fetchUserById } from '@common/features/User/UserDao'
 import { DomainInfo } from '@common/features/User/userDataTypes'
-import { AddressBook, Contact, ContactEntry, UserResult } from './contactsTypes'
+import {
+  AddressBook,
+  Contact,
+  ContactEntry,
+  ContactSort,
+  UserResult
+} from './contactsTypes'
 import {
   AddressBookAccessLevel,
   DavAddressBookItem,
@@ -163,13 +169,14 @@ function getContactsPageUrl(
 
 /**
  * One page of the contacts of a book, or of every book of the user when book
- * is null, sorted by full name. after is the next cursor of the previous page,
- * withDomainMembers adds the domain members to the contacts of every book.
+ * is null, in the sort order. after is the next cursor of the previous page,
+ * read in the same order, withDomainMembers adds the domain members to the
+ * contacts of every book.
  */
 export async function fetchContactsPage(
   userId: string,
   book: AddressBook | null,
-  after: string | null,
+  { after, sort }: { after: string | null; sort: ContactSort },
   withDomainMembers: boolean
 ): Promise<{ entries: ContactEntry[]; next: string | null }> {
   const { url, searchParams } = getContactsPageUrl(
@@ -181,7 +188,8 @@ export async function fetchContactsPage(
     .get(url, {
       searchParams: {
         ...searchParams,
-        sort: 'fn',
+        sort: sort.by,
+        order: sort.order,
         limit: String(CONTACTS_PAGINATION_LIMIT),
         ...(after ? { after } : {})
       }

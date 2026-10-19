@@ -1,5 +1,8 @@
 import { setupStore } from '@common/app/store'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import {
+  DEFAULT_ADDRESS_BOOK_ID,
+  DEFAULT_CONTACT_SORT
+} from '@common/features/Contacts/constants'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import fr from '@common/locales/fr.json'
@@ -47,6 +50,7 @@ function renderPage(
         }
       },
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }

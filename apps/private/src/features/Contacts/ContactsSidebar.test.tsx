@@ -1,5 +1,8 @@
 import { setupStore } from '@common/app/store'
-import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
+import {
+  DEFAULT_ADDRESS_BOOK_ID,
+  DEFAULT_CONTACT_SORT
+} from '@common/features/Contacts/constants'
 import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
@@ -77,6 +80,7 @@ function renderSidebar(
         }
       },
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }

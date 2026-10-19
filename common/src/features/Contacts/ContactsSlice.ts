@@ -1,6 +1,6 @@
 import { createAppSlice } from '@common/app/createAppSlice'
-import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
-import { Contact, ContactsState } from './contactsTypes'
+import { DEFAULT_ADDRESS_BOOK_ID, DEFAULT_CONTACT_SORT } from './constants'
+import { Contact, ContactSort, ContactsState } from './contactsTypes'
 import {
   createContactThunk,
   deleteContactThunk,
@@ -19,6 +19,7 @@ import { subscribeAddressBookThunk } from './services/subscribeAddressBookAsync'
 const initialState: ContactsState = {
   addressBooks: {},
   listings: {},
+  sort: DEFAULT_CONTACT_SORT,
   // address books are not loaded yet: pages show skeletons, not empty
   // states, and wait for them to place the contacts they read
   loading: true,
@@ -32,6 +33,13 @@ const ContactsSlice = createAppSlice({
     clearContactsError: create.reducer(state => {
       state.error = null
     }),
+    // the loaded pages are in the previous order: the listings restart
+    setContactSort: create.reducer(
+      (state, action: { payload: ContactSort }) => {
+        state.sort = action.payload
+        state.listings = {}
+      }
+    ),
     // stores the contact for its page without listing it: if it is in a
     // loaded range it is listed already, otherwise the next pages bring it
     addContactFromSearch: create.reducer(
@@ -73,6 +81,7 @@ export const {
   fetchMoreContacts,
   fetchUpdatedContacts,
   moveContact,
+  setContactSort,
   updateContact,
   createAddressBook,
   fetchAddressBookDetail,

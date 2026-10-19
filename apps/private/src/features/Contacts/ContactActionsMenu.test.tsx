@@ -1,3 +1,4 @@
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import {
   fireEvent,
   render,
@@ -57,6 +58,7 @@ describe('ContactActionsMenu', () => {
           }
         },
         listings: {},
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }

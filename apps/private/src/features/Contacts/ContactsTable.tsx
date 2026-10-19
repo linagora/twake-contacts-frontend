@@ -1,4 +1,8 @@
-import { ContactEntry } from '@common/features/Contacts/contactsTypes'
+import { CONTACTS_PAGINATION_LIMIT } from '@common/features/Contacts/constants'
+import {
+  ContactEntry,
+  ContactSort
+} from '@common/features/Contacts/contactsTypes'
 import {
   Skeleton,
   Stack,
@@ -15,18 +19,34 @@ import { ContactCell } from './ContactCell'
 interface ContactsTableProps {
   entries: ContactEntry[]
   onEndReached: () => void
+  sort: ContactSort
+  onSortChange: (sort: ContactSort) => void
   loading?: boolean
   loadingMore?: boolean
 }
 
-const LOADING_MORE_ROWS: VirtualizedTableRow[] = [0, 1].map(i => ({
-  id: `loading-more-${i}`,
-  loadingMore: true
-}))
+const makeLoadingRows = (count: number): VirtualizedTableRow[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `loading-more-${i}`,
+    loadingMore: true
+  }))
+
+// two rows under the loaded contacts, or a page of them while the first one
+// loads, as after a sort, for the table to keep its height and scrollbar
+const LOADING_MORE_ROWS = makeLoadingRows(2)
+const LOADING_PAGE_ROWS = makeLoadingRows(CONTACTS_PAGINATION_LIMIT)
+
+// the columns the server sorts the pages on
+const SORT_COLUMN_IDS: Record<ContactSort['by'], string> = {
+  fn: 'contact.displayName',
+  email: 'contact.emails.0.value'
+}
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({
   entries,
   onEndReached,
+  sort,
+  onSortChange,
   loading = false,
   loadingMore = false
 }) => {
@@ -35,16 +55,13 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const location = useLocation()
   const { isMobile } = useBreakpoints()
 
-  // We don't sort using the virtualized tables as we load entries
-  // using lazy loading.
   // maxWidth 0 on name and email: they share the space left by the fixed
   // columns, so a long value in the rendered rows can't resize the columns
   const allColumns: VirtualizedTableColumn[] = [
     {
-      id: 'contact.displayName',
+      id: SORT_COLUMN_IDS.fn,
       label: t('contacts.name'),
       maxWidth: 0,
-      sortable: false,
       skeleton: (
         <Stack direction="row" className="u-flex-items-center">
           <Skeleton
@@ -59,11 +76,10 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       )
     },
     {
-      id: 'contact.emails.0.value',
+      id: SORT_COLUMN_IDS.email,
       label: t('contacts.email'),
       maxWidth: 0,
-      noWrap: true,
-      sortable: false
+      noWrap: true
     },
     {
       id: 'contact.phones.0.value',
@@ -100,16 +116,17 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 
   const columns = isMobile
     ? allColumns.filter(
-        col => col.id === 'contact.displayName' || col.id === 'actions'
+        col => col.id === SORT_COLUMN_IDS.fn || col.id === 'actions'
       )
     : allColumns
 
+  const loadingRows = entries.length > 0 ? LOADING_MORE_ROWS : LOADING_PAGE_ROWS
   const rows: VirtualizedTableRow[] = [
     ...entries.map(entry => ({
       id: `${entry.addressBookId}/${entry.contact.id}`,
       ...entry
     })),
-    ...(loadingMore ? LOADING_MORE_ROWS : [])
+    ...(loadingMore ? loadingRows : [])
   ]
 
   const handleClick = (row: VirtualizedTableRow): void => {
@@ -126,6 +143,15 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       columns={columns}
       computeItemKey={(_, row) => String(row.id)}
       endReached={onEndReached}
+      // the server sorts the rows, the table only showing its order
+      sortingMode="server"
+      defaultOrder={{ by: SORT_COLUMN_IDS[sort.by], direction: sort.order }}
+      onSortChange={({ order, orderBy }) =>
+        onSortChange({
+          by: orderBy === SORT_COLUMN_IDS.email ? 'email' : 'fn',
+          order
+        })
+      }
       componentsProps={{
         rowContent: {
           onClick: handleClick,

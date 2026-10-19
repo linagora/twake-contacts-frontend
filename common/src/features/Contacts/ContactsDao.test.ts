@@ -11,6 +11,7 @@ import { fetchContact, fetchContactsPage } from './ContactsDao'
 import { formatAddress } from './contactsUtils'
 import { DavContactItem, DavContactsResponse, JCalCard } from './davTypes'
 import { AddressBook } from './contactsTypes'
+import { DEFAULT_CONTACT_SORT } from './constants'
 
 jest.mock('@common/utils/apiUtils', () => ({ api: { get: jest.fn() } }))
 
@@ -487,10 +488,20 @@ describe('fetchContactsPage', () => {
       next: 'cursor2'
     })
 
-    const page = await fetchContactsPage('u1', null, null, true)
+    const page = await fetchContactsPage(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      true
+    )
 
     expect(api.get).toHaveBeenCalledWith('dav/contacts/u1.json', {
-      searchParams: { domainMember: 'true', sort: 'fn', limit: '50' }
+      searchParams: {
+        domainMember: 'true',
+        sort: 'fn',
+        order: 'asc',
+        limit: '50'
+      }
     })
     expect(page.entries.map(entry => entry.addressBookId)).toStrictEqual([
       'book1',
@@ -502,20 +513,40 @@ describe('fetchContactsPage', () => {
   it('reads the contacts of every address book without the domain members', async () => {
     mockResponse({})
 
-    await fetchContactsPage('u1', null, null, false)
+    await fetchContactsPage(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
 
     expect(api.get).toHaveBeenCalledWith('dav/contacts/u1.json', {
-      searchParams: { domainMember: 'false', sort: 'fn', limit: '50' }
+      searchParams: {
+        domainMember: 'false',
+        sort: 'fn',
+        order: 'asc',
+        limit: '50'
+      }
     })
   })
 
-  it('reads the page of a book after the cursor', async () => {
+  it('reads the page of a book after the cursor, in the sort order', async () => {
     mockResponse({})
 
-    const page = await fetchContactsPage('u1', book, 'cursor1', false)
+    const page = await fetchContactsPage(
+      'u1',
+      book,
+      { after: 'cursor1', sort: { by: 'email', order: 'desc' } },
+      false
+    )
 
     expect(api.get).toHaveBeenCalledWith('dav/addressbooks/u1/book1.json', {
-      searchParams: { sort: 'fn', limit: '50', after: 'cursor1' }
+      searchParams: {
+        sort: 'email',
+        order: 'desc',
+        limit: '50',
+        after: 'cursor1'
+      }
     })
     expect(page).toStrictEqual({ entries: [], next: null })
   })
@@ -526,13 +557,13 @@ describe('fetchContactsPage', () => {
     await fetchContactsPage(
       'u1',
       { ...book, id: 'dab', userId: 'd1' },
-      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
       false
     )
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/d1/domain-members.json',
-      { searchParams: { userId: 'u1', sort: 'fn', limit: '50' } }
+      { searchParams: { userId: 'u1', sort: 'fn', order: 'asc', limit: '50' } }
     )
   })
 })

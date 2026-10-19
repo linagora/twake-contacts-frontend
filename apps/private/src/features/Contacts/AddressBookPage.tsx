@@ -1,5 +1,8 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { fetchMoreContacts } from '@common/features/Contacts/ContactsSlice'
+import {
+  fetchMoreContacts,
+  setContactSort
+} from '@common/features/Contacts/ContactsSlice'
 import {
   BookScope,
   selectBook,
@@ -10,7 +13,6 @@ import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUti
 import { Icon, Left } from '@linagora/twake-icons'
 import {
   Button,
-  CircularProgress,
   Skeleton,
   Stack,
   Tab,
@@ -33,6 +35,7 @@ export const AddressBookPage: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)
+  const sort = useAppSelector(state => state.contacts.sort)
 
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedTab: BookScope =
@@ -62,6 +65,11 @@ export const AddressBookPage: React.FC = () => {
       : undefined
   )
   const loadingMore = !!listingToLoadMore?.loadingRequestId
+
+  // A list with a page to load and nothing to show, as after a sort, shows
+  // the table with a page of skeleton rows: the table stays mounted, keeping
+  // its headers and height
+  const showTable = entries.length > 0 || loading || !!listingKeyToLoadMore
 
   const title = addressBookId
     ? getAddressBookDisplayName(book, t)
@@ -104,20 +112,20 @@ export const AddressBookPage: React.FC = () => {
   }
 
   const renderContent = (): React.ReactNode => {
-    if (entries.length > 0 || loading) {
+    if (showTable) {
       return (
         <ContactsTable
           key={`${addressBookId ?? 'all'}-${scope ?? ''}`}
           entries={entries}
           onEndReached={loadMore}
+          sort={sort}
+          onSortChange={newSort => dispatch(setContactSort(newSort))}
           loading={loading}
-          loadingMore={loadingMore}
+          loadingMore={loadingMore || entries.length === 0}
         />
       )
     }
-    return listingKeyToLoadMore ? (
-      <CircularProgress />
-    ) : (
+    return (
       <NoContactsEmptyState
         action={
           scope === 'shared' ? null : (
@@ -165,9 +173,7 @@ export const AddressBookPage: React.FC = () => {
         )}
         {!isMobile &&
           (addressBookId !== 'dab' || book?.canWrite) &&
-          entries.length > 0 && (
-            <ImportContactsButton addressBookId={addressBookId} />
-          )}
+          showTable && <ImportContactsButton addressBookId={addressBookId} />}
       </Stack>
       {renderContent()}
     </Stack>

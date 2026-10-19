@@ -1,6 +1,6 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
-import { ContactEntry, ContactsState } from '../contactsTypes'
+import { ContactEntry, ContactSort, ContactsState } from '../contactsTypes'
 import { ALL_CONTACTS_LISTING } from '../constants'
 import { appendListingPage } from '../contactListings'
 import { fetchListingPage } from './fetchMoreContactsAsync'
@@ -23,6 +23,7 @@ interface ReloadedListing {
   fromPage: number
   pages: { after: string | null; entries: ContactEntry[] }[]
   next: string | null
+  sort: ContactSort
 }
 
 // an empty listing, as the one of an empty book, starts its first page there
@@ -46,14 +47,18 @@ async function reloadListingEnd(
     if (next === null) break
     after = next
   }
-  return { listingKey, pageCount, fromPage, pages, next }
+  return { listingKey, pageCount, fromPage, pages, next, sort: contacts.sort }
 }
 
 // false when the reload is dropped, the listing keeping its old contacts
 function replaceListingEnd(
   state: ContactsState,
-  { listingKey, pageCount, fromPage, pages, next }: ReloadedListing
+  { listingKey, pageCount, fromPage, pages, next, sort }: ReloadedListing
 ): boolean {
+  // the listings restarted in another order meanwhile
+  if (state.sort.by !== sort.by || state.sort.order !== sort.order) {
+    return false
+  }
   const listing = state.listings[listingKey]
   const start = listing?.pages[fromPage] ?? LISTING_START
   // the listing restarted or another page came meanwhile

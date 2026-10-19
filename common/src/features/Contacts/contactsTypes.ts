@@ -103,10 +103,17 @@ export interface ContactListing {
   restarted?: boolean
 }
 
+/** The order the server sorts the pages of every listing in. */
+export interface ContactSort {
+  by: 'fn' | 'email'
+  order: 'asc' | 'desc'
+}
+
 export interface ContactsState {
   addressBooks: Record<string, AddressBookWithContacts>
   // keyed by ALL_CONTACTS_LISTING or by address book id
   listings: Record<string, ContactListing>
+  sort: ContactSort
   loading: boolean
   detailsLoading?: boolean
   error: string | null
