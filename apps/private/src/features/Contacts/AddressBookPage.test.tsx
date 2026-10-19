@@ -1,6 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { Link, MemoryRouter, Route, Routes } from 'react-router'
+import {
+  Link,
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate
+} from 'react-router'
 import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { AppStore, setupStore } from '@common/app/store'
@@ -51,6 +58,17 @@ const makeListing = (
   loadingRequestId: null
 })
 
+const LocationProbe: React.FC = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+  return (
+    <>
+      <output>{`${location.pathname}${location.search}`}</output>
+      <button onClick={() => void navigate(-1)}>Go back</button>
+    </>
+  )
+}
+
 const renderPage = (
   path: string,
   addressBooks: Record<string, AddressBookWithContacts>,
@@ -71,6 +89,8 @@ const renderPage = (
             <MemoryRouter initialEntries={[path]}>
               <Link to="/contacts">Go to My contacts</Link>
               <Link to="/contacts/book1">Go to book1</Link>
+              <Link to="/contacts/book2">Go to book2</Link>
+              <LocationProbe />
               <Routes>
                 <Route path="/contacts" element={<AddressBookPage />} />
                 <Route
@@ -246,5 +266,43 @@ describe('AddressBookPage tabs', () => {
     )
     expect(screen.getByText('Alice Roche')).toBeInTheDocument()
     expect(screen.getByText('Bob Martin')).toBeInTheDocument()
+  })
+
+  it('switches books without a query nor an extra history entry', () => {
+    renderPage(
+      '/contacts?scope=shared',
+      {
+        book1: makeBook('book1', [alice], 'u1'),
+        book2: makeBook('book2', [alice], 'u1'),
+        shared: makeBook('shared', [bob], 'u2')
+      },
+      {
+        [ALL_CONTACTS_LISTING]: {
+          ...makeListing('book1', [alice], null),
+          refs: [
+            { addressBookId: 'book1', contactId: alice.id },
+            { addressBookId: 'shared', contactId: bob.id }
+          ]
+        },
+        book1: makeListing('book1', [alice], null),
+        book2: makeListing('book2', [alice], null),
+        shared: makeListing('shared', [bob], null)
+      }
+    )
+    const location = (): string | null => screen.getByRole('status').textContent
+
+    fireEvent.click(screen.getByText('Go to book1'))
+    expect(location()).toBe('/contacts/book1')
+    fireEvent.click(screen.getByText('Go to book2'))
+    expect(location()).toBe('/contacts/book2')
+
+    fireEvent.click(screen.getByText('Go back'))
+    expect(location()).toBe('/contacts/book1')
+    fireEvent.click(screen.getByText('Go back'))
+    expect(location()).toBe('/contacts?scope=shared')
+    expect(screen.getByRole('tab', { name: 'Shared with me' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
   })
 })

@@ -18,7 +18,7 @@ import {
   Typography,
   useBreakpoints
 } from '@linagora/twake-mui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsTable } from './ContactsTable'
@@ -37,14 +37,8 @@ export const AddressBookPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedTab: BookScope =
     searchParams.get('scope') === 'shared' ? 'shared' : 'mine'
-  const [tabBookId, setTabBookId] = useState(addressBookId)
-
-  // the /contacts and /contacts/:addressBookId routes share this instance, so
-  // the tab is reset when leaving My contacts to start again on 'mine'
-  if (tabBookId !== addressBookId) {
-    setTabBookId(addressBookId)
-    setSearchParams('mine')
-  }
+  // no reset when switching books: the tab lives in the URL, which the
+  // sidebar links replace, so /contacts starts again on 'mine'
 
   const scope = addressBookId ? undefined : selectedTab
 
