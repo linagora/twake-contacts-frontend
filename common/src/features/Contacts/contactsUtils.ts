@@ -1,6 +1,7 @@
 import { RejectedError } from '@common/utils/errorUtils'
 import { DEFAULT_ADDRESS_BOOK_ID, HIDDEN_ADDRESS_BOOK_IDS } from './constants'
 import { AddressBook, ContactAddress } from './contactsTypes'
+import { AddressBookAccessLevel } from './davTypes'
 
 /** Joins the address components in postal order, e.g. "10 Avenue des Champs, 75008 Paris, France". */
 export function formatAddress(address: ContactAddress): string {
@@ -18,6 +19,16 @@ export function formatAddress(address: ContactAddress): string {
 
 export function isHiddenAddressBook(id: string): boolean {
   return HIDDEN_ADDRESS_BOOK_IDS.includes(id)
+}
+
+// only the owner and the sharees with administration rights manage the
+// sharing: not the subscribers of a public book nor read-write sharees
+export function canShareAddressBook(book: AddressBook): boolean {
+  if (book.id === 'dab') return false
+  return (
+    book.ownerId === undefined ||
+    book.shareAccess === AddressBookAccessLevel.Editor
+  )
 }
 
 /** Maps a rejected request to the i18n key of a user-friendly message. */

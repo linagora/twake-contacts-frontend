@@ -1,6 +1,10 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
 import { AddressBook } from './contactsTypes'
-import { getAddressBookDisplayName, sortAddressBooks } from './contactsUtils'
+import {
+  canShareAddressBook,
+  getAddressBookDisplayName,
+  sortAddressBooks
+} from './contactsUtils'
 
 const makeBook = (id: string, name: string): AddressBook => ({
   id,
@@ -84,5 +88,39 @@ describe('getAddressBookDisplayName', () => {
     }
 
     expect(getAddressBookDisplayName(book, t)).toBe('qa-empty')
+  })
+})
+
+describe('canShareAddressBook', () => {
+  const ownBook = makeBook('own', 'Own')
+  const sharedBook = (shareAccess?: number): AddressBook => ({
+    ...makeBook('copy', 'Bob book'),
+    ownerId: 'bob',
+    sourceBookId: 'source',
+    shareAccess
+  })
+
+  it('lets the owner share the book', () => {
+    expect(canShareAddressBook(ownBook)).toBe(true)
+  })
+
+  it('lets a sharee with administration rights share the book', () => {
+    expect(canShareAddressBook(sharedBook(5))).toBe(true)
+  })
+
+  it('does not let a read-write sharee share the book', () => {
+    expect(canShareAddressBook(sharedBook(3))).toBe(false)
+  })
+
+  it('does not let a read-only sharee share the book', () => {
+    expect(canShareAddressBook(sharedBook(2))).toBe(false)
+  })
+
+  it('does not let a subscriber of a public read-write book share it', () => {
+    expect(canShareAddressBook(sharedBook())).toBe(false)
+  })
+
+  it('does not share the domain address book', () => {
+    expect(canShareAddressBook(makeBook('dab', 'Domain'))).toBe(false)
   })
 })

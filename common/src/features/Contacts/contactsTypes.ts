@@ -13,6 +13,8 @@ export interface AddressBook {
   contactsCount: number | null
   acl: string[]
   canWrite: boolean
+  // dav:share-access of a delegated book, the sharee's rights on it
+  shareAccess?: number
   ownerDisplayName?: string
   invitedMembers?: userData[]
   syncToken?: number

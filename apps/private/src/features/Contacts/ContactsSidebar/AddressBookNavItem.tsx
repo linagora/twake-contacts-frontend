@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
-import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import {
+  canShareAddressBook,
+  getAddressBookDisplayName
+} from '@common/features/Contacts/contactsUtils'
 import {
   Trash,
   Dots,
@@ -124,7 +127,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                 onClose={handleMenuClose}
                 onClick={e => e.stopPropagation()}
               >
-                {book.canWrite && (
+                {canShareAddressBook(book) && (
                   <ActionsMenuItem onClick={handleShare}>
                     <ListItemIcon>
                       <Icon icon={ShareExternal} />

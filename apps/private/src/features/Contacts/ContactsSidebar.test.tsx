@@ -249,6 +249,50 @@ describe('ContactsSidebar', () => {
     })
   })
 
+  describe('Share action', () => {
+    const books = Object.fromEntries(
+      [
+        makeBook(DEFAULT_ADDRESS_BOOK_ID, 'My contacts'),
+        makeBook('own', 'Own book'),
+        { ...makeBook('public', 'Bob Public RW'), ownerId: 'bob' },
+        { ...makeBook('rw', 'Team RW'), ownerId: 'bob', shareAccess: 3 },
+        { ...makeBook('admin', 'Team Admin'), ownerId: 'bob', shareAccess: 5 }
+      ].map(book => [book.id, book])
+    )
+
+    const offersShare = (name: string): boolean => {
+      fireEvent.mouseEnter(screen.getByText(name).closest('li') as HTMLElement)
+      fireEvent.click(
+        screen.getByRole('button', { name: en.contacts.menu.more })
+      )
+      return (
+        screen.queryByRole('menuitem', { name: en.contacts.menu.share }) !==
+        null
+      )
+    }
+
+    it('offers Share on an own address book', () => {
+      renderSidebar('/contacts', books)
+
+      expect(offersShare('Own book')).toBe(true)
+    })
+
+    it.each(['Bob Public RW', 'Team RW'])(
+      'does not offer Share on %s, writable but not shareable',
+      name => {
+        renderSidebar('/contacts', books)
+
+        expect(offersShare(name)).toBe(false)
+      }
+    )
+
+    it('offers Share on a book delegated with administration rights', () => {
+      renderSidebar('/contacts', books)
+
+      expect(offersShare('Team Admin')).toBe(true)
+    })
+  })
+
   describe('My contacts dropdown', () => {
     const getMyContacts = (): HTMLElement =>
       screen.getByRole('button', { name: en.contacts.myContacts })

@@ -30,6 +30,14 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(book).canWrite).toBe(false)
   })
 
+  it('keeps the share access of a delegated book', () => {
+    expect(normalizeAddressBook(sharedBook(5)).shareAccess).toBe(5)
+  })
+
+  it('has no share access when the book is not delegated', () => {
+    expect(normalizeAddressBook(sharedBook(null)).shareAccess).toBeUndefined()
+  })
+
   it('converts a numeric name to a string', () => {
     const book = { ...sharedBook(), 'dav:name': 12345 }
     expect(normalizeAddressBook(book).name).toBe('12345')
