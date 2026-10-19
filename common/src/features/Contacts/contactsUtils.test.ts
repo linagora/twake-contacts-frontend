@@ -75,4 +75,14 @@ describe('getAddressBookDisplayName', () => {
       'api-empty'
     )
   })
+
+  it("falls back to the owner's book id of an unnamed shared book", () => {
+    const book = {
+      ...makeBook('db166579-73b1-4336-a378-354f808ee382', ''),
+      ownerId: 'alice',
+      sourceBookId: 'qa-empty'
+    }
+
+    expect(getAddressBookDisplayName(book, t)).toBe('qa-empty')
+  })
 })

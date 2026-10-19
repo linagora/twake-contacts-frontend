@@ -38,9 +38,10 @@ export function getAddressBookDisplayName(
   if (!book) return ''
   if (book.id === 'dab') return t('contacts.domainAddressBook')
   if (book.name) return book.name
+  // a shared book's own id is the generated id of the sharee's copy
   return book.isDefault || isDefaultAddressBook(book)
     ? t('contacts.myContacts')
-    : book.id
+    : (book.sourceBookId ?? book.id)
 }
 
 // default address book first, then by display name in natural order
