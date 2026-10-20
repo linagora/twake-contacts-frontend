@@ -38,9 +38,9 @@ const bob = {
 describe('ShareAddressBookDialog', () => {
   it('lists a member shared again right after being removed', async () => {
     mockedFetchDetails
-      .mockResolvedValueOnce([bob])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([bob])
+      .mockResolvedValueOnce({ members: [bob], isPublic: false })
+      .mockResolvedValueOnce({ members: [], isPublic: false })
+      .mockResolvedValueOnce({ members: [bob], isPublic: false })
     mockedUpdateShares.mockResolvedValue(undefined)
     mockedSearchUsers.mockResolvedValue([
       {
