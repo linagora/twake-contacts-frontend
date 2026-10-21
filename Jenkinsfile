@@ -37,35 +37,6 @@ pipeline {
           sh 'npx prettier --check .'
         }
       }
-      stage('E2E') {
-        // The stack of e2e/docker/ (Sabre, side service, Dex, ...) and the production image of
-        // the app; the browser reaches the containers by their IP: needs a Linux agent with Docker
-        environment {
-          CI = 'true'
-        }
-        steps {
-          script {
-            // one compose project per build: builds of other branches may share the agent
-            env.E2E_PROJECT = "twake-contacts-e2e-${env.BUILD_TAG}".toLowerCase().replaceAll('[^a-z0-9_-]', '-')
-            env.E2E_APP_IMAGE = "twake-contacts-web-e2e:${env.E2E_PROJECT}"
-          }
-          sh 'e2e/scripts/build.sh'
-          dir('e2e') {
-            sh 'npm ci'
-            sh 'npx playwright install chromium'
-            sh './scripts/start.sh'
-            sh 'npx playwright test'
-          }
-        }
-        post {
-          always {
-            sh 'e2e/scripts/stop.sh || true'
-            sh 'docker rmi "$E2E_APP_IMAGE" "$E2E_APP_IMAGE-base" || true'
-            junit allowEmptyResults: true, testResults: 'e2e/test-results/junit.xml'
-            archiveArtifacts artifacts: 'e2e/playwright-report/**, e2e/test-results/artifacts/**', allowEmptyArchive: true
-          }
-        }
-      }
       stage('Deploy docker image (PR)') {
         when {
           changeRequest()

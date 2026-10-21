@@ -1,17 +1,15 @@
-// Runtime configuration of the SPA in the e2e stack and the QA environment, copied over
-// .env.js (Dockerfile.frontend).
+// Runtime configuration of the SPA in the QA environment, copied over .env.js.
 //
 // Every URL below is resolved by the browser through Chromium's --host-resolver-rules
-// (e2e/support/env.ts, printed by scripts/qa-environment/start.sh), so the browser and the
-// containers agree on one single set of URLs.
+// (printed by start.sh), so the browser and the containers agree on one single set of URLs.
 //
 // The SPA is served as http://localhost:8099 -- a made up port, nothing is bound on the
 // host -- because the OIDC PKCE challenge goes through crypto.subtle, which the browser only
 // exposes in a secure context. `localhost` is trustworthy, `frontend` would not be.
-// Port and client id are the ones registered in Dex (dex/config.yaml) and expected as the token
-// audience by the side service (side-service/configuration.properties).
+// Port and client id are the ones the twake-calendar e2e stack registers in Dex and expects
+// as the token audience on the side service.
 var SSO_BASE_URL = 'https://sso:5554'
-var SSO_CLIENT_ID = 'twake-contacts'
+var SSO_CLIENT_ID = 'twake-calendar'
 var SSO_SCOPE = 'openid profile email'
 var SSO_REDIRECT_URI = 'http://localhost:8099/callback'
 var SSO_RESPONSE_TYPE = 'code'

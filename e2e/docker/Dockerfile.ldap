@@ -1,4 +1,0 @@
-# Build context: e2e/docker/
-FROM bitnamilegacy/openldap
-
-COPY ldap/populate.ldif /ldifs/populate.ldif

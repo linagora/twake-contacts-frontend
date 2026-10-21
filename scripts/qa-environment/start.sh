@@ -14,7 +14,8 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 QA_USERS="${QA_USERS:-alice bob}"
-IMAGES=(twake-contacts-web-e2e twake-contacts-e2e-side-service twake-contacts-e2e-ldap twake-contacts-e2e-dex twake-contacts-e2e-proxy twake-contacts-e2e-sabre)
+IMAGES=(twake-contacts-web-qa tcalendar-e2e ldap-e2e tcalendar-dex-e2e tcalendar-proxy-e2e sabre-e2e)
+# Everything but the calendar `public` SPA, which contacts has no use for
 SERVICES=(frontend proxy sso twake-calendar-side-service mock-smtp)
 
 # runs curl from inside the stack network, where every service answers to its own name

@@ -1,9 +1,0 @@
-# Build context: e2e/docker/
-#
-# Layers the runtime configuration of the stack on top of the *production* image built from
-# apps/private/Dockerfile, so the artifact under test is the one we actually ship.
-ARG FRONTEND_IMAGE="twake-contacts-web-e2e-base"
-
-FROM ${FRONTEND_IMAGE}
-
-COPY frontend/env.js /usr/share/nginx/html/.env.js
