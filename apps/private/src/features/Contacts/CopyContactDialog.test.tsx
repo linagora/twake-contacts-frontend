@@ -43,6 +43,7 @@ const renderDialog = (
         },
         target: book('target'),
         dab: book('dab'),
+        collected: book('collected'),
         readonly: book('readonly', false),
         contacts: { ...book('contacts'), name: 'My contacts' }
       },
@@ -85,6 +86,9 @@ const renderDialog = (
 const selectDestination = (name = 'target'): void => {
   fireEvent.mouseDown(screen.getByRole('combobox'))
   expect(screen.queryByRole('option', { name: 'dab' })).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('option', { name: 'collected' })
+  ).not.toBeInTheDocument()
   expect(
     screen.queryByRole('option', { name: 'readonly' })
   ).not.toBeInTheDocument()

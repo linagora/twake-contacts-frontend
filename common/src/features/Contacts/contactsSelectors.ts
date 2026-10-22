@@ -2,6 +2,7 @@ import { createSelector } from '@reduxjs/toolkit'
 import { RootState } from '@common/app/store'
 import { ALL_CONTACTS_LISTING } from './constants'
 import { makeContactLookup } from './contactListings'
+import { isWritableTargetBook } from './contactsUtils'
 import {
   AddressBook,
   AddressBookWithContacts,
@@ -120,9 +121,5 @@ export const selectCategories = createSelector(
 
 export const selectWritableBooks = createSelector(
   [selectAddressBooks],
-  (books): AddressBook[] =>
-    Object.values(books).filter(
-      // the domain book is writable but must not be edited from here
-      book => book.canWrite && book.id !== 'collected' && book.id !== 'dab'
-    )
+  (books): AddressBook[] => Object.values(books).filter(isWritableTargetBook)
 )

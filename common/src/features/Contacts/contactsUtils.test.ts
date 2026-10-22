@@ -3,6 +3,7 @@ import { AddressBook } from './contactsTypes'
 import {
   canShareAddressBook,
   getAddressBookDisplayName,
+  isContactTransferDestination,
   sortAddressBooks
 } from './contactsUtils'
 
@@ -122,5 +123,49 @@ describe('canShareAddressBook', () => {
 
   it('does not share the domain address book', () => {
     expect(canShareAddressBook(makeBook('dab', 'Domain'))).toBe(false)
+  })
+})
+
+describe('isContactTransferDestination', () => {
+  it('accepts another writable book', () => {
+    expect(
+      isContactTransferDestination(makeBook('target', 'Target'), 'source')
+    ).toBe(true)
+  })
+
+  it('accepts the default book', () => {
+    expect(
+      isContactTransferDestination(
+        makeBook(DEFAULT_ADDRESS_BOOK_ID, ''),
+        'source'
+      )
+    ).toBe(true)
+  })
+
+  it('rejects the source book', () => {
+    expect(
+      isContactTransferDestination(makeBook('source', 'Source'), 'source')
+    ).toBe(false)
+  })
+
+  it('rejects a read-only book', () => {
+    expect(
+      isContactTransferDestination(
+        { ...makeBook('readonly', 'Read only'), canWrite: false },
+        'source'
+      )
+    ).toBe(false)
+  })
+
+  it('rejects the domain address book', () => {
+    expect(
+      isContactTransferDestination(makeBook('dab', 'Domain'), 'source')
+    ).toBe(false)
+  })
+
+  it('rejects the internal collected book', () => {
+    expect(
+      isContactTransferDestination(makeBook('collected', 'collected'), 'source')
+    ).toBe(false)
   })
 })

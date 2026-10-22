@@ -1,5 +1,9 @@
 import { RejectedError } from '@common/utils/errorUtils'
-import { DEFAULT_ADDRESS_BOOK_ID, HIDDEN_ADDRESS_BOOK_IDS } from './constants'
+import {
+  COLLECTED_ADDRESS_BOOK_ID,
+  DEFAULT_ADDRESS_BOOK_ID,
+  HIDDEN_ADDRESS_BOOK_IDS
+} from './constants'
 import { AddressBook, ContactAddress } from './contactsTypes'
 import { AddressBookAccessLevel } from './davTypes'
 
@@ -31,11 +35,22 @@ export function canShareAddressBook(book: AddressBook): boolean {
   )
 }
 
+// the books contacts are written to from the UI (create form, copy and move
+// destinations): not the internal collected book, nor the domain book, which
+// is writable but must not be edited from here
+export function isWritableTargetBook(book: AddressBook | undefined): boolean {
+  return (
+    !!book?.canWrite &&
+    book.id !== COLLECTED_ADDRESS_BOOK_ID &&
+    book.id !== 'dab'
+  )
+}
+
 export function isContactTransferDestination(
   book: AddressBook | undefined,
   sourceId: string
 ): boolean {
-  return !!book?.canWrite && book.id !== 'dab' && book.id !== sourceId
+  return isWritableTargetBook(book) && book?.id !== sourceId
 }
 
 /** Maps a rejected request to the i18n key of a user-friendly message. */
