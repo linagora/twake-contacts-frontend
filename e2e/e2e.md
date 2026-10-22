@@ -68,6 +68,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] LIST-17 (P2) Created and renamed contacts take their sorted place without reload — `list.spec.ts`
 - [ ] LIST-18 (P3) Skeleton rows while more contacts load
 - [ ] LIST-19 (P3) Error banner is closable and does not follow the user
+- [x] LIST-20 (P2) Copy a contact to another address book from the row menu — `list.spec.ts`
 - [x] LIST-21 (P2) Move a contact to another address book from the row menu — `list.spec.ts`
 
 ## Search

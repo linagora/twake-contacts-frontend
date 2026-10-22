@@ -391,6 +391,73 @@ test.describe('LIST contact list', () => {
     await expect.poll(() => contacts.rowNames()).toEqual(expected)
   })
 
+  test('LIST-20 copy a contact to another address book from the row menu', async ({
+    page,
+    user,
+    users,
+    dav,
+    davFor
+  }) => {
+    await dav.createAddressBook({ id: 'src', name: 'Source' })
+    await dav.createAddressBook({ id: 'dst', name: 'Destination' })
+    const cora = await dav.putContact('src', {
+      firstName: 'Cora',
+      lastName: 'Copy',
+      emails: ['cora@example.com'],
+      phones: ['+33612345678'],
+      categories: ['Sales']
+    })
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('Source')
+
+    const dialog = await contacts.openTransferDialog('Cora Copy', 'Copy')
+    await expect(dialog.confirmButton).toBeDisabled()
+    const options = await dialog.openDestinations()
+    await expect(options.filter({ hasText: 'Destination' })).toHaveCount(1)
+    await expect(options.filter({ hasText: 'Source' })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    await dialog.transferTo('Destination')
+
+    await expect(contacts.toast('Contact copied successfully')).toBeVisible()
+    await expect(contacts.row('Cora Copy')).toBeVisible()
+    await expect.poll(() => dav.contactNames('dst')).toEqual(['Cora Copy'])
+    expect(await dav.contactNames('src')).toEqual(['Cora Copy'])
+
+    await contacts.reload()
+    await contacts.openBook('Destination')
+    const copy = await contacts.openContact('Cora Copy')
+    await expect(copy.detail('cora@example.com')).toBeVisible()
+    await expect(copy.detail('+33612345678')).toBeVisible()
+    await expect(copy.detail('Sales')).toBeVisible()
+    const copyId = new URL(page.url()).pathname.split('/').pop() ?? ''
+    expect(copyId).not.toBe(cora)
+    expect(await dav.getContact('dst', copyId)).toContain('CATEGORIES:Sales')
+
+    // two distinct cards: editing the copy leaves the original alone
+    const form = await copy.edit()
+    await form.lastName.fill('Copied')
+    await form.saveEdit('Cora Copied')
+    expect(await dav.getContact('src', cora)).toContain('FN:Cora Copy')
+    await contacts.openMyContacts()
+    await expect(contacts.row('Cora Copy')).toHaveCount(1)
+    await expect(contacts.row('Cora Copied')).toHaveCount(1)
+
+    // into a read-write shared book
+    const alice = await users.create({ prefix: 'alice' })
+    await davFor(alice).createAddressBook({ id: 'qa-rw', name: 'Team RW' })
+    await davFor(alice).share('qa-rw', user, READ_WRITE)
+    await contacts.reload()
+    await contacts.openBook('Source')
+    await contacts
+      .openTransferDialog('Cora Copy', 'Copy')
+      .then(transfer => transfer.transferTo('Team RW'))
+    await expect(contacts.toast('Contact copied successfully')).toBeVisible()
+    await expect
+      .poll(() => davFor(alice).contactNames('qa-rw'))
+      .toEqual(['Cora Copy'])
+    expect(await dav.contactNames('src')).toEqual(['Cora Copy'])
+  })
+
   test('LIST-21 move a contact to another address book from the row menu', async ({
     page,
     user,
