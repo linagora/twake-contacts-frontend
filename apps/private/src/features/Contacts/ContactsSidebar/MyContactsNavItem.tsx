@@ -1,10 +1,12 @@
-import { ContactList } from '@linagora/twake-icons'
+import { ContactList, Dropdown, Icon } from '@linagora/twake-icons'
 import {
-  NavDropdown,
+  IconButton,
   NavIcon,
   NavItem,
   NavLink,
-  NavText
+  NavText,
+  Tooltip,
+  useTheme
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { CreateAddressBookButton } from './CreateAddressBookButton'
@@ -28,6 +30,8 @@ export const MyContactsNavItem: React.FC<MyContactsNavItemProps> = ({
   onOpenCreateBook
 }) => {
   const { t } = useI18n()
+  const theme = useTheme()
+  const toggleLabel = t(isExpanded ? 'contacts.collapse' : 'contacts.expand')
 
   return (
     <NavItem
@@ -38,27 +42,37 @@ export const MyContactsNavItem: React.FC<MyContactsNavItemProps> = ({
         />
       }
     >
-      {hasBooks ? (
-        <NavDropdown
-          open={isExpanded}
-          onToggle={onToggle}
-          selected={isSelected}
-          aria-current={getAriaCurrent(isSelected)}
-          onClick={onNavigate}
-        >
-          <NavIcon icon={ContactList} />
-          <NavText>{t('contacts.myContacts')}</NavText>
-        </NavDropdown>
-      ) : (
-        <NavLink
-          selected={isSelected}
-          aria-current={getAriaCurrent(isSelected)}
-          onClick={onNavigate}
-        >
-          <NavIcon icon={ContactList} />
-          <NavText>{t('contacts.myContacts')}</NavText>
-        </NavLink>
-      )}
+      <NavLink
+        selected={isSelected}
+        aria-current={getAriaCurrent(isSelected)}
+        aria-expanded={hasBooks ? isExpanded : undefined}
+        onClick={onNavigate}
+      >
+        <NavIcon icon={ContactList} />
+        <NavText>{t('contacts.myContacts')}</NavText>
+        {/* Not NavDropdown: its chevron toggle has no tooltip */}
+        {hasBooks && (
+          <Tooltip disableInteractive title={toggleLabel}>
+            <IconButton
+              className="u-ml-half"
+              size="xsmall"
+              aria-label={toggleLabel}
+              aria-expanded={isExpanded}
+              onClick={e => {
+                e.stopPropagation()
+                onToggle()
+              }}
+            >
+              <Icon
+                icon={Dropdown}
+                rotate={isExpanded ? 0 : -90}
+                size={14}
+                color={theme.vars.palette.text.primary}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+      </NavLink>
     </NavItem>
   )
 }

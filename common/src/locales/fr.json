@@ -18,6 +18,8 @@
     "tabs": { "mine": "Mes contacts", "shared": "Partagé avec moi" },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
+    "collapse": "Réduire",
+    "expand": "Développer",
     "domainAddressBook": "Carnet d'adresses du domaine",
     "create": "Créer",
     "name": "Nom",

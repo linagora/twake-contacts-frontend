@@ -325,5 +325,43 @@ describe('ContactsSidebar', () => {
       expect(getMyContacts()).toHaveAttribute('aria-expanded', 'true')
       expect(screen.getByText('Book 1')).toBeInTheDocument()
     })
+
+    it('toggles the books from the chevron, with a tooltip matching its label', async () => {
+      renderSidebar('/contacts/book1')
+
+      const collapse = screen.getByRole('button', {
+        name: en.contacts.collapse
+      })
+      expect(collapse).toHaveAttribute('aria-expanded', 'true')
+
+      fireEvent.mouseOver(collapse)
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(
+        en.contacts.collapse
+      )
+
+      fireEvent.click(collapse)
+
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        /^\/contacts\/book1$/
+      )
+      expect(screen.queryByText('Book 1')).not.toBeInTheDocument()
+      const expand = screen.getByRole('button', { name: en.contacts.expand })
+      expect(expand).toHaveAttribute('aria-expanded', 'false')
+      expect(getMyContacts()).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('has no chevron without other books', () => {
+      renderSidebar('/contacts', {
+        [DEFAULT_ADDRESS_BOOK_ID]: makeBook(
+          DEFAULT_ADDRESS_BOOK_ID,
+          'My contacts'
+        )
+      })
+
+      expect(
+        screen.queryByRole('button', { name: en.contacts.collapse })
+      ).not.toBeInTheDocument()
+      expect(getMyContacts()).not.toHaveAttribute('aria-expanded')
+    })
   })
 })
