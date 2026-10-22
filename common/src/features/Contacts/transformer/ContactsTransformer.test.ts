@@ -38,6 +38,18 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(sharedBook(null)).shareAccess).toBeUndefined()
   })
 
+  it.each(['delegation', 'public'])(
+    'keeps the %s subscription type of a book of another user',
+    type => {
+      const book = { ...sharedBook(), 'openpaas:subscription-type': type }
+      expect(normalizeAddressBook(book).subscriptionType).toBe(type)
+    }
+  )
+
+  it('has no subscription type when the server reports none', () => {
+    expect(normalizeAddressBook(sharedBook()).subscriptionType).toBeUndefined()
+  })
+
   it('converts a numeric name to a string', () => {
     const book = { ...sharedBook(), 'dav:name': 12345 }
     expect(normalizeAddressBook(book).name).toBe('12345')

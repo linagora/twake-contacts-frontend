@@ -136,6 +136,7 @@
       "deleteDescription": "“%{name}” e tutti i suoi contatti verranno eliminati definitivamente.",
       "deleteConfirm": "Elimina",
       "removeDescription": "“%{name}” verrà rimossa dalla tua lista. Potrai aggiungerla di nuovo cercando il suo proprietario.",
+      "removeDelegatedDescription": "“%{name}” verrà rimossa dalla tua lista. Chiedi al suo proprietario di condividerla di nuovo se ti serve.",
       "removeTitle": "Rimuovere questa rubrica?",
       "removeConfirm": "Rimuovi",
       "editTitle": "Modifica rubrica",

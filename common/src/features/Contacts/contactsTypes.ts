@@ -1,6 +1,8 @@
 import { JCalProperty } from './davTypes'
 import { userData } from '../User/userDataTypes'
 
+export type AddressBookSubscriptionType = 'delegation' | 'public'
+
 export interface AddressBook {
   id: string
   userId: string
@@ -15,6 +17,9 @@ export interface AddressBook {
   canWrite: boolean
   // dav:share-access of a delegated book, the sharee's rights on it
   shareAccess?: number
+  // how a book of another user entered the list: shared with the user
+  // (delegation) or added from the owner's public books (public)
+  subscriptionType?: AddressBookSubscriptionType
   ownerDisplayName?: string
   invitedMembers?: userData[]
   syncToken?: number

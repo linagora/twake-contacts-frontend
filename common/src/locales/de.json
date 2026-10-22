@@ -137,6 +137,7 @@
       "deleteDescription": "„%{name}“ und alle zugehörigen Kontakte werden dauerhaft gelöscht.",
       "deleteConfirm": "Löschen",
       "removeDescription": "„%{name}“ wird aus Ihrer Liste entfernt. Sie können es wieder hinzufügen, indem Sie nach dem Eigentümer suchen.",
+      "removeDelegatedDescription": "„%{name}“ wird aus Ihrer Liste entfernt. Bitten Sie den Eigentümer, es erneut zu teilen, wenn Sie es wieder benötigen.",
       "removeTitle": "Dieses Adressbuch entfernen?",
       "removeConfirm": "Entfernen",
       "editTitle": "Adressbuch bearbeiten",

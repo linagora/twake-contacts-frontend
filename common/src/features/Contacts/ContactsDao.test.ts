@@ -619,4 +619,12 @@ describe('subscribeToAddressBook', () => {
 
     expect(book.ownerDisplayName).toBe('alice')
   })
+
+  it('marks the book as a subscription to a public book', async () => {
+    jest.mocked(fetchUserById).mockResolvedValue({} as never)
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(book.subscriptionType).toBe('public')
+  })
 })

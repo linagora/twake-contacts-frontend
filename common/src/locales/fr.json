@@ -137,6 +137,7 @@
       "deleteDescription": "« %{name} » et tous ses contacts seront définitivement supprimés.",
       "deleteConfirm": "Supprimer",
       "removeDescription": "« %{name} » sera retiré de votre liste. Vous pourrez le retrouver en recherchant son propriétaire.",
+      "removeDelegatedDescription": "« %{name} » sera retiré de votre liste. Demandez à son propriétaire de le partager à nouveau si vous en avez besoin.",
       "removeTitle": "Retirer ce carnet d'adresses ?",
       "removeConfirm": "Retirer",
       "editTitle": "Modifier le carnet d'adresses",

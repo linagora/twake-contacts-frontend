@@ -564,6 +564,7 @@ export async function subscribeToAddressBook(
     acl: ['dav:read'],
     canWrite: false,
     ownerId: source.userId,
+    subscriptionType: 'public',
     ownerDisplayName:
       (await fetchOwnerDisplayName(source.userId)) ?? ownerDisplayName
   }

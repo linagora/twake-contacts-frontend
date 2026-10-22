@@ -3,6 +3,7 @@ import { userData as UserDataType } from '@common/features/User/userDataTypes'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
   AddressBook,
+  AddressBookSubscriptionType,
   Contact,
   ContactAddress,
   ContactEmail,
@@ -171,6 +172,9 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const acl = raw['dav:acl'] ?? []
   // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
   const shareAccess = raw['dav:share-access'] ?? undefined
+  const subscriptionType = normalizeSubscriptionType(
+    raw['openpaas:subscription-type']
+  )
   const isReadOnlyShare = READ_ONLY_SHARE_ACCESSES.some(
     access => access === shareAccess
   )
@@ -187,8 +191,15 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
         p =>
           p === 'dav:write' || p === '{DAV:}write-content' || p === '{DAV:}bind'
       ),
-    ...(shareAccess !== undefined && { shareAccess })
+    ...(shareAccess !== undefined && { shareAccess }),
+    ...(subscriptionType && { subscriptionType })
   }
+}
+
+function normalizeSubscriptionType(
+  type: string | null | undefined
+): AddressBookSubscriptionType | undefined {
+  return type === 'delegation' || type === 'public' ? type : undefined
 }
 
 const KNOWN_PROPERTIES = new Set([

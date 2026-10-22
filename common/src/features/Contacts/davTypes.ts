@@ -103,6 +103,8 @@ export interface DavAddressBookItem {
   numberOfContacts?: number | null
   'dav:acl'?: string[]
   'dav:share-access'?: number | null
+  /** `delegation` for a book shared with the user, `public` for a subscription to a public book. */
+  'openpaas:subscription-type'?: string
   '{DAV:}displayname'?: string
   acl?: AclEntry[]
   '{http://open-paas.org/contacts}numberOfContacts'?: number | null

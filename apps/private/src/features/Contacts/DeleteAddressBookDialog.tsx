@@ -26,6 +26,9 @@ export const DeleteAddressBookDialog: React.FC<
 > = ({ book, onClose, onConfirm }) => {
   const { t } = useI18n()
   const isCopy = Boolean(book.ownerId)
+  // a book shared with the user is not offered by the search of the owner's
+  // public books, only its owner can share it again
+  const isDelegated = isCopy && book.subscriptionType === 'delegation'
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
@@ -55,9 +58,11 @@ export const DeleteAddressBookDialog: React.FC<
           <DialogContentText>
             <DialogContentText>
               {t(
-                isCopy
-                  ? 'contacts.addressBook.removeDescription'
-                  : 'contacts.addressBook.deleteDescription',
+                isDelegated
+                  ? 'contacts.addressBook.removeDelegatedDescription'
+                  : isCopy
+                    ? 'contacts.addressBook.removeDescription'
+                    : 'contacts.addressBook.deleteDescription',
                 { name: getAddressBookDisplayName(book, t) }
               )}
             </DialogContentText>

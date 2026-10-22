@@ -137,6 +137,7 @@
       "deleteDescription": "“%{name}” và tất cả liên hệ trong đó sẽ bị xóa vĩnh viễn.",
       "deleteConfirm": "Xóa",
       "removeDescription": "“%{name}” sẽ bị gỡ khỏi danh sách của bạn. Bạn có thể thêm lại bằng cách tìm chủ sở hữu.",
+      "removeDelegatedDescription": "“%{name}” sẽ bị gỡ khỏi danh sách của bạn. Hãy nhờ chủ sở hữu chia sẻ lại nếu bạn cần dùng lại.",
       "removeTitle": "Gỡ sổ địa chỉ này?",
       "removeConfirm": "Gỡ",
       "editTitle": "Chỉnh sửa sổ địa chỉ",

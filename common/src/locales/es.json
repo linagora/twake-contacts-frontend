@@ -137,6 +137,7 @@
       "deleteDescription": "«%{name}» y todos sus contactos se eliminarán de forma permanente.",
       "deleteConfirm": "Eliminar",
       "removeDescription": "«%{name}» se quitará de su lista. Podrá volver a añadirla buscando a su propietario.",
+      "removeDelegatedDescription": "«%{name}» se quitará de su lista. Pida a su propietario que vuelva a compartirla si la necesita.",
       "removeTitle": "¿Quitar esta libreta de direcciones?",
       "removeConfirm": "Quitar",
       "editTitle": "Editar libreta de direcciones",

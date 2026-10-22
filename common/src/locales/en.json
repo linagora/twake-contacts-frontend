@@ -85,6 +85,7 @@
       "deleteDescription": "“%{name}” and all its contacts will be permanently deleted.",
       "deleteConfirm": "Delete",
       "removeDescription": "“%{name}” will be removed from your list. You can find it again by searching for its owner.",
+      "removeDelegatedDescription": "“%{name}” will be removed from your list. Ask its owner to share it again if you need it back.",
       "removeTitle": "Remove this address book?",
       "removeConfirm": "Remove",
       "editTitle": "Edit address book",
