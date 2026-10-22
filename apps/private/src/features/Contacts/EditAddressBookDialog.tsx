@@ -6,8 +6,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
+  ListItem,
   TextField
 } from '@linagora/twake-mui'
+import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
 export interface EditAddressBookDialogProps {
@@ -26,9 +29,36 @@ export const EditAddressBookDialog: React.FC<EditAddressBookDialogProps> = ({
 
   const trimmedName = name.trim()
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault()
+    if (trimmedName) onConfirm({ name: trimmedName })
+  }
+
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{t('contacts.edit.title')}</DialogTitle>
+    <Dialog
+      open
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
+    >
+      <DialogTitle>
+        <ListItem
+          disableGutters
+          disablePadding
+          secondaryAction={
+            <IconButton
+              edge="end"
+              aria-label={t('contacts.form.close')}
+              onClick={onClose}
+            >
+              <Icon icon={Cross} />
+            </IconButton>
+          }
+        >
+          {t('contacts.edit.title')}
+        </ListItem>
+      </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
@@ -41,11 +71,7 @@ export const EditAddressBookDialog: React.FC<EditAddressBookDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('contacts.edit.cancel')}</Button>
-        <Button
-          variant="contained"
-          disabled={!trimmedName}
-          onClick={() => onConfirm({ name: trimmedName })}
-        >
+        <Button variant="contained" type="submit" disabled={!trimmedName}>
           {t('contacts.edit.save')}
         </Button>
       </DialogActions>
