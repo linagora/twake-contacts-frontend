@@ -242,6 +242,20 @@ export class ContactsPage {
     })
   }
 
+  /** Sort button of a sortable column header; its name ends with the direction when sorted */
+  sortButton(column: 'Name' | 'Email'): Locator {
+    return this.table
+      .getByRole('columnheader')
+      .getByRole('button', { name: startsWith(column) })
+  }
+
+  /** The header of a sortable column, which has `aria-sort` while the list is sorted by it */
+  columnHeader(column: 'Name' | 'Email'): Locator {
+    return this.table.getByRole('columnheader').filter({
+      has: this.page.getByRole('button', { name: startsWith(column) })
+    })
+  }
+
   /** Names of the rows rendered (the table is virtualized: only the rows in view) */
   async rowNames(): Promise<string[]> {
     await expect(this.rows.first()).toBeVisible()

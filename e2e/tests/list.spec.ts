@@ -516,4 +516,120 @@ test.describe('LIST contact list', () => {
       .toEqual(['Sean Shared'])
     expect(await dav.contactNames(DEFAULT_BOOK)).toEqual([])
   })
+
+  test('LIST-22 the Name and Email headers sort the list both ways', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    // the order of the names is the reverse of the order of the emails
+    for (const [firstName, email] of [
+      ['Anna', 'zed'],
+      ['Bert', 'mid'],
+      ['Carl', 'abe']
+    ]) {
+      await dav.putContact('qa-book', {
+        firstName,
+        lastName: 'Sort',
+        emails: [`${email}@example.com`]
+      })
+    }
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+    const byName = ['Anna Sort', 'Bert Sort', 'Carl Sort']
+    const reversed = [...byName].reverse()
+
+    await expect.poll(() => contacts.rowNames()).toEqual(byName)
+    await expect(contacts.columnHeader('Name')).toHaveAttribute(
+      'aria-sort',
+      'ascending'
+    )
+    await expect(contacts.sortButton('Name')).toHaveAccessibleName(
+      'Name sorted ascending'
+    )
+    await expect(contacts.columnHeader('Email')).not.toHaveAttribute(
+      'aria-sort',
+      /./
+    )
+
+    await contacts.sortButton('Email').click()
+    await expect.poll(() => contacts.rowNames()).toEqual(reversed)
+    await expect(contacts.columnHeader('Email')).toHaveAttribute(
+      'aria-sort',
+      'ascending'
+    )
+    await expect(contacts.columnHeader('Name')).not.toHaveAttribute(
+      'aria-sort',
+      /./
+    )
+    await expect(contacts.sortButton('Name')).toHaveAccessibleName('Name')
+
+    await contacts.sortButton('Email').click()
+    await expect.poll(() => contacts.rowNames()).toEqual(byName)
+    await expect(contacts.columnHeader('Email')).toHaveAttribute(
+      'aria-sort',
+      'descending'
+    )
+    await expect(contacts.sortButton('Email')).toHaveAccessibleName(
+      'Email sorted descending'
+    )
+
+    await contacts.sortButton('Name').click()
+    await expect.poll(() => contacts.rowNames()).toEqual(byName)
+    await expect(contacts.columnHeader('Name')).toHaveAttribute(
+      'aria-sort',
+      'ascending'
+    )
+    await contacts.sortButton('Name').click()
+    await expect.poll(() => contacts.rowNames()).toEqual(reversed)
+    await expect(contacts.columnHeader('Name')).toHaveAttribute(
+      'aria-sort',
+      'descending'
+    )
+
+    // the sort is not kept: a reload is back to Name ascending
+    await contacts.reload()
+    await expect.poll(() => contacts.rowNames()).toEqual(byName)
+    await expect(contacts.columnHeader('Name')).toHaveAttribute(
+      'aria-sort',
+      'ascending'
+    )
+  })
+
+  test('LIST-23 sorting a long list by email lists every contact once, in order', async ({
+    page,
+    user,
+    dav
+  }) => {
+    // the emails run backwards: sorted by email, the list is the reverse of the names
+    const names = Array.from(
+      { length: 60 },
+      (_, i) => `Bulk ${String(i + 1).padStart(3, '0')}`
+    )
+    for (const [i, name] of names.entries()) {
+      await dav.putContact('contacts', {
+        firstName: 'Bulk',
+        lastName: name.slice(5),
+        emails: [`mail${String(names.length - i).padStart(3, '0')}@example.com`]
+      })
+    }
+    const contacts = await new LoginPage(page).loginAs(user)
+    await expect.poll(() => contacts.rowNames()).toContain('Bulk 001')
+
+    await contacts.sortButton('Email').click()
+    await expect
+      .poll(async () => (await contacts.rowNames())[0])
+      .toBe('Bulk 060')
+    expect(await contacts.allRowNames()).toEqual([...names].reverse())
+
+    // the list stays where it was scrolled to: back to its top
+    await contacts.sortButton('Name').click()
+    await contacts.rows.first().hover()
+    await page.mouse.wheel(0, -100_000)
+    await expect
+      .poll(async () => (await contacts.rowNames())[0])
+      .toBe('Bulk 001')
+    expect(await contacts.allRowNames()).toEqual(names)
+  })
 })

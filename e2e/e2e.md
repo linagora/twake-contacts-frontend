@@ -70,6 +70,8 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [ ] LIST-19 (P3) Error banner is closable and does not follow the user
 - [x] LIST-20 (P2) Copy a contact to another address book from the row menu — `list.spec.ts`
 - [x] LIST-21 (P2) Move a contact to another address book from the row menu — `list.spec.ts`
+- [x] LIST-22 (P2) The Name and Email headers sort the list both ways — `list.spec.ts`
+- [x] LIST-23 (P2) Sorting a long list by email lists every contact once, in order — `list.spec.ts`
 
 ## Search
 
