@@ -4,6 +4,7 @@ import { ContactFormPage } from './ContactFormPage'
 import { ContactPage } from './ContactPage'
 import {
   AddSharedBookDialog,
+  ContactTransferDialog,
   DeleteAddressBookDialog,
   DeleteContactDialog,
   EditAddressBookDialog,
@@ -287,6 +288,18 @@ export class ContactsPage {
     const menu = this.page.getByRole('menu')
     await expect(menu).toBeVisible()
     return menu
+  }
+
+  /** Row "..." > Copy contact / Move contact */
+  async openTransferDialog(
+    name: string,
+    mode: 'Copy' | 'Move'
+  ): Promise<ContactTransferDialog> {
+    const menu = await this.openRowMenu(name)
+    await menu.getByRole('menuitem', { name: `${mode} contact` }).click()
+    const dialog = new ContactTransferDialog(this.page, mode)
+    await expect(dialog.root).toBeVisible()
+    return dialog
   }
 
   async deleteFromList(name: string): Promise<void> {

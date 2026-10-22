@@ -1,5 +1,5 @@
 import { DeleteContactDialog, LoginPage } from '../pages'
-import { READ_ONLY } from '../support/dav'
+import { DEFAULT_BOOK, READ_ONLY, READ_WRITE } from '../support/dav'
 import { expect, test } from '../support/fixtures'
 import { popupUrl } from '../support/popups'
 
@@ -389,5 +389,64 @@ test.describe('LIST contact list', () => {
 
     await contacts.reload()
     await expect.poll(() => contacts.rowNames()).toEqual(expected)
+  })
+
+  test('LIST-21 move a contact to another address book from the row menu', async ({
+    page,
+    user,
+    users,
+    dav,
+    davFor
+  }) => {
+    await dav.createAddressBook({ id: 'src', name: 'Source' })
+    await dav.createAddressBook({ id: 'dst', name: 'Destination' })
+    const mona = await dav.putContact('src', {
+      firstName: 'Mona',
+      lastName: 'Move',
+      emails: ['mona@example.com']
+    })
+    await dav.putContact('src', { firstName: 'Stay', lastName: 'Here' })
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('Source')
+
+    const dialog = await contacts.openTransferDialog('Mona Move', 'Move')
+    await expect(dialog.confirmButton).toBeDisabled()
+    const options = await dialog.openDestinations()
+    await expect(options.filter({ hasText: 'Destination' })).toHaveCount(1)
+    await expect(options.filter({ hasText: 'Source' })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    await expect(dialog.root).toBeVisible()
+    await dialog.transferTo('Destination')
+
+    await expect(contacts.toast('Contact moved successfully')).toBeVisible()
+    await expect(contacts.row('Mona Move')).toHaveCount(0)
+    await expect(contacts.row('Stay Here')).toBeVisible()
+    await expect.poll(() => dav.contactNames('dst')).toEqual(['Mona Move'])
+    expect(await dav.contactNames('src')).toEqual(['Stay Here'])
+    expect(await dav.getContact('dst', mona)).toContain('mona@example.com')
+
+    await contacts.reload()
+    await contacts.openBook('Destination')
+    await expect(contacts.row('Mona Move')).toHaveCount(1)
+    await contacts.openMyContacts()
+    await expect(contacts.row('Mona Move')).toHaveCount(1)
+
+    // into a read-write shared book
+    const alice = await users.create({ prefix: 'alice' })
+    await davFor(alice).createAddressBook({ id: 'qa-rw', name: 'Team RW' })
+    await davFor(alice).share('qa-rw', user, READ_WRITE)
+    await dav.putContact(DEFAULT_BOOK, {
+      firstName: 'Sean',
+      lastName: 'Shared'
+    })
+    await contacts.reload()
+    await contacts
+      .openTransferDialog('Sean Shared', 'Move')
+      .then(transfer => transfer.transferTo('Team RW'))
+    await expect(contacts.toast('Contact moved successfully')).toBeVisible()
+    await expect
+      .poll(() => davFor(alice).contactNames('qa-rw'))
+      .toEqual(['Sean Shared'])
+    expect(await dav.contactNames(DEFAULT_BOOK)).toEqual([])
   })
 })

@@ -21,6 +21,45 @@ export class DeleteContactDialog {
   }
 }
 
+/** "Copy contact" / "Move contact", row "..." > Copy contact / Move contact */
+export class ContactTransferDialog {
+  readonly page: Page
+  readonly root: Locator
+  readonly destination: Locator
+  readonly confirmButton: Locator
+  readonly cancelButton: Locator
+
+  constructor(page: Page, mode: 'Copy' | 'Move') {
+    this.page = page
+    this.root = page.getByRole('dialog', { name: `${mode} contact` })
+    this.destination = this.root.getByRole('combobox', {
+      name: 'Destination address book'
+    })
+    this.confirmButton = this.root.getByRole('button', {
+      name: mode,
+      exact: true
+    })
+    this.cancelButton = this.root.getByRole('button', { name: 'Cancel' })
+  }
+
+  /** Opens the destination selector: one option per book, its name over its owner's */
+  async openDestinations(): Promise<Locator> {
+    await this.destination.click()
+    const listbox = this.page.getByRole('listbox')
+    await expect(listbox).toBeVisible()
+    return listbox.getByRole('option')
+  }
+
+  async transferTo(book: string): Promise<void> {
+    const options = await this.openDestinations()
+    await options
+      .filter({ has: this.page.getByText(book, { exact: true }) })
+      .click()
+    await this.confirmButton.click()
+    await expect(this.root).toBeHidden()
+  }
+}
+
 /**
  * "Delete this address book?" (own book, sidebar "⋮" > Delete) or "Remove this address book?"
  * (book of another user, sidebar "⋮" > Remove from my list)
