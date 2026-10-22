@@ -156,6 +156,8 @@
       "contactsCount": "%{smart_count} liên hệ",
       "you": "Bạn",
       "defaultAddressBookName": "Sổ địa chỉ",
+      "role": "Vai trò",
+      "roleOf": "Vai trò của %{name}",
       "discovery": {
         "title": "Khám phá",
         "description": "Cho phép người khác tìm và thêm sổ địa chỉ này qua tìm kiếm.",

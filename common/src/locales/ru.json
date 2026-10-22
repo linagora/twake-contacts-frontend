@@ -156,6 +156,8 @@
       "contactsCount": "%{smart_count} контакт |||| %{smart_count} контакта |||| %{smart_count} контактов",
       "you": "Вы",
       "defaultAddressBookName": "Адресная книга",
+      "role": "Роль",
+      "roleOf": "Роль пользователя %{name}",
       "discovery": {
         "title": "Обнаруживаемость",
         "description": "Позвольте другим находить и добавлять эту адресную книгу через поиск.",

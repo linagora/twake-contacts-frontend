@@ -52,6 +52,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       ) : (
         <Stack direction="row">
           <RoleSelector
+            inputProps={{
+              'aria-label': t('contacts.share.roleOf', { name: member.name })
+            }}
             value={member.role || AddressBookAccessLevel.Viewer}
             onChange={e =>
               onUpdateMember?.(member, e.target.value as AddressBookAccessLevel)

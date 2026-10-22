@@ -42,6 +42,14 @@ describe('InviteSection', () => {
     expect(screen.getByPlaceholderText('Add contacts')).toHaveFocus()
   })
 
+  it('names the role selector', () => {
+    renderInviteSection()
+
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent(
+      'Viewer'
+    )
+  })
+
   it('keeps the focus in the "Add contacts" field after Send', async () => {
     const onShare = renderInviteSection()
     const input = screen.getByPlaceholderText('Add contacts')

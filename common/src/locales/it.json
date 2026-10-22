@@ -155,6 +155,8 @@
       "contactsCount": "%{smart_count} contatto |||| %{smart_count} contatti",
       "you": "Tu",
       "defaultAddressBookName": "Rubrica",
+      "role": "Ruolo",
+      "roleOf": "Ruolo di %{name}",
       "discovery": {
         "title": "Scopribilità",
         "description": "Consenti ad altri di trovare e aggiungere questa rubrica tramite la ricerca.",

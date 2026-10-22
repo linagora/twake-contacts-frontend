@@ -67,4 +67,12 @@ describe('MemberRow', () => {
         .map(option => option.textContent)
     ).toEqual(['Viewer', 'Editor'])
   })
+
+  it('names the role selector after the member', () => {
+    renderMemberRow(bob(AddressBookAccessLevel.Viewer))
+
+    expect(
+      screen.getByRole('combobox', { name: 'Role of bob bob' })
+    ).toHaveTextContent('Viewer')
+  })
 })

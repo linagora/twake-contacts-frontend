@@ -156,6 +156,8 @@
       "contactsCount": "%{smart_count} contact |||| %{smart_count} contacts",
       "you": "You",
       "defaultAddressBookName": "Address book",
+      "role": "Role",
+      "roleOf": "Role of %{name}",
       "discovery": {
         "title": "Discovery",
         "description": "Allow others to find and add this address book through search.",

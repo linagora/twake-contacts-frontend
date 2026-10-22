@@ -156,6 +156,8 @@
       "contactsCount": "%{smart_count} Kontakt |||| %{smart_count} Kontakte",
       "you": "Du",
       "defaultAddressBookName": "Adressbuch",
+      "role": "Rolle",
+      "roleOf": "Rolle von %{name}",
       "discovery": {
         "title": "Auffindbarkeit",
         "description": "Anderen erlauben, dieses Adressbuch über die Suche zu finden und hinzuzufügen.",
