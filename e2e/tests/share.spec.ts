@@ -1,3 +1,5 @@
+import type { Locator } from '@playwright/test'
+
 import {
   type AddSharedBookDialog,
   ContactFormPage,
@@ -555,5 +557,85 @@ test.describe('SHARE shared address books', () => {
     dialog = await contacts.openShareDialog('Disc')
     await expect(dialog.discoverySwitch).toBeEnabled()
     await expect(dialog.discoverySwitch).not.toBeChecked()
+  })
+
+  test('SHARE-15 a role change and a removal take effect for the member', async ({
+    page,
+    user,
+    users,
+    dav,
+    davFor,
+    loginInNewContext
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    await dav.createAddressBook({ id: 'friends', name: 'Friends' })
+    const fran = await dav.putContact('friends', {
+      firstName: 'Fran',
+      lastName: 'Friend',
+      emails: ['fran@example.com']
+    })
+    await dav.share('friends', bob, READ_ONLY)
+    const contacts = await new LoginPage(page).loginAs(user)
+    const bobContacts = await loginInNewContext(bob)
+    const copy = await davFor(bob).sharedCopyOf(user, 'friends')
+    const pencil = (name: string): Locator =>
+      bobContacts.row(name).getByRole('button', { name: 'Edit', exact: true })
+    const setRole = async (role: 'Viewer' | 'Editor'): Promise<void> => {
+      const dialog = await contacts.openShareDialog('Friends')
+      const selector = dialog.member(bob.email).getByRole('combobox')
+      await selector.click()
+      await page.getByRole('option', { name: role, exact: true }).click()
+      await expect(selector).toHaveText(role)
+      await dialog.closeButton.click()
+    }
+
+    await bobContacts.openBook('Friends')
+    await bobContacts.row('Fran Friend').hover()
+    await expect(pencil('Fran Friend')).toHaveCount(0)
+
+    // Viewer to Editor: bob can edit
+    await setRole('Editor')
+    await bobContacts.reload()
+    await expect(bobContacts.importButton).toBeVisible()
+    await bobContacts.row('Fran Friend').hover()
+    await expect(pencil('Fran Friend')).toBeVisible()
+    const contact = await bobContacts.openContact('Fran Friend')
+    const form = await contact.edit()
+    await form.lastName.fill('Edited')
+    await form.saveEdit('Fran Edited')
+    await expect
+      .poll(() => dav.getContact('friends', fran))
+      .toContain('FN:Fran Edited')
+
+    // Editor to Viewer: no write action left, and the server refuses a write
+    await setRole('Viewer')
+    await bobContacts.open(`/contacts/${copy}`)
+    await expect(bobContacts.row('Fran Edited')).toBeVisible()
+    await expect(bobContacts.importButton).toHaveCount(0)
+    await bobContacts.row('Fran Edited').hover()
+    await expect(pencil('Fran Edited')).toHaveCount(0)
+    const menu = await bobContacts.openRowMenu('Fran Edited')
+    await expect(menu.getByRole('menuitem')).toHaveText([
+      'Send email',
+      'Create event'
+    ])
+    await bobContacts.page.keyboard.press('Escape')
+    const viewed = await bobContacts.openContact('Fran Edited')
+    await expect(viewed.editButton).toHaveCount(0)
+    await expect(viewed.deleteButton).toHaveCount(0)
+    await expect(
+      davFor(bob).putContact(copy, { firstName: 'Not', lastName: 'Allowed' })
+    ).rejects.toThrow(/403/)
+
+    // removed: the book leaves bob's app
+    const dialog = await contacts.openShareDialog('Friends')
+    await dialog.member(bob.email).getByRole('button').last().click()
+    await expect(dialog.member(bob.email)).toHaveCount(0)
+    await dialog.closeButton.click()
+    await bobContacts.open('/contacts')
+    await expect(bobContacts.myContacts).toBeVisible()
+    await expect(bobContacts.bookEntry('Friends')).toHaveCount(0)
+    await expect(bobContacts.emptyState).toBeVisible()
+    expect(await dav.contactNames('friends')).toEqual(['Fran Edited'])
   })
 })
