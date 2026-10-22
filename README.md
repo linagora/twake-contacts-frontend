@@ -134,6 +134,8 @@ docker run -d \
   linagora/twake-contacts-private
 ```
 
+The pages are served with a `Content-Security-Policy` whose `frame-ancestors` defaults to `'self'`. When the app is embedded by the workplace on another origin, list the allowed parents in the `FRAME_ANCESTORS` environment variable of the container, for instance `-e FRAME_ANCESTORS="'self' https://*.twake.example.com"`.
+
 ---
 
 ## Configuring the Application
