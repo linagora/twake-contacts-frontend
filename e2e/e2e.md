@@ -43,6 +43,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] ABOOK-03 (P2) A new address book can be used at once — `addressbooks.spec.ts`
 - [x] ABOOK-04 (P3) Two address books with the same name — `addressbooks.spec.ts`
 - [x] ABOOK-05 (P3) Several clicks on Create make one address book — `addressbooks.spec.ts`
+- [x] ABOOK-07 (P1) Delete an own address book and its contacts — `addressbooks.spec.ts`
 
 ## Contact list
 

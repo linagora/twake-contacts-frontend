@@ -150,4 +150,60 @@ test.describe('ABOOK address books', () => {
       (await dav.listAddressBooks()).filter(book => book.name === 'Once')
     ).toHaveLength(1)
   })
+
+  test('ABOOK-07 delete an own address book and its contacts', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'keep', name: 'Keep' })
+    await dav.putContact('keep', { firstName: 'Kept', lastName: 'Person' })
+    await dav.createAddressBook({ id: 'doomed', name: 'Doomed' })
+    await dav.putContact('doomed', { firstName: 'Gone', lastName: 'Person' })
+    await dav.createAddressBook({ id: 'other', name: 'Other' })
+    const bookIds = async (): Promise<string[]> =>
+      (await dav.listAddressBooks()).map(book => book.id)
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('Doomed')
+
+    let dialog = await contacts.openDeleteBookDialog('Doomed')
+    await expect(dialog.root).toContainText(
+      '“Doomed” and all its contacts will be permanently deleted.'
+    )
+    await expect(dialog.root).toContainText('1 contact')
+    await dialog.cancelButton.click()
+    await expect(dialog.root).toBeHidden()
+    dialog = await contacts.openDeleteBookDialog('Doomed')
+    await dialog.closeButton.click()
+    await expect(dialog.root).toBeHidden()
+    await expect(contacts.book('Doomed')).toBeVisible()
+    expect(await bookIds()).toContain('doomed')
+
+    dialog = await contacts.openDeleteBookDialog('Doomed')
+    await dialog.confirmButton.click()
+
+    await expect(dialog.root).toBeHidden()
+    await expect(page).toHaveURL('/contacts')
+    await expect(contacts.bookEntry('Doomed')).toHaveCount(0)
+    await expect(contacts.row('Kept Person')).toBeVisible()
+    await expect(contacts.row('Gone Person')).toHaveCount(0)
+    await expect.poll(bookIds).not.toContain('doomed')
+    expect(await bookIds()).toEqual(expect.arrayContaining(['keep', 'other']))
+    expect(await dav.contactNames('keep')).toEqual(['Kept Person'])
+
+    // a book that is not open: the page stays
+    await contacts.openBook('Keep')
+    dialog = await contacts.openDeleteBookDialog('Other')
+    await dialog.confirmButton.click()
+    await expect(contacts.bookEntry('Other')).toHaveCount(0)
+    await expect(page).toHaveURL('/contacts/keep')
+    await expect(contacts.row('Kept Person')).toBeVisible()
+
+    await contacts.reload()
+    await expect(contacts.book('Keep')).toBeVisible()
+    await expect(contacts.bookEntry('Doomed')).toHaveCount(0)
+    await expect(contacts.bookEntry('Other')).toHaveCount(0)
+    await contacts.open('/contacts/doomed')
+    await expect(contacts.addressBookNotFound).toBeVisible()
+  })
 })

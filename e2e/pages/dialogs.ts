@@ -21,6 +21,29 @@ export class DeleteContactDialog {
   }
 }
 
+/**
+ * "Delete this address book?" (own book, sidebar "⋮" > Delete) or "Remove this address book?"
+ * (book of another user, sidebar "⋮" > Remove from my list)
+ */
+export class DeleteAddressBookDialog {
+  readonly root: Locator
+  readonly confirmButton: Locator
+  readonly cancelButton: Locator
+  readonly closeButton: Locator
+
+  constructor(page: Page, mode: 'Delete' | 'Remove') {
+    this.root = page
+      .getByRole('dialog')
+      .filter({ hasText: `${mode} this address book?` })
+    this.confirmButton = this.root.getByRole('button', {
+      name: mode,
+      exact: true
+    })
+    this.cancelButton = this.root.getByRole('button', { name: 'Cancel' })
+    this.closeButton = this.root.getByRole('button', { name: 'Close' })
+  }
+}
+
 /** "New address book", the "+" right of "My contacts" */
 export class NewAddressBookDialog {
   readonly root: Locator

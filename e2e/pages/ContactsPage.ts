@@ -4,6 +4,7 @@ import { ContactFormPage } from './ContactFormPage'
 import { ContactPage } from './ContactPage'
 import {
   AddSharedBookDialog,
+  DeleteAddressBookDialog,
   DeleteContactDialog,
   NewAddressBookDialog,
   ShareDialog
@@ -172,6 +173,22 @@ export class ContactsPage {
     const menu = await this.openBookMenu(bookName)
     await menu.getByRole('menuitem', { name: 'Share' }).click()
     const dialog = new ShareDialog(this.page)
+    await expect(dialog.root).toBeVisible()
+    return dialog
+  }
+
+  /** "⋮" > Delete of an own book, "⋮" > Remove from my list of a book of another user */
+  async openDeleteBookDialog(
+    name: string,
+    mode: 'Delete' | 'Remove' = 'Delete'
+  ): Promise<DeleteAddressBookDialog> {
+    const menu = await this.openBookMenu(name)
+    await menu
+      .getByRole('menuitem', {
+        name: mode === 'Delete' ? 'Delete' : 'Remove from my list'
+      })
+      .click()
+    const dialog = new DeleteAddressBookDialog(this.page, mode)
     await expect(dialog.root).toBeVisible()
     return dialog
   }

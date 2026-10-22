@@ -3,6 +3,7 @@ export { ContactPage } from './ContactPage'
 export { ContactsPage, startsWith } from './ContactsPage'
 export {
   AddSharedBookDialog,
+  DeleteAddressBookDialog,
   DeleteContactDialog,
   NewAddressBookDialog,
   ShareDialog
