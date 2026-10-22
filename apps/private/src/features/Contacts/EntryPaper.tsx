@@ -1,5 +1,5 @@
 import { ListItem, ListItemAvatar, ListItemText, Paper } from '@mui/material'
-import { IconButton } from '@linagora/twake-mui'
+import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
@@ -22,12 +22,14 @@ export function EntryPaper({
       <ListItem
         secondaryAction={
           onRemove && (
-            <IconButton
-              aria-label={t('contacts.form.close')}
-              onClick={onRemove}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
+            <Tooltip disableInteractive title={t('contacts.form.remove')}>
+              <IconButton
+                aria-label={t('contacts.form.remove')}
+                onClick={onRemove}
+              >
+                <Icon icon={Cross} />
+              </IconButton>
+            </Tooltip>
           )
         }
       >
