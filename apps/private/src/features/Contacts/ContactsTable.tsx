@@ -159,6 +159,10 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
         }
       }}
       isLoading={loading}
+      // on mobile, room under the last row for it to scroll above the
+      // floating Create button: 3rem inside the list and 2rem under it, the
+      // height of the button and its 2rem margin
+      className={isMobile ? 'u-pb-3 u-mb-2' : undefined}
     />
   )
 }

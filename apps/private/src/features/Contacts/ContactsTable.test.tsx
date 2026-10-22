@@ -135,6 +135,29 @@ describe('ContactsTable', () => {
     expect(screen.queryByText(en.contacts.team)).not.toBeInTheDocument()
   })
 
+  it('leaves room under the last row for the Create button on mobile', () => {
+    mockUseBreakpoints.mockReturnValue({
+      isMobile: true,
+      isTablet: false,
+      isDesktop: false,
+      isExtraLarge: false
+    })
+
+    renderTable()
+
+    expect(screen.getByTestId('virtuoso-scroller')).toHaveClass(
+      'u-pb-3',
+      'u-mb-2'
+    )
+  })
+
+  it('leaves no room under the last row on desktop', () => {
+    renderTable()
+
+    expect(screen.getByTestId('virtuoso-scroller')).not.toHaveClass('u-pb-3')
+    expect(screen.getByTestId('virtuoso-scroller')).not.toHaveClass('u-mb-2')
+  })
+
   it('maps the sort of the store to and from its columns', () => {
     const onSortChange = jest.fn()
     renderTable(false, { by: 'email', order: 'desc' }, onSortChange)
