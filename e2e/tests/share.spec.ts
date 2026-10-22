@@ -420,4 +420,80 @@ test.describe('SHARE shared address books', () => {
     )
     await expect(new ContactPage(page).notFound).toHaveCount(0)
   })
+
+  test('SHARE-13 a sharee removes a shared book from their list, the owner keeps it', async ({
+    page,
+    user,
+    users,
+    dav,
+    davFor
+  }) => {
+    const alice = await users.create({ prefix: 'alice' })
+    await davFor(alice).createAddressBook({ id: 'team', name: 'Team' })
+    await davFor(alice).putContact('team', {
+      firstName: 'Teresa',
+      lastName: 'Team'
+    })
+    await davFor(alice).share('team', user, EDITOR)
+    const bob = await users.create({ prefix: 'bob' })
+    await davFor(bob).createAddressBook({ id: 'qa-pub', name: 'Bob Public' })
+    await davFor(bob).putContact('qa-pub', {
+      firstName: 'Paula',
+      lastName: 'Public'
+    })
+    await davFor(bob).publish('qa-pub', '{DAV:}read')
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('Team')
+    const copy = await dav.sharedCopyOf(alice, 'team')
+
+    const menu = await contacts.openBookMenu('Team')
+    await expect(menu.getByRole('menuitem')).toHaveText([
+      'Share',
+      'Remove from my list'
+    ])
+    await page.keyboard.press('Escape')
+    let dialog = await contacts.openDeleteBookDialog('Team', 'Remove')
+    await expect(dialog.root).toContainText(
+      '“Team” will be removed from your list.'
+    )
+    await expect(dialog.root).toContainText(alice.displayName)
+    await dialog.cancelButton.click()
+    await expect(dialog.root).toBeHidden()
+    await expect(contacts.book('Team')).toBeVisible()
+
+    dialog = await contacts.openDeleteBookDialog('Team', 'Remove')
+    await dialog.confirmButton.click()
+
+    await expect(dialog.root).toBeHidden()
+    await expect(page).toHaveURL('/contacts')
+    await expect(contacts.bookEntry('Team')).toHaveCount(0)
+    await expect(contacts.emptyState).toBeVisible()
+    await contacts.sharedTab.click()
+    await expect(contacts.row('Teresa Team')).toHaveCount(0)
+    await contacts.reload()
+    await expect(contacts.bookEntry('Team')).toHaveCount(0)
+    await expect(contacts.emptyState).toBeVisible()
+    await contacts.open(`/contacts/${copy}`)
+    await expect(contacts.addressBookNotFound).toBeVisible()
+
+    // the original is untouched
+    expect(
+      (await davFor(alice).listAddressBooks()).map(book => book.id)
+    ).toContain('team')
+    expect(await davFor(alice).contactNames('team')).toEqual(['Teresa Team'])
+
+    // an added public book: removed from the list, offered again
+    let add = await contacts.openAddSharedBookDialog()
+    await add.pickUser(bob.uid, bob.email)
+    await add.addButton.click()
+    await expect(add.root).toBeHidden()
+    await expect(contacts.book('Bob Public')).toBeVisible()
+    dialog = await contacts.openDeleteBookDialog('Bob Public', 'Remove')
+    await dialog.confirmButton.click()
+    await expect(contacts.bookEntry('Bob Public')).toHaveCount(0)
+    expect(await davFor(bob).contactNames('qa-pub')).toEqual(['Paula Public'])
+    add = await contacts.openAddSharedBookDialog()
+    await add.pickUser(bob.uid, bob.email)
+    await expect(add.book('Bob Public')).toContainText('1 contact')
+  })
 })

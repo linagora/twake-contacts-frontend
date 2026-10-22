@@ -138,6 +138,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] SHARE-10 (P1) Add a public address book of another user — `share.spec.ts`
 - [x] SHARE-11 (P2) Add a shared address book dialog: messages and edge cases — `share.spec.ts`
 - [x] SHARE-12 (P2) Rights in an added public address book — `share.spec.ts`
+- [x] SHARE-13 (P2) A sharee removes a shared book from their list, the owner keeps it — `share.spec.ts`
 
 ## Domain Address Book
 
