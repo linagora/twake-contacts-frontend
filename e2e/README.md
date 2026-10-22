@@ -141,7 +141,7 @@ test('NAV-02 selecting an address book', async ({ page, user, dav }) => {
 |---|---|
 | `user` | A brand new account (`E2EUser`: `uid`, `email`, `password`, `id` — the OpenPaaS id of `/addressbooks/<id>/…` —, `firstName`, `lastName`, `displayName`) |
 | `users` | `users.create({ prefix: 'bob', lastName })` for more accounts |
-| `dav` | CardDAV client of `user`: `createAddressBook`, `putContact`, `getContact`, `contactNames`, `listAddressBooks`, `sharedCopyOf`, `share(book, sharee, READ_ONLY \| READ_WRITE \| EDITOR)`, `publish(book, privilege)`, `request` for the rest |
+| `dav` | CardDAV client of `user`: `createAddressBook`, `putContact`, `getContact`, `contactNames`, `listAddressBooks`, `sharedCopyOf`, `share(book, sharee, READ_ONLY \| READ_WRITE \| EDITOR)`, `publish(book, privilege)`, `publicAddressBookIds`, `request` for the rest |
 | `davFor(other)` | The same for another account |
 | `loginInNewContext(other)` | Signs another account in, in a browser context of its own; returns its `ContactsPage` |
 

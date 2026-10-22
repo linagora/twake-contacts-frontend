@@ -128,6 +128,8 @@ export class ShareDialog {
   readonly sendButton: Locator
   readonly closeButton: Locator
   readonly emptyMembers: Locator
+  /** "Toggle public discovery" switch of the Discovery section; disabled while the book loads */
+  readonly discoverySwitch: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -138,6 +140,9 @@ export class ShareDialog {
     this.sendButton = this.root.getByRole('button', { name: 'Send' })
     this.closeButton = this.root.getByRole('button', { name: 'Close' })
     this.emptyMembers = this.root.getByText('No one has been added yet')
+    this.discoverySwitch = this.root.getByRole('switch', {
+      name: 'Toggle public discovery'
+    })
   }
 
   /** The row of a member, by name or email */
@@ -177,6 +182,8 @@ export class AddSharedBookDialog {
   readonly addButton: Locator
   readonly cancelButton: Locator
   readonly closeButton: Locator
+  /** What the dialog says when the picked user has no public book */
+  readonly noneAvailable: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -189,6 +196,9 @@ export class AddSharedBookDialog {
     this.closeButton = this.root
       .getByRole('heading')
       .getByRole('button', { name: 'Close' })
+    this.noneAvailable = this.root.getByText(
+      'This user has no address book available'
+    )
   }
 
   /** A book offered for the picked user, by name */

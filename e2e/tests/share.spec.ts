@@ -1,4 +1,10 @@
-import { ContactFormPage, ContactPage, LoginPage, ShareDialog } from '../pages'
+import {
+  type AddSharedBookDialog,
+  ContactFormPage,
+  ContactPage,
+  LoginPage,
+  ShareDialog
+} from '../pages'
 import { EDITOR, READ_ONLY, READ_WRITE } from '../support/dav'
 import { expect, test } from '../support/fixtures'
 
@@ -495,5 +501,59 @@ test.describe('SHARE shared address books', () => {
     add = await contacts.openAddSharedBookDialog()
     await add.pickUser(bob.uid, bob.email)
     await expect(add.book('Bob Public')).toContainText('1 contact')
+  })
+
+  test('SHARE-14 the Discovery switch makes a book public and private again', async ({
+    page,
+    user,
+    users,
+    dav,
+    loginInNewContext
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    await dav.createAddressBook({ id: 'disc', name: 'Disc' })
+    await dav.putContact('disc', { firstName: 'Dina', lastName: 'Disc' })
+    const contacts = await new LoginPage(page).loginAs(user)
+    const bobContacts = await loginInNewContext(bob)
+    const searchedByBob = async (): Promise<AddSharedBookDialog> => {
+      await bobContacts.page.keyboard.press('Escape')
+      const add = await bobContacts.openAddSharedBookDialog()
+      await add.pickUser(user.uid, user.email)
+      return add
+    }
+
+    let dialog = await contacts.openShareDialog('Disc')
+    await expect(dialog.root).toContainText('Discovery')
+    await expect(dialog.root).toContainText(
+      'Allow others to find and add this address book through search.'
+    )
+    await expect(dialog.discoverySwitch).toBeEnabled()
+    await expect(dialog.discoverySwitch).not.toBeChecked()
+    await expect((await searchedByBob()).noneAvailable).toBeVisible()
+
+    await dialog.discoverySwitch.click()
+    await expect(dialog.discoverySwitch).toBeChecked()
+    await expect(dialog.discoverySwitch).toBeEnabled()
+    await expect.poll(() => dav.publicAddressBookIds()).toEqual(['disc'])
+    await dialog.closeButton.click()
+    await expect((await searchedByBob()).book('Disc')).toContainText(
+      '1 contact'
+    )
+
+    await contacts.reload()
+    dialog = await contacts.openShareDialog('Disc')
+    await expect(dialog.discoverySwitch).toBeEnabled()
+    await expect(dialog.discoverySwitch).toBeChecked()
+    await dialog.discoverySwitch.click()
+    await expect(dialog.discoverySwitch).not.toBeChecked()
+    await expect(dialog.discoverySwitch).toBeEnabled()
+    await expect.poll(() => dav.publicAddressBookIds()).toEqual([])
+    await dialog.closeButton.click()
+    await expect((await searchedByBob()).noneAvailable).toBeVisible()
+
+    await contacts.reload()
+    dialog = await contacts.openShareDialog('Disc')
+    await expect(dialog.discoverySwitch).toBeEnabled()
+    await expect(dialog.discoverySwitch).not.toBeChecked()
   })
 })

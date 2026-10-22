@@ -196,6 +196,27 @@ export class DavClient {
     })
   }
 
+  /** The ids of the books of the user that are public, as other users search them */
+  async publicAddressBookIds(): Promise<string[]> {
+    const response = await this.request(
+      'GET',
+      `/addressbooks/${this.user.id}.json?public=true`
+    )
+    await this.#expect(response, [200], 'Listing the public address books')
+    const body = (await response.json()) as {
+      _embedded?: {
+        'dav:addressbook'?: { _links?: { self?: { href?: string } } }[]
+      }
+    }
+    return (body._embedded?.['dav:addressbook'] ?? []).map(
+      book =>
+        (book._links?.self?.href ?? '')
+          .split('/')
+          .pop()
+          ?.replace(/\.json$/, '') ?? ''
+    )
+  }
+
   /**
    * The id under which the user sees an address book shared with them by `owner`: a share is
    * a copy with a generated id, `/contacts/<that id>` in the app.
