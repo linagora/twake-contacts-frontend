@@ -44,6 +44,23 @@ export class DeleteAddressBookDialog {
   }
 }
 
+/** "Edit address book", sidebar "⋮" > Edit of an own book */
+export class EditAddressBookDialog {
+  readonly root: Locator
+  readonly nameInput: Locator
+  readonly saveButton: Locator
+  readonly cancelButton: Locator
+
+  constructor(page: Page) {
+    this.root = page
+      .getByRole('dialog')
+      .filter({ hasText: 'Edit address book' })
+    this.nameInput = this.root.getByRole('textbox', { name: 'Name' })
+    this.saveButton = this.root.getByRole('button', { name: 'Save' })
+    this.cancelButton = this.root.getByRole('button', { name: 'Cancel' })
+  }
+}
+
 /** "New address book", the "+" right of "My contacts" */
 export class NewAddressBookDialog {
   readonly root: Locator

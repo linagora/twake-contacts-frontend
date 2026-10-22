@@ -6,6 +6,7 @@ import {
   AddSharedBookDialog,
   DeleteAddressBookDialog,
   DeleteContactDialog,
+  EditAddressBookDialog,
   NewAddressBookDialog,
   ShareDialog
 } from './dialogs'
@@ -189,6 +190,14 @@ export class ContactsPage {
       })
       .click()
     const dialog = new DeleteAddressBookDialog(this.page, mode)
+    await expect(dialog.root).toBeVisible()
+    return dialog
+  }
+
+  async openEditBookDialog(name: string): Promise<EditAddressBookDialog> {
+    const menu = await this.openBookMenu(name)
+    await menu.getByRole('menuitem', { name: 'Edit' }).click()
+    const dialog = new EditAddressBookDialog(this.page)
     await expect(dialog.root).toBeVisible()
     return dialog
   }

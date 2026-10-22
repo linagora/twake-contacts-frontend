@@ -5,6 +5,7 @@ export {
   AddSharedBookDialog,
   DeleteAddressBookDialog,
   DeleteContactDialog,
+  EditAddressBookDialog,
   NewAddressBookDialog,
   ShareDialog
 } from './dialogs'

@@ -1,4 +1,6 @@
 import { LoginPage } from '../pages'
+import { READ_ONLY } from '../support/dav'
+import { knownIssue } from '../support/knownIssues'
 import { expect, test } from '../support/fixtures'
 
 test.describe('ABOOK address books', () => {
@@ -149,6 +151,73 @@ test.describe('ABOOK address books', () => {
     expect(
       (await dav.listAddressBooks()).filter(book => book.name === 'Once')
     ).toHaveLength(1)
+  })
+
+  test('ABOOK-06 rename an own address book', async ({ page, user, dav }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'Before' })
+    await dav.putContact('qa-book', { firstName: 'Rena', lastName: 'Med' })
+    await dav.createAddressBook({ id: 'other', name: 'Other' })
+    const bookName = async (id: string): Promise<string | undefined> =>
+      (await dav.listAddressBooks()).find(book => book.id === id)?.name
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('Before')
+
+    let dialog = await contacts.openEditBookDialog('Before')
+    await expect(dialog.nameInput).toHaveValue('Before')
+    await expect(dialog.nameInput).toBeFocused()
+    await dialog.nameInput.fill('   ')
+    await expect(dialog.saveButton).toBeDisabled()
+    await dialog.nameInput.fill('Not saved')
+    await dialog.cancelButton.click()
+    await expect(dialog.root).toBeHidden()
+    await expect(contacts.book('Before')).toBeVisible()
+    dialog = await contacts.openEditBookDialog('Before')
+    await expect(dialog.nameInput).toHaveValue('Before')
+    await page.keyboard.press('Escape')
+    await expect(dialog.root).toBeHidden()
+    expect(await bookName('qa-book')).toBe('Before')
+
+    dialog = await contacts.openEditBookDialog('Before')
+    await dialog.nameInput.fill('  After  ')
+    await dialog.saveButton.click()
+
+    await expect(dialog.root).toBeHidden()
+    await expect(contacts.book('After')).toBeVisible()
+    await expect(contacts.bookEntry('Before')).toHaveCount(0)
+    await expect(contacts.heading).toHaveText('After')
+    await expect(page).toHaveURL('/contacts/qa-book')
+    await expect(contacts.row('Rena Med')).toBeVisible()
+    await expect.poll(() => bookName('qa-book')).toBe('After')
+    expect(await bookName('other')).toBe('Other')
+
+    await contacts.reload()
+    await expect(contacts.heading).toHaveText('After')
+    await expect(contacts.book('Other')).toBeVisible()
+    const form = await contacts.clickCreate()
+    await expect(form.addressBook).toHaveText('After')
+  })
+
+  test('ABOOK-08 the members of a renamed book see its new name', async ({
+    page,
+    user,
+    users,
+    dav,
+    loginInNewContext
+  }) => {
+    // esn-sabre keeps the name a share had when it was created: the rename stays owner-side
+    knownIssue('renamed-book-keeps-its-old-name-for-sharees')
+    const bob = await users.create({ prefix: 'bob' })
+    await dav.createAddressBook({ id: 'qa-book', name: 'Before' })
+    await dav.share('qa-book', bob, READ_ONLY)
+    const contacts = await new LoginPage(page).loginAs(user)
+
+    const dialog = await contacts.openEditBookDialog('Before')
+    await dialog.nameInput.fill('After')
+    await dialog.saveButton.click()
+    await expect(contacts.book('After')).toBeVisible()
+
+    const bobContacts = await loginInNewContext(bob)
+    await expect(bobContacts.bookEntry('After')).toContainText(user.displayName)
   })
 
   test('ABOOK-07 delete an own address book and its contacts', async ({
