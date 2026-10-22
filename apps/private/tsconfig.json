@@ -4,6 +4,7 @@
     "composite": true,
     "noEmit": false,
     "emitDeclarationOnly": true,
+    "types": ["jest", "node", "@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./src/*"],
       "@common/*": ["../../common/src/*"],
