@@ -50,7 +50,7 @@ export const categorizeAddressBooks = (
     ),
     domainBooks: allBooks.filter(
       (book: AddressBookWithContacts) => book.id === 'dab'
-    ) as AddressBook[]
+    )
   }
 }
 

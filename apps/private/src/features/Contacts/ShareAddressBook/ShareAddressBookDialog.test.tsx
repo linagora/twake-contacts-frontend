@@ -82,7 +82,7 @@ describe('ShareAddressBookDialog', () => {
   afterEach(() => jest.resetAllMocks())
 
   it('lists a member whose profile lookup has not answered yet', async () => {
-    const invitedBob = { ...bob, name: bob.email } as userData
+    const invitedBob = { ...bob, name: bob.email }
     mockedFetchDetails.mockResolvedValue({
       members: [invitedBob],
       isPublic: false

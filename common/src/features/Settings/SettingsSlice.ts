@@ -18,7 +18,7 @@ const SettingsSlice = createAppSlice({
   initialState: {
     language: defaultLang,
     themeMode: defaultTheme
-  } as SettingsState,
+  },
   reducers: create => ({
     setLanguage: create.reducer((state, action: PayloadAction<string>) => {
       state.language = action.payload

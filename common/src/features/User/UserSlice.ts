@@ -42,7 +42,7 @@ const UserSlice = createAppSlice({
       datetime: {
         timeZone: null
       }
-    } as CoreConfig,
+    },
     loading: true,
     error: null
   } as UserState,

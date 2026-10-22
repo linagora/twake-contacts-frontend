@@ -22,7 +22,7 @@ const contact: Contact = {
   displayName: 'Jane Doe',
   emails: [{ type: 'work', value: 'jane.doe@example.com' }],
   socialProfiles: [{ type: 'matrix', value: 'jane' }]
-} as Contact
+}
 
 const renderRowActions = (): void => {
   const store = setupStore({

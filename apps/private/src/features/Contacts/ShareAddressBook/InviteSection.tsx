@@ -85,7 +85,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             getOptionLabel={option => option.name || option.email || ''}
             value={selectedUsers}
             onChange={(_event, newValue) => {
-              setSelectedUsers(newValue as userData[])
+              setSelectedUsers(newValue)
             }}
             clearOnSelect={true}
             isOptionEqualToValue={(option, value) =>

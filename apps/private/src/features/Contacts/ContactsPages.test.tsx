@@ -102,7 +102,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
         coreConfig: { language: null, datetime: { timeZone: null } },
         loading: false,
         error: null
-      } as UserState,
+      },
       contacts: {
         addressBooks: {
           collected: {
