@@ -29,6 +29,10 @@ export const updateAddressBookThunk = (
     {
       fulfilled: (state, action) => {
         const { addressBookId, name } = action.payload
+        state.addressBookSuccess = {
+          operation: 'update',
+          requestId: action.meta.requestId
+        }
         // same lookup as in deleteAddressBook's fulfilled
         const book = state.addressBooks[addressBookId]
         if (book) {

@@ -22,6 +22,7 @@ import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUti
 import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
+import { AddressBookSuccessSnackbar } from './AddressBookSuccessSnackbar'
 import { ContactTransferSnackbar } from './ContactTransferSnackbar'
 import { ContactsSidebar } from './ContactsSidebar'
 import { ContactSearchBar } from './ContactSearchBar'
@@ -238,6 +239,7 @@ export const ContactsPage: React.FC = () => {
         </Alert>
       </Snackbar>
       <ContactTransferSnackbar />
+      <AddressBookSuccessSnackbar />
     </Layout>
   )
 }

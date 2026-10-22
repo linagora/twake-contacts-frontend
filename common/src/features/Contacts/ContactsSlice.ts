@@ -37,6 +37,9 @@ const ContactsSlice = createAppSlice({
     clearTransferSuccess: create.reducer(state => {
       state.transferSuccess = null
     }),
+    clearAddressBookSuccess: create.reducer(state => {
+      state.addressBookSuccess = null
+    }),
     clearContactsError: create.reducer(state => {
       state.error = null
     }),
@@ -84,6 +87,7 @@ const ContactsSlice = createAppSlice({
 
 export const {
   addContactFromSearch,
+  clearAddressBookSuccess,
   clearContactsError,
   clearTransferSuccess,
   createContact,

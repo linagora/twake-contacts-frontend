@@ -114,6 +114,10 @@ export interface ContactSort {
 
 export interface ContactsState {
   transferSuccess?: { operation: 'copy' | 'move'; requestId: string } | null
+  addressBookSuccess?: {
+    operation: 'update' | 'delete' | 'remove'
+    requestId: string
+  } | null
   addressBooks: Record<string, AddressBookWithContacts>
   // keyed by ALL_CONTACTS_LISTING or by address book id
   listings: Record<string, ContactListing>

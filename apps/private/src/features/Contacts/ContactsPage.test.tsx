@@ -12,6 +12,18 @@ import { Provider } from 'react-redux'
 import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import I18n from 'twake-i18n'
 import { ContactsPage } from './ContactsPage'
+import {
+  deleteAddressBook,
+  updateAddressBook
+} from '@common/features/Contacts/ContactsSlice'
+import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+
+import * as ContactsDao from '@common/features/Contacts/ContactsDao'
+
+jest.mock('@common/features/Contacts/ContactsDao')
+
+const mockDeleteAddressBook = jest.mocked(ContactsDao.deleteAddressBook)
+const mockUpdateAddressBook = jest.mocked(ContactsDao.updateAddressBook)
 
 const failUpdate = (store: ReturnType<typeof setupStore>): void => {
   act(() => {
@@ -24,7 +36,8 @@ const failUpdate = (store: ReturnType<typeof setupStore>): void => {
 }
 
 function renderPage(
-  locale: { lang: string; dict: typeof en } = { lang: 'en', dict: en }
+  locale: { lang: string; dict: typeof en } = { lang: 'en', dict: en },
+  book1Overrides: Partial<AddressBookWithContacts> = {}
 ): ReturnType<typeof setupStore> {
   const store = setupStore({
     user: { userData: {} } as UserState,
@@ -46,7 +59,8 @@ function renderPage(
           contactsCount: 0,
           acl: [],
           canWrite: true,
-          contacts: []
+          contacts: [],
+          ...book1Overrides
         }
       },
       listings: {},
@@ -113,5 +127,96 @@ describe('ContactsPage error banner', () => {
     expect(
       screen.getByRole('button', { name: fr.contacts.form.close })
     ).toBeInTheDocument()
+  })
+})
+
+describe('ContactsPage address book success toast', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('confirms an address book rename once it succeeded', async () => {
+    mockUpdateAddressBook.mockResolvedValue(undefined)
+    const store = renderPage()
+
+    await act(async () => {
+      await store.dispatch(
+        updateAddressBook({
+          userId: 'u1',
+          addressBookId: 'book1',
+          name: 'Renamed'
+        })
+      )
+    })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      en.contacts.addressBook.updateSuccess
+    )
+  })
+
+  it('confirms the deletion of an own address book', async () => {
+    mockDeleteAddressBook.mockResolvedValue(undefined)
+    const store = renderPage()
+
+    await act(async () => {
+      await store.dispatch(
+        deleteAddressBook({ userId: 'u1', addressBookId: 'book1' })
+      )
+    })
+
+    expect(mockDeleteAddressBook).toHaveBeenCalledWith('u1', 'book1')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      en.contacts.addressBook.deleteSuccess
+    )
+  })
+
+  it('confirms the removal of a shared address book from the list', async () => {
+    mockDeleteAddressBook.mockResolvedValue(undefined)
+    const store = renderPage({ lang: 'fr', dict: fr }, { ownerId: 'u2' })
+
+    await act(async () => {
+      await store.dispatch(
+        deleteAddressBook({ userId: 'u1', addressBookId: 'book1' })
+      )
+    })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      fr.contacts.addressBook.removeSuccess
+    )
+  })
+
+  it('shows no success toast when the action failed', async () => {
+    mockDeleteAddressBook.mockRejectedValue(new Error('boom'))
+    const store = renderPage()
+
+    await act(async () => {
+      await store.dispatch(
+        deleteAddressBook({ userId: 'u1', addressBookId: 'book1' })
+      )
+    })
+
+    expect(store.getState().contacts.addressBookSuccess).toBeUndefined()
+    expect(
+      screen.queryByText(en.contacts.addressBook.deleteSuccess)
+    ).not.toBeInTheDocument()
+  })
+
+  it('clears the toast when it is closed', async () => {
+    mockUpdateAddressBook.mockResolvedValue(undefined)
+    const store = renderPage()
+
+    await act(async () => {
+      await store.dispatch(
+        updateAddressBook({
+          userId: 'u1',
+          addressBookId: 'book1',
+          name: 'Renamed'
+        })
+      )
+    })
+    fireEvent.click(screen.getByRole('button', { name: /close/i }))
+
+    expect(store.getState().contacts.addressBookSuccess).toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

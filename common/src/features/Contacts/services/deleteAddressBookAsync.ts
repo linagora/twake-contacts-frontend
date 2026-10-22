@@ -22,7 +22,14 @@ export const deleteAddressBookThunk = (
     },
     {
       fulfilled: (state, action) => {
-        delete state.addressBooks[action.payload.addressBookId]
+        const { addressBookId } = action.payload
+        // a shared book (with an owner) is only removed from the list
+        const isCopy = Boolean(state.addressBooks[addressBookId]?.ownerId)
+        state.addressBookSuccess = {
+          operation: isCopy ? 'remove' : 'delete',
+          requestId: action.meta.requestId
+        }
+        delete state.addressBooks[addressBookId]
       },
       rejected: (state, action) => {
         state.error = toContactsErrorKey(
