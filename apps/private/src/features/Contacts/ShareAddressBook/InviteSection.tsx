@@ -124,11 +124,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                       >
                         <RoleSelector
                           value={selectedRole}
-                          onChange={e =>
-                            setSelectedRole(
-                              e.target.value as AddressBookAccessLevel
-                            )
-                          }
+                          onChange={setSelectedRole}
                         />
                       </InputAdornment>
                     )

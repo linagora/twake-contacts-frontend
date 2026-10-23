@@ -43,12 +43,7 @@ export const MembersList: React.FC<MembersListProps> = ({
         {[1, 2, 3].map(i => (
           <ListItem key={i} dense disableGutters>
             <ListItemAvatar>
-              <Skeleton
-                className="u-ml-auto"
-                variant="circular"
-                width={40}
-                height={40}
-              />
+              <Skeleton variant="circular" width={40} height={40} />
             </ListItemAvatar>
             <ListItemText
               primary={<Skeleton width={120} />}

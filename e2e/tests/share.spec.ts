@@ -196,10 +196,7 @@ test.describe('SHARE shared address books', () => {
     await expect(dialog.userInput).toHaveValue('')
     await expect(dialog.userInput).toBeFocused()
     await expect(dialog.inviteRole).toHaveText('Viewer')
-    await expect(dialog.member(bob.email)).toContainText(bob.displayName)
-    await expect(dialog.member(bob.email).getByRole('combobox')).toHaveText(
-      'Editor'
-    )
+    await expect(dialog.memberRole(bob.email)).toHaveText('Editor')
     await dialog.closeButton.click()
 
     const bobContacts = await loginInNewContext(bob)
@@ -225,21 +222,14 @@ test.describe('SHARE shared address books', () => {
     const contacts = await new LoginPage(page).loginAs(user)
 
     let dialog = await contacts.openShareDialog('Friends')
-    await expect(dialog.member(bob.email).getByRole('combobox')).toHaveText(
-      'Editor'
-    )
+    await expect(dialog.memberRole(bob.email)).toHaveText('Editor')
     await dialog.invite(carol.uid, carol.email, 'Viewer')
 
-    await dialog.member(bob.email).getByRole('combobox').click()
-    await page.getByRole('option', { name: 'Viewer', exact: true }).click()
-    await expect(dialog.member(bob.email).getByRole('combobox')).toHaveText(
-      'Viewer'
-    )
+    await dialog.chooseMemberRole(bob.email, 'Viewer')
+    await expect(dialog.memberRole(bob.email)).toHaveText('Viewer')
     await dialog.closeButton.click()
     dialog = await contacts.openShareDialog('Friends')
-    await expect(dialog.member(bob.email).getByRole('combobox')).toHaveText(
-      'Viewer'
-    )
+    await expect(dialog.memberRole(bob.email)).toHaveText('Viewer')
     await expect(dialog.root.getByRole('alert')).toHaveCount(0)
 
     await dialog.member(carol.email).getByRole('button').last().click()
@@ -582,10 +572,8 @@ test.describe('SHARE shared address books', () => {
       bobContacts.row(name).getByRole('button', { name: 'Edit', exact: true })
     const setRole = async (role: 'Viewer' | 'Editor'): Promise<void> => {
       const dialog = await contacts.openShareDialog('Friends')
-      const selector = dialog.member(bob.email).getByRole('combobox')
-      await selector.click()
-      await page.getByRole('option', { name: role, exact: true }).click()
-      await expect(selector).toHaveText(role)
+      await dialog.chooseMemberRole(bob.email, role)
+      await expect(dialog.memberRole(bob.email)).toHaveText(role)
       await dialog.closeButton.click()
     }
 

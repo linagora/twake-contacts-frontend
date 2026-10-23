@@ -136,7 +136,10 @@ export class ShareDialog {
     this.root = page.getByRole('dialog').filter({ hasText: 'Invite people' })
     this.title = this.root.getByRole('heading').first()
     this.userInput = this.root.getByPlaceholder('Add contacts')
-    this.inviteRole = this.root.getByRole('combobox').nth(1)
+    // The invitation picker precedes the role buttons in the member list.
+    this.inviteRole = this.root
+      .getByRole('button', { name: /^(Viewer|Editor)$/ })
+      .first()
     this.sendButton = this.root.getByRole('button', { name: 'Send' })
     this.closeButton = this.root.getByRole('button', { name: 'Close' })
     this.emptyMembers = this.root.getByText('No one has been added yet')
@@ -150,6 +153,22 @@ export class ShareDialog {
     return this.root.getByRole('listitem').filter({ hasText: text })
   }
 
+  memberRole(text: string): Locator {
+    return this.member(text).getByRole('button', {
+      name: /^(Viewer|Editor|Read & write)$/
+    })
+  }
+
+  async chooseMemberRole(
+    text: string,
+    role: 'Viewer' | 'Editor'
+  ): Promise<void> {
+    await this.memberRole(text).click()
+    await this.page
+      .getByRole('menuitemradio', { name: role, exact: true })
+      .click()
+  }
+
   /** Types in "Add contacts" and picks the suggestion of this user */
   async pick(query: string, email: string): Promise<void> {
     await this.userInput.fill(query)
@@ -158,7 +177,9 @@ export class ShareDialog {
 
   async chooseInviteRole(role: 'Viewer' | 'Editor'): Promise<void> {
     await this.inviteRole.click()
-    await this.page.getByRole('option', { name: role, exact: true }).click()
+    await this.page
+      .getByRole('menuitemradio', { name: role, exact: true })
+      .click()
   }
 
   /** Invites a user with a role and waits for their member row */

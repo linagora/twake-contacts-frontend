@@ -34,13 +34,17 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
       </Typography>
       <ListItem disableGutters>
         <ListItemAvatar className="u-miw-1">
-          <Avatar className="u-bg-secondaryColorLight">
-            <Icon icon={ManageSearch} width={20} height={20} />
+          <Avatar className="u-bg-secondaryColorLight u-o-30">
+            <Icon icon={ManageSearch} width={20} height={20} color="inherit" />
           </Avatar>
         </ListItemAvatar>
         <ListItemText
           disableTypography
-          primary={t('contacts.share.discovery.description')}
+          primary={
+            <Typography variant="body2">
+              {t('contacts.share.discovery.description')}
+            </Typography>
+          }
         />
         <Switch
           checked={isPublic ?? false}

@@ -36,9 +36,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   const roleKey = getRoleTranslationKey(member.role)
 
   return (
-    <ListItem dense className="u-pl-half">
-      <ListItemAvatar>
-        <Avatar className="u-ml-auto">{getInitials(member.name)}</Avatar>
+    <ListItem dense disableGutters>
+      <ListItemAvatar className="u-miw-1">
+        <Avatar>{getInitials(member.name)}</Avatar>
       </ListItemAvatar>
       <ListItemText primary={displayName} secondary={member.email} />
       {isCurrentUser ? (
@@ -53,9 +53,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         <Stack direction="row">
           <RoleSelector
             value={member.role || AddressBookAccessLevel.Viewer}
-            onChange={e =>
-              onUpdateMember?.(member, e.target.value as AddressBookAccessLevel)
-            }
+            onChange={role => onUpdateMember?.(member, role)}
             disabled={isUpdating}
           />
           <Tooltip disableInteractive title={t('contacts.form.remove')}>
