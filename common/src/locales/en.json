@@ -183,5 +183,17 @@
       "title": "Mobile version coming soon",
       "subtitle": "Please open Twake Contacts on a desktop to enjoy all features. A fully optimized mobile version is coming soon."
     }
+  },
+  "twakeBar": {
+    "home": "Home",
+    "apps": "Applications",
+    "help": "Help",
+    "userMenu": "Account",
+    "noApps": "No applications found.",
+    "manageProfile": "Manage profile",
+    "storage": "Storage",
+    "gbAvailable": "GB available",
+    "emailDomainNotActive": "Email not active",
+    "logOut": "Log out"
   }
 }

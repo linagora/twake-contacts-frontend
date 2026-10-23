@@ -183,5 +183,17 @@
       "title": "Phiên bản di động sắp ra mắt",
       "subtitle": "Vui lòng mở Twake Contacts trên máy tính để trải nghiệm tất cả tính năng. Phiên bản di động tối ưu sẽ sớm ra mắt."
     }
+  },
+  "twakeBar": {
+    "home": "Trang chủ",
+    "apps": "Ứng dụng",
+    "help": "Trợ giúp",
+    "userMenu": "Tài khoản",
+    "noApps": "Không tìm thấy ứng dụng nào.",
+    "manageProfile": "Quản lý hồ sơ",
+    "storage": "Lưu trữ",
+    "gbAvailable": "GB khả dụng",
+    "emailDomainNotActive": "Địa chỉ email chưa được kích hoạt",
+    "logOut": "Đăng xuất"
   }
 }

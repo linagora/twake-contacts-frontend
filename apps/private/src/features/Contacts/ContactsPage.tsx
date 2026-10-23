@@ -87,7 +87,7 @@ export const ContactsPage: React.FC = () => {
   }, [openpaasId, domains, dispatch])
 
   return (
-    <Layout withTopBar={false}>
+    <Layout withTopBar={false} className="u-h-100">
       <ContactsSidebar
         onOpenSubscribe={() => setIsSubscribeOpen(true)}
         open={isSidebarOpen}

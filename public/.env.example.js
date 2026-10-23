@@ -55,3 +55,9 @@ var CALENDAR_SPA_URL = 'https://calendar.example.com';
 //   var WORKPLACE_FQDN_FALLBACK = 'twake.example.com';
 //
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com';
+
+// Twake Bar uses the workplace from SSO (request workplaceFqdn in SSO_SCOPE),
+// or WORKPLACE_FQDN_FALLBACK. The workplace must accept this SSO client for
+// token exchange. Otherwise the bar uses the apps from appList.js and this
+// optional help link.
+var SUPPORT_URL = ''

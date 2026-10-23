@@ -1,10 +1,15 @@
 import { useAppSelector } from '@common/app/hooks'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { Loading } from '@common/components/Loading/Loading'
-import { EmbeddingProvider } from '@common/contexts/EmbeddingContext'
+import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import { AVAILABLE_LANGUAGES } from '@common/features/Settings/constants'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
-import { TwakeMuiThemeProvider, useColorScheme } from '@linagora/twake-mui'
+import {
+  Box,
+  Stack,
+  TwakeMuiThemeProvider,
+  useColorScheme
+} from '@linagora/twake-mui'
 import * as Sentry from '@sentry/react'
 import { Suspense, useEffect } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -79,14 +84,14 @@ export default function App(): JSX.Element {
   useInitializeApp()
 
   return (
-    <EmbeddingProvider>
-      <TwakeMuiThemeProvider>
-        <ThemeSync />
-        <I18n
-          dictRequire={(lang: keyof typeof locale) => locale[lang]}
-          lang={lang}
-          locales={dateLocales}
-        >
+    <TwakeMuiThemeProvider>
+      <ThemeSync />
+      <I18n
+        dictRequire={(lang: keyof typeof locale) => locale[lang]}
+        lang={lang}
+        locales={dateLocales}
+      >
+        <Stack className="u-h-100">
           <ErrorBoundary
             FallbackComponent={({ error }) => (
               <ErrorPage
@@ -104,16 +109,19 @@ export default function App(): JSX.Element {
               })
             }}
           >
-            <Suspense fallback={<Loading />}>
-              <WebSocketGate />
-              <Router>
-                <AppRoutes />
-              </Router>
-            </Suspense>
-            {appLoading && <Loading />}
+            <TwakeBarHeader />
+            <Box className="u-flex-auto u-ov-hidden">
+              <Suspense fallback={<Loading />}>
+                <WebSocketGate />
+                <Router>
+                  <AppRoutes />
+                </Router>
+              </Suspense>
+              {appLoading && <Loading />}
+            </Box>
           </ErrorBoundary>
-        </I18n>
-      </TwakeMuiThemeProvider>
-    </EmbeddingProvider>
+        </Stack>
+      </I18n>
+    </TwakeMuiThemeProvider>
   )
 }

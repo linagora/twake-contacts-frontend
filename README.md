@@ -130,6 +130,7 @@ To run the container, mount the `.env.js` configuration file from the root `publ
 ```bash
 docker run -d \
   -v $PWD/public/.env.js:/usr/share/nginx/html/.env.js \
+  -v $PWD/public/appList.js:/usr/share/nginx/html/appList.js \
   -p 5000:80 \
   linagora/twake-contacts-private
 ```
@@ -155,6 +156,14 @@ The application loads configuration dynamically at runtime from static JavaScrip
 | `SENTRY_DSN` | Optional, omit to disable Sentry |
 
 **Note**: `.env.js` is gitignored, so each environment can have its own configuration.
+
+### Application list (`appList.js`)
+
+Copy `public/appList.example.js` to `public/appList.js` and configure each
+application's `name`, `link`, and `icon`. This file is loaded separately from
+`.env.js` and supplies the Twake Bar's fallback application menu when the
+workplace session is unavailable. `appList.js` is gitignored so each environment
+can provide its own list.
 
 ---
 

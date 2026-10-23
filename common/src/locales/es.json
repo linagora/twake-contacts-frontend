@@ -183,5 +183,17 @@
       "title": "Versión móvil próximamente",
       "subtitle": "Abra Twake Contacts en un ordenador para disfrutar de todas las funciones. Pronto estará disponible una versión móvil totalmente optimizada."
     }
+  },
+  "twakeBar": {
+    "home": "Inicio",
+    "apps": "Aplicaciones",
+    "help": "Ayuda",
+    "userMenu": "Cuenta",
+    "noApps": "No se ha encontrado ninguna aplicación.",
+    "manageProfile": "Gestionar el perfil",
+    "storage": "Almacenamiento",
+    "gbAvailable": "GB disponibles",
+    "emailDomainNotActive": "Correo no activo",
+    "logOut": "Cerrar sesión"
   }
 }

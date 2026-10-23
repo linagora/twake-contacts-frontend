@@ -28,5 +28,7 @@ declare global {
     WORKPLACE_FQDN_FALLBACK: string | undefined
 
     WEBSOCKET_URL: string | undefined
+    SUPPORT_URL: string | undefined
+    appList: { name: string; link: string; icon: string }[] | undefined
   }
 }
