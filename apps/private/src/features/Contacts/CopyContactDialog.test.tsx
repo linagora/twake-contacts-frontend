@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
@@ -10,6 +16,7 @@ import {
   moveContact as moveContactAction
 } from '@common/features/Contacts/ContactsSlice'
 import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactTransferSnackbar } from './ContactTransferSnackbar'
 import { ContactTransferDialog } from './CopyContactDialog'
@@ -34,6 +41,7 @@ const renderDialog = (
   onClose: jest.Mock
 } => {
   const store = setupStore({
+    user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
       addressBooks: {
         source: {
@@ -45,7 +53,13 @@ const renderDialog = (
         dab: book('dab'),
         collected: book('collected'),
         readonly: book('readonly', false),
-        contacts: { ...book('contacts'), name: 'My contacts' }
+        contacts: { ...book('contacts'), name: 'My contacts' },
+        shared: {
+          ...book('shared'),
+          name: 'Alpha Shared',
+          ownerId: 'u2',
+          ownerDisplayName: 'Bob Owner'
+        }
       },
       listings: {},
       loading: false,
@@ -214,5 +228,29 @@ it.each(transferCases)(
     expect(store.getState().contacts.addressBooks.source.contacts).toEqual(
       mode === 'copy' ? [contact] : []
     )
+  }
+)
+
+it.each(['copy', 'move'] as const)(
+  'lists own books, then a Shared caption and the shared books for %s',
+  mode => {
+    renderDialog(mode)
+    fireEvent.mouseDown(screen.getByRole('combobox'))
+    const listbox = within(screen.getByRole('listbox'))
+    expect(
+      listbox.getAllByRole('option').map(option => option.textContent)
+    ).toEqual(['My contacts', 'target', 'Alpha SharedBob Owner'])
+    const caption = listbox.getByText('Shared')
+    expect(caption).toHaveAttribute('role', 'presentation')
+    expect(
+      caption.compareDocumentPosition(
+        listbox.getByRole('option', { name: 'target' })
+      ) & Node.DOCUMENT_POSITION_PRECEDING
+    ).toBeTruthy()
+    expect(
+      caption.compareDocumentPosition(
+        listbox.getByRole('option', { name: /Alpha Shared/ })
+      ) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   }
 )
