@@ -1,5 +1,5 @@
 # Build context: e2e/docker/
-FROM linagora/twake-calendar-side-service:2.4.7.3
+FROM linagora/twake-calendar-side-service:2.4.7.7
 
 COPY side-service/configuration.properties /root/conf/configuration.properties
 COPY side-service/opensearch.properties /root/conf/opensearch.properties
