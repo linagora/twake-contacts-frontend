@@ -1,7 +1,7 @@
 # Build context: e2e/docker/
 #
 #   docker build --build-arg SABRE_IMAGE=<candidate build> ...   # scripts/build.sh <sabre image>
-ARG SABRE_IMAGE="linagora/esn-sabre:2.4.7.3"
+ARG SABRE_IMAGE="linagora/esn-sabre:2.4.7.9"
 
 FROM ${SABRE_IMAGE}
 

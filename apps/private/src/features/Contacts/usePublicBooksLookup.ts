@@ -3,7 +3,7 @@ import {
   AddressBook,
   UserResult
 } from '@common/features/Contacts/contactsTypes'
-import { fetchPublicAddressBooks } from '@common/features/Contacts/ContactsDao'
+import { fetchSubscribableAddressBooks } from '@common/features/Contacts/ContactsDao'
 
 interface Lookup {
   userId: string
@@ -24,7 +24,7 @@ export function usePublicBooksLookup(user: UserResult | null): {
       let books: AddressBook[] = []
       let failed = false
       try {
-        books = await fetchPublicAddressBooks(user.id)
+        books = await fetchSubscribableAddressBooks(user.id)
       } catch {
         failed = true
       }

@@ -638,4 +638,69 @@ test.describe('SHARE shared address books', () => {
     await expect(bobContacts.emptyState).toBeVisible()
     expect(await dav.contactNames('friends')).toEqual(['Fran Edited'])
   })
+
+  test('SHARE-16 a sharee finds a removed private book again by searching for its owner', async ({
+    page,
+    user,
+    users,
+    davFor
+  }) => {
+    const alice = await users.create({ prefix: 'alice' })
+    await davFor(alice).createAddressBook({ id: 'team', name: 'Team' })
+    await davFor(alice).putContact('team', {
+      firstName: 'Teresa',
+      lastName: 'Team'
+    })
+    await davFor(alice).share('team', user, EDITOR)
+    await davFor(alice).createAddressBook({ id: 'secret', name: 'Secret' })
+    const contacts = await new LoginPage(page).loginAs(user)
+    await expect(contacts.book('Team')).toBeVisible()
+
+    // still in the list: not offered, and alice's other private book never is
+    let add = await contacts.openAddSharedBookDialog()
+    await add.pickUser(alice.uid, alice.email)
+    await expect(add.root).toContainText('No more address books to add')
+    await expect(add.book('Team')).toHaveCount(0)
+    await expect(add.book('Secret')).toHaveCount(0)
+    await add.cancelButton.click()
+
+    const dialog = await contacts.openDeleteBookDialog('Team', 'Remove')
+    await expect(dialog.root).toContainText(
+      'You can find it again by searching for its owner.'
+    )
+    await dialog.confirmButton.click()
+    await expect(contacts.bookEntry('Team')).toHaveCount(0)
+
+    add = await contacts.openAddSharedBookDialog()
+    await add.pickUser(alice.uid, alice.email)
+    await expect(add.book('Team')).toContainText('1 contact')
+    await expect(add.book('Secret')).toHaveCount(0)
+    await add.addButton.click()
+    await expect(add.root).toBeHidden()
+
+    // the delegation comes back with its Editor role
+    await contacts.openBook('Team')
+    await expect(contacts.row('Teresa Team')).toBeVisible()
+    const menu = await contacts.openBookMenu('Team')
+    await expect(menu.getByRole('menuitem')).toHaveText([
+      'Share',
+      'Remove from my list'
+    ])
+    await page.keyboard.press('Escape')
+    await contacts.reload()
+    const reloaded = await contacts.openBookMenu('Team')
+    await expect(reloaded.getByRole('menuitem')).toHaveText([
+      'Share',
+      'Remove from my list'
+    ])
+    await page.keyboard.press('Escape')
+    const copy = await davFor(user).sharedCopyOf(alice, 'team')
+    await davFor(user).putContact(copy, {
+      firstName: 'Back',
+      lastName: 'Again'
+    })
+    expect(await davFor(alice).contactNames('team')).toEqual(
+      expect.arrayContaining(['Back Again', 'Teresa Team'])
+    )
+  })
 })

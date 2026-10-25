@@ -45,7 +45,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] ABOOK-05 (P3) Several clicks on Create make one address book — `addressbooks.spec.ts`
 - [x] ABOOK-06 (P2) Rename an own address book — `addressbooks.spec.ts`
 - [x] ABOOK-07 (P1) Delete an own address book and its contacts — `addressbooks.spec.ts`
-- [x] ABOOK-08 (P3) The members of a renamed book see its new name — `addressbooks.spec.ts` (`test.fail`: renamed-book-keeps-its-old-name-for-sharees)
+- [x] ABOOK-08 (P3) The members of a renamed book see its new name — `addressbooks.spec.ts`
 
 ## Contact list
 
@@ -145,6 +145,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] SHARE-13 (P2) A sharee removes a shared book from their list, the owner keeps it — `share.spec.ts`
 - [x] SHARE-14 (P2) The Discovery switch makes a book public and private again — `share.spec.ts`
 - [x] SHARE-15 (P2) A role change and a removal take effect for the member — `share.spec.ts`
+- [x] SHARE-16 (P2) A sharee finds a removed private book again by searching for its owner — `share.spec.ts`
 
 ## Domain Address Book
 

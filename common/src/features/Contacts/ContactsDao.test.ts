@@ -11,6 +11,7 @@ import { fetchUserById } from '@common/features/User/UserDao'
 import {
   fetchContact,
   fetchContactsPage,
+  fetchSubscribableAddressBooks,
   subscribeToAddressBook
 } from './ContactsDao'
 import { formatAddress } from './contactsUtils'
@@ -586,9 +587,64 @@ describe('subscribeToAddressBook', () => {
     canWrite: false
   }
 
+  const listing = (books: unknown[]): void => {
+    jest.mocked(api.get).mockReturnValue({
+      json: () => Promise.resolve({ _embedded: { 'dav:addressbook': books } })
+    } as unknown as ReturnType<typeof api.get>)
+  }
+
   beforeEach(() => {
     jest.mocked(api.post).mockResolvedValue({} as never)
+    jest.mocked(api.get).mockReset()
+    listing([])
     jest.mocked(fetchUserById).mockReset()
+  })
+
+  it('reads the book back, as Sabre may restore a delegation with its role', async () => {
+    jest.spyOn(crypto, 'randomUUID').mockReturnValue('1-2-3-4-5')
+    jest
+      .mocked(fetchUserById)
+      .mockResolvedValue({ firstname: 'alice', lastname: 'alice' } as never)
+    listing([
+      {
+        _links: { self: { href: '/addressbooks/carol-id/1-2-3-4-5.json' } },
+        'dav:name': 'Alice Team',
+        'dav:acl': ['dav:read', 'dav:write'],
+        'dav:share-access': 5,
+        'openpaas:source': '/addressbooks/alice-id/team.json'
+      }
+    ])
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(book).toEqual(
+      expect.objectContaining({
+        id: '1-2-3-4-5',
+        name: 'Alice Team',
+        canWrite: true,
+        shareAccess: 5,
+        ownerId: 'alice-id',
+        sourceBookId: 'team',
+        ownerDisplayName: 'alice alice'
+      })
+    )
+  })
+
+  it('falls back to a read-only subscription when the book cannot be read back', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    jest.mocked(api.get).mockImplementation(() => {
+      throw new Error('network')
+    })
+
+    const book = await subscribeToAddressBook('carol-id', source, 'alice')
+
+    expect(book).toEqual(
+      expect.objectContaining({
+        sourceBookId: 'public1',
+        canWrite: false,
+        ownerId: 'alice-id'
+      })
+    )
   })
 
   it('names the owner from the profile, as when the books are loaded', async () => {
@@ -618,5 +674,21 @@ describe('subscribeToAddressBook', () => {
     const book = await subscribeToAddressBook('carol-id', source, 'alice')
 
     expect(book.ownerDisplayName).toBe('alice')
+  })
+})
+
+describe('fetchSubscribableAddressBooks', () => {
+  it('lists the books of the owner the user can read, delegated ones included', async () => {
+    jest.mocked(api.get).mockReset()
+    jest.mocked(api.get).mockReturnValue({
+      json: () => Promise.resolve({ _embedded: { 'dav:addressbook': [] } })
+    } as unknown as ReturnType<typeof api.get>)
+
+    await fetchSubscribableAddressBooks('alice-id')
+
+    expect(api.get).toHaveBeenCalledWith('dav/addressbooks/alice-id.json', {
+      searchParams: { personal: 'true', contactsCount: 'true' },
+      headers: { Accept: 'application/vcard+json' }
+    })
   })
 })

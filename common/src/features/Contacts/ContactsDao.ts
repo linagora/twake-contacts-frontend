@@ -28,10 +28,9 @@ import { userData } from '../User/userDataTypes'
 
 const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
 
-export async function fetchAddressBooks(
-  userId: string,
-  domains?: DomainInfo[]
-): Promise<AddressBook[]> {
+async function fetchAddressBookItems(
+  userId: string
+): Promise<DavAddressBookItem[]> {
   const response = api.get(`dav/addressbooks/${userId}.json`, {
     searchParams: {
       contactsCount: 'true',
@@ -43,7 +42,14 @@ export async function fetchAddressBooks(
   })
   const data: DavAddressBooksResponse = await response.json()
 
-  const books = data._embedded?.['dav:addressbook'] ?? []
+  return data._embedded?.['dav:addressbook'] ?? []
+}
+
+export async function fetchAddressBooks(
+  userId: string,
+  domains?: DomainInfo[]
+): Promise<AddressBook[]> {
+  const books = await fetchAddressBookItems(userId)
   const userBooks = await Promise.all(
     books.map(rawBook => enrichAddressBookOwner(rawBook, userId))
   )
@@ -518,12 +524,15 @@ export async function searchUsers(
   }))
 }
 
-export async function fetchPublicAddressBooks(
+export async function fetchSubscribableAddressBooks(
   ownerId: string
 ): Promise<AddressBook[]> {
   const data: DavAddressBooksResponse = await api
     .get(`dav/addressbooks/${ownerId}.json`, {
-      searchParams: { public: 'true', contactsCount: 'true' },
+      // ?personal lists the owner's books the user can read: the public ones and the ones
+      // delegated to the user, including those removed from their list (Sabre restores the
+      // delegation on subscription)
+      searchParams: { personal: 'true', contactsCount: 'true' },
       headers: { Accept: 'application/vcard+json' }
     })
     .json()
@@ -555,6 +564,14 @@ export async function subscribeToAddressBook(
     }
   })
 
+  const subscribed = await readBackAddressBook(userId, id)
+  if (subscribed) {
+    return {
+      ...subscribed,
+      ownerDisplayName: subscribed.ownerDisplayName ?? ownerDisplayName
+    }
+  }
+
   return {
     id,
     userId,
@@ -566,6 +583,23 @@ export async function subscribeToAddressBook(
     ownerId: source.userId,
     ownerDisplayName:
       (await fetchOwnerDisplayName(source.userId)) ?? ownerDisplayName
+  }
+}
+
+// Subscribing to a book delegated to the user restores the delegation, with its role,
+// instead of creating a read-only subscription: the book is read back for its real rights
+async function readBackAddressBook(
+  userId: string,
+  addressBookId: string
+): Promise<AddressBook | undefined> {
+  try {
+    const raw = (await fetchAddressBookItems(userId)).find(
+      book => normalizeAddressBook(book).id === addressBookId
+    )
+    return raw && (await enrichAddressBookOwner(raw, userId))
+  } catch {
+    console.warn(`Failed to read back the address book ${addressBookId}`)
+    return undefined
   }
 }
 
