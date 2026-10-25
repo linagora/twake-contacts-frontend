@@ -1,6 +1,5 @@
 import { LoginPage } from '../pages'
 import { READ_ONLY } from '../support/dav'
-import { knownIssue } from '../support/knownIssues'
 import { expect, test } from '../support/fixtures'
 
 test.describe('ABOOK address books', () => {
@@ -204,8 +203,6 @@ test.describe('ABOOK address books', () => {
     dav,
     loginInNewContext
   }) => {
-    // esn-sabre keeps the name a share had when it was created: the rename stays owner-side
-    knownIssue('renamed-book-keeps-its-old-name-for-sharees')
     const bob = await users.create({ prefix: 'bob' })
     await dav.createAddressBook({ id: 'qa-book', name: 'Before' })
     await dav.share('qa-book', bob, READ_ONLY)
