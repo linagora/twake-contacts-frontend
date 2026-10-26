@@ -34,6 +34,9 @@ export interface UserState {
 
 const UserSlice = createAppSlice({
   name: 'user',
+  // Rslint takes this assertion for unnecessary, but it sets the state type
+  // that createAppSlice infers
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   initialState: {
     userData: {} as userData,
     tokens: null,

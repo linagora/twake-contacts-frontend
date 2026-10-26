@@ -8,6 +8,9 @@ export interface LoadingState {
 
 const LoadingSlice = createAppSlice({
   name: 'loading',
+  // Rslint takes this assertion for unnecessary, but it sets the state type
+  // that createAppSlice infers
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   initialState: {
     isLoading: false,
     message: undefined
