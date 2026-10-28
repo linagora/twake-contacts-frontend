@@ -88,7 +88,7 @@ describe('ShareAddressBookDialog', () => {
       isPublic: false
     })
     mockedResolveMember.mockReturnValue(new Promise(() => undefined))
-    renderShareDialog()
+    renderDialog()
 
     expect(
       await screen.findByRole('button', { name: 'Role of bob@open-paas.org' })
@@ -100,7 +100,7 @@ describe('ShareAddressBookDialog', () => {
 
   it('reports in the dialog a failure to fetch the members', async () => {
     mockedFetchDetails.mockRejectedValue(new Error('Bad Request'))
-    renderShareDialog()
+    renderDialog()
 
     expect(
       await screen.findByText('Failed to load the members of this address book')
@@ -123,7 +123,7 @@ describe('ShareAddressBookDialog', () => {
         emails: ['bob@open-paas.org']
       }
     ])
-    renderShareDialog()
+    renderDialog()
 
     expect(
       await screen.findByText('Failed to load the members of this address book')
