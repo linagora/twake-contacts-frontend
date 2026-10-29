@@ -32,23 +32,22 @@ export interface UserState {
   error: string | null
 }
 
+const initialState: UserState = {
+  userData: {} as userData,
+  tokens: null,
+  coreConfig: {
+    language: null,
+    datetime: {
+      timeZone: null
+    }
+  },
+  loading: true,
+  error: null
+}
+
 const UserSlice = createAppSlice({
   name: 'user',
-  // Rslint takes this assertion for unnecessary, but it sets the state type
-  // that createAppSlice infers
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  initialState: {
-    userData: {} as userData,
-    tokens: null,
-    coreConfig: {
-      language: null,
-      datetime: {
-        timeZone: null
-      }
-    },
-    loading: true,
-    error: null
-  } as UserState,
+  initialState,
   reducers: create => ({
     setUserData: create.reducer((state, action: PayloadAction<userData>) => {
       state.userData = action.payload
