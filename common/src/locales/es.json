@@ -88,7 +88,8 @@
       "mail": "Enviar correo",
       "schedule": "Programar",
       "share": "Compartir",
-      "remove": "Quitar de mi lista"
+      "remove": "Quitar de mi lista",
+      "export": "Exportar"
     },
     "delete": {
       "title": "¿Eliminar este contacto?",
@@ -116,7 +117,9 @@
       "subscribe": "No se ha podido añadir la libreta de direcciones",
       "deleteAddressBook": "No se ha podido eliminar la libreta de direcciones",
       "removeAddressBook": "No se ha podido quitar la libreta de direcciones de tu lista",
-      "updateAddressBook": "No se ha podido actualizar la libreta de direcciones"
+      "updateAddressBook": "No se ha podido actualizar la libreta de direcciones",
+      "exportAddressBook": "No se pudo exportar la libreta de direcciones",
+      "exportContact": "No se pudo exportar el contacto"
     },
     "addressBook": {
       "createTitle": "Nueva libreta de direcciones",

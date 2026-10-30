@@ -88,7 +88,8 @@
       "mail": "Envoyer un e-mail",
       "schedule": "Planifier",
       "share": "Partager",
-      "remove": "Retirer de ma liste"
+      "remove": "Retirer de ma liste",
+      "export": "Exporter"
     },
     "delete": {
       "title": "Supprimer ce contact ?",
@@ -116,7 +117,9 @@
       "subscribe": "Impossible d'ajouter le carnet d'adresses",
       "deleteAddressBook": "Impossible de supprimer le carnet d'adresses",
       "removeAddressBook": "Impossible de retirer le carnet d'adresses de votre liste",
-      "updateAddressBook": "Impossible de modifier le carnet d'adresses"
+      "updateAddressBook": "Impossible de modifier le carnet d'adresses",
+      "exportAddressBook": "Échec de l'export du carnet d'adresses",
+      "exportContact": "Échec de l'export du contact"
     },
     "addressBook": {
       "createTitle": "Nouveau carnet d'adresses",

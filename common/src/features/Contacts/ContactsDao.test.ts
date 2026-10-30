@@ -9,6 +9,8 @@ import {
 import { api } from '@common/utils/apiUtils'
 import { fetchUserById } from '@common/features/User/UserDao'
 import {
+  exportAddressBook,
+  exportContact,
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
@@ -736,5 +738,53 @@ describe('resolveAddressBookMember', () => {
     jest.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
 
     await expect(resolveAddressBookMember(invited)).resolves.toBe(invited)
+  })
+})
+
+describe('export', () => {
+  const vcf = new Blob(['BEGIN:VCARD\r\nEND:VCARD\r\n'], {
+    type: 'text/vcard'
+  })
+  const book: AddressBook = {
+    id: 'book1',
+    userId: 'bob',
+    name: 'Team',
+    contactsCount: 2,
+    acl: [],
+    canWrite: true
+  }
+
+  beforeEach(() => {
+    jest.mocked(api.get).mockReset()
+    jest.mocked(api.get).mockReturnValue({
+      blob: () => Promise.resolve(vcf)
+    } as unknown as ReturnType<typeof api.get>)
+  })
+
+  it('exports every contact of the book as vCard', async () => {
+    await expect(exportAddressBook(book)).resolves.toBe(vcf)
+
+    expect(api.get).toHaveBeenCalledWith('dav/addressbooks/bob/book1.json', {
+      searchParams: { export: 'true' },
+      headers: { Accept: 'application/vcard' }
+    })
+  })
+
+  it('exports the domain book from its members collection', async () => {
+    await exportAddressBook({ ...book, id: 'dab', userId: 'domain1' })
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/domain1/domain-members.json',
+      expect.objectContaining({ searchParams: { export: 'true' } })
+    )
+  })
+
+  it('exports a single contact as vCard', async () => {
+    await expect(exportContact(book, 'a/b')).resolves.toBe(vcf)
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/bob/book1/a%2Fb.vcf',
+      { headers: { Accept: 'text/vcard' } }
+    )
   })
 })

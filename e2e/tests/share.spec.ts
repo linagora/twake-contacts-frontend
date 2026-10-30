@@ -109,7 +109,8 @@ test.describe('SHARE shared address books', () => {
     const menu = await contacts.openRowMenu('Read Only Rita')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Send email',
-      'Create event'
+      'Create event',
+      'Export'
     ])
     await page.keyboard.press('Escape')
 
@@ -178,6 +179,7 @@ test.describe('SHARE shared address books', () => {
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Share',
       'Edit',
+      'Export',
       'Delete'
     ])
     await menu.getByRole('menuitem', { name: 'Share' }).click()
@@ -403,7 +405,8 @@ test.describe('SHARE shared address books', () => {
     const menu = await contacts.openRowMenu('Paula Public')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Send email',
-      'Create event'
+      'Create event',
+      'Export'
     ])
     await page.keyboard.press('Escape')
     const contact = await contacts.openContact('Paula Public')
@@ -447,6 +450,7 @@ test.describe('SHARE shared address books', () => {
     const menu = await contacts.openBookMenu('Team')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Share',
+      'Export',
       'Remove from my list'
     ])
     await page.keyboard.press('Escape')
@@ -605,7 +609,8 @@ test.describe('SHARE shared address books', () => {
     const menu = await bobContacts.openRowMenu('Fran Edited')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Send email',
-      'Create event'
+      'Create event',
+      'Export'
     ])
     await bobContacts.page.keyboard.press('Escape')
     const viewed = await bobContacts.openContact('Fran Edited')
@@ -672,6 +677,7 @@ test.describe('SHARE shared address books', () => {
     const menu = await contacts.openBookMenu('Team')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Share',
+      'Export',
       'Remove from my list'
     ])
     await page.keyboard.press('Escape')
@@ -679,6 +685,7 @@ test.describe('SHARE shared address books', () => {
     const reloaded = await contacts.openBookMenu('Team')
     await expect(reloaded.getByRole('menuitem')).toHaveText([
       'Share',
+      'Export',
       'Remove from my list'
     ])
     await page.keyboard.press('Escape')
