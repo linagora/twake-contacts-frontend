@@ -88,7 +88,8 @@
       "mail": "Invia email",
       "schedule": "Pianifica",
       "share": "Condividi",
-      "remove": "Rimuovi dalla mia lista"
+      "remove": "Rimuovi dalla mia lista",
+      "export": "Esporta"
     },
     "delete": {
       "title": "Eliminare questo contatto?",
@@ -115,7 +116,9 @@
       "subscribe": "Impossibile aggiungere la rubrica",
       "deleteAddressBook": "Impossibile eliminare la rubrica",
       "removeAddressBook": "Impossibile rimuovere la rubrica dal tuo elenco",
-      "updateAddressBook": "Impossibile aggiornare la rubrica"
+      "updateAddressBook": "Impossibile aggiornare la rubrica",
+      "exportAddressBook": "Impossibile esportare la rubrica",
+      "exportContact": "Impossibile esportare il contatto"
     },
     "addressBook": {
       "createTitle": "Nuova rubrica",

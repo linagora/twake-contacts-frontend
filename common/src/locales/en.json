@@ -117,7 +117,8 @@
       "mail": "Send email",
       "schedule": "Schedule",
       "share": "Share",
-      "remove": "Remove from my list"
+      "remove": "Remove from my list",
+      "export": "Export"
     },
     "delete": {
       "title": "Delete this contact?",
@@ -145,7 +146,9 @@
       "subscribe": "Failed to add address book",
       "deleteAddressBook": "Failed to delete the address book",
       "removeAddressBook": "Failed to remove the address book from your list",
-      "updateAddressBook": "Failed to update address book"
+      "updateAddressBook": "Failed to update address book",
+      "exportAddressBook": "Failed to export the address book",
+      "exportContact": "Failed to export the contact"
     },
     "share": {
       "title": "Share %{name}",

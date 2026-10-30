@@ -5,6 +5,8 @@ import { deleteContact } from '@common/features/Contacts/ContactsSlice'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
+import { exportContact } from '@common/features/Contacts/ContactsDao'
+import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
@@ -34,6 +36,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const isMenuOpen = Boolean(anchorEl)
@@ -56,6 +59,14 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const handleEdit = (): void => {
     setAnchorEl(null)
     void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
+  }
+
+  const handleExport = (): void => {
+    setAnchorEl(null)
+    if (!book) return
+    exportContact(book, contact.id)
+      .then(blob => downloadFile(blob, toFileName(contact.displayName, 'vcf')))
+      .catch(() => setExportError(t('contacts.errors.exportContact')))
   }
 
   const handleDelete = async (): Promise<void> => {
@@ -125,6 +136,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             setOpenDialog('move')
           }}
           onOpenDeleteDialog={handleOpenDeleteDialog}
+          onExport={book ? handleExport : undefined}
           readOnly={isReadOnly}
         />
       </Stack>
@@ -158,6 +170,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
         />
       )}
       <ErrorSnackbar error={deleteError} onClose={() => setDeleteError(null)} />
+      <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
     </>
   )
 }

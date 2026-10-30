@@ -7,11 +7,22 @@ import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import I18n from 'twake-i18n'
+import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
+import { downloadFile } from '@common/utils/downloadFile'
 import { ContactsSidebar } from './ContactsSidebar'
+
+jest.mock('@common/features/Contacts/ContactsDao', () => ({
+  ...jest.requireActual('@common/features/Contacts/ContactsDao'),
+  exportAddressBook: jest.fn()
+}))
+jest.mock('@common/utils/downloadFile', () => ({
+  ...jest.requireActual('@common/utils/downloadFile'),
+  downloadFile: jest.fn()
+}))
 
 const mockUseBreakpoints = jest.fn(() => ({
   isMobile: false,
@@ -365,6 +376,57 @@ describe('ContactsSidebar', () => {
       renderSidebar('/contacts', books)
 
       expect(offersShare('Team Admin')).toBe(true)
+    })
+  })
+
+  describe('Export action', () => {
+    const vcf = new Blob(['BEGIN:VCARD'], { type: 'text/vcard' })
+
+    const clickExport = (name: string): void => {
+      fireEvent.mouseEnter(screen.getByText(name).closest('li') as HTMLElement)
+      fireEvent.click(
+        screen.getByRole('button', { name: en.contacts.menu.more })
+      )
+      fireEvent.click(
+        screen.getByRole('menuitem', { name: en.contacts.menu.export })
+      )
+    }
+
+    it('downloads the address book as a vCard named after it', async () => {
+      jest.mocked(exportAddressBook).mockResolvedValue(vcf)
+      renderSidebar('/contacts')
+
+      clickExport('Book 1')
+
+      expect(exportAddressBook).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'book1', userId: 'u1' })
+      )
+      await waitFor(() =>
+        expect(downloadFile).toHaveBeenCalledWith(vcf, 'Book 1.vcf')
+      )
+    })
+
+    it('offers export on a read-only address book', async () => {
+      jest.mocked(exportAddressBook).mockResolvedValue(vcf)
+      renderSidebar('/contacts')
+
+      clickExport('Book 2')
+
+      await waitFor(() =>
+        expect(downloadFile).toHaveBeenCalledWith(vcf, 'Book 2.vcf')
+      )
+    })
+
+    it('reports a failed export', async () => {
+      jest.mocked(exportAddressBook).mockRejectedValue(new Error('500'))
+      renderSidebar('/contacts')
+
+      clickExport('Book 1')
+
+      expect(
+        await screen.findByText(en.contacts.errors.exportAddressBook)
+      ).toBeInTheDocument()
+      expect(downloadFile).not.toHaveBeenCalled()
     })
   })
 

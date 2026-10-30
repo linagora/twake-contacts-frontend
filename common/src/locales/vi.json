@@ -88,7 +88,8 @@
       "mail": "Gửi email",
       "schedule": "Lên lịch",
       "share": "Chia sẻ",
-      "remove": "Gỡ khỏi danh sách của tôi"
+      "remove": "Gỡ khỏi danh sách của tôi",
+      "export": "Xuất"
     },
     "delete": {
       "title": "Xóa liên hệ này?",
@@ -116,7 +117,9 @@
       "subscribe": "Không thể thêm sổ địa chỉ",
       "deleteAddressBook": "Không thể xóa sổ địa chỉ",
       "removeAddressBook": "Không thể gỡ sổ địa chỉ khỏi danh sách của bạn",
-      "updateAddressBook": "Không thể cập nhật sổ địa chỉ"
+      "updateAddressBook": "Không thể cập nhật sổ địa chỉ",
+      "exportAddressBook": "Không thể xuất sổ địa chỉ",
+      "exportContact": "Không thể xuất liên hệ"
     },
     "addressBook": {
       "createTitle": "Sổ địa chỉ mới",

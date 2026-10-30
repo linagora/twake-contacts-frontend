@@ -7,6 +7,7 @@ import {
 import {
   Trash,
   Dots,
+  Download,
   Icon,
   Peoples,
   Pen,
@@ -37,6 +38,9 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { DeleteAddressBookDialog } from '../DeleteAddressBookDialog'
 import { EditAddressBookDialog } from '../EditAddressBookDialog'
+import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
+import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
+import { downloadFile, toFileName } from '@common/utils/downloadFile'
 
 export interface AddressBookNavItemProps {
   book: AddressBook
@@ -59,6 +63,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const [isHovered, setIsHovered] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const dispatch = useAppDispatch()
   const isCopy = Boolean(book.ownerId)
@@ -98,6 +103,18 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const handleShare = (): void => {
     setIsShareDialogOpen(true)
     handleMenuClose()
+  }
+
+  const handleExport = (): void => {
+    handleMenuClose()
+    exportAddressBook(book)
+      .then(blob =>
+        downloadFile(
+          blob,
+          toFileName(getAddressBookDisplayName(book, t), 'vcf')
+        )
+      )
+      .catch(() => setExportError(t('contacts.errors.exportAddressBook')))
   }
 
   const isMenuOpen = Boolean(anchorEl)
@@ -145,6 +162,12 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                     <ListItemText>{t('contacts.menu.edit')}</ListItemText>
                   </ActionsMenuItem>
                 )}
+                <ActionsMenuItem onClick={handleExport}>
+                  <ListItemIcon>
+                    <Icon icon={Download} />
+                  </ListItemIcon>
+                  <ListItemText>{t('contacts.menu.export')}</ListItemText>
+                </ActionsMenuItem>
                 <ActionsMenuItem onClick={handleDelete}>
                   <ListItemIcon>
                     <Icon icon={Trash} />
@@ -178,6 +201,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
           </Tooltip>
         </NavLink>
       </NavItem>
+      <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
       {isShareDialogOpen && (
         <ShareAddressBookDialog
           addressBookId={book.id}

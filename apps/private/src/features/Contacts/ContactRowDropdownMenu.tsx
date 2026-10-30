@@ -13,6 +13,7 @@ import {
   CalendarToday,
   Discuss,
   Copy,
+  Download,
   Moveto
 } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
@@ -30,6 +31,7 @@ interface ContactRowDropdownMenuProps {
   onOpenDeleteDialog: () => void
   onOpenCopyDialog?: () => void
   onOpenMoveDialog?: () => void
+  onExport?: () => void
   readOnly?: boolean
 }
 
@@ -50,6 +52,7 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
   onOpenDeleteDialog,
   onOpenCopyDialog,
   onOpenMoveDialog,
+  onExport,
   readOnly
 }) => {
   const { t } = useI18n()
@@ -135,6 +138,14 @@ export const ContactRowDropdownMenu: React.FC<ContactRowDropdownMenuProps> = ({
             <Icon icon={Moveto} />
           </ListItemIcon>
           <ListItemText>{t('contacts.moveContact.title')}</ListItemText>
+        </ActionsMenuItem>
+      )}
+      {onExport && (
+        <ActionsMenuItem onClick={onExport}>
+          <ListItemIcon>
+            <Icon icon={Download} />
+          </ListItemIcon>
+          <ListItemText>{t('contacts.menu.export')}</ListItemText>
         </ActionsMenuItem>
       )}
       {!readOnly && (

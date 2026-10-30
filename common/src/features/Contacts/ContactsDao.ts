@@ -232,11 +232,7 @@ export async function fetchContact(
   book: AddressBook,
   contactId: string
 ): Promise<Contact> {
-  const bookPath =
-    book.id === 'dab'
-      ? `dav/addressbooks/${book.userId}/domain-members`
-      : `dav/addressbooks/${book.userId}/${book.id}`
-  const href = `${bookPath}/${encodeDavSegment(contactId)}.vcf`
+  const href = `${getBookPath(book)}/${encodeDavSegment(contactId)}.vcf`
 
   const data: JCalCard = await api
     .get(href, { headers: { Accept: 'application/vcard+json' } })
@@ -247,6 +243,34 @@ export async function fetchContact(
     ...normalizeContact({ _links: { self: { href } }, data }),
     id: contactId
   }
+}
+
+function getBookPath(book: AddressBook): string {
+  return book.id === 'dab'
+    ? `dav/addressbooks/${book.userId}/domain-members`
+    : `dav/addressbooks/${book.userId}/${book.id}`
+}
+
+/** Every contact of the book as a single vCard file. */
+export async function exportAddressBook(book: AddressBook): Promise<Blob> {
+  return api
+    .get(`${getBookPath(book)}.json`, {
+      searchParams: { export: 'true' },
+      headers: { Accept: 'application/vcard' }
+    })
+    .blob()
+}
+
+/** One contact of the book as a vCard file. */
+export async function exportContact(
+  book: AddressBook,
+  contactId: string
+): Promise<Blob> {
+  return api
+    .get(`${getBookPath(book)}/${encodeDavSegment(contactId)}.vcf`, {
+      headers: { Accept: 'text/vcard' }
+    })
+    .blob()
 }
 
 export async function saveContact(
