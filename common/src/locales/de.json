@@ -88,7 +88,8 @@
       "mail": "E-Mail senden",
       "schedule": "Termin planen",
       "share": "Teilen",
-      "remove": "Aus meiner Liste entfernen"
+      "remove": "Aus meiner Liste entfernen",
+      "export": "Exportieren"
     },
     "delete": {
       "title": "Diesen Kontakt löschen?",
@@ -116,7 +117,9 @@
       "subscribe": "Adressbuch konnte nicht hinzugefügt werden",
       "deleteAddressBook": "Adressbuch konnte nicht gelöscht werden",
       "removeAddressBook": "Adressbuch konnte nicht aus Ihrer Liste entfernt werden",
-      "updateAddressBook": "Adressbuch konnte nicht aktualisiert werden"
+      "updateAddressBook": "Adressbuch konnte nicht aktualisiert werden",
+      "exportAddressBook": "Das Adressbuch konnte nicht exportiert werden",
+      "exportContact": "Der Kontakt konnte nicht exportiert werden"
     },
     "addressBook": {
       "createTitle": "Neues Adressbuch",

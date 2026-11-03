@@ -148,6 +148,7 @@ test.describe('LIST contact list', () => {
       'Create event',
       'Copy contact',
       'Move contact',
+      'Export',
       'Delete'
     ])
     await expect(page).toHaveURL('/contacts/qa-book')
@@ -159,6 +160,7 @@ test.describe('LIST contact list', () => {
       'Create event',
       'Copy contact',
       'Move contact',
+      'Export',
       'Delete'
     ])
   })
