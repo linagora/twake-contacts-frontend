@@ -62,6 +62,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       id: SORT_COLUMN_IDS.fn,
       label: t('contacts.name'),
       maxWidth: 0,
+      noWrap: true,
       skeleton: (
         <Stack direction="row" className="u-flex-items-center">
           <Skeleton
