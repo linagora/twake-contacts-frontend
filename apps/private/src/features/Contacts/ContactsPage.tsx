@@ -48,7 +48,7 @@ export const ContactsPage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { t } = useI18n()
   const dispatch = useAppDispatch()
-  const { isMobile } = useBreakpoints()
+  const { isMobile, isTablet } = useBreakpoints()
   const { addressBookId } = useParams()
   const location = useLocation()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
@@ -114,7 +114,9 @@ export const ContactsPage: React.FC = () => {
             title={title}
             addressBookId={addressBookId}
           />
-          {(!isMobile || isAddressBookPage || isMobileSearchOpen) && (
+          {(!(isMobile || isTablet) ||
+            isAddressBookPage ||
+            isMobileSearchOpen) && (
             <Stack
               role="search"
               direction="row"
@@ -137,7 +139,7 @@ export const ContactsPage: React.FC = () => {
             </Alert>
           )}
           <Outlet />
-          {isMobile && isAddressBookPage && (
+          {(isMobile || isTablet) && isAddressBookPage && (
             <Box className="u-pos-fixed u-bottom-xl u-right-m">
               <Fab
                 size="medium"

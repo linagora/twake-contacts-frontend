@@ -47,7 +47,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const navigate = useNavigate()
-  const { isMobile } = useBreakpoints()
+  const { isMobile, isTablet } = useBreakpoints()
 
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const isLoading = useAppSelector(state => state.contacts.loading)
@@ -62,7 +62,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
 
   const handleItemClick = (path: string): void => {
     void navigate(path)
-    if (isMobile) {
+    if (isMobile || isTablet) {
       onClose?.()
     }
   }
@@ -80,7 +80,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
 
   return (
     <Sidebar anchor="left" open={open} onClose={onClose}>
-      {!isMobile && (
+      {!(isMobile || isTablet) && (
         <Box className="u-mh-1 u-mt-1">
           <Button
             variant="contained"
@@ -108,7 +108,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
             }}
             onOpenCreateBook={() => {
               onOpenCreateBook()
-              if (isMobile) {
+              if (isMobile || isTablet) {
                 onClose?.()
               }
             }}
