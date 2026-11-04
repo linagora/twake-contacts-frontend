@@ -1,6 +1,5 @@
 import { ContactPage, ContactsPage, LoginPage } from '../pages'
 import { expect, test } from '../support/fixtures'
-import { knownIssue } from '../support/knownIssues'
 
 test.describe('AUTH login and application shell', () => {
   test('AUTH-01 login through SSO lands on My contacts', async ({
@@ -82,7 +81,6 @@ test.describe('AUTH login and application shell', () => {
     page,
     user
   }) => {
-    knownIssue('callback-without-pending-signin-shows-blank-page')
     const contacts = await new LoginPage(page).loginAs(user)
 
     await page.goto('/callback')
