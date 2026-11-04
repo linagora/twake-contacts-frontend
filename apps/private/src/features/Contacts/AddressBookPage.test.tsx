@@ -31,6 +31,17 @@ import en from '@common/locales/en.json'
 import { AddressBookPage } from './AddressBookPage'
 
 vi.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@linagora/twake-mui', async () => ({
+  ...(await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )),
+  useBreakpoints: () => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  })
+}))
 
 const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
 const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
