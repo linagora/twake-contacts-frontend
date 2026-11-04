@@ -28,7 +28,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
   addressBookId
 }) => {
   const { t } = useI18n()
-  const { isMobile, isTablet } = useBreakpoints()
+  const { isDesktop, isExtraLarge } = useBreakpoints()
   const [searchParams] = useSearchParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const scope = addressBookId
@@ -40,7 +40,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
     selectContactEntries(state, addressBookId, scope, openpaasId)
   )
 
-  if (!(isMobile || isTablet)) return
+  if (isDesktop || isExtraLarge) return
 
   return (
     <Stack
