@@ -35,7 +35,7 @@ import { AddressBookHeader } from './AddressBookActions/AddressBookHeader'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
-  const { isMobile, isTablet } = useBreakpoints()
+  const { isMobile, isTablet, isDesktop, isExtraLarge } = useBreakpoints()
   const dispatch = useAppDispatch()
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
@@ -171,7 +171,7 @@ export const AddressBookPage: React.FC = () => {
     )
   }
 
-  const importButton = !(isMobile || isTablet) && showTable && (
+  const importButton = (isDesktop || isExtraLarge) && showTable && (
     <ImportContactsButton addressBookId={addressBookId} />
   )
 
@@ -200,7 +200,7 @@ export const AddressBookPage: React.FC = () => {
             className="u-flex-items-center u-w-100"
             spacing={2}
           >
-            {!(isMobile || isTablet) && (
+            {(isDesktop || isExtraLarge) && (
               <Typography
                 variant="h4"
                 component="h1"

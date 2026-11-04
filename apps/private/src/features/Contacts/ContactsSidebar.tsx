@@ -47,7 +47,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const navigate = useNavigate()
-  const { isMobile, isTablet } = useBreakpoints()
+  const { isMobile, isTablet, isDesktop, isExtraLarge } = useBreakpoints()
 
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const isLoading = useAppSelector(state => state.contacts.loading)
@@ -80,7 +80,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
 
   return (
     <Sidebar anchor="left" open={open} onClose={onClose}>
-      {!(isMobile || isTablet) && (
+      {(isDesktop || isExtraLarge) && (
         <Box className="u-mh-1 u-mt-1">
           <Button
             variant="contained"
