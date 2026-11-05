@@ -28,6 +28,6 @@
     "twake-i18n": "^0.7.1"
   },
   "devDependencies": {
-    "@sentry/webpack-plugin": "^5.4.0"
+    "@sentry/webpack-plugin": "^11.10.0"
   }
 }
