@@ -6,12 +6,13 @@ const RETRY_CONFIG = {
 }
 
 export const api: KyInstance = ky.extend({
-  prefixUrl: window.SIDE_SERVICE_BASE_URL,
+  prefix: window.SIDE_SERVICE_BASE_URL,
   retry: {
     limit: RETRY_CONFIG.maxRetries
   },
   hooks: {
-    beforeRequest: [addAuthorization],
+    // twake-oidc hooks still have the positional signature of ky 1
+    beforeRequest: [({ request }): void => addAuthorization(request)],
     beforeRetry: [
       ({ request, error, retryCount }): void => {
         console.warn(
@@ -23,7 +24,10 @@ export const api: KyInstance = ky.extend({
         )
       }
     ],
-    afterResponse: [redirectOnUnauthorized]
+    afterResponse: [
+      ({ request, options, response }): Promise<void> =>
+        redirectOnUnauthorized(request, options, response)
+    ]
   }
 })
 
