@@ -29,7 +29,7 @@ export const EditAddressBookDialog: React.FC<EditAddressBookDialogProps> = ({
 
   const trimmedName = name.trim()
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: React.SubmitEvent): void => {
     e.preventDefault()
     if (trimmedName) onConfirm({ name: trimmedName })
   }

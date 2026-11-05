@@ -15,7 +15,7 @@ export function EntryPaper({
   primary,
   secondary,
   onRemove
-}: EntryPaperProps): JSX.Element {
+}: EntryPaperProps): React.JSX.Element {
   const { t } = useI18n()
   return (
     <Paper variant="outlined">

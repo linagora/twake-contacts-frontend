@@ -41,6 +41,9 @@ const markdownEsmPackages = [
   'zwitch'
 ].join('|')
 
+// React Router v8 and its dependencies are ESM.
+const routerEsmPackages = 'react-router|@remix-run/route-pattern|cookie-es'
+
 const config: Config = {
   collectCoverage: false,
   coverageDirectory: 'coverage',
@@ -70,7 +73,7 @@ const config: Config = {
           '<rootDir>/fileTransformer.ts'
       },
       transformIgnorePatterns: [
-        `/node_modules/(?!(${markdownEsmPackages}|ky|@linagora/twake-bar|@linagora/twake-sdk|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|@linagora/twake-oidc|mime|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)`
+        `/node_modules/(?!(${markdownEsmPackages}|${routerEsmPackages}|ky|@linagora/twake-bar|@linagora/twake-sdk|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|@linagora/twake-oidc|mime|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)`
       ],
 
       moduleNameMapper: {
@@ -111,7 +114,7 @@ const config: Config = {
         '^.+\\.(js|jsx|mjs)$': 'babel-jest'
       },
       transformIgnorePatterns: [
-        `/node_modules/(?!(${markdownEsmPackages}|ky|@linagora/twake-bar|@linagora/twake-sdk|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|@linagora/twake-oidc|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)`
+        `/node_modules/(?!(${markdownEsmPackages}|${routerEsmPackages}|ky|@linagora/twake-bar|@linagora/twake-sdk|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|@linagora/twake-oidc|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)`
       ],
       setupFilesAfterEnv: ['<rootDir>/common/src/setupTests.ts'],
       moduleNameMapper: {
