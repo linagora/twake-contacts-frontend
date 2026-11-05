@@ -5,7 +5,7 @@ import { parseMessage } from './messaging/parseMessage'
 import { useSyncRegistrations } from './operations/useSyncRegistrations'
 import { useWebSocketConnection } from '@linagora/twake-websocket'
 
-export function WebSocketGate(): JSX.Element | null {
+export function WebSocketGate(): React.JSX.Element | null {
   const dispatch = useAppDispatch()
 
   const isAuthenticated = useAppSelector(state =>

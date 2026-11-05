@@ -12,7 +12,7 @@ export function AddressBookPaper({
   book: AddressBook
   ownerName?: string
   onRemove?: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const { t } = useI18n()
   const count =
     book.contactsCount != null

@@ -69,7 +69,7 @@ function ThemeSync(): null {
   return null
 }
 
-export default function App(): JSX.Element {
+export default function App(): React.JSX.Element {
   const appLoading = useAppSelector(state => state.loading.isLoading)
   const userLanguage = useAppSelector(state => state.user.coreConfig.language)
   const settingsLanguage = useAppSelector(state => state.settings.language)

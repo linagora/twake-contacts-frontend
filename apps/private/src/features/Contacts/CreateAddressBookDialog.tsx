@@ -27,7 +27,7 @@ export const CreateAddressBookDialog: React.FC<
   const [name, setName] = useState('')
   const canSubmit = !!name.trim() && !isCreating
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: React.SubmitEvent): void => {
     e.preventDefault()
     if (canSubmit) onConfirm(name.trim())
   }
