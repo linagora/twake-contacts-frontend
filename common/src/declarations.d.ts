@@ -1,4 +1,5 @@
 declare module '*.styl'
+declare module '@linagora/twake-css/dist/utils.css'
 
 declare const process: {
   env: {

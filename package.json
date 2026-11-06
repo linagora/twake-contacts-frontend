@@ -61,6 +61,7 @@
     "@babel/core": "^8.0.0",
     "@babel/preset-env": "^8.0.7",
     "@babel/preset-react": "^8.0.1",
+    "@babel/preset-typescript": "^8.0.7",
     "@rsbuild/core": "^2.3.0",
     "@rsbuild/plugin-react": "^2.1.1",
     "@rsbuild/plugin-stylus": "^2.0.1",
@@ -79,8 +80,6 @@
     "jest-environment-jsdom": "^30.2.0",
     "rslint-config-cozy-app": "^0.2.0",
     "rstack": "0.8.6",
-    "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
     "typescript": "^7.0.2"
   },
   "overrides": {

@@ -67,8 +67,7 @@ const config: Config = {
       extensionsToTreatAsEsm: ['.ts', '.tsx'],
       testTimeout: 15000,
       transform: {
-        '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.base.json' }],
-        '^.+\\.(js|jsx|mjs)$': 'babel-jest',
+        '^.+\\.([jt]sx?|mjs)$': 'babel-jest',
         '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
           '<rootDir>/fileTransformer.ts'
       },
@@ -110,8 +109,7 @@ const config: Config = {
       extensionsToTreatAsEsm: ['.ts', '.tsx'],
       testTimeout: 15000,
       transform: {
-        '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.base.json' }],
-        '^.+\\.(js|jsx|mjs)$': 'babel-jest'
+        '^.+\\.([jt]sx?|mjs)$': 'babel-jest'
       },
       transformIgnorePatterns: [
         `/node_modules/(?!(${markdownEsmPackages}|${routerEsmPackages}|ky|@linagora/twake-bar|@linagora/twake-sdk|@linagora/twake-mui|@linagora/twake-icons|@linagora/twake-utils|@linagora/twake-oidc|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)`
