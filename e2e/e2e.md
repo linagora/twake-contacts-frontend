@@ -15,7 +15,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] AUTH-01 (P1) Login through SSO lands on My contacts — `auth.spec.ts`
 - [x] AUTH-02 (P3) Deep link while logged out — `auth.spec.ts`
 - [x] AUTH-04 (P3) Error page without an error — `auth.spec.ts`
-- [x] AUTH-05 (P2) Reload keeps the user signed in on the same page, tokens not in web storage — `auth.spec.ts` (one step `test.fail`: callback-without-pending-signin-shows-blank-page)
+- [x] AUTH-05 (P2) Reload keeps the user signed in on the same page, tokens not in web storage — `auth.spec.ts`
 - [x] I18N-01 (P2) French interface — `i18n.spec.ts`
 - [x] I18N-02 (P3) Vietnamese and Russian interfaces — `i18n.spec.ts`
 - [x] I18N-03 (P2) Spanish, German and Italian interfaces — `i18n.spec.ts`

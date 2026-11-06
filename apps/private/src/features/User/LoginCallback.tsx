@@ -6,7 +6,7 @@ import {
   setUserData,
   setUserError
 } from '@common/features/User/UserSlice'
-import { completeLogin } from '@linagora/twake-oidc'
+import { completeLogin, startLogin } from '@linagora/twake-oidc'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -38,10 +38,10 @@ export const CallbackResume: React.FC = () => {
         // Keeps the tokens for the API calls before resolving
         const data = await completeLogin()
 
-        // No sign-in pending: the callback page was reloaded or opened directly
+        // No sign-in pending: the callback page was reloaded or opened
+        // directly. The app skipped the sign-in on this page, so start it here.
         if (!data) {
-          dispatch(setAppLoading(false))
-          navigate('/', { replace: true })
+          await startLogin()
           return
         }
 
