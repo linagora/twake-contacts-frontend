@@ -11,7 +11,7 @@ import { EditContactPage } from './features/Contacts/EditContactPage'
 import HandleLogin from './features/User/HandleLogin'
 import { CallbackResume } from './features/User/LoginCallback'
 
-export function AppRoutes(): JSX.Element {
+export function AppRoutes(): React.JSX.Element {
   const error = useAppSelector(state => state.user.error)
   const navigate = useNavigate()
 

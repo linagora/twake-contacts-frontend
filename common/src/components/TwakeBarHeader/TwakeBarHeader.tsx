@@ -31,7 +31,7 @@ const createBarFallback = (user: userData): TwakeBarFallback => ({
     : undefined
 })
 
-export const TwakeBarHeader = (): JSX.Element | null => {
+export const TwakeBarHeader = (): React.JSX.Element | null => {
   const isLoading = useAppSelector(state => state.loading.isLoading)
   const user = useAppSelector(state => state.user.userData)
   const idToken = useAppSelector(state => state.user.tokens?.id_token)

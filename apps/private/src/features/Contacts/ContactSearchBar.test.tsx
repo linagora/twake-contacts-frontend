@@ -15,7 +15,7 @@ jest.mock('@common/features/Contacts/ContactsDao')
 
 const mockedSearchContacts = searchContacts as jest.Mock
 
-function LocationDisplay(): JSX.Element {
+function LocationDisplay(): React.JSX.Element {
   const location = useLocation()
   return <div data-testid="location">{location.pathname}</div>
 }

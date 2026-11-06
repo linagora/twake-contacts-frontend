@@ -6,7 +6,7 @@ export function ContactPaper({
   contact
 }: {
   contact: Pick<Contact, 'displayName' | 'emails'>
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <EntryPaper
       avatar={<ContactAvatar size="s" displayName={contact.displayName} />}
