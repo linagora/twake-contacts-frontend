@@ -32,7 +32,7 @@ import { ImportContactsButton } from './ImportContactsButton'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
-  const { isMobile } = useBreakpoints()
+  const { isMobile, isDesktop, isExtraLarge } = useBreakpoints()
   const dispatch = useAppDispatch()
   const { addressBookId } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
@@ -166,7 +166,9 @@ export const AddressBookPage: React.FC = () => {
             className="u-flex-items-center u-w-100"
             spacing={2}
           >
-            {!isMobile && <Typography variant="h4">{title}</Typography>}
+            {(isDesktop || isExtraLarge) && (
+              <Typography variant="h4">{title}</Typography>
+            )}
             {!addressBookId && (
               <Tabs
                 className={isMobile ? 'u-w-100' : ''}
@@ -187,7 +189,7 @@ export const AddressBookPage: React.FC = () => {
             )}
           </Stack>
         )}
-        {!isMobile &&
+        {(isDesktop || isExtraLarge) &&
           (addressBookId !== 'dab' || book?.canWrite) &&
           showTable && <ImportContactsButton addressBookId={addressBookId} />}
       </Stack>

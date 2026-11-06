@@ -30,6 +30,15 @@ import en from '@common/locales/en.json'
 import { AddressBookPage } from './AddressBookPage'
 
 jest.mock('@common/features/Contacts/ContactsDao')
+jest.mock('@linagora/twake-mui', () => ({
+  ...jest.requireActual('@linagora/twake-mui'),
+  useBreakpoints: () => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  })
+}))
 
 const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
 const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
