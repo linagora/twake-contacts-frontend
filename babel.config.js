@@ -4,6 +4,8 @@ const isImportMeta = (node, types) =>
 const isHotProperty = (node, types) =>
   !node.computed && types.isIdentifier(node.property, { name: 'hot' })
 
+// Jest's babel-preset-current-node-syntax@1.2.0 skips its Babel 7 syntax
+// plugins on Babel 8. The scoped peer override in package.json reflects this.
 module.exports = {
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],
