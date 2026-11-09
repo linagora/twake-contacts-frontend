@@ -67,4 +67,64 @@ describe('makeContactFromForm', () => {
       'b@example.com'
     ])
   })
+
+  describe('Matrix profiles', () => {
+    const socialProfiles = [
+      { type: 'matrix', value: '@momo:matrix.example' },
+      { type: 'twitter', value: 'momo' },
+      { type: 'MATRIX', value: '@a:m.example' }
+    ]
+    const withProfiles: Contact = { ...contact, socialProfiles }
+
+    it('keeps every Matrix profile of an unchanged contact', () => {
+      const saved = makeContactFromForm(
+        makeFormValuesFromContact(withProfiles, 'book'),
+        withProfiles
+      )
+
+      expect(saved.socialProfiles).toEqual(socialProfiles)
+    })
+
+    it('updates only the shown Matrix profile, in place', () => {
+      const values = {
+        ...makeFormValuesFromContact(withProfiles, 'book'),
+        matrixId: ' @new:matrix.example '
+      }
+
+      const saved = makeContactFromForm(values, withProfiles)
+
+      expect(saved.socialProfiles).toEqual([
+        { type: 'matrix', value: '@new:matrix.example' },
+        { type: 'twitter', value: 'momo' },
+        { type: 'MATRIX', value: '@a:m.example' }
+      ])
+    })
+
+    it('removes only the shown Matrix profile when emptied', () => {
+      const values = {
+        ...makeFormValuesFromContact(withProfiles, 'book'),
+        matrixId: ''
+      }
+
+      const saved = makeContactFromForm(values, withProfiles)
+
+      expect(saved.socialProfiles).toEqual([
+        { type: 'twitter', value: 'momo' },
+        { type: 'MATRIX', value: '@a:m.example' }
+      ])
+    })
+
+    it('appends a Matrix profile when the contact had none', () => {
+      const values = {
+        ...makeFormValuesFromContact(contact, 'book'),
+        matrixId: '@new:matrix.example'
+      }
+
+      const saved = makeContactFromForm(values, contact)
+
+      expect(saved.socialProfiles).toEqual([
+        { type: 'matrix', value: '@new:matrix.example' }
+      ])
+    })
+  })
 })
