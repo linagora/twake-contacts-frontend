@@ -39,6 +39,19 @@ function getStringValues(prop: JCalProperty): string[] {
   return values.filter((v): v is string => typeof v === 'string')
 }
 
+function scalarText(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number') return String(value)
+  return ''
+}
+
+// RFC 7095 §3.3.1.3: a structured component may itself be an array of values,
+// only one level deep; anything else (objects, deeper nesting) is malformed
+function componentText(value: unknown): string {
+  if (!Array.isArray(value)) return scalarText(value)
+  return value.map(scalarText).filter(Boolean).join(' ')
+}
+
 function getTypeParam(params: JCalParams): string | null {
   const type = params.type
   if (typeof type === 'string') return type
@@ -51,7 +64,7 @@ function parseName(card: JCalCard): ContactName | null {
   if (!prop) return null
   const values = prop[3]
   if (!Array.isArray(values)) return null
-  const [familyName, givenName] = values.map(v => String(v ?? ''))
+  const [familyName, givenName] = values.map(componentText)
   return {
     familyName,
     givenName
@@ -86,7 +99,7 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
       const values = prop[3]
       if (!Array.isArray(values)) return null
       const [poBox, extended, street, locality, region, postalCode, country] =
-        Array.from({ length: 7 }, (_, i) => String(values[i] ?? ''))
+        Array.from({ length: 7 }, (_, i) => componentText(values[i]))
       const type = getTypeParam(prop[1])
       return {
         type,
@@ -124,7 +137,7 @@ function parseOrg(card: JCalCard): ContactOrg | null {
   const rawValue = prop[3]
   let values: string[]
   if (Array.isArray(rawValue)) {
-    values = rawValue.map(v => String(v ?? ''))
+    values = rawValue.map(componentText)
   } else if (typeof rawValue === 'string') {
     values = [
       rawValue,

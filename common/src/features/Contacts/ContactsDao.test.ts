@@ -22,7 +22,8 @@ import {
   AddressBookAccessLevel,
   DavContactItem,
   DavContactsResponse,
-  JCalCard
+  JCalCard,
+  JCalValue
 } from './davTypes'
 import { AddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
@@ -321,6 +322,63 @@ describe('normalizeContact', () => {
     expect(normalizeContact(withMailto).emails).toEqual([
       { type: 'Work', value: 'test@example.org' }
     ])
+  })
+
+  it('reads array components and ignores objects', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['adr', {}, 'text', ['', '', ['Line 1', 'Line 2'], { a: 1 }]],
+          ['org', {}, 'text', ['Acme', ['A', 'B']]]
+        ]
+      ]
+    } as unknown as DavContactItem)
+    expect(contact.addresses?.[0].street).toBe('Line 1 Line 2')
+    expect(contact.addresses?.[0].locality).toBe('')
+    expect(contact.org).toEqual({ name: 'Acme', units: ['A B'] })
+  })
+
+  it('ignores an object org component', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['org', {}, 'text', [{ a: 1 }]]]]
+    } as unknown as DavContactItem)
+    expect(contact.org).toEqual({ name: '', units: [] })
+  })
+
+  it('reads numeric components as text', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: ['vcard', [['adr', {}, 'text', ['', '', '', '', '', 75001, '']]]]
+    })
+    expect(contact.addresses?.[0].postalCode).toBe('75001')
+  })
+
+  it('reads array name components', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [['n', {}, 'text', [['van der', 'Berg'], 'Jan', '', '', '']]]
+      ]
+    })
+    expect(contact.name).toEqual({
+      familyName: 'van der Berg',
+      givenName: 'Jan'
+    })
+  })
+
+  it('normalizes a deeply nested structured component without overflowing', () => {
+    let deep: JCalValue = 'x'
+    for (let i = 0; i < 20000; i++) deep = [deep]
+    expect(() =>
+      normalizeContact({
+        _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+        data: ['vcard', [['n', {}, 'text', [deep]]]]
+      })
+    ).not.toThrow()
   })
 })
 
