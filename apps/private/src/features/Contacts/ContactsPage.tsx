@@ -68,7 +68,7 @@ export const ContactsPage: React.FC = () => {
 
   const createLink =
     addressBookId && canWriteCurrentBook
-      ? `/contacts/${addressBookId}/new`
+      ? `/contacts/new/${addressBookId}`
       : '/contacts/new'
 
   useEffect(() => {

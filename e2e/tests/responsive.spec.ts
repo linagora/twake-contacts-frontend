@@ -43,7 +43,7 @@ test.describe('RESP phone layout', () => {
       .getByRole('button', { name: 'QA Book' })
       .click()
     await expect(page).toHaveURL('/contacts/qa-book')
-    await expect(create).toHaveAttribute('href', '/contacts/qa-book/new')
+    await expect(create).toHaveAttribute('href', '/contacts/new/qa-book')
     await expect(main.getByRole('tab')).toHaveCount(0)
 
     await menu.click()

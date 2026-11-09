@@ -23,7 +23,7 @@ export const getCreateContactLink = (
   // waits for the books and falls back to the default one if not writable
   const mayWriteCurrentBook = currentBook ? currentBook.canWrite : loading
   return addressBookId && addressBookId !== 'dab' && mayWriteCurrentBook
-    ? `/contacts/${addressBookId}/new`
+    ? `/contacts/new/${addressBookId}`
     : '/contacts/new'
 }
 

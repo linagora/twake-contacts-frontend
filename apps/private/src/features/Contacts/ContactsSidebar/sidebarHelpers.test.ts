@@ -32,14 +32,14 @@ describe('sidebarHelpers', () => {
       expect(getCreateContactLink('dab', book)).toBe('/contacts/new')
     })
 
-    it('returns /contacts/:id/new when writable book is selected', () => {
+    it('returns /contacts/new/:id when writable book is selected', () => {
       const book = makeBook('b1', 'u1', true)
-      expect(getCreateContactLink('b1', book)).toBe('/contacts/b1/new')
+      expect(getCreateContactLink('b1', book)).toBe('/contacts/new/b1')
     })
 
     it('keeps the book of the URL while the books are loading', () => {
       expect(getCreateContactLink('b1', undefined, true)).toBe(
-        '/contacts/b1/new'
+        '/contacts/new/b1'
       )
     })
 

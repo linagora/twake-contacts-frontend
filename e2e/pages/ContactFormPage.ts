@@ -17,7 +17,7 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/** Create form (`/contacts/new`, `/contacts/<book>/new`) and edit form (`…/<id>/edit`) */
+/** Create form (`/contacts/new`, `/contacts/new/<book>`) and edit form (`…/<id>/edit`) */
 export class ContactFormPage {
   readonly page: Page
   readonly main: Locator

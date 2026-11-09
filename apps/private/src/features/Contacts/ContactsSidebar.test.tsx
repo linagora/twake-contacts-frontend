@@ -143,12 +143,12 @@ describe('ContactsSidebar', () => {
     )
   })
 
-  it('links create button to /contacts/:id/new for writable address books', () => {
+  it('links create button to /contacts/new/:id for writable address books', () => {
     renderSidebar('/contacts/book1')
 
     expect(screen.getByText('Create').closest('a')).toHaveAttribute(
       'href',
-      '/contacts/book1/new'
+      '/contacts/new/book1'
     )
   })
 

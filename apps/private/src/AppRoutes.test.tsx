@@ -33,6 +33,17 @@ vi.mock('./features/Contacts/CreateContactPage', () => ({
   CreateContactPage: () => <input aria-label="First name" />
 }))
 
+vi.mock('./features/Contacts/ContactPage', async () => {
+  const { useParams } =
+    await vi.importActual<typeof import('react-router')>('react-router')
+  return {
+    ContactPage: () => {
+      const { addressBookId, contactId } = useParams()
+      return <p>{`Contact ${addressBookId}/${contactId}`}</p>
+    }
+  }
+})
+
 const mockUseBreakpoints = useBreakpoints as MockedFunction<
   typeof useBreakpoints
 >
@@ -43,11 +54,11 @@ const setMobile = (isMobile: boolean): void => {
   >)
 }
 
-const appRoutesTree = (store = setupStore()) => (
+const appRoutesTree = (store = setupStore(), path = '/contacts/new') => (
   <Provider store={store}>
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">
-        <MemoryRouter initialEntries={['/contacts/new']}>
+        <MemoryRouter initialEntries={[path]}>
           <AppRoutes />
         </MemoryRouter>
       </I18n>
@@ -71,6 +82,23 @@ describe('AppRoutes', () => {
     expect(
       screen.queryByText(en.mobile.comingSoon.title)
     ).not.toBeInTheDocument()
+  })
+
+  it('opens the contact page of a card named new', () => {
+    render(appRoutesTree(setupStore(), '/contacts/contacts/new'))
+
+    expect(screen.getByText('Contact contacts/new')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: 'First name' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('renders the contact creation route of an address book', () => {
+    render(appRoutesTree(setupStore(), '/contacts/new/book1'))
+
+    expect(
+      screen.getByRole('textbox', { name: 'First name' })
+    ).toBeInTheDocument()
   })
 
   it('keeps the typed input when crossing the mobile breakpoint and back', () => {
