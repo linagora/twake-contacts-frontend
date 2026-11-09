@@ -11,6 +11,7 @@ import { fetchUserById } from '@common/features/User/UserDao'
 import {
   exportAddressBook,
   exportContact,
+  fetchAddressBooks,
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
@@ -684,6 +685,35 @@ describe('subscribeToAddressBook', () => {
     const book = await subscribeToAddressBook('carol-id', source, 'alice')
 
     expect(book.ownerDisplayName).toBe('alice')
+  })
+})
+
+describe('fetchAddressBooks', () => {
+  it('drops the books without href, as they can be neither opened nor written to', async () => {
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          _embedded: {
+            'dav:addressbook': [
+              {
+                'dav:syncToken': 1,
+                numberOfContacts: 0,
+                'dav:acl': ['dav:read', 'dav:write']
+              },
+              {
+                _links: { self: { href: '/addressbooks/u1/contacts.json' } },
+                'dav:name': 'My book',
+                'dav:acl': ['dav:read']
+              }
+            ]
+          }
+        })
+    } as unknown as ReturnType<typeof api.get>)
+
+    const books = await fetchAddressBooks('u1')
+
+    expect(books.map(book => book.id)).toEqual(['contacts'])
   })
 })
 
