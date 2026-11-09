@@ -191,6 +191,32 @@ describe('normalizeContact', () => {
     ])
   })
 
+  it('keeps every value of a multi-valued EMAIL and TEL', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['email', {}, 'text', 'a@x.example', 'f+tag@x.example'],
+          ['email', {}, 'integer', 12],
+          ['tel', { type: 'Work' }, 'text', '112', '(650) 555-0100'],
+          ['tel', {}, 'integer', 12],
+          ['tel', {}, 'integer', true]
+        ]
+      ]
+    })
+    expect(contact.emails).toEqual([
+      { type: null, value: 'a@x.example' },
+      { type: null, value: 'f+tag@x.example' },
+      { type: null, value: '12' }
+    ])
+    expect(contact.phones).toEqual([
+      { type: 'Work', value: '112' },
+      { type: 'Work', value: '(650) 555-0100' },
+      { type: null, value: '12' }
+    ])
+  })
+
   it('reads addresses', () => {
     const withAdr: DavContactItem = {
       ...collectedItem,

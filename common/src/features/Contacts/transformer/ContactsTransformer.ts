@@ -39,6 +39,28 @@ function getStringValues(prop: JCalProperty): string[] {
   return values.filter((v): v is string => typeof v === 'string')
 }
 
+function getTextValues(prop: JCalProperty): string[] {
+  return prop
+    .slice(3)
+    .flatMap(value =>
+      typeof value === 'string' ||
+      (typeof value === 'number' && Number.isFinite(value))
+        ? [String(value)]
+        : []
+    )
+}
+
+function parseUriValues(
+  prop: JCalProperty,
+  scheme: RegExp
+): { type: string | null; value: string }[] {
+  const type = getTypeParam(prop[1])
+  return getTextValues(prop)
+    .map(raw => raw.replace(scheme, ''))
+    .filter(Boolean)
+    .map(value => ({ type, value }))
+}
+
 function getTypeParam(params: JCalParams): string | null {
   const type = params.type
   if (typeof type === 'string') return type
@@ -59,25 +81,15 @@ function parseName(card: JCalCard): ContactName | null {
 }
 
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return getCardProperties(card, 'email')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^mailto:/, '')
-      const type = getTypeParam(prop[1])
-      return { type, value }
-    })
-    .filter(e => e.value)
+  return getCardProperties(card, 'email').flatMap(prop =>
+    parseUriValues(prop, /^mailto:/)
+  )
 }
 
 function parsePhones(card: JCalCard): ContactPhone[] {
-  return getCardProperties(card, 'tel')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^tel:/, '')
-      const type = getTypeParam(prop[1])
-      return { type, value }
-    })
-    .filter(p => p.value)
+  return getCardProperties(card, 'tel').flatMap(prop =>
+    parseUriValues(prop, /^tel:/)
+  )
 }
 
 function parseAddresses(card: JCalCard): ContactAddress[] {
