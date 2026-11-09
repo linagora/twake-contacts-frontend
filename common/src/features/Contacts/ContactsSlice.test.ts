@@ -262,6 +262,44 @@ describe('fetchMoreContacts', () => {
     expect(state.listings.book1.hasMore).toBe(true)
   })
 
+  it('lists a contact only once per address book within a fetched page', async () => {
+    const renamedBob = { ...bob, displayName: 'Robert Martin' }
+    jest.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [
+        { addressBookId: 'book1', contact: bob },
+        { addressBookId: 'book2', contact: bob },
+        { addressBookId: 'book1', contact: renamedBob }
+      ],
+      next: 'cursor2'
+    })
+    const store = makeStore(
+      { book1: makeBook('book1', [alice]), book2: makeBook('book2', []) },
+      { [ALL_CONTACTS_LISTING]: makeListing([['book1', alice]], 'cursor1') }
+    )
+
+    await store.dispatch(
+      fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
+    )
+
+    const { addressBooks, listings } = store.getState().contacts
+    expect(listings[ALL_CONTACTS_LISTING]).toStrictEqual(
+      makeListing(
+        [
+          ['book1', alice],
+          ['book1', bob],
+          ['book2', bob]
+        ],
+        'cursor2',
+        [
+          { after: null, refIndex: 0 },
+          { after: 'cursor1', refIndex: 1 }
+        ]
+      )
+    )
+    expect(addressBooks.book1.contacts).toStrictEqual([alice, renamedBob])
+    expect(addressBooks.book2.contacts).toStrictEqual([bob])
+  })
+
   it('leaves out the contacts of address books it does not list', async () => {
     jest.spyOn(console, 'warn').mockImplementation(() => undefined)
     jest.mocked(fetchContactsPage).mockResolvedValue({
