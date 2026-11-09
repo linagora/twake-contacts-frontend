@@ -18,24 +18,30 @@ import { ContactPage } from './ContactPage'
 import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
 
-const mockUseBreakpoints = jest.fn(() => ({
-  isMobile: false,
-  isTablet: false,
-  isDesktop: true,
-  isExtraLarge: false
-}))
+const mockUseBreakpoints = vi.hoisted(() =>
+  vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  }))
+)
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: () => mockUseBreakpoints()
   }
 })
 
-jest.mock('@common/features/Contacts/ContactsDao', () => ({
-  ...jest.requireActual('@common/features/Contacts/ContactsDao'),
-  fetchContact: jest.fn()
+vi.mock('@common/features/Contacts/ContactsDao', async () => ({
+  ...(await vi.importActual<
+    typeof import('@common/features/Contacts/ContactsDao')
+  >('@common/features/Contacts/ContactsDao')),
+  fetchContact: vi.fn()
 }))
 
 const makeListing = (refs: [string, string][]): ContactListing => ({
@@ -329,7 +335,7 @@ describe('ContactPage', () => {
   })
 
   it('shows a not found message for an unknown contact', async () => {
-    jest.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
+    vi.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
 
     renderContacts('/contacts/book1/unknown')
 
@@ -337,7 +343,7 @@ describe('ContactPage', () => {
   })
 
   it('fetches a contact that is not in the loaded pages of its book', async () => {
-    jest.mocked(fetchContact).mockResolvedValue({
+    vi.mocked(fetchContact).mockResolvedValue({
       id: 'c60',
       displayName: 'Search Own',
       emails: [{ type: 'work', value: 'own@twake.app' }]
@@ -354,7 +360,7 @@ describe('ContactPage', () => {
   })
 
   it('does not fetch a contact already loaded', () => {
-    jest.mocked(fetchContact).mockClear()
+    vi.mocked(fetchContact).mockClear()
 
     renderContacts('/contacts/book1/c1')
 

@@ -14,7 +14,7 @@ const renderDialog = (
       <I18n dictRequire={() => en} lang="en">
         <CreateAddressBookDialog
           isCreating={isCreating}
-          onClose={jest.fn()}
+          onClose={vi.fn()}
           onConfirm={onConfirm}
         />
       </I18n>
@@ -26,7 +26,7 @@ const nameField = (): HTMLElement =>
 
 describe('CreateAddressBookDialog', () => {
   it('creates the address book when pressing Enter in the name field', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.type(nameField(), '  EnterTest {enter}')
@@ -36,7 +36,7 @@ describe('CreateAddressBookDialog', () => {
   })
 
   it('creates the address book when clicking Create', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.type(nameField(), 'ClickTest')
@@ -49,7 +49,7 @@ describe('CreateAddressBookDialog', () => {
   })
 
   it('does not create the address book when pressing Enter with a blank name', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.type(nameField(), '   {enter}')
@@ -58,7 +58,7 @@ describe('CreateAddressBookDialog', () => {
   })
 
   it('does not create the address book again while it is being created', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm, true)
 
     userEvent.type(nameField(), 'Pending{enter}')

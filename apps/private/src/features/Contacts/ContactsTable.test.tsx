@@ -12,15 +12,19 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactsTable } from './ContactsTable'
 
-const mockUseBreakpoints = jest.fn(() => ({
-  isMobile: false,
-  isTablet: false,
-  isDesktop: true,
-  isExtraLarge: false
-}))
+const mockUseBreakpoints = vi.hoisted(() =>
+  vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  }))
+)
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: () => mockUseBreakpoints()
@@ -39,7 +43,7 @@ const jane: ContactEntry = {
 const renderTable = (
   loadingMore = false,
   sort: ContactSort = { by: 'fn', order: 'asc' },
-  onSortChange: (sort: ContactSort) => void = jest.fn()
+  onSortChange: (sort: ContactSort) => void = vi.fn()
 ): ReturnType<typeof render> =>
   render(
     <Provider
@@ -60,7 +64,7 @@ const renderTable = (
                   element={
                     <ContactsTable
                       entries={[jane]}
-                      onEndReached={jest.fn()}
+                      onEndReached={vi.fn()}
                       sort={sort}
                       onSortChange={onSortChange}
                       loadingMore={loadingMore}
@@ -81,7 +85,7 @@ const renderTable = (
 
 describe('ContactsTable', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     window.MAIL_SPA_URL = 'https://mail.example.com'
     mockUseBreakpoints.mockReturnValue({
       isMobile: false,
@@ -92,14 +96,14 @@ describe('ContactsTable', () => {
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
     delete window.MAIL_SPA_URL
   })
 
   const openNamePopover = (): void => {
     fireEvent.mouseEnter(screen.getByRole('button', { name: /Jane Smith/ }))
     act(() => {
-      jest.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
     })
   }
 
@@ -159,7 +163,7 @@ describe('ContactsTable', () => {
   })
 
   it('maps the sort of the store to and from its columns', () => {
-    const onSortChange = jest.fn()
+    const onSortChange = vi.fn()
     renderTable(false, { by: 'email', order: 'desc' }, onSortChange)
 
     expect(screen.getByRole('columnheader', { name: /Email/ })).toHaveAttribute(

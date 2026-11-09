@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { useState } from 'react'
 import {
   fireEvent,
@@ -21,7 +22,7 @@ import en from '@common/locales/en.json'
 import { ContactTransferSnackbar } from './ContactTransferSnackbar'
 import { ContactTransferDialog } from './CopyContactDialog'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
 const contact = { id: 'c1', displayName: 'Alice', emails: [] }
 const book = (id: string, canWrite = true): AddressBookWithContacts => ({
@@ -38,7 +39,7 @@ const renderDialog = (
   sourceCanWrite = true
 ): {
   store: ReturnType<typeof setupStore>
-  onClose: jest.Mock
+  onClose: Mock
 } => {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
@@ -66,7 +67,7 @@ const renderDialog = (
       error: null
     }
   })
-  const onClose = jest.fn()
+  const onClose = vi.fn()
   const DialogHarness = (): React.ReactElement => {
     const [open, setOpen] = useState(true)
     return (
@@ -115,7 +116,7 @@ const selectDestination = (name = 'target'): void => {
 it.each(['copy', 'move'] as const)(
   'blocks %s from a read-only shared source before calling the API',
   async mode => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     const { store } = renderDialog(mode, false)
     selectDestination()
     expect(
@@ -160,9 +161,9 @@ const transferCases = [
 it.each(transferCases)(
   'transfers with $mode and updates the appropriate books',
   async ({ mode, dao, label, messages }) => {
-    jest.clearAllMocks()
-    jest.mocked(copyContact).mockResolvedValue('new-card-id')
-    jest.mocked(moveContact).mockResolvedValue()
+    vi.clearAllMocks()
+    vi.mocked(copyContact).mockResolvedValue('new-card-id')
+    vi.mocked(moveContact).mockResolvedValue()
     const { store, onClose } = renderDialog(mode)
     expect(screen.getByRole('button', { name: label })).toBeDisabled()
     selectDestination()
@@ -189,8 +190,8 @@ it.each(transferCases)(
 it.each(transferCases)(
   'preserves both books and allows retry when $mode fails',
   async ({ mode, dao, label, messages }) => {
-    jest.clearAllMocks()
-    jest.mocked(dao).mockRejectedValue(new Error('Transfer failed'))
+    vi.clearAllMocks()
+    vi.mocked(dao).mockRejectedValue(new Error('Transfer failed'))
     const { store, onClose } = renderDialog(mode)
     const before = store.getState().contacts.addressBooks
     selectDestination()
@@ -210,9 +211,9 @@ it.each(transferCases)(
 it.each(transferCases)(
   'allows $mode into My contacts',
   async ({ mode, label }) => {
-    jest.clearAllMocks()
-    jest.mocked(copyContact).mockResolvedValue('new-card-id')
-    jest.mocked(moveContact).mockResolvedValue()
+    vi.clearAllMocks()
+    vi.mocked(copyContact).mockResolvedValue('new-card-id')
+    vi.mocked(moveContact).mockResolvedValue()
     const { store, onClose } = renderDialog(mode)
     selectDestination('My contacts')
     fireEvent.click(screen.getByRole('button', { name: label }))

@@ -1,3 +1,4 @@
+import type { Mock, MockedFunction } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
@@ -16,21 +17,21 @@ import { userData } from '@common/features/User/userDataTypes'
 import en from '@common/locales/en.json'
 import { ShareAddressBookDialog } from './ShareAddressBookDialog'
 
-jest.mock('@common/features/Contacts/ContactsDao')
-jest.mock('@common/features/User/UserDao', () => ({
-  searchUsers: jest.fn()
+vi.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/User/UserDao', () => ({
+  searchUsers: vi.fn()
 }))
 
-const mockedFetchDetails = fetchAddressBookDetails as jest.MockedFunction<
+const mockedFetchDetails = fetchAddressBookDetails as MockedFunction<
   typeof fetchAddressBookDetails
 >
-const mockedUpdateShares = updateAddressBookShares as jest.MockedFunction<
+const mockedUpdateShares = updateAddressBookShares as MockedFunction<
   typeof updateAddressBookShares
 >
-const mockedResolveMember = resolveAddressBookMember as jest.MockedFunction<
+const mockedResolveMember = resolveAddressBookMember as MockedFunction<
   typeof resolveAddressBookMember
 >
-const mockedSearchUsers = searchUsers as jest.MockedFunction<typeof searchUsers>
+const mockedSearchUsers = searchUsers as MockedFunction<typeof searchUsers>
 
 const bob = {
   openpaasId: 'bob',
@@ -39,7 +40,7 @@ const bob = {
   role: AddressBookAccessLevel.Viewer
 } as userData
 
-function renderDialog(onClose = jest.fn()): jest.Mock {
+function renderDialog(onClose = vi.fn()): Mock {
   const store = setupStore({
     user: {
       userData: {
@@ -78,8 +79,10 @@ function renderDialog(onClose = jest.fn()): jest.Mock {
 }
 
 describe('ShareAddressBookDialog', () => {
-  beforeEach(() => mockedResolveMember.mockImplementation(async m => m))
-  afterEach(() => jest.resetAllMocks())
+  beforeEach(() => {
+    mockedResolveMember.mockImplementation(async m => m)
+  })
+  afterEach(() => vi.resetAllMocks())
 
   it('lists a member whose profile lookup has not answered yet', async () => {
     const invitedBob = { ...bob, name: bob.email }

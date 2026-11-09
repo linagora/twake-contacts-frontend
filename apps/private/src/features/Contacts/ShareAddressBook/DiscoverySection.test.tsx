@@ -10,7 +10,7 @@ import {
 import en from '@common/locales/en.json'
 import { DiscoverySection } from './DiscoverySection'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
 function renderSection(isPublic?: boolean): void {
   const store = setupStore({
@@ -51,9 +51,9 @@ it('disables discovery while publication state is unknown', () => {
 })
 
 it('keeps discovery disabled until the publication refresh completes', async () => {
-  jest.mocked(setAddressBookPublished).mockResolvedValue()
+  vi.mocked(setAddressBookPublished).mockResolvedValue()
   let completeRefresh!: (value: { members: []; isPublic: boolean }) => void
-  jest.mocked(fetchAddressBookDetails).mockReturnValue(
+  vi.mocked(fetchAddressBookDetails).mockReturnValue(
     new Promise(resolve => {
       completeRefresh = resolve
     })
@@ -74,10 +74,10 @@ it('keeps discovery disabled until the publication refresh completes', async () 
 })
 
 it('preserves successful publication after refresh failure and allows unpublishing', async () => {
-  jest.mocked(setAddressBookPublished).mockResolvedValue()
-  jest
-    .mocked(fetchAddressBookDetails)
-    .mockRejectedValue(new Error('Refresh failed'))
+  vi.mocked(setAddressBookPublished).mockResolvedValue()
+  vi.mocked(fetchAddressBookDetails).mockRejectedValue(
+    new Error('Refresh failed')
+  )
   renderSection(false)
 
   fireEvent.click(screen.getByRole('switch'))
@@ -95,9 +95,9 @@ it('preserves successful publication after refresh failure and allows unpublishi
 })
 
 it('preserves the previous state when publication fails', async () => {
-  jest
-    .mocked(setAddressBookPublished)
-    .mockRejectedValue(new Error('Publish failed'))
+  vi.mocked(setAddressBookPublished).mockRejectedValue(
+    new Error('Publish failed')
+  )
   renderSection(false)
 
   fireEvent.click(screen.getByRole('switch'))

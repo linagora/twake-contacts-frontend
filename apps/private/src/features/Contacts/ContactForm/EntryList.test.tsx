@@ -5,15 +5,19 @@ import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 import { EntryList } from './EntryList'
 
-const mockUseBreakpoints = jest.fn(() => ({
-  isMobile: false,
-  isTablet: false,
-  isDesktop: true,
-  isExtraLarge: false
-}))
+const mockUseBreakpoints = vi.hoisted(() =>
+  vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  }))
+)
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: () => mockUseBreakpoints()
@@ -49,8 +53,8 @@ describe('EntryList', () => {
         entries={[{ type: 'home', value: '123' }]}
         types={['home', 'work']}
         label="Phone"
-        onChange={jest.fn()}
-        onRemove={jest.fn()}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
         showTypeSelector={true}
       />
     )
@@ -108,8 +112,8 @@ describe('EntryList', () => {
           entries={entries}
           types={showTypeSelector ? ['home', 'work'] : []}
           label={showTypeSelector ? 'Phone' : 'Email'}
-          onChange={jest.fn()}
-          onRemove={jest.fn()}
+          onChange={vi.fn()}
+          onRemove={vi.fn()}
           showTypeSelector={showTypeSelector}
         />
       )

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -5,26 +6,26 @@ import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 
-jest.mock('./UserAutocomplete', () => ({
+vi.mock('./UserAutocomplete', () => ({
   UserAutocomplete: () => null
 }))
 
-jest.mock('./usePublicAddressBooks', () => ({
+vi.mock('./usePublicAddressBooks', () => ({
   usePublicAddressBooks: () => ({
     user: null,
-    selectUser: jest.fn(),
-    clearUser: jest.fn(),
+    selectUser: vi.fn(),
+    clearUser: vi.fn(),
     books: [],
     emptyMessageKey: null,
-    removeBook: jest.fn()
+    removeBook: vi.fn()
   })
 }))
 
-function renderDialog(onClose = jest.fn()): jest.Mock {
+function renderDialog(onClose = vi.fn()): Mock {
   render(
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">
-        <SubscribeAddressBookDialog onClose={onClose} onConfirm={jest.fn()} />
+        <SubscribeAddressBookDialog onClose={onClose} onConfirm={vi.fn()} />
       </I18n>
     </TwakeMuiThemeProvider>
   )

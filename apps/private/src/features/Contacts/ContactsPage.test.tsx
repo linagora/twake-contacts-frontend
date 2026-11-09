@@ -20,10 +20,10 @@ import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes
 
 import * as ContactsDao from '@common/features/Contacts/ContactsDao'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
-const mockDeleteAddressBook = jest.mocked(ContactsDao.deleteAddressBook)
-const mockUpdateAddressBook = jest.mocked(ContactsDao.updateAddressBook)
+const mockDeleteAddressBook = vi.mocked(ContactsDao.deleteAddressBook)
+const mockUpdateAddressBook = vi.mocked(ContactsDao.updateAddressBook)
 
 const failUpdate = (store: ReturnType<typeof setupStore>): void => {
   act(() => {
@@ -132,7 +132,7 @@ describe('ContactsPage error banner', () => {
 
 describe('ContactsPage address book success toast', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('confirms an address book rename once it succeeded', async () => {

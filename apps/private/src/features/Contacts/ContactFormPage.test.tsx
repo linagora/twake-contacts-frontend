@@ -24,7 +24,7 @@ import I18n from 'twake-i18n'
 import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
 function renderPage(initialEntries: string[]): ReturnType<typeof render> {
   const store = setupStore({
@@ -262,12 +262,10 @@ describe('CreateContactPage', () => {
 
   it('creates the contact only once when Save is clicked twice', async () => {
     let resolveSave: () => void = () => undefined
-    jest.mocked(saveContact).mockReset()
-    jest
-      .mocked(saveContact)
-      .mockImplementation(
-        () => new Promise<void>(resolve => (resolveSave = resolve))
-      )
+    vi.mocked(saveContact).mockReset()
+    vi.mocked(saveContact).mockImplementation(
+      () => new Promise<void>(resolve => (resolveSave = resolve))
+    )
     renderPage(['/contacts/book1/new'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
@@ -287,8 +285,8 @@ describe('CreateContactPage', () => {
   })
 
   it('re-enables Save when the creation fails', async () => {
-    jest.mocked(saveContact).mockReset()
-    jest.mocked(saveContact).mockRejectedValue(new Error('Server error'))
+    vi.mocked(saveContact).mockReset()
+    vi.mocked(saveContact).mockRejectedValue(new Error('Server error'))
     renderPage(['/contacts/book1/new'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
@@ -348,7 +346,7 @@ describe('EditContactPage', () => {
   })
 
   it('shows not found for missing contact', async () => {
-    jest.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
+    vi.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
 
     renderPage(['/contacts/book1/missing/edit'])
 
@@ -356,7 +354,7 @@ describe('EditContactPage', () => {
   })
 
   it('fetches a contact that is not in the loaded pages of its book', async () => {
-    jest.mocked(fetchContact).mockResolvedValue({
+    vi.mocked(fetchContact).mockResolvedValue({
       id: 'c60',
       displayName: 'Search Own',
       name: { givenName: 'Search', familyName: 'Own' },
@@ -370,7 +368,7 @@ describe('EditContactPage', () => {
   })
 
   it('links back to main page for hidden address books when contact not found', async () => {
-    jest.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
+    vi.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
 
     renderPage(['/contacts/contacts/missing/edit'])
 
@@ -388,8 +386,8 @@ describe('EditContactPage', () => {
   })
 
   it('updates the contact and moves it to a different address book', async () => {
-    jest.mocked(saveContact).mockResolvedValue()
-    jest.mocked(moveContactDao).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
@@ -422,8 +420,8 @@ describe('EditContactPage', () => {
   })
 
   it('navigates to the contact in the new address book after moving', async () => {
-    jest.mocked(saveContact).mockResolvedValue()
-    jest.mocked(moveContactDao).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
     const addressBookSelect = screen.getByLabelText('Address book')
@@ -438,8 +436,8 @@ describe('EditContactPage', () => {
   })
 
   it('only updates the contact when the address book is unchanged', async () => {
-    jest.mocked(saveContact).mockResolvedValue()
-    jest.mocked(moveContactDao).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
