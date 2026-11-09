@@ -73,9 +73,12 @@ export function appendListingPage(
     return [{ addressBookId, contactId: contact.id }]
   })
   listing.pages.push({ after, refIndex: listing.refs.length })
-  listing.refs.push(
-    ...refs.filter(ref => !listing.refs.some(r => isSameContactRef(r, ref)))
-  )
+  // checked one by one: a page may hold the same contact more than once
+  refs.forEach(ref => {
+    if (!listing.refs.some(r => isSameContactRef(r, ref))) {
+      listing.refs.push(ref)
+    }
+  })
 }
 
 function isListingOfBook(listingKey: string, addressBookId: string): boolean {
