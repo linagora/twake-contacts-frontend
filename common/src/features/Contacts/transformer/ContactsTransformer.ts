@@ -1,5 +1,6 @@
 import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
+import { stripTel, TEL_SCHEME, TEL_URI_VALUE_TYPE } from '@common/utils/normalizeIdentity'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
   Contact,
@@ -103,15 +104,12 @@ function parseEmails(card: JCalCard): ContactEmail[] {
   )
 }
 
-const TEL_SCHEME = /^tel:/i
-const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
-
 function parsePhones(card: JCalCard): ContactPhone[] {
   return getCardProperties(card, 'tel').flatMap(prop => {
     const type = getTypeParam(prop[1])
     return getTextValues(prop).flatMap((raw): ContactPhone[] => {
       // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
-      const value = raw.replace(TEL_SCHEME, '')
+      const value = stripTel(raw)
       if (!value) return []
       return TEL_SCHEME.test(raw)
         ? [{ type, value, valueType: TEL_URI_VALUE_TYPE }]

@@ -150,6 +150,24 @@ describe('normalizeContact', () => {
     })
     expect(contact.name).toEqual({ familyName: '', givenName: '' })
   })
+  
+  it.each([
+    ['TEL:+1-201-555-0123', '+1-201-555-0123'],
+    ['tel:+49-30-1234', '+49-30-1234'],
+    ['tel:7042;phone-context=example.com', '7042'],
+    ['tel:+1-201-555-0123;ext=1234', '+1-201-555-0123;ext=1234'],
+    ['tel:%2B3312', '+3312'],
+    ['tel:%E0%A4%A', '%E0%A4%A'],
+    ['  tel:+33 1 23  ', '+33 1 23'],
+    ['(650) 555-0100', '(650) 555-0100'],
+    ['50%2B', '50%2B']
+  ])('reads the number of %j', (raw, expected) => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['tel', {}, 'uri', raw]]]
+    })
+    expect(contact.phones?.[0]?.value).toBe(expected)
+  })
 
   it('keeps the email as display name for a collected contact', () => {
     expect(normalizeContact(collectedItem).displayName).toBe('jdoe@twake.app')
