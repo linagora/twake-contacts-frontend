@@ -298,9 +298,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     properties.push(['categories', {}, 'text', ...contact.categories])
   }
   contact.emails.forEach(email => {
-    properties.push(
-      makeTypedProperty('email', email.type, `mailto:${email.value}`)
-    )
+    properties.push(makeTypedProperty('email', email.type, email.value))
   })
   contact.phones?.forEach(phone => {
     properties.push(makeTypedProperty('tel', phone.type, phone.value))

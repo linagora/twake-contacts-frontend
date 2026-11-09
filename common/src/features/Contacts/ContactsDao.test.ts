@@ -357,7 +357,7 @@ describe('denormalizeContact', () => {
         ['fn', {}, 'text', 'Alice Roche'],
         ['n', {}, 'text', ['Roche', 'Alice', '', '', '']],
         ['categories', {}, 'text', 'Design'],
-        ['email', { type: 'work' }, 'text', 'mailto:alice@twake.app'],
+        ['email', { type: 'work' }, 'text', 'alice@twake.app'],
         ['tel', { type: 'cell' }, 'text', '+336'],
         ['socialprofile', { type: 'matrix' }, 'text', '@alice:twake.app']
       ]
@@ -399,6 +399,40 @@ describe('denormalizeContact', () => {
       normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
         .addresses
     ).toEqual([address])
+  })
+
+  it('writes a text EMAIL back as a bare address', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jane Doe'],
+          ['email', { type: 'home' }, 'text', 'jane@home.example']
+        ]
+      ]
+    })
+    const emails = denormalizeContact(contact)[1].filter(p => p[0] === 'email')
+    expect(emails).toEqual([
+      ['email', { type: 'home' }, 'text', 'jane@home.example']
+    ])
+  })
+
+  it('writes a mailto: uri EMAIL back as a bare text address', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jane Doe'],
+          ['email', {}, 'uri', 'mailto:u@x.example']
+        ]
+      ]
+    })
+    const emails = denormalizeContact(contact)[1].filter(p => p[0] === 'email')
+    expect(emails).toEqual([['email', {}, 'text', 'u@x.example']])
   })
 })
 
