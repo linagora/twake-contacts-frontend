@@ -14,13 +14,12 @@ export const partitionMembers = (
   invitedMembers: userData[],
   currentUser: userData
 ): PartitionedMembers => {
-  const meMatch = invitedMembers.find(
-    m => m.openpaasId === currentUser.openpaasId
-  )
+  // a member is the current user only when both share the same defined id
+  const isMe = (member: userData): boolean =>
+    !!currentUser.openpaasId && member.openpaasId === currentUser.openpaasId
+  const meMatch = invitedMembers.find(isMe)
   const othersList = invitedMembers.filter(
-    m =>
-      m.openpaasId !== currentUser.openpaasId &&
-      m.role !== AddressBookAccessLevel.None
+    m => !isMe(m) && m.role !== AddressBookAccessLevel.None
   )
 
   // the profile of the current user is known already: only its role is taken,

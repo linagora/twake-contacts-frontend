@@ -121,6 +121,31 @@ describe('sharingHelpers', () => {
       expect(others).toHaveLength(1)
       expect(others[0].openpaasId).toBe('user-2')
     })
+
+    it('does not take a member without id for a current user without id', () => {
+      const member: userData = {
+        email: '',
+        given_name: '',
+        family_name: '',
+        name: '',
+        sid: '',
+        sub: '',
+        role: AddressBookAccessLevel.ReadWrite
+      }
+      const me: userData = {
+        email: 'me@x.example',
+        given_name: '',
+        family_name: '',
+        name: 'Me',
+        sid: '',
+        sub: ''
+      }
+
+      const { me: result, others } = partitionMembers([member], me)
+
+      expect(others).toContain(member)
+      expect(result.role).toBeUndefined()
+    })
   })
 
   describe('getRoleTranslationKey', () => {
