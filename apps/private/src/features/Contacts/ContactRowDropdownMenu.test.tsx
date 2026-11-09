@@ -19,10 +19,10 @@ const renderMenu = (contact: Contact, readOnly = false): void => {
           <ContactRowDropdownMenu
             contact={contact}
             anchorEl={document.body}
-            onClose={jest.fn()}
-            onOpenDeleteDialog={jest.fn()}
-            onOpenCopyDialog={jest.fn()}
-            onOpenMoveDialog={jest.fn()}
+            onClose={vi.fn()}
+            onOpenDeleteDialog={vi.fn()}
+            onOpenCopyDialog={vi.fn()}
+            onOpenMoveDialog={vi.fn()}
             readOnly={readOnly}
           />
         </I18n>

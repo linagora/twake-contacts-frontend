@@ -5,18 +5,18 @@ import { setupStore } from '@common/app/store'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import App from './App'
 
-jest.mock('@common/features/User/useInitializeApp', () => ({
-  useInitializeApp: jest.fn()
+vi.mock('@common/features/User/useInitializeApp', () => ({
+  useInitializeApp: vi.fn()
 }))
-jest.mock('@linagora/twake-mui', () => ({
+vi.mock('@linagora/twake-mui', () => ({
   TwakeMuiThemeProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   Stack: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Box: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useColorScheme: () => ({ mode: 'light', setMode: jest.fn() })
+  useColorScheme: () => ({ mode: 'light', setMode: vi.fn() })
 }))
-jest.mock('@sentry/react', () => ({ captureException: jest.fn() }))
-jest.mock('@common/components/Error/Error', () => ({
+vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
+vi.mock('@common/components/Error/Error', () => ({
   Error: ({
     isCrashFallback,
     errorBoundaryMessage
@@ -27,14 +27,14 @@ jest.mock('@common/components/Error/Error', () => ({
     <div role="alert">{isCrashFallback && errorBoundaryMessage.message}</div>
   )
 }))
-jest.mock('@common/components/Loading/Loading', () => ({ Loading: () => null }))
-jest.mock('@common/components/TwakeBarHeader/TwakeBarHeader', () => ({
-  TwakeBarHeader: jest.fn(() => <div data-testid="header" />)
+vi.mock('@common/components/Loading/Loading', () => ({ Loading: () => null }))
+vi.mock('@common/components/TwakeBarHeader/TwakeBarHeader', () => ({
+  TwakeBarHeader: vi.fn(() => <div data-testid="header" />)
 }))
-jest.mock('@common/websocket/WebSocketGate', () => ({
+vi.mock('@common/websocket/WebSocketGate', () => ({
   WebSocketGate: () => null
 }))
-jest.mock('./AppRoutes', () => ({
+vi.mock('./AppRoutes', () => ({
   AppRoutes: () => <div data-testid="routes" />
 }))
 
@@ -51,12 +51,10 @@ describe('App error boundary', () => {
 
   it('shows the crash fallback and reports header render errors to Sentry', () => {
     const error = new Error('Header render failed')
-    jest.mocked(TwakeBarHeader).mockImplementation(() => {
+    vi.mocked(TwakeBarHeader).mockImplementation(() => {
       throw error
     })
-    const consoleError = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {})
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     try {
       render(
         <Provider store={setupStore()}>
@@ -70,9 +68,9 @@ describe('App error boundary', () => {
       })
     } finally {
       consoleError.mockRestore()
-      jest
-        .mocked(TwakeBarHeader)
-        .mockImplementation(() => <div data-testid="header" />)
+      vi.mocked(TwakeBarHeader).mockImplementation(() => (
+        <div data-testid="header" />
+      ))
     }
   })
 })

@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { setupStore } from '@common/app/store'
 import {
@@ -34,7 +34,7 @@ import {
   ContactsState
 } from './contactsTypes'
 
-jest.mock('./ContactsDao')
+vi.mock('./ContactsDao')
 
 const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
 const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
@@ -106,9 +106,9 @@ describe('setContactSort', () => {
 
 describe('fetchContacts', () => {
   it('keeps the loaded contacts of the books loaded again', async () => {
-    jest
-      .mocked(fetchAddressBooks)
-      .mockResolvedValue([makeBook('book1', [], null)])
+    vi.mocked(fetchAddressBooks).mockResolvedValue([
+      makeBook('book1', [], null)
+    ])
     const store = makeStore(
       { book1: makeBook('book1', [alice]), gone: makeBook('gone', [bob]) },
       { book1: makeListing([['book1', alice]], 'cursor') }
@@ -123,7 +123,7 @@ describe('fetchContacts', () => {
   })
 
   it('is loading until the address books are fetched', async () => {
-    jest.mocked(fetchAddressBooks).mockResolvedValue([])
+    vi.mocked(fetchAddressBooks).mockResolvedValue([])
     const store = setupStore()
 
     expect(store.getState().contacts.loading).toBe(true)
@@ -134,12 +134,10 @@ describe('fetchContacts', () => {
   })
 
   it('lists an empty book without loading it', async () => {
-    jest
-      .mocked(fetchAddressBooks)
-      .mockResolvedValue([
-        makeBook('empty', [], 0),
-        makeBook('shared', [], null)
-      ])
+    vi.mocked(fetchAddressBooks).mockResolvedValue([
+      makeBook('empty', [], 0),
+      makeBook('shared', [], null)
+    ])
     const store = makeStore({})
 
     await store.dispatch(fetchContacts({ userId: 'u1' }))
@@ -152,7 +150,7 @@ describe('fetchContacts', () => {
 
 describe('fetchContact', () => {
   it('adds a contact missing from the loaded pages of its book', async () => {
-    jest.mocked(fetchContactDao).mockResolvedValue(bob)
+    vi.mocked(fetchContactDao).mockResolvedValue(bob)
     const store = makeStore({ book1: makeBook('book1', [alice]) })
 
     await store.dispatch(
@@ -168,7 +166,7 @@ describe('fetchContact', () => {
   })
 
   it('does not request a contact already loaded', async () => {
-    jest.mocked(fetchContactDao).mockClear()
+    vi.mocked(fetchContactDao).mockClear()
     const store = makeStore({ book1: makeBook('book1', [alice]) })
 
     await store.dispatch(
@@ -179,7 +177,7 @@ describe('fetchContact', () => {
   })
 
   it('leaves the book unchanged when the contact cannot be fetched', async () => {
-    jest.mocked(fetchContactDao).mockRejectedValue(new Error('Not found'))
+    vi.mocked(fetchContactDao).mockRejectedValue(new Error('Not found'))
     const store = makeStore({ book1: makeBook('book1', []) })
 
     await store.dispatch(
@@ -194,9 +192,7 @@ describe('fetchContact', () => {
 
 describe('fetchMoreContacts', () => {
   it('requests the domain members only with the domain book', async () => {
-    jest
-      .mocked(fetchContactsPage)
-      .mockResolvedValue({ entries: [], next: null })
+    vi.mocked(fetchContactsPage).mockResolvedValue({ entries: [], next: null })
     const store = makeStore({
       book1: makeBook('book1', []),
       dab: makeBook('dab', [])
@@ -215,7 +211,7 @@ describe('fetchMoreContacts', () => {
   })
 
   it('ignores a request while the same listing is already loading', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
     })
@@ -230,7 +226,7 @@ describe('fetchMoreContacts', () => {
   })
 
   it('appends the page read from the cursor without repeating a contact', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [
         { addressBookId: 'book1', contact: alice },
         { addressBookId: 'book1', contact: bob }
@@ -263,8 +259,8 @@ describe('fetchMoreContacts', () => {
   })
 
   it('leaves out the contacts of address books it does not list', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [
         { addressBookId: 'book1', contact: alice },
         { addressBookId: 'group-book', contact: bob }
@@ -291,14 +287,12 @@ describe('fetchMoreContacts', () => {
   it('ignores a page that comes back after the books were loaded again', async () => {
     type Page = Awaited<ReturnType<typeof fetchContactsPage>>
     const resolvePages: ((page: Page) => void)[] = []
-    jest
-      .mocked(fetchContactsPage)
-      .mockImplementation(
-        () => new Promise<Page>(resolve => resolvePages.push(resolve))
-      )
-    jest
-      .mocked(fetchAddressBooks)
-      .mockResolvedValue([makeBook('book1', [], null)])
+    vi.mocked(fetchContactsPage).mockImplementation(
+      () => new Promise<Page>(resolve => resolvePages.push(resolve))
+    )
+    vi.mocked(fetchAddressBooks).mockResolvedValue([
+      makeBook('book1', [], null)
+    ])
     const store = makeStore({ book1: makeBook('book1', []) })
 
     const stalePage = store.dispatch(
@@ -328,9 +322,10 @@ describe('fetchMoreContacts', () => {
   })
 
   it('restarts a listing whose cursor is rejected from its first page', async () => {
-    jest
-      .mocked(fetchContactsPage)
-      .mockRejectedValue({ response: { status: 400 }, message: 'Bad cursor' })
+    vi.mocked(fetchContactsPage).mockRejectedValue({
+      response: { status: 400 },
+      message: 'Bad cursor'
+    })
     const store = makeStore(
       { book1: makeBook('book1', [alice]) },
       { book1: makeListing([['book1', alice]], 'stale') }
@@ -348,9 +343,10 @@ describe('fetchMoreContacts', () => {
   })
 
   it('stops a restarted listing whose cursor is rejected again', async () => {
-    jest
-      .mocked(fetchContactsPage)
-      .mockRejectedValue({ response: { status: 400 }, message: 'Bad cursor' })
+    vi.mocked(fetchContactsPage).mockRejectedValue({
+      response: { status: 400 },
+      message: 'Bad cursor'
+    })
     const store = makeStore(
       { book1: makeBook('book1', [alice]) },
       {
@@ -372,9 +368,10 @@ describe('fetchMoreContacts', () => {
   })
 
   it('reports a page that fails and stops its listing without completing it', async () => {
-    jest
-      .mocked(fetchContactsPage)
-      .mockRejectedValue({ response: { status: 400 }, message: 'Bad request' })
+    vi.mocked(fetchContactsPage).mockRejectedValue({
+      response: { status: 400 },
+      message: 'Bad request'
+    })
     const store = makeStore({ book1: makeBook('book1', []) })
 
     await store.dispatch(
@@ -393,8 +390,7 @@ describe('fetchMoreContacts', () => {
   })
 
   it('loads a failed listing again once its failure is cleared', async () => {
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockRejectedValueOnce({ response: { status: 400 }, message: 'Bad' })
       .mockResolvedValueOnce({
         entries: [{ addressBookId: 'book1', contact: alice }],
@@ -421,7 +417,7 @@ describe('fetchMoreContacts', () => {
 
 describe('createContact', () => {
   beforeEach(() => {
-    jest.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue()
   })
 
   it('places the contact at its sorted place among the loaded ones', async () => {
@@ -542,7 +538,7 @@ describe('createContact', () => {
     ])
     expect(getPageStarts()).toStrictEqual([0, 2])
 
-    jest.mocked(deleteContactDao).mockResolvedValue()
+    vi.mocked(deleteContactDao).mockResolvedValue()
     await store.dispatch(
       deleteContact({ userId: 'u1', addressBookId: 'book1', contactId: 'c1' })
     )
@@ -569,7 +565,7 @@ describe('createContact', () => {
 
 describe('updateContact', () => {
   beforeEach(() => {
-    jest.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue()
   })
 
   it('moves a renamed contact to its new sorted place', async () => {
@@ -627,7 +623,7 @@ describe('updateContact', () => {
 
 describe('deleteContact', () => {
   it('removes the contact from its book and from the listings', async () => {
-    jest.mocked(deleteContactDao).mockResolvedValue()
+    vi.mocked(deleteContactDao).mockResolvedValue()
     const store = makeStore(
       { book1: makeBook('book1', [alice, bob]) },
       {
@@ -659,7 +655,7 @@ describe('deleteContact', () => {
 
 describe('moveContact', () => {
   beforeEach(() => {
-    jest.mocked(moveContactDao).mockResolvedValue()
+    vi.mocked(moveContactDao).mockResolvedValue()
   })
 
   it('moves the contact to the target book and its listings', async () => {
@@ -738,7 +734,7 @@ describe('moveContact', () => {
   })
 
   it('sets an error when the move fails', async () => {
-    jest.mocked(moveContactDao).mockRejectedValue(new Error('Move failed'))
+    vi.mocked(moveContactDao).mockRejectedValue(new Error('Move failed'))
     const store = makeStore({
       book1: makeBook('book1', [alice]),
       book2: makeBook('book2', [])
@@ -759,8 +755,7 @@ describe('moveContact', () => {
 
 describe('fetchUpdatedContacts', () => {
   it('reloads the last two pages of the listings showing the book', async () => {
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockResolvedValueOnce({
         entries: [
           { addressBookId: 'book1', contact: { ...bob, displayName: 'Bo' } },
@@ -822,7 +817,7 @@ describe('fetchUpdatedContacts', () => {
   })
 
   it('reloads the listing of every book too', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
     })
@@ -847,7 +842,7 @@ describe('fetchUpdatedContacts', () => {
   })
 
   it('loads the first page of the listing of an empty book', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: alice }],
       next: null
     })
@@ -879,8 +874,7 @@ describe('fetchUpdatedContacts', () => {
       entries: ContactEntry[]
       next: string | null
     }) => void = () => undefined
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockReturnValueOnce(new Promise(resolve => (resolveReload = resolve)))
       .mockResolvedValueOnce({
         entries: [{ addressBookId: 'book1', contact: bob }],
@@ -910,7 +904,7 @@ describe('fetchUpdatedContacts', () => {
   })
 
   it('skips a change already loaded', async () => {
-    jest.mocked(fetchContactsPage).mockClear()
+    vi.mocked(fetchContactsPage).mockClear()
     const store = makeStore(
       { book1: { ...makeBook('book1', [alice]), syncToken: 7 } },
       { book1: makeListing([['book1', alice]]) }
@@ -924,7 +918,7 @@ describe('fetchUpdatedContacts', () => {
   })
 
   it('leaves a listing loading another page meanwhile, for the same push to reload it', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
     })
@@ -954,7 +948,7 @@ describe('fetchUpdatedContacts', () => {
 describe('subscribeAddressBook', () => {
   it('adds the book and restarts My contacts to list its contacts', async () => {
     const subscribed = makeBook('subscribed', [], null)
-    jest.mocked(subscribeToAddressBook).mockResolvedValue(subscribed)
+    vi.mocked(subscribeToAddressBook).mockResolvedValue(subscribed)
     const store = makeStore(
       { book1: makeBook('book1', [alice]) },
       {

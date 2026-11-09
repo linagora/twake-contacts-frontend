@@ -15,24 +15,32 @@ import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
 import { downloadFile } from '@common/utils/downloadFile'
 import { ContactsSidebar } from './ContactsSidebar'
 
-jest.mock('@common/features/Contacts/ContactsDao', () => ({
-  ...jest.requireActual('@common/features/Contacts/ContactsDao'),
-  exportAddressBook: jest.fn()
+vi.mock('@common/features/Contacts/ContactsDao', async () => ({
+  ...(await vi.importActual<
+    typeof import('@common/features/Contacts/ContactsDao')
+  >('@common/features/Contacts/ContactsDao')),
+  exportAddressBook: vi.fn()
 }))
-jest.mock('@common/utils/downloadFile', () => ({
-  ...jest.requireActual('@common/utils/downloadFile'),
-  downloadFile: jest.fn()
-}))
-
-const mockUseBreakpoints = jest.fn(() => ({
-  isMobile: false,
-  isTablet: false,
-  isDesktop: true,
-  isExtraLarge: false
+vi.mock('@common/utils/downloadFile', async () => ({
+  ...(await vi.importActual<typeof import('@common/utils/downloadFile')>(
+    '@common/utils/downloadFile'
+  )),
+  downloadFile: vi.fn()
 }))
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+const mockUseBreakpoints = vi.hoisted(() =>
+  vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  }))
+)
+
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: () => mockUseBreakpoints()
@@ -108,8 +116,8 @@ function renderSidebar(
                 path="/contacts"
                 element={
                   <ContactsSidebar
-                    onOpenCreateBook={jest.fn()}
-                    onOpenSubscribe={jest.fn()}
+                    onOpenCreateBook={vi.fn()}
+                    onOpenSubscribe={vi.fn()}
                     onClose={onClose}
                   />
                 }
@@ -268,7 +276,7 @@ describe('ContactsSidebar', () => {
     ])(
       'closes the drawer when tapping the current address book %s',
       (id, name) => {
-        const onClose = jest.fn()
+        const onClose = vi.fn()
         renderSidebar(`/contacts/${id}`, books, onClose)
 
         fireEvent.click(screen.getByText(name))
@@ -281,7 +289,7 @@ describe('ContactsSidebar', () => {
     )
 
     it('closes the drawer and opens another address book', () => {
-      const onClose = jest.fn()
+      const onClose = vi.fn()
       renderSidebar('/contacts/own', books, onClose)
 
       fireEvent.click(screen.getByText('Other book'))
@@ -393,7 +401,7 @@ describe('ContactsSidebar', () => {
     }
 
     it('downloads the address book as a vCard named after it', async () => {
-      jest.mocked(exportAddressBook).mockResolvedValue(vcf)
+      vi.mocked(exportAddressBook).mockResolvedValue(vcf)
       renderSidebar('/contacts')
 
       clickExport('Book 1')
@@ -407,7 +415,7 @@ describe('ContactsSidebar', () => {
     })
 
     it('offers export on a read-only address book', async () => {
-      jest.mocked(exportAddressBook).mockResolvedValue(vcf)
+      vi.mocked(exportAddressBook).mockResolvedValue(vcf)
       renderSidebar('/contacts')
 
       clickExport('Book 2')
@@ -418,7 +426,7 @@ describe('ContactsSidebar', () => {
     })
 
     it('reports a failed export', async () => {
-      jest.mocked(exportAddressBook).mockRejectedValue(new Error('500'))
+      vi.mocked(exportAddressBook).mockRejectedValue(new Error('500'))
       renderSidebar('/contacts')
 
       clickExport('Book 1')

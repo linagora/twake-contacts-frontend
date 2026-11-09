@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -11,9 +12,9 @@ import { ContactsState } from '@common/features/Contacts/contactsTypes'
 import en from '@common/locales/en.json'
 import { ContactSearchBar } from './ContactSearchBar'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
-const mockedSearchContacts = searchContacts as jest.Mock
+const mockedSearchContacts = searchContacts as Mock
 
 function LocationDisplay(): React.JSX.Element {
   const location = useLocation()
@@ -56,18 +57,20 @@ async function typeSearchQuery(value: string): Promise<void> {
   fireEvent.input(input, { target: { value } })
 
   await act(async () => {
-    jest.advanceTimersByTime(300)
+    vi.advanceTimersByTime(300)
   })
+  // Debounce has completed; Testing Library can now poll using real timers.
+  vi.useRealTimers()
 }
 
 describe('ContactSearchBar', () => {
   beforeEach(() => {
     mockedSearchContacts.mockReset()
-    jest.useFakeTimers()
+    vi.useFakeTimers()
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   it('searches across all loaded address books', async () => {

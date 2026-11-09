@@ -1,3 +1,4 @@
+import type { Mock, MockedFunction } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -7,13 +8,13 @@ import { searchUsers } from '@common/features/User/UserDao'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { InviteSection } from './InviteSection'
 
-jest.mock('@common/features/User/UserDao', () => ({
-  searchUsers: jest.fn()
+vi.mock('@common/features/User/UserDao', () => ({
+  searchUsers: vi.fn()
 }))
 
-const mockedSearchUsers = searchUsers as jest.MockedFunction<typeof searchUsers>
+const mockedSearchUsers = searchUsers as MockedFunction<typeof searchUsers>
 
-function renderInviteSection(onShare = jest.fn()): jest.Mock {
+function renderInviteSection(onShare = vi.fn()): Mock {
   render(
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">

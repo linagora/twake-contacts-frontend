@@ -15,16 +15,20 @@ import { exportContact } from '@common/features/Contacts/ContactsDao'
 import { downloadFile } from '@common/utils/downloadFile'
 import { ContactRowActions } from './ContactRowActions'
 
-jest.mock('@common/utils/calendarSpaUrl')
-jest.mock('@common/utils/chatSpaUrl')
-jest.mock('@common/utils/mailSpaUrl')
-jest.mock('@common/features/Contacts/ContactsDao', () => ({
-  ...jest.requireActual('@common/features/Contacts/ContactsDao'),
-  exportContact: jest.fn()
+vi.mock('@common/utils/calendarSpaUrl')
+vi.mock('@common/utils/chatSpaUrl')
+vi.mock('@common/utils/mailSpaUrl')
+vi.mock('@common/features/Contacts/ContactsDao', async () => ({
+  ...(await vi.importActual<
+    typeof import('@common/features/Contacts/ContactsDao')
+  >('@common/features/Contacts/ContactsDao')),
+  exportContact: vi.fn()
 }))
-jest.mock('@common/utils/downloadFile', () => ({
-  ...jest.requireActual('@common/utils/downloadFile'),
-  downloadFile: jest.fn()
+vi.mock('@common/utils/downloadFile', async () => ({
+  ...(await vi.importActual<typeof import('@common/utils/downloadFile')>(
+    '@common/utils/downloadFile'
+  )),
+  downloadFile: vi.fn()
 }))
 
 const contact: Contact = {
@@ -90,7 +94,7 @@ describe('ContactRowActions export', () => {
   const vcf = new Blob(['BEGIN:VCARD'], { type: 'text/vcard' })
 
   it('downloads the contact as a vCard named after it', async () => {
-    jest.mocked(exportContact).mockResolvedValue(vcf)
+    vi.mocked(exportContact).mockResolvedValue(vcf)
     renderRowActions()
 
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
@@ -118,7 +122,7 @@ describe('ContactRowActions export', () => {
   })
 
   it('reports a failed export', async () => {
-    jest.mocked(exportContact).mockRejectedValue(new Error('500'))
+    vi.mocked(exportContact).mockRejectedValue(new Error('500'))
     renderRowActions()
 
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))

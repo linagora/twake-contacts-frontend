@@ -22,7 +22,7 @@ function renderEntryPaper(onRemove?: () => void): void {
 
 describe('EntryPaper', () => {
   it('names the remove button "Remove", not "Close"', async () => {
-    const onRemove = jest.fn()
+    const onRemove = vi.fn()
     renderEntryPaper(onRemove)
 
     expect(
@@ -34,7 +34,7 @@ describe('EntryPaper', () => {
   })
 
   it('shows a "Remove" tooltip when hovering the remove button', async () => {
-    renderEntryPaper(jest.fn())
+    renderEntryPaper(vi.fn())
 
     await userEvent.hover(screen.getByRole('button', { name: 'Remove' }))
 

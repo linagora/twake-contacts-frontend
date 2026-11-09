@@ -29,7 +29,7 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { AddressBookPage } from './AddressBookPage'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
 const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
 const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
@@ -118,7 +118,7 @@ const renderPage = (
 
 describe('AddressBookPage lazy loading', () => {
   beforeEach(() => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
     })
@@ -141,9 +141,10 @@ describe('AddressBookPage lazy loading', () => {
   })
 
   it('loads the first page again when the server rejects the cursor', async () => {
-    jest
-      .mocked(fetchContactsPage)
-      .mockRejectedValueOnce({ response: { status: 400 }, message: 'Bad' })
+    vi.mocked(fetchContactsPage).mockRejectedValueOnce({
+      response: { status: 400 },
+      message: 'Bad'
+    })
     renderPage(
       '/contacts/book1',
       { book1: makeBook('book1', [alice]) },
@@ -189,15 +190,14 @@ describe('AddressBookPage lazy loading', () => {
   it('loads the first page again when the books are loaded again meanwhile', async () => {
     type Books = Awaited<ReturnType<typeof fetchAddressBooks>>
     let resolveSecondLoad: (books: Books) => void = () => undefined
-    jest
-      .mocked(fetchAddressBooks)
+    vi.mocked(fetchAddressBooks)
       .mockResolvedValueOnce([makeBook('book1', [])])
       .mockReturnValueOnce(
         new Promise<Books>(resolve => (resolveSecondLoad = resolve))
       )
-    jest
-      .mocked(fetchContactsPage)
-      .mockImplementationOnce(() => new Promise(() => undefined))
+    vi.mocked(fetchContactsPage).mockImplementationOnce(
+      () => new Promise(() => undefined)
+    )
     const store = renderPage('/contacts', {}, {}, true)
 
     // as when the user id and then the domains are known
@@ -218,7 +218,7 @@ describe('AddressBookPage lazy loading', () => {
   })
 
   it('loads the next shared book once the previous one is complete', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'shared2', contact: bob }],
       next: null
     })
@@ -251,8 +251,7 @@ describe('AddressBookPage load failure', () => {
   const failure = { response: { status: 500 }, message: 'Server error' }
 
   it('shows an error with a retry, not the empty state, when the first page fails', async () => {
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockRejectedValueOnce(failure)
       .mockResolvedValueOnce({
         entries: [{ addressBookId: 'book1', contact: alice }],
@@ -272,8 +271,7 @@ describe('AddressBookPage load failure', () => {
   })
 
   it('loads a failed book again on its next visit', async () => {
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockRejectedValueOnce(failure)
       .mockResolvedValue({
         entries: [{ addressBookId: 'book1', contact: alice }],
@@ -294,8 +292,7 @@ describe('AddressBookPage load failure', () => {
   })
 
   it('keeps the loaded contacts with a retry when a later page fails', async () => {
-    jest
-      .mocked(fetchContactsPage)
+    vi.mocked(fetchContactsPage)
       .mockRejectedValueOnce(failure)
       .mockResolvedValueOnce({
         entries: [{ addressBookId: 'book1', contact: bob }],
@@ -318,7 +315,7 @@ describe('AddressBookPage load failure', () => {
 
 describe('AddressBookPage sort', () => {
   it('loads the first page again in the order of a clicked column', async () => {
-    jest.mocked(fetchContactsPage).mockResolvedValue({
+    vi.mocked(fetchContactsPage).mockResolvedValue({
       entries: [{ addressBookId: 'book1', contact: bob }],
       next: null
     })

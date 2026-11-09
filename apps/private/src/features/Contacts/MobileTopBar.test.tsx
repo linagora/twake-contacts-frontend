@@ -9,8 +9,10 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { MobileTopBar, MobileTopBarProps } from './MobileTopBar'
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: () => ({
@@ -49,8 +51,8 @@ const renderMobileTopBar = (
 ) => {
   const store = setupStore(preloadedState)
   const defaultProps: MobileTopBarProps = {
-    onOpenSidebar: jest.fn(),
-    onToggleSearch: jest.fn(),
+    onOpenSidebar: vi.fn(),
+    onToggleSearch: vi.fn(),
     isAddressBookPage: true,
     title: 'My contacts',
     addressBookId: 'contacts',
@@ -75,7 +77,7 @@ const renderMobileTopBar = (
 
 describe('MobileTopBar', () => {
   it('renders menu icon button and calls onOpenSidebar when clicked', () => {
-    const onOpenSidebar = jest.fn()
+    const onOpenSidebar = vi.fn()
     renderMobileTopBar({ onOpenSidebar })
 
     const menuButton = screen.getByRole('button', {
@@ -105,7 +107,7 @@ describe('MobileTopBar', () => {
   })
 
   it('renders search button and hides title/import button when not on address book page', () => {
-    const onToggleSearch = jest.fn()
+    const onToggleSearch = vi.fn()
     renderMobileTopBar({
       isAddressBookPage: false,
       title: 'Should not display',

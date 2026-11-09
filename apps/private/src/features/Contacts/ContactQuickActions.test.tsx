@@ -12,19 +12,23 @@ import { openChat } from '@common/utils/chatSpaUrl'
 import { openMailComposer } from '@common/utils/mailSpaUrl'
 import { ContactQuickActions } from './ContactQuickActions'
 
-jest.mock('@common/utils/calendarSpaUrl')
-jest.mock('@common/utils/chatSpaUrl')
-jest.mock('@common/utils/mailSpaUrl')
+vi.mock('@common/utils/calendarSpaUrl')
+vi.mock('@common/utils/chatSpaUrl')
+vi.mock('@common/utils/mailSpaUrl')
 
-const mockUseBreakpoints = jest.fn(() => ({
-  isMobile: false,
-  isTablet: false,
-  isDesktop: true,
-  isExtraLarge: false
-}))
+const mockUseBreakpoints = vi.hoisted(() =>
+  vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isExtraLarge: false
+  }))
+)
 
-jest.mock('@linagora/twake-mui', () => {
-  const actual = jest.requireActual('@linagora/twake-mui')
+vi.mock('@linagora/twake-mui', async () => {
+  const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )
   return {
     ...actual,
     useBreakpoints: (): ReturnType<typeof mockUseBreakpoints> =>
@@ -67,7 +71,7 @@ const renderQuickActions = (
 
 describe('ContactQuickActions', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     mockUseBreakpoints.mockReturnValue({
       isMobile: false,
       isTablet: false,

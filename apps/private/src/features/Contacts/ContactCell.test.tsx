@@ -82,23 +82,23 @@ describe('ContactCell', () => {
     const hoverName = (): void => {
       fireEvent.mouseEnter(screen.getByText('Anna Default'))
       act(() => {
-        jest.advanceTimersByTime(1000)
+        vi.advanceTimersByTime(1000)
       })
     }
 
     const pressEscape = (): void => {
       fireEvent.keyDown(screen.getByRole('presentation'), { key: 'Escape' })
       act(() => {
-        jest.advanceTimersByTime(1000)
+        vi.advanceTimersByTime(1000)
       })
     }
 
     beforeEach(() => {
-      jest.useFakeTimers()
+      vi.useFakeTimers()
     })
 
     afterEach(() => {
-      jest.useRealTimers()
+      vi.useRealTimers()
     })
 
     it('does not reopen after Escape while the pointer is still on the name', () => {

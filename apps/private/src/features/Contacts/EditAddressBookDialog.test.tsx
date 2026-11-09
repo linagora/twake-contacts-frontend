@@ -17,7 +17,7 @@ const book: AddressBook = {
 
 const renderDialog = (
   onConfirm: (values: { name: string }) => void,
-  onClose: () => void = jest.fn()
+  onClose: () => void = vi.fn()
 ): RenderResult =>
   render(
     <TwakeMuiThemeProvider>
@@ -36,7 +36,7 @@ const nameField = (): HTMLElement =>
 
 describe('EditAddressBookDialog', () => {
   it('saves the address book when pressing Enter in the name field', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.clear(nameField())
@@ -47,7 +47,7 @@ describe('EditAddressBookDialog', () => {
   })
 
   it('saves the address book when clicking Save', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.type(nameField(), ' QA')
@@ -58,7 +58,7 @@ describe('EditAddressBookDialog', () => {
   })
 
   it('does not save the address book when pressing Enter with a blank name', () => {
-    const onConfirm = jest.fn()
+    const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
     userEvent.clear(nameField())
@@ -68,8 +68,8 @@ describe('EditAddressBookDialog', () => {
   })
 
   it('closes the dialog from the close button of the title bar', () => {
-    const onConfirm = jest.fn()
-    const onClose = jest.fn()
+    const onConfirm = vi.fn()
+    const onClose = vi.fn()
     renderDialog(onConfirm, onClose)
 
     userEvent.click(

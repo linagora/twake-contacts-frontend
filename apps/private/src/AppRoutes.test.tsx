@@ -1,3 +1,4 @@
+import type { MockedFunction } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
@@ -7,16 +8,19 @@ import { setupStore } from '@common/app/store'
 import en from '@common/locales/en.json'
 import { AppRoutes } from './AppRoutes'
 
-const mockMount = jest.fn()
+const mockMount = vi.hoisted(() => vi.fn())
 
-jest.mock('@linagora/twake-mui', () => ({
-  ...jest.requireActual('@linagora/twake-mui'),
-  useBreakpoints: jest.fn()
+vi.mock('@linagora/twake-mui', async () => ({
+  ...(await vi.importActual<typeof import('@linagora/twake-mui')>(
+    '@linagora/twake-mui'
+  )),
+  useBreakpoints: vi.fn()
 }))
 
-jest.mock('./features/Contacts/ContactsPage', () => {
-  const { useEffect } = jest.requireActual('react')
-  const { Outlet } = jest.requireActual('react-router')
+vi.mock('./features/Contacts/ContactsPage', async () => {
+  const { useEffect } = await vi.importActual<typeof import('react')>('react')
+  const { Outlet } =
+    await vi.importActual<typeof import('react-router')>('react-router')
   return {
     ContactsPage: () => {
       useEffect(() => mockMount(), [])
@@ -25,11 +29,11 @@ jest.mock('./features/Contacts/ContactsPage', () => {
   }
 })
 
-jest.mock('./features/Contacts/CreateContactPage', () => ({
+vi.mock('./features/Contacts/CreateContactPage', () => ({
   CreateContactPage: () => <input aria-label="First name" />
 }))
 
-const mockUseBreakpoints = useBreakpoints as jest.MockedFunction<
+const mockUseBreakpoints = useBreakpoints as MockedFunction<
   typeof useBreakpoints
 >
 

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -18,10 +19,7 @@ const bob = (role: AddressBookAccessLevel): userData => ({
   role
 })
 
-function renderMemberRow(
-  member: userData,
-  onUpdateMember = jest.fn()
-): jest.Mock {
+function renderMemberRow(member: userData, onUpdateMember = vi.fn()): Mock {
   render(
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">

@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 
 import { TextEncoder } from 'util'
 
@@ -23,7 +23,7 @@ const MockedDateTimeFormat: any = function (
   return new OriginalDateTimeFormat(locales, modifiedOptions)
 }
 
-// Preserve the prototype so jest.spyOn works on methods
+// Preserve the prototype so vi.spyOn works on methods
 MockedDateTimeFormat.prototype = OriginalDateTimeFormat.prototype
 
 // Preserve static methods
@@ -31,15 +31,15 @@ Object.setPrototypeOf(MockedDateTimeFormat, OriginalDateTimeFormat)
 
 global.Intl.DateTimeFormat = MockedDateTimeFormat
 
-jest.mock('openid-client', () => ({
-  discovery: jest.fn(),
-  randomPKCECodeVerifier: jest.fn(),
-  calculatePKCECodeChallenge: jest.fn(),
-  randomState: jest.fn(),
-  buildAuthorizationUrl: jest.fn(),
-  buildEndSessionUrl: jest.fn(),
-  authorizationCodeGrant: jest.fn(),
-  fetchUserInfo: jest.fn(),
+vi.mock('openid-client', () => ({
+  discovery: vi.fn(),
+  randomPKCECodeVerifier: vi.fn(),
+  calculatePKCECodeChallenge: vi.fn(),
+  randomState: vi.fn(),
+  buildAuthorizationUrl: vi.fn(),
+  buildEndSessionUrl: vi.fn(),
+  authorizationCodeGrant: vi.fn(),
+  fetchUserInfo: vi.fn(),
   clockSkew: Symbol('clockSkew')
 }))
 const originalWarn = console.warn
@@ -96,4 +96,3 @@ beforeAll(() => {
     originalWarn(...args)
   }
 })
-jest.setTimeout(30000)

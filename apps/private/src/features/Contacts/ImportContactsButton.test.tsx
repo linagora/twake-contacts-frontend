@@ -1,3 +1,4 @@
+import type { MockedFunction } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -13,12 +14,12 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ImportContactsButton } from './ImportContactsButton'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
-const mockUploadImportFile = uploadImportFile as jest.MockedFunction<
+const mockUploadImportFile = uploadImportFile as MockedFunction<
   typeof uploadImportFile
 >
-const mockImportContacts = importContacts as jest.MockedFunction<
+const mockImportContacts = importContacts as MockedFunction<
   typeof importContacts
 >
 
@@ -86,12 +87,12 @@ const selectFile = (container: HTMLElement): void => {
 
 describe('ImportContactsButton', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   const originalConsoleError = console.error
   beforeAll(() => {
-    console.error = jest.fn()
+    console.error = vi.fn()
   })
   afterAll(() => {
     console.error = originalConsoleError

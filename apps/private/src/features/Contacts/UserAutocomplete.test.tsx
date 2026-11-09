@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -10,9 +11,9 @@ import en from '@common/locales/en.json'
 import fr from '@common/locales/fr.json'
 import { UserAutocomplete } from './UserAutocomplete'
 
-jest.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/features/Contacts/ContactsDao')
 
-const mockedSearchUsers = searchUsers as jest.Mock
+const mockedSearchUsers = searchUsers as Mock
 
 const carol: UserResult = {
   id: 'carol-id',
@@ -21,8 +22,8 @@ const carol: UserResult = {
 }
 
 function renderAutocomplete(
-  onSelect = jest.fn(),
-  onType = jest.fn(),
+  onSelect = vi.fn(),
+  onType = vi.fn(),
   locale: { lang: string; dict: typeof en } = { lang: 'en', dict: en }
 ): ReturnType<typeof render> {
   const store = setupStore({
@@ -53,11 +54,11 @@ describe('UserAutocomplete', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('labels the clear button in the user language', async () => {
-    renderAutocomplete(jest.fn(), jest.fn(), { lang: 'fr', dict: fr })
+    renderAutocomplete(vi.fn(), vi.fn(), { lang: 'fr', dict: fr })
 
     await pickCarol()
 
@@ -81,7 +82,7 @@ describe('UserAutocomplete', () => {
   })
 
   it('keeps the picked user in the field', async () => {
-    const onSelect = jest.fn()
+    const onSelect = vi.fn()
     renderAutocomplete(onSelect)
 
     await pickCarol()
@@ -92,8 +93,8 @@ describe('UserAutocomplete', () => {
   })
 
   it('forgets the picked user when typing again', async () => {
-    const onType = jest.fn()
-    renderAutocomplete(jest.fn(), onType)
+    const onType = vi.fn()
+    renderAutocomplete(vi.fn(), onType)
     await pickCarol()
     onType.mockClear()
 
