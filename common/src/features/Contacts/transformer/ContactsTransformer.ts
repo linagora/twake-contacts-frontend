@@ -137,8 +137,9 @@ function parseOrg(card: JCalCard): ContactOrg | null {
   return { name: values[0], units: values.slice(1) }
 }
 
-function parseCategories(card: JCalCard): string[] {
-  const prop = getCardProperties(card, 'categories')[0]
+// text-list properties (RFC 6350 NICKNAME, CATEGORIES) carry every value after the type
+function parseTextList(card: JCalCard, name: string): string[] {
+  const prop = getCardProperties(card, name)[0]
   if (!prop) return []
   return getStringValues(prop)
 }
@@ -230,8 +231,8 @@ export function normalizeContact(item: DavContactItem): Contact {
   const name = parseName(card)
   if (name) contact.name = name
 
-  const nickname = getCardProperty(card, 'nickname')
-  if (nickname) contact.nickname = nickname
+  const nicknames = parseTextList(card, 'nickname')
+  if (nicknames.some(Boolean)) contact.nicknames = nicknames
 
   const birthday = getCardProperty(card, 'bday')
   if (birthday) contact.birthday = birthday
@@ -257,7 +258,7 @@ export function normalizeContact(item: DavContactItem): Contact {
   const role = getCardProperty(card, 'role')
   if (role) contact.role = role
 
-  const categories = parseCategories(card)
+  const categories = parseTextList(card, 'categories')
   if (categories.length > 0) contact.categories = categories
 
   const note = getCardProperty(card, 'note')
@@ -293,6 +294,9 @@ export function denormalizeContact(contact: Contact): JCalCard {
       'text',
       [contact.name.familyName, contact.name.givenName, '', '', '']
     ])
+  }
+  if (contact.nicknames?.length) {
+    properties.push(['nickname', {}, 'text', ...contact.nicknames])
   }
   if (contact.categories?.length) {
     properties.push(['categories', {}, 'text', ...contact.categories])
@@ -335,7 +339,6 @@ export function denormalizeContact(contact: Contact): JCalCard {
     ])
   }
   const singles: [string, string | undefined][] = [
-    ['nickname', contact.nickname],
     ['photo', contact.photo],
     ['bday', contact.birthday],
     ['title', contact.title],

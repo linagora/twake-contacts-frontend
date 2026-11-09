@@ -120,7 +120,7 @@ describe('normalizeContact', () => {
     expect(contact).not.toHaveProperty('phones')
     expect(contact).not.toHaveProperty('addresses')
     expect(contact).not.toHaveProperty('name')
-    expect(contact).not.toHaveProperty('nickname')
+    expect(contact).not.toHaveProperty('nicknames')
   })
 
   it('reads a tel property with uri value type', () => {
@@ -789,6 +789,43 @@ describe('export', () => {
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/book1/a%2Fb.vcf',
       { headers: { Accept: 'text/vcard' } }
+    )
+  })
+})
+
+describe('nickname text-list', () => {
+  const withNicknames = (...values: string[]): DavContactItem =>
+    ({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'Jane'],
+          ['nickname', {}, 'text', ...values]
+        ]
+      ]
+    }) as unknown as DavContactItem
+
+  it('reads every value of a multi-valued NICKNAME', () => {
+    expect(normalizeContact(withNicknames('Jo', 'JJ')).nicknames).toEqual([
+      'Jo',
+      'JJ'
+    ])
+  })
+
+  it('writes back every value of a multi-valued NICKNAME', () => {
+    const contact = normalizeContact(withNicknames('Jo', 'JJ'))
+    const nickname = denormalizeContact(contact)[1].find(
+      p => p[0] === 'nickname'
+    )
+    expect(nickname).toEqual(['nickname', {}, 'text', 'Jo', 'JJ'])
+  })
+
+  it('ignores a NICKNAME holding only empty values', () => {
+    const contact = normalizeContact(withNicknames(''))
+    expect(contact).not.toHaveProperty('nicknames')
+    expect(denormalizeContact(contact)[1].some(p => p[0] === 'nickname')).toBe(
+      false
     )
   })
 })
