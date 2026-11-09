@@ -137,6 +137,14 @@ function parseOrg(card: JCalCard): ContactOrg | null {
   return { name: values[0], units: values.slice(1) }
 }
 
+// RFC 7095 sends a date as a string, non-conformant writers may store a number
+function parseBirthday(card: JCalCard): string | null {
+  const value = getCardProperties(card, 'bday')[0]?.[3]
+  return typeof value === 'string' || typeof value === 'number'
+    ? String(value)
+    : null
+}
+
 function parseCategories(card: JCalCard): string[] {
   const prop = getCardProperties(card, 'categories')[0]
   if (!prop) return []
@@ -233,7 +241,7 @@ export function normalizeContact(item: DavContactItem): Contact {
   const nickname = getCardProperty(card, 'nickname')
   if (nickname) contact.nickname = nickname
 
-  const birthday = getCardProperty(card, 'bday')
+  const birthday = parseBirthday(card)
   if (birthday) contact.birthday = birthday
 
   const phones = parsePhones(card)
@@ -263,8 +271,11 @@ export function normalizeContact(item: DavContactItem): Contact {
   const note = getCardProperty(card, 'note')
   if (note) contact.note = note
 
+  // an unreadable bday is kept as-is so that saving does not lose it
   const passthroughProps = card[1].filter(
-    prop => !KNOWN_PROPERTIES.has(prop[0])
+    prop =>
+      !KNOWN_PROPERTIES.has(prop[0]) ||
+      (prop[0] === 'bday' && !contact.birthday)
   )
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 
