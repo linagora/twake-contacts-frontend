@@ -254,6 +254,45 @@ describe('normalizeContact', () => {
     ])
   })
 
+  it('keeps an ADR written as a string as the street', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['adr', {}, 'text', '1 rue de la Paix']
+        ]
+      ]
+    })
+    const address = {
+      type: null,
+      poBox: '',
+      extended: '',
+      street: '1 rue de la Paix',
+      locality: '',
+      region: '',
+      postalCode: '',
+      country: ''
+    }
+    expect(contact.addresses).toEqual([address])
+    expect(formatAddress(address)).toBe('1 rue de la Paix')
+  })
+
+  it('ignores an ADR written as a blank string', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['adr', {}, 'text', '   ']
+        ]
+      ]
+    })
+    expect(contact.addresses ?? []).toEqual([])
+  })
+
   it('reads social profiles', () => {
     const withSocial: DavContactItem = {
       ...collectedItem,
