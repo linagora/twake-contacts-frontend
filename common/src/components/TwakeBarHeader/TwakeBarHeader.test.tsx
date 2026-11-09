@@ -8,14 +8,14 @@ import { ensureSdkSignedIn, getPlatformSdk } from '@common/utils/sdkSession'
 import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 
-jest.mock('@common/utils/sdkSession', () => ({
-  ensureSdkSignedIn: jest.fn(() => Promise.resolve({})),
-  getPlatformSdk: jest.fn(() => ({}))
+vi.mock('@common/utils/sdkSession', () => ({
+  ensureSdkSignedIn: vi.fn(() => Promise.resolve({})),
+  getPlatformSdk: vi.fn(() => ({}))
 }))
-jest.mock('@linagora/twake-oidc', () => ({ logOut: jest.fn() }))
+vi.mock('@linagora/twake-oidc', () => ({ logOut: vi.fn() }))
 
-const mockBar = jest.fn()
-jest.mock('@linagora/twake-bar', () => ({
+const mockBar = vi.hoisted(() => vi.fn())
+vi.mock('@linagora/twake-bar', () => ({
   SdkProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="sdk-provider">{children}</div>
   ),
@@ -126,7 +126,7 @@ describe('TwakeBarHeader', () => {
 
   it('resolves the workplace fallback and tolerates a refused token exchange', async () => {
     window.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
-    jest.mocked(ensureSdkSignedIn).mockRejectedValueOnce(new Error('refused'))
+    vi.mocked(ensureSdkSignedIn).mockRejectedValueOnce(new Error('refused'))
     await act(async () => {
       renderBar({ token: 'id-token' })
     })

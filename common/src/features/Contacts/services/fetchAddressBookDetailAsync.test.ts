@@ -1,4 +1,4 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 import { setupStore } from '@common/app/store'
 import { userData } from '@common/features/User/userDataTypes'
 import reducer, {
@@ -13,7 +13,7 @@ import {
 import { ContactsState } from '../contactsTypes'
 import { AddressBookAccessLevel } from '../davTypes'
 
-jest.mock('../ContactsDao')
+vi.mock('../ContactsDao')
 
 const arg = { userId: 'owner', addressBookId: 'book' }
 const initial: ContactsState = {
@@ -130,14 +130,15 @@ it('keeps the known profile of a member listed again, with its new role', () => 
 })
 
 describe('fetchAddressBookDetail', () => {
-  afterEach(() => jest.resetAllMocks())
+  afterEach(() => vi.resetAllMocks())
 
   it('lists the members before their profiles are looked up', async () => {
-    jest
-      .mocked(fetchAddressBookDetails)
-      .mockResolvedValue({ members: [invitedBob], isPublic: false })
+    vi.mocked(fetchAddressBookDetails).mockResolvedValue({
+      members: [invitedBob],
+      isPublic: false
+    })
     let answerLookup!: (member: userData) => void
-    jest.mocked(resolveAddressBookMember).mockReturnValue(
+    vi.mocked(resolveAddressBookMember).mockReturnValue(
       new Promise(resolve => {
         answerLookup = resolve
       })
@@ -145,7 +146,7 @@ describe('fetchAddressBookDetail', () => {
     const store = setupStore({ contacts: initial })
 
     const request = store.dispatch(fetchAddressBookDetail(arg))
-    await jest.mocked(fetchAddressBookDetails).mock.results[0].value
+    await vi.mocked(fetchAddressBookDetails).mock.results[0].value
     await Promise.resolve()
 
     expect(store.getState().contacts.detailsLoading).toBe(false)
@@ -162,10 +163,11 @@ describe('fetchAddressBookDetail', () => {
   })
 
   it('keeps the known profile of a member whose lookup fails', async () => {
-    jest
-      .mocked(fetchAddressBookDetails)
-      .mockResolvedValue({ members: [invitedBob], isPublic: false })
-    jest.mocked(resolveAddressBookMember).mockImplementation(async m => m)
+    vi.mocked(fetchAddressBookDetails).mockResolvedValue({
+      members: [invitedBob],
+      isPublic: false
+    })
+    vi.mocked(resolveAddressBookMember).mockImplementation(async m => m)
     const store = setupStore({
       contacts: {
         ...initial,
@@ -183,9 +185,9 @@ describe('fetchAddressBookDetail', () => {
   })
 
   it('leaves the contact list error alone when the details cannot be fetched', async () => {
-    jest
-      .mocked(fetchAddressBookDetails)
-      .mockRejectedValue(new Error('Bad Request'))
+    vi.mocked(fetchAddressBookDetails).mockRejectedValue(
+      new Error('Bad Request')
+    )
     const store = setupStore({ contacts: initial })
 
     await store.dispatch(fetchAddressBookDetail(arg))

@@ -1,14 +1,14 @@
 import { addAuthorization, redirectOnUnauthorized } from '@linagora/twake-oidc'
 import type { KyInstance } from 'ky'
 
-jest.mock('@linagora/twake-oidc', () => ({
-  addAuthorization: jest.fn(),
-  redirectOnUnauthorized: jest.fn()
+vi.mock('@linagora/twake-oidc', () => ({
+  addAuthorization: vi.fn(),
+  redirectOnUnauthorized: vi.fn()
 }))
 
 describe('api', () => {
   let api: KyInstance
-  const fetchSpy = jest.spyOn(globalThis, 'fetch')
+  const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
   const sentRequest = (): Request => fetchSpy.mock.calls[0][0] as Request
 
@@ -39,11 +39,9 @@ describe('api', () => {
   })
 
   it('lets twake-oidc authorize the outgoing request', async () => {
-    jest
-      .mocked(addAuthorization)
-      .mockImplementation(request =>
-        request.headers.set('Authorization', 'Bearer token')
-      )
+    vi.mocked(addAuthorization).mockImplementation(request =>
+      request.headers.set('Authorization', 'Bearer token')
+    )
 
     await api.get('api/user').json()
 
@@ -60,7 +58,7 @@ describe('api', () => {
     })
 
     expect(redirectOnUnauthorized).toHaveBeenCalledTimes(1)
-    const [request, , response] = jest.mocked(redirectOnUnauthorized).mock
+    const [request, , response] = vi.mocked(redirectOnUnauthorized).mock
       .calls[0]
     expect(request.url).toBe('https://contacts.example.com/services/api/user')
     expect(response.status).toBe(401)

@@ -8,9 +8,9 @@ import es from '@common/locales/es.json'
 import fr from '@common/locales/fr.json'
 import italian from '@common/locales/it.json'
 import ru from '@common/locales/ru.json'
-import vi from '@common/locales/vi.json'
+import vietnamese from '@common/locales/vi.json'
 
-const locales = { de, en, es, fr, it: italian, ru, vi }
+const locales = { de, en, es, fr, it: italian, ru, vi: vietnamese }
 
 it.each([
   ['de', 'Konto', 'Abmelden'],
@@ -29,7 +29,7 @@ it.each([
       >
         <TwakeBar
           app={{ slug: 'contacts', name: 'Contacts', icon: '/contacts.svg' }}
-          onLogOut={jest.fn()}
+          onLogOut={vi.fn()}
           fallback={{ user: { name: 'Alice Doe', email: 'alice@example.com' } }}
         />
       </I18n>

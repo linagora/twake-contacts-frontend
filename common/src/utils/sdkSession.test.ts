@@ -5,19 +5,19 @@ import {
   SDK_WAITING_TIMEOUT
 } from './sdkSession'
 
-jest.mock('@linagora/twake-sdk', () => ({ createSdk: jest.fn() }))
+vi.mock('@linagora/twake-sdk', () => ({ createSdk: vi.fn() }))
 
 describe('SDK session', () => {
   it('shares a concurrent token exchange and keeps a ready client', async () => {
     let resolveLogin!: () => void
-    const login = jest.fn(
+    const login = vi.fn(
       () =>
         new Promise<void>(resolve => {
           resolveLogin = resolve
         })
     )
     const sdk = { status: 'waiting', login } as unknown as Sdk
-    jest.mocked(createSdk).mockReturnValueOnce(sdk)
+    vi.mocked(createSdk).mockReturnValueOnce(sdk)
 
     const first = ensureSdkSignedIn('https://alice.twake.app', 'id-token')
     expect(createSdk).toHaveBeenCalledWith({
@@ -37,12 +37,12 @@ describe('SDK session', () => {
   })
 
   it('isolates platforms and permits retrying a rejected exchange', async () => {
-    const login = jest
+    const login = vi
       .fn()
       .mockRejectedValueOnce(new Error('refused'))
       .mockResolvedValueOnce(undefined)
     const sdk = { status: 'public', login } as unknown as Sdk
-    jest.mocked(createSdk).mockReturnValueOnce(sdk)
+    vi.mocked(createSdk).mockReturnValueOnce(sdk)
     await expect(
       ensureSdkSignedIn('https://bob.twake.app', 'id-token')
     ).rejects.toThrow('refused')

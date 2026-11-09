@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import {
   denormalizeContact,
@@ -27,10 +27,10 @@ import {
 import { AddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
 
-jest.mock('@common/utils/apiUtils', () => ({
-  api: { get: jest.fn(), post: jest.fn() }
+vi.mock('@common/utils/apiUtils', () => ({
+  api: { get: vi.fn(), post: vi.fn() }
 }))
-jest.mock('@common/features/User/UserDao', () => ({ fetchUserById: jest.fn() }))
+vi.mock('@common/features/User/UserDao', () => ({ fetchUserById: vi.fn() }))
 
 /**
  * Synthetic data mirroring the shape of a real
@@ -437,8 +437,8 @@ describe('fetchContact', () => {
   }
 
   beforeEach(() => {
-    jest.mocked(api.get).mockReset()
-    jest.mocked(api.get).mockReturnValue({
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
       json: () => Promise.resolve(card)
     } as unknown as ReturnType<typeof api.get>)
   })
@@ -481,9 +481,9 @@ describe('fetchContactsPage', () => {
   }
 
   const mockResponse = (response: DavContactsResponse): void => {
-    jest
-      .mocked(api.get)
-      .mockReturnValue({ json: () => Promise.resolve(response) } as never)
+    vi.mocked(api.get).mockReturnValue({
+      json: () => Promise.resolve(response)
+    } as never)
   }
 
   it('reads the contacts of every address book, domain members included', async () => {
@@ -596,23 +596,24 @@ describe('subscribeToAddressBook', () => {
   }
 
   const listing = (books: unknown[]): void => {
-    jest.mocked(api.get).mockReturnValue({
+    vi.mocked(api.get).mockReturnValue({
       json: () => Promise.resolve({ _embedded: { 'dav:addressbook': books } })
     } as unknown as ReturnType<typeof api.get>)
   }
 
   beforeEach(() => {
-    jest.mocked(api.post).mockResolvedValue({} as never)
-    jest.mocked(api.get).mockReset()
+    vi.mocked(api.post).mockResolvedValue({} as never)
+    vi.mocked(api.get).mockReset()
     listing([])
-    jest.mocked(fetchUserById).mockReset()
+    vi.mocked(fetchUserById).mockReset()
   })
 
   it('reads the book back, as Sabre may restore a delegation with its role', async () => {
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('1-2-3-4-5')
-    jest
-      .mocked(fetchUserById)
-      .mockResolvedValue({ firstname: 'alice', lastname: 'alice' } as never)
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue('1-2-3-4-5')
+    vi.mocked(fetchUserById).mockResolvedValue({
+      firstname: 'alice',
+      lastname: 'alice'
+    } as never)
     listing([
       {
         _links: { self: { href: '/addressbooks/carol-id/1-2-3-4-5.json' } },
@@ -639,8 +640,8 @@ describe('subscribeToAddressBook', () => {
   })
 
   it('falls back to a read-only subscription when the book cannot be read back', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {})
-    jest.mocked(api.get).mockImplementation(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(api.get).mockImplementation(() => {
       throw new Error('network')
     })
 
@@ -656,9 +657,10 @@ describe('subscribeToAddressBook', () => {
   })
 
   it('names the owner from the profile, as when the books are loaded', async () => {
-    jest
-      .mocked(fetchUserById)
-      .mockResolvedValue({ firstname: 'alice', lastname: 'alice' } as never)
+    vi.mocked(fetchUserById).mockResolvedValue({
+      firstname: 'alice',
+      lastname: 'alice'
+    } as never)
 
     const book = await subscribeToAddressBook('carol-id', source, 'alice')
 
@@ -668,8 +670,8 @@ describe('subscribeToAddressBook', () => {
   })
 
   it('keeps the given owner name when the profile cannot be read', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {})
-    jest.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
 
     const book = await subscribeToAddressBook('carol-id', source, 'alice')
 
@@ -677,7 +679,7 @@ describe('subscribeToAddressBook', () => {
   })
 
   it('keeps the given owner name when the profile has no name', async () => {
-    jest.mocked(fetchUserById).mockResolvedValue({} as never)
+    vi.mocked(fetchUserById).mockResolvedValue({} as never)
 
     const book = await subscribeToAddressBook('carol-id', source, 'alice')
 
@@ -687,8 +689,8 @@ describe('subscribeToAddressBook', () => {
 
 describe('fetchSubscribableAddressBooks', () => {
   it('lists the books of the owner the user can read, delegated ones included', async () => {
-    jest.mocked(api.get).mockReset()
-    jest.mocked(api.get).mockReturnValue({
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
       json: () => Promise.resolve({ _embedded: { 'dav:addressbook': [] } })
     } as unknown as ReturnType<typeof api.get>)
 
@@ -714,10 +716,12 @@ describe('resolveAddressBookMember', () => {
     href: 'mailto:bob@open-paas.org'
   }
 
-  beforeEach(() => jest.mocked(fetchUserById).mockReset())
+  beforeEach(() => {
+    vi.mocked(fetchUserById).mockReset()
+  })
 
   it('completes the member with its profile, keeping its role', async () => {
-    jest.mocked(fetchUserById).mockResolvedValue({
+    vi.mocked(fetchUserById).mockResolvedValue({
       id: 'bob-id',
       firstname: 'bob',
       lastname: 'bob',
@@ -735,7 +739,7 @@ describe('resolveAddressBookMember', () => {
   })
 
   it('keeps the member as invited when its profile cannot be fetched', async () => {
-    jest.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
+    vi.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
 
     await expect(resolveAddressBookMember(invited)).resolves.toBe(invited)
   })
@@ -755,8 +759,8 @@ describe('export', () => {
   }
 
   beforeEach(() => {
-    jest.mocked(api.get).mockReset()
-    jest.mocked(api.get).mockReturnValue({
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
       blob: () => Promise.resolve(vcf)
     } as unknown as ReturnType<typeof api.get>)
   })

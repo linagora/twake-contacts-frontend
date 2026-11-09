@@ -1,16 +1,16 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { downloadFile, toFileName } from './downloadFile'
 
 describe('downloadFile', () => {
   it('clicks a link to the blob under the file name, then releases it', () => {
     const blob = new Blob(['BEGIN:VCARD'], { type: 'text/vcard' })
-    const createObjectURL = jest.fn(() => 'blob:vcf')
-    const revokeObjectURL = jest.fn()
+    const createObjectURL = vi.fn(() => 'blob:vcf')
+    const revokeObjectURL = vi.fn()
     URL.createObjectURL = createObjectURL
     URL.revokeObjectURL = revokeObjectURL
-    const click = jest
+    const click = vi
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(function (this: HTMLAnchorElement) {
         expect(this.href).toBe('blob:vcf')

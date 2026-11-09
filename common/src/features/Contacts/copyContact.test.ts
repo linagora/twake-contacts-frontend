@@ -1,12 +1,12 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 import { api } from '@common/utils/apiUtils'
 import { copyContact, moveContact } from './ContactsDao'
 
-jest.mock('@common/utils/apiUtils', () => ({ api: jest.fn() }))
+vi.mock('@common/utils/apiUtils', () => ({ api: vi.fn() }))
 
 it('sends COPY through the proxy with a Sabre-relative destination', async () => {
   window.SIDE_SERVICE_BASE_URL = 'https://contacts.example.com/services/'
-  jest.mocked(api).mockResolvedValue({} as Response)
+  vi.mocked(api).mockResolvedValue({} as Response)
   const destinationContactId = await copyContact(
     { userId: 'source-user', addressBookId: 'source' },
     { userId: 'target-user', addressBookId: 'target' },
@@ -30,8 +30,7 @@ it('sends COPY through the proxy with a Sabre-relative destination', async () =>
 
 it('sends MOVE through the proxy with a Sabre-relative destination and original UID', async () => {
   window.SIDE_SERVICE_BASE_URL = 'https://contacts.example.com/services/'
-  jest
-    .mocked(api)
+  vi.mocked(api)
     .mockClear()
     .mockResolvedValue({} as Response)
   await moveContact(
