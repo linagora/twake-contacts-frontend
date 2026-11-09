@@ -38,6 +38,22 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(sharedBook(null)).shareAccess).toBeUndefined()
   })
 
+  it.each([0, 3])('keeps a count %p', count => {
+    const book = { ...sharedBook(), numberOfContacts: count }
+    expect(normalizeAddressBook(book).contactsCount).toBe(count)
+  })
+
+  it.each(['many', '3', 1.5, -1, [], true, null, undefined])(
+    'reads a count %p as unknown',
+    count => {
+      const book = {
+        ...sharedBook(),
+        numberOfContacts: count
+      } as unknown as DavAddressBookItem
+      expect(normalizeAddressBook(book).contactsCount).toBeNull()
+    }
+  )
+
   it('converts a numeric name to a string', () => {
     const book = { ...sharedBook(), 'dav:name': 12345 }
     expect(normalizeAddressBook(book).name).toBe('12345')
