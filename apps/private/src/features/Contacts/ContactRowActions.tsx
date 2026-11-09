@@ -10,6 +10,7 @@ import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
+import { contactPath, editContactPath } from './contactPath'
 import { CopyContactDialog, MoveContactDialog } from './CopyContactDialog'
 import { DeleteContactDialog } from './DeleteContactDialog'
 import { ContactRowDropdownMenu } from './ContactRowDropdownMenu'
@@ -58,7 +59,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   const handleEdit = (): void => {
     setAnchorEl(null)
-    void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
+    void navigate(editContactPath(addressBookId, contact.id))
   }
 
   const handleExport = (): void => {
@@ -157,7 +158,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
               params.addressBookId === addressBookId &&
               params.contactId === contact.id
             ) {
-              void navigate(`/contacts/${destinationId}/${contact.id}`)
+              void navigate(contactPath(destinationId, contact.id))
             }
           }}
         />

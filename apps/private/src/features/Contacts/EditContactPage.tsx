@@ -16,6 +16,7 @@ import {
   makeContactFromForm,
   makeFormValuesFromContact
 } from './ContactForm'
+import { contactPath } from './contactPath'
 import { ContactFormSkeleton } from './ContactSkeletons'
 import { useContact } from './useContact'
 
@@ -23,7 +24,7 @@ export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { addressBookId = '', contactId } = useParams()
+  const { addressBookId = '', contactId = '' } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const allWritableBooks = useAppSelector(selectWritableBooks)
   const currentBook = useAppSelector(
@@ -37,7 +38,7 @@ export const EditContactPage: React.FC = () => {
   const { contact, loading } = useContact(addressBookId, contactId)
 
   if (addressBookId === 'dab') {
-    return <Navigate to={`/contacts/${addressBookId}/${contactId}`} replace />
+    return <Navigate to={contactPath(addressBookId, contactId)} replace />
   }
 
   if (loading && !contact) {
@@ -69,7 +70,7 @@ export const EditContactPage: React.FC = () => {
     addressBookId
   }
 
-  const backTo = `/contacts/${addressBookId}/${contactId}`
+  const backTo = contactPath(addressBookId, contactId)
 
   const handleSubmit = async (values: ContactFormValues): Promise<void> => {
     if (!openpaasId) return
@@ -92,7 +93,7 @@ export const EditContactPage: React.FC = () => {
             contact: updatedContact
           })
         ).unwrap()
-        void navigate(`/contacts/${values.addressBookId}/${contactId}`)
+        void navigate(contactPath(values.addressBookId, contactId))
       } else {
         void navigate(backTo)
       }

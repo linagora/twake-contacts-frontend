@@ -14,6 +14,7 @@ import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
+import { editContactPath } from './contactPath'
 import { DeleteContactDialog } from './DeleteContactDialog'
 
 interface ContactActionsBarProps {
@@ -75,7 +76,7 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   const handleOpenDeleteDialog = (): void => setOpenDialog('delete')
 
   const handleEdit = (): void => {
-    void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
+    void navigate(editContactPath(addressBookId, contact.id))
   }
 
   const handleDelete = async (): Promise<void> => {

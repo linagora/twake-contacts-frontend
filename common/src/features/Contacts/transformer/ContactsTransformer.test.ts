@@ -1,9 +1,27 @@
 import { AddressBookAccessLevel, DavAddressBookItem } from '../davTypes'
 import { userData } from '../../User/userDataTypes'
+import { Contact } from '../contactsTypes'
 import {
   buildFullShareesList,
-  normalizeAddressBook
+  normalizeAddressBook,
+  normalizeContact
 } from './ContactsTransformer'
+
+describe('normalizeContact', () => {
+  const contactAt = (href: string): Contact =>
+    normalizeContact({
+      _links: { self: { href } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo']]]
+    })
+
+  it('holds the decoded card file name as id', () => {
+    expect(contactAt('/addressbooks/bob/book1/a%2Fb.vcf').id).toBe('a/b')
+  })
+
+  it('keeps a file name that is not valid percent-encoding as is', () => {
+    expect(contactAt('/addressbooks/bob/book1/100%.vcf').id).toBe('100%')
+  })
+})
 
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
   _links: { self: { href: '/addressbooks/owner/book.json' } },

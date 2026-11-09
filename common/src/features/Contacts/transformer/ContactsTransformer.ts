@@ -147,6 +147,16 @@ function extractId(href: string | undefined, extension: string): string {
   return href?.split('/').pop()?.replace(extension, '') ?? ''
 }
 
+// The href carries the card file name percent-encoded: the contact id is the
+// decoded name, as given back by the route params and encoded again in DAV requests
+function decodeId(id: string): string {
+  try {
+    return decodeURIComponent(id)
+  } catch {
+    return id
+  }
+}
+
 // a sharee's copy of a book points to the original through its source
 function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
   const source =
@@ -218,7 +228,7 @@ const KNOWN_PROPERTIES = new Set([
 ])
 
 export function normalizeContact(item: DavContactItem): Contact {
-  const id = extractId(item._links?.self?.href, '.vcf')
+  const id = decodeId(extractId(item._links?.self?.href, '.vcf'))
   const card = item.data
 
   const contact: Contact = {

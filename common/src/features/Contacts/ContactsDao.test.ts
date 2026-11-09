@@ -26,6 +26,7 @@ import {
 } from './davTypes'
 import { AddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
+import { matchPath } from 'react-router'
 
 vi.mock('@common/utils/apiUtils', () => ({
   api: { get: vi.fn(), post: vi.fn() }
@@ -464,6 +465,29 @@ describe('fetchContact', () => {
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/domain-1/domain-members/m1.vcf',
+      expect.anything()
+    )
+  })
+
+  it('finds a listed contact from the route built with its id', async () => {
+    const listed = normalizeContact({
+      _links: { self: { href: '/addressbooks/bob/contacts/a%2Fb.vcf' } },
+      data: card
+    })
+    const match = matchPath(
+      '/contacts/:addressBookId/:contactId',
+      `/contacts/contacts/${encodeURIComponent(listed.id)}`
+    )
+    expect(match?.params.contactId).toBe(listed.id)
+
+    const fetched = await fetchContact(
+      { ...book, id: 'contacts' },
+      match?.params.contactId ?? ''
+    )
+
+    expect(fetched.id).toBe(listed.id)
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/bob/contacts/a%2Fb.vcf',
       expect.anything()
     )
   })
