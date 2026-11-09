@@ -4,7 +4,7 @@
     "composite": true,
     "noEmit": false,
     "emitDeclarationOnly": true,
-    "types": ["jest", "node", "@testing-library/jest-dom"],
+    "types": ["vitest/globals", "node", "@testing-library/jest-dom/vitest"],
     "paths": {
       "@/*": ["./src/*"],
       "@common/*": ["../../common/src/*"],
@@ -12,5 +12,9 @@
     }
   },
   "include": ["src", "../../common/**/**.d.ts"],
-  "references": [{ "path": "../../common" }]
+  "references": [
+    {
+      "path": "../../common"
+    }
+  ]
 }

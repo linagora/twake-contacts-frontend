@@ -93,10 +93,12 @@ Serves on [http://localhost:5000](http://localhost:5000).
 
 ### Running Tests
 
-Launches the Jest test runner:
+Runs the Vitest unit tests (Node.js 24):
 
 ```bash
 npm test
+npm run test:watch
+npm run test:coverage
 ```
 
 ### Linting
