@@ -51,7 +51,9 @@ function parseName(card: JCalCard): ContactName | null {
   if (!prop) return null
   const values = prop[3]
   if (!Array.isArray(values)) return null
-  const [familyName, givenName] = values.map(v => String(v ?? ''))
+  const [familyName, givenName] = Array.from({ length: 2 }, (_, i) =>
+    String(values[i] ?? '')
+  )
   return {
     familyName,
     givenName

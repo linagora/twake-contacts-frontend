@@ -94,6 +94,35 @@ describe('normalizeContact', () => {
     )
   })
 
+  it('pads an N with fewer than two components', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'Doe'],
+          ['n', {}, 'text', ['Doe']]
+        ]
+      ]
+    })
+    expect(contact.name).toEqual({ familyName: 'Doe', givenName: '' })
+    expect(JSON.stringify(denormalizeContact(contact))).not.toContain('null')
+  })
+
+  it('pads an empty N to empty strings', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'Doe'],
+          ['n', {}, 'text', []]
+        ]
+      ]
+    })
+    expect(contact.name).toEqual({ familyName: '', givenName: '' })
+  })
+
   it('keeps the email as display name for a collected contact', () => {
     expect(normalizeContact(collectedItem).displayName).toBe('jdoe@twake.app')
   })
