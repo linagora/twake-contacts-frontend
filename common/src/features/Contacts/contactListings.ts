@@ -64,18 +64,19 @@ export function appendListingPage(
   after: string | null,
   entries: ContactEntry[]
 ): void {
-  const refs = entries.flatMap(({ addressBookId, contact }) => {
+  listing.pages.push({ after, refIndex: listing.refs.length })
+  for (const { addressBookId, contact } of entries) {
     const book = state.addressBooks[addressBookId]
-    if (!book) return []
+    if (!book) continue
     const index = book.contacts.findIndex(c => c.id === contact.id)
     if (index === -1) book.contacts.push(contact)
     else book.contacts[index] = contact
-    return [{ addressBookId, contactId: contact.id }]
-  })
-  listing.pages.push({ after, refIndex: listing.refs.length })
-  listing.refs.push(
-    ...refs.filter(ref => !listing.refs.some(r => isSameContactRef(r, ref)))
-  )
+
+    const ref = { addressBookId, contactId: contact.id }
+    if (!listing.refs.some(listed => isSameContactRef(listed, ref))) {
+      listing.refs.push(ref)
+    }
+  }
 }
 
 function isListingOfBook(listingKey: string, addressBookId: string): boolean {
