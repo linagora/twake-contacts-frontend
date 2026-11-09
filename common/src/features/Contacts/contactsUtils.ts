@@ -15,7 +15,8 @@ export function formatAddress(address: ContactAddress): string {
     address.street,
     [address.postalCode, address.locality].filter(Boolean).join(' '),
     address.region,
-    address.country
+    address.country,
+    ...(address.extra ?? [])
   ]
     .filter(Boolean)
     .join(', ')

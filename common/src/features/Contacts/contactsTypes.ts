@@ -36,6 +36,8 @@ export interface ContactAddress {
   region: string
   postalCode: string
   country: string
+  /** Components after the seventh (e.g. RFC 9554 additions), kept for display and round-trip. */
+  extra?: string[]
 }
 
 export interface ContactPhone {

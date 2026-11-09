@@ -254,6 +254,38 @@ describe('normalizeContact', () => {
     ])
   })
 
+  it('does not hide ADR components after the seventh', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          [
+            'adr',
+            {},
+            'text',
+            ['', '', '1 rue', 'Lyon', '', '69001', 'France', 'BP 12']
+          ]
+        ]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(address.extra).toEqual(['BP 12'])
+    expect(formatAddress(address)).toContain('BP 12')
+  })
+
+  it('shows an address whose only content is after the seventh component', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [['adr', {}, 'text', ['', '', '', '', '', '', '', 'Paris']]]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(formatAddress(address)).toBe('Paris')
+  })
+
   it('reads social profiles', () => {
     const withSocial: DavContactItem = {
       ...collectedItem,
@@ -394,6 +426,36 @@ describe('denormalizeContact', () => {
         '75008',
         'France'
       ]
+    ])
+    expect(
+      normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
+        .addresses
+    ).toEqual([address])
+  })
+
+  it('writes the components after the seventh back', () => {
+    const address = {
+      type: null,
+      poBox: '',
+      extended: '',
+      street: '1 rue',
+      locality: 'Lyon',
+      region: '',
+      postalCode: '69001',
+      country: 'France',
+      extra: ['', '12 rue de la Paix']
+    }
+    const card = denormalizeContact({
+      id: 'c-1',
+      displayName: 'Alice Roche',
+      emails: [],
+      addresses: [address]
+    })
+    expect(card[1]).toContainEqual([
+      'adr',
+      {},
+      'text',
+      ['', '', '1 rue', 'Lyon', '', '69001', 'France', '', '12 rue de la Paix']
     ])
     expect(
       normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
