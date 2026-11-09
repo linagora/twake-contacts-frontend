@@ -31,6 +31,7 @@ import {
   DavInvite
 } from './davTypes'
 import {
+  decodeDavSegment,
   denormalizeContact,
   normalizeAddressBook,
   normalizeContact,
@@ -45,6 +46,7 @@ import {
 } from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
 import { userData } from '../User/userDataTypes'
+import { encodeDavSegment } from '@linagora/twake-utils'
 
 const CONTACTS_NS = config.CONTACTS_NS
 
@@ -98,10 +100,10 @@ async function enrichAddressBookOwner(
   const parts = source.split('/')
   if (parts.length < 3) return classifyAddressBook(book, userId)
 
-  const ownerId = parts[2]
+  const ownerId = decodeDavSegment(parts[2] ?? '')
   if (!ownerId || ownerId === userId) return classifyAddressBook(book, userId)
   book.ownerId = ownerId
-  book.sourceBookId = parts[3]?.replace('.json', '')
+  book.sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
 
   const name = await fetchOwnerDisplayName(ownerId)
   if (name) {
@@ -394,7 +396,7 @@ export interface MultiAddressBookSearchRequest {
 }
 
 function extractAddressBookIdFromHref(href: unknown): string {
-  return readHref(href)?.split('/').at(-2) ?? ''
+  return decodeDavSegment(readHref(href)?.split('/').at(-2) ?? '')
 }
 
 export async function searchContacts(

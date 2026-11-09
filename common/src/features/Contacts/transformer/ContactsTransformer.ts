@@ -233,16 +233,6 @@ function extractId(href: unknown, extension: string): string {
   return readHref(href)?.split('/').pop()?.replace(extension, '') ?? ''
 }
 
-// The href carries the card file name percent-encoded: the contact id is the
-// decoded name, as given back by the route params and encoded again in DAV requests
-function decodeId(id: string): string {
-  try {
-    return decodeURIComponent(id)
-  } catch {
-    return id
-  }
-}
-
 // a sharee's copy of a book points to the original through its source:
 // a book path, or the HAL object subscribeToAddressBook posts
 export function readAddressBookSource(
@@ -257,8 +247,25 @@ export function readAddressBookSource(
 
 function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
   const source = readAddressBookSource(raw)
-  const bookId = source ? extractId(source, '.json') : id
+  const bookId = source ? extractBookId(source) : id
   return bookId === DEFAULT_ADDRESS_BOOK_ID
+}
+
+/**
+ * Decodes a segment of an href handed back by the server, so that the ids are
+ * kept decoded and encoded exactly once when a DAV path is built. A segment
+ * that is not a valid encoding is kept as it is.
+ */
+export function decodeDavSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
+
+function extractBookId(href: string | undefined): string {
+  return decodeDavSegment(extractId(href, '.json'))
 }
 
 // dav:name comes as-is from the JSON payload, other clients may store a number
@@ -302,9 +309,9 @@ function normalizeAcl(acl: unknown): string[] {
 
 export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   const href = readHref(raw._links?.self?.href)
-  const id = extractId(href, '.json')
+  const id = extractBookId(href)
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
-  const userId = href?.split('/').at(-2) ?? ''
+  const userId = decodeDavSegment(href?.split('/').at(-2) ?? '')
   const acl = normalizeAcl(raw['dav:acl'])
   // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
   const shareAccess = normalizeShareAccess(raw['dav:share-access'])
@@ -355,7 +362,7 @@ const KNOWN_PROPERTIES = new Set([
 ])
 
 export function normalizeContact(item: DavContactItem): Contact {
-  const id = decodeId(extractId(item._links?.self?.href, '.vcf'))
+  const id = decodeDavSegment(extractId(item._links?.self?.href, '.vcf'))
   const card = item.data
 
   const contact: Contact = {
