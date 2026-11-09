@@ -324,7 +324,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     )
   })
   contact.urls?.forEach(url => {
-    properties.push(['url', {}, 'text', url])
+    properties.push(['url', {}, 'uri', url])
   })
   if (contact.org) {
     properties.push([
