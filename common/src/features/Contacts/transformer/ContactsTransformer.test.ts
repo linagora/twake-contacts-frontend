@@ -38,6 +38,29 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(sharedBook(null)).shareAccess).toBeUndefined()
   })
 
+  it.each(['2', ' 4', [2]])('treats a share access %p as read-only', access => {
+    const book = {
+      ...sharedBook(),
+      'dav:share-access': access
+    } as unknown as DavAddressBookItem
+    const normalized = normalizeAddressBook(book)
+    expect(normalized.canWrite).toBe(false)
+    expect(typeof normalized.shareAccess).toBe('number')
+  })
+
+  it.each(['', 'abc', { a: 2 }, [], [2, 3], 2.5])(
+    'ignores a non-numeric share access %p',
+    access => {
+      const book = {
+        ...sharedBook(),
+        'dav:share-access': access
+      } as unknown as DavAddressBookItem
+      const normalized = normalizeAddressBook(book)
+      expect(normalized.shareAccess).toBeUndefined()
+      expect(normalized.canWrite).toBe(true)
+    }
+  )
+
   it('converts a numeric name to a string', () => {
     const book = { ...sharedBook(), 'dav:name': 12345 }
     expect(normalizeAddressBook(book).name).toBe('12345')
