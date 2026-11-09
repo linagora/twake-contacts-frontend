@@ -227,6 +227,9 @@ export function normalizeContact(item: DavContactItem): Contact {
     emails: parseEmails(card)
   }
 
+  const uidProperty = getCardProperties(card, 'uid')[0]
+  if (uidProperty) contact.uidProperty = uidProperty
+
   const name = parseName(card)
   if (name) contact.name = name
 
@@ -283,7 +286,8 @@ function makeTypedProperty(
 export function denormalizeContact(contact: Contact): JCalCard {
   const properties: JCalProperty[] = [
     ['version', {}, 'text', '4.0'],
-    ['uid', {}, 'text', contact.id],
+    // the file name only decides the URL: a card from another client keeps its own UID
+    contact.uidProperty ?? ['uid', {}, 'text', contact.id],
     ['fn', {}, 'text', contact.displayName]
   ]
   if (contact.name) {
