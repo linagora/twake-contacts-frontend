@@ -46,9 +46,10 @@ export type JCalProperty = [
 /** A vCard in jCal form: `['vcard', [property, ...]]`. */
 export type JCalCard = ['vcard', JCalProperty[]]
 
-interface DavLinks {
-  self?: { href?: string }
-  next?: { href?: string }
+/** Hrefs come as-is from the JSON payload: narrow before using them. */
+export interface DavLinks {
+  self?: { href?: unknown }
+  next?: { href?: unknown }
 }
 
 /** One contact of an address book, as embedded under `dav:item`. */
@@ -109,12 +110,13 @@ export interface DavAddressBookItem {
   '{http://open-paas.org/contacts}type'?: string
   '{http://open-paas.org/contacts}state'?: string
   '{http://open-paas.org/contacts}subscription-type'?: string
-  '{http://open-paas.org/contacts}source'?: string
+  /** A book path, or the HAL object `{ _links: { self: { href } } }`; narrow before using it. */
+  '{http://open-paas.org/contacts}source'?: unknown
   [key: `${string}numberOfContacts`]: number | null | undefined
   [key: `${string}type`]: string | undefined
   [key: `${string}state`]: string | undefined
   [key: `${string}subscription-type`]: string | undefined
-  [key: `${string}source`]: string | undefined
+  [key: `${string}source`]: unknown
   '{DAV:}share-access'?: number | null
   '{DAV:}invite'?: DavInvite[]
 }

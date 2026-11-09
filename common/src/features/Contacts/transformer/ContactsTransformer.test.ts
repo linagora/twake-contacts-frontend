@@ -76,6 +76,31 @@ describe('normalizeAddressBook', () => {
     }
     expect(normalizeAddressBook(book).isDefault).toBe(false)
   })
+
+  it('reads the source of a shared copy given as a HAL object', () => {
+    const book = {
+      ...sharedBook(2),
+      'openpaas:source': {
+        _links: { self: { href: '/addressbooks/owner/contacts.json' } }
+      }
+    }
+    expect(normalizeAddressBook(book).isDefault).toBe(true)
+  })
+
+  it.each([[['/addressbooks/owner/contacts.json']], [12], [{ foo: 'bar' }]])(
+    'ignores a source that is not a path nor a HAL object: %j',
+    source => {
+      const book = { ...sharedBook(2), 'openpaas:source': source }
+      expect(normalizeAddressBook(book).isDefault).toBe(false)
+    }
+  )
+
+  it('treats an href that is not a string as a missing one', () => {
+    const book = { ...sharedBook(), _links: { self: { href: 12 } } }
+    expect(normalizeAddressBook(book)).toEqual(
+      expect.objectContaining({ id: '', userId: '', name: 'QA Book' })
+    )
+  })
 })
 
 describe('buildFullShareesList', () => {

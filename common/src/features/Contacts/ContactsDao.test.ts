@@ -11,15 +11,18 @@ import { fetchUserById } from '@common/features/User/UserDao'
 import {
   exportAddressBook,
   exportContact,
+  fetchAddressBooks,
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
   resolveAddressBookMember,
+  searchContacts,
   subscribeToAddressBook
 } from './ContactsDao'
 import { formatAddress } from './contactsUtils'
 import {
   AddressBookAccessLevel,
+  DavAddressBookItem,
   DavContactItem,
   DavContactsResponse,
   JCalCard
@@ -91,6 +94,16 @@ describe('normalizeContact', () => {
         displayName: 'Jane Roe',
         emails: [{ type: 'work', value: 'jane.roe@example.org' }]
       })
+    )
+  })
+
+  it('normalizes a contact whose href is not a string', () => {
+    const item: DavContactItem = {
+      _links: { self: { href: 12 } },
+      data: ['vcard', [['fn', {}, 'text', 'Jane Doe']]]
+    }
+    expect(normalizeContact(item)).toEqual(
+      expect.objectContaining({ id: '', displayName: 'Jane Doe' })
     )
   })
 
@@ -527,6 +540,34 @@ describe('fetchContactsPage', () => {
     expect(page.next).toBe('cursor2')
   })
 
+  it('keeps the other contacts of the page when an href is not a string', async () => {
+    mockResponse({
+      _embedded: {
+        'dav:item': [
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+            data: card
+          },
+          { _links: { self: { href: 12 } }, data: card }
+        ]
+      }
+    })
+
+    const page = await fetchContactsPage(
+      'u1',
+      null,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
+
+    expect(
+      page.entries.map(entry => [entry.addressBookId, entry.contact.id])
+    ).toStrictEqual([
+      ['book1', 'c1'],
+      ['', '']
+    ])
+  })
+
   it('reads the contacts of every address book without the domain members', async () => {
     mockResponse({})
 
@@ -583,6 +624,85 @@ describe('fetchContactsPage', () => {
       { searchParams: { userId: 'u1', sort: 'fn', order: 'asc', limit: '50' } }
     )
   })
+})
+
+describe('searchContacts', () => {
+  const card: JCalCard = ['vcard', [['fn', {}, 'text', 'Jane Doe']]]
+
+  it('skips the items whose href is not a string', async () => {
+    vi.mocked(api.post).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          _embedded: {
+            'dav:item': [
+              {
+                _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+                data: card
+              },
+              { _links: { self: { href: 12 } }, data: card }
+            ]
+          }
+        })
+    } as never)
+
+    const entries = await searchContacts(
+      [{ userId: 'u1', addressBookId: 'book1' }],
+      'jane'
+    )
+
+    expect(
+      entries.map(entry => [entry.addressBookId, entry.contact.id])
+    ).toStrictEqual([['book1', 'c1']])
+  })
+})
+
+describe('fetchAddressBooks', () => {
+  const mockBooks = (books: DavAddressBookItem[]): void => {
+    vi.mocked(api.get).mockReturnValue({
+      json: () => Promise.resolve({ _embedded: { 'dav:addressbook': books } })
+    } as never)
+  }
+  const book = (source: unknown): DavAddressBookItem => ({
+    _links: { self: { href: '/addressbooks/u1/b1.json' } },
+    'dav:name': 'Book',
+    'dav:acl': ['dav:read'],
+    'dav:syncToken': 1,
+    'openpaas:source': source
+  })
+
+  it('reads the owner of a shared book whose source is a HAL object', async () => {
+    vi.mocked(fetchUserById).mockResolvedValue({
+      firstname: 'Bob',
+      lastname: 'Owner'
+    } as never)
+    mockBooks([
+      book({ _links: { self: { href: '/addressbooks/u2/b2.json' } } })
+    ])
+
+    const [shared] = await fetchAddressBooks('u1')
+
+    expect(shared).toEqual(
+      expect.objectContaining({
+        id: 'b1',
+        ownerId: 'u2',
+        sourceBookId: 'b2',
+        ownerDisplayName: 'Bob Owner'
+      })
+    )
+  })
+
+  it.each([[['/addressbooks/u2/b2.json']], [12], [{ foo: 'bar' }]])(
+    'keeps a book whose source is malformed: %j',
+    async source => {
+      mockBooks([book(source)])
+
+      const books = await fetchAddressBooks('u1')
+
+      expect(books).toHaveLength(1)
+      expect(books[0].id).toBe('b1')
+      expect(books[0].ownerId).toBeUndefined()
+    }
+  )
 })
 
 describe('subscribeToAddressBook', () => {

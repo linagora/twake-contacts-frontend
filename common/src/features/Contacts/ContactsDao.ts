@@ -20,7 +20,9 @@ import {
 import {
   denormalizeContact,
   normalizeAddressBook,
-  normalizeContact
+  normalizeContact,
+  readAddressBookSource,
+  readHref
 } from './transformer/ContactsTransformer'
 import { CONTACTS_PAGINATION_LIMIT, SEARCH_LIMIT } from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
@@ -67,9 +69,7 @@ async function enrichAddressBookOwner(
   userId: string
 ): Promise<AddressBook> {
   const book = normalizeAddressBook(rawBook)
-  const source =
-    rawBook['{http://open-paas.org/contacts}source'] ||
-    rawBook['openpaas:source']
+  const source = readAddressBookSource(rawBook)
 
   if (!source) return book
 
@@ -223,7 +223,7 @@ export async function fetchContactsPage(
 }
 
 // The domain book is stored as dab, while its contacts are in domain-members
-function toStoreAddressBookId(href: string | undefined): string {
+function toStoreAddressBookId(href: unknown): string {
   const addressBookId = extractAddressBookIdFromHref(href)
   return addressBookId === 'domain-members' ? 'dab' : addressBookId
 }
@@ -372,8 +372,8 @@ export interface MultiAddressBookSearchRequest {
   addressBooks: AddressBookRef[]
 }
 
-function extractAddressBookIdFromHref(href: string | undefined): string {
-  return href?.split('/').at(-2) ?? ''
+function extractAddressBookIdFromHref(href: unknown): string {
+  return readHref(href)?.split('/').at(-2) ?? ''
 }
 
 export async function searchContacts(

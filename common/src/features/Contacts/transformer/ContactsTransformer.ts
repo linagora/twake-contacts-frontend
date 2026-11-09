@@ -14,6 +14,7 @@ import {
 import {
   DavAddressBookItem,
   DavContactItem,
+  DavLinks,
   JCalCard,
   JCalParams,
   JCalProperty,
@@ -143,14 +144,29 @@ function parseCategories(card: JCalCard): string[] {
   return getStringValues(prop)
 }
 
-function extractId(href: string | undefined, extension: string): string {
-  return href?.split('/').pop()?.replace(extension, '') ?? ''
+// hrefs come as-is from the JSON payload, anything but a string is a missing one
+export function readHref(href: unknown): string | undefined {
+  return typeof href === 'string' ? href : undefined
 }
 
-// a sharee's copy of a book points to the original through its source
-function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
+function extractId(href: unknown, extension: string): string {
+  return readHref(href)?.split('/').pop()?.replace(extension, '') ?? ''
+}
+
+// a sharee's copy of a book points to the original through its source:
+// a book path, or the HAL object subscribeToAddressBook posts
+export function readAddressBookSource(
+  raw: DavAddressBookItem
+): string | undefined {
   const source =
     raw['{http://open-paas.org/contacts}source'] || raw['openpaas:source']
+  if (typeof source === 'string') return source
+  const links = (source as { _links?: DavLinks } | null | undefined)?._links
+  return readHref(links?.self?.href)
+}
+
+function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
+  const source = readAddressBookSource(raw)
   const bookId = source ? extractId(source, '.json') : id
   return bookId === DEFAULT_ADDRESS_BOOK_ID
 }
@@ -164,7 +180,7 @@ function normalizeAddressBookName(name: unknown): string {
 }
 
 export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
-  const href = raw._links?.self?.href
+  const href = readHref(raw._links?.self?.href)
   const id = extractId(href, '.json')
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
   const userId = href?.split('/').at(-2) ?? ''
