@@ -79,7 +79,7 @@
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "rslint-config-cozy-app": "^0.2.0",
-    "rstack": "0.9.0",
+    "rstack": "0.8.6",
     "typescript": "^7.0.2"
   },
   "overrides": {
