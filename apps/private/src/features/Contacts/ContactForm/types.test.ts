@@ -67,4 +67,30 @@ describe('makeContactFromForm', () => {
       'b@example.com'
     ])
   })
+
+  const uriPhoneContact: Contact = {
+    ...contact,
+    phones: [{ type: 'work', value: '+49-30-1234', valueType: 'uri' }]
+  }
+
+  it('keeps the value type of an unchanged phone', () => {
+    const values = makeFormValuesFromContact(uriPhoneContact, 'book')
+
+    const saved = makeContactFromForm(values, uriPhoneContact)
+
+    expect(saved.phones).toEqual([
+      { type: 'work', value: '+49-30-1234', valueType: 'uri' }
+    ])
+  })
+
+  it('does not keep the value type of an edited phone', () => {
+    const values = {
+      ...makeFormValuesFromContact(uriPhoneContact, 'book'),
+      phones: [{ type: 'work', value: '+49 30 9999' }]
+    }
+
+    const saved = makeContactFromForm(values, uriPhoneContact)
+
+    expect(saved.phones).toEqual([{ type: 'work', value: '+49 30 9999' }])
+  })
 })

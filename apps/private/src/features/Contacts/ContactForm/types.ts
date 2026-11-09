@@ -112,7 +112,13 @@ export function makeContactFromForm(
     emails: values.emails
       .filter(hasValue)
       .map(entry => ({ ...entry, value: entry.value.trim() })),
-    phones: values.phones.filter(hasValue),
+    phones: values.phones.filter(hasValue).map(entry => {
+      // an unchanged number keeps the value type it was read with, an edited one is text
+      const valueType = base?.phones?.find(
+        phone => phone.value === entry.value
+      )?.valueType
+      return valueType ? { ...entry, valueType } : entry
+    }),
     addresses,
     socialProfiles: matrixId
       ? [...otherProfiles, { type: MATRIX_TYPE, value: matrixId }]
