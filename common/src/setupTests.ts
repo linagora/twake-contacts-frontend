@@ -11,11 +11,10 @@ process.env.TZ = 'UTC'
 const OriginalDateTimeFormat = Intl.DateTimeFormat
 
 // Create a constructor function that preserves prototype
-const MockedDateTimeFormat: any = function (
-  this: any,
+function MockedDateTimeFormat(
   locales?: string | string[],
   options?: Intl.DateTimeFormatOptions
-) {
+): Intl.DateTimeFormat {
   // Only set timeZone to UTC if not explicitly specified
   const modifiedOptions = options
     ? { timeZone: 'UTC', ...options } // timeZone comes first so options can override it
@@ -29,7 +28,8 @@ MockedDateTimeFormat.prototype = OriginalDateTimeFormat.prototype
 // Preserve static methods
 Object.setPrototypeOf(MockedDateTimeFormat, OriginalDateTimeFormat)
 
-global.Intl.DateTimeFormat = MockedDateTimeFormat
+global.Intl.DateTimeFormat =
+  MockedDateTimeFormat as unknown as typeof Intl.DateTimeFormat
 
 vi.mock('openid-client', () => ({
   discovery: vi.fn(),
@@ -45,24 +45,24 @@ vi.mock('openid-client', () => ({
 const originalWarn = console.warn
 
 class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
 }
 
 global.ResizeObserver = ResizeObserverMock
 
 class IntersectionObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
 }
 
-;(global as any).IntersectionObserver = IntersectionObserverMock
+global.IntersectionObserver =
+  IntersectionObserverMock as unknown as typeof IntersectionObserver
 // Suppress jsdom CSS selector parsing errors for Emotion/MUI
 if (typeof window !== 'undefined' && window.getComputedStyle) {
-  // Called with .call(this) below
-  // eslint-disable-next-line @typescript-eslint/unbound-method
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- called with .call(this) below
   const originalGetComputedStyle = window.getComputedStyle
   window.getComputedStyle = function (
     element: Element,

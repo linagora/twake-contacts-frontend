@@ -63,10 +63,10 @@ describe('SubscribeAddressBookDialog', () => {
     expect(closeButton.parentElement).toBe(heading.parentElement)
   })
 
-  it('closes from the close button', async () => {
+  it('closes from the close button', () => {
     const onClose = renderDialog()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    userEvent.click(screen.getByRole('button', { name: 'Close' }))
 
     expect(onClose).toHaveBeenCalledTimes(1)
   })

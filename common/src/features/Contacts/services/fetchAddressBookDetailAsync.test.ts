@@ -167,7 +167,9 @@ describe('fetchAddressBookDetail', () => {
       members: [invitedBob],
       isPublic: false
     })
-    vi.mocked(resolveAddressBookMember).mockImplementation(async m => m)
+    vi.mocked(resolveAddressBookMember).mockImplementation(m =>
+      Promise.resolve(m)
+    )
     const store = setupStore({
       contacts: {
         ...initial,

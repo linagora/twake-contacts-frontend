@@ -143,6 +143,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
             </NavItem>
           ))}
           <NavDesktopDropdown
+            // @ts-expect-error twake-mui types label as string, yet renders it as a node
             label={
               <Stack
                 direction="row"

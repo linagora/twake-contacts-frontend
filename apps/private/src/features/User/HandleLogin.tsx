@@ -15,14 +15,14 @@ export const HandleLogin: React.FC = () => {
     if (userData.loading) return
     if (userData.error) {
       dispatch(setAppLoading(false))
-      navigate('/error')
+      void navigate('/error')
       return
     }
     if (!userData.userData || !userData.tokens) return
 
     hasNavigatedRef.current = true
     dispatch(setAppLoading(false))
-    navigate('/contacts')
+    void navigate('/contacts')
   }, [
     userData.loading,
     userData.userData,

@@ -22,11 +22,7 @@ pipeline {
             sh 'npm ci'
           }
       }
-      stage('Test') {
-        steps {
-          sh 'npm run test'
-        }
-      }
+      // cheap checks first, so that they fail before the tests run
       stage('Check Lint') {
         steps {
           sh 'npm run lint'
@@ -35,6 +31,16 @@ pipeline {
       stage('Check Formatting') {
         steps {
           sh 'npm run lint:fmt'
+        }
+      }
+      stage('Typecheck') {
+        steps {
+          sh 'npm run typecheck'
+        }
+      }
+      stage('Test') {
+        steps {
+          sh 'npm run test'
         }
       }
       stage('E2E') {
@@ -52,6 +58,7 @@ pipeline {
           sh 'e2e/scripts/build.sh'
           dir('e2e') {
             sh 'npm ci'
+            sh 'npm run typecheck'
             sh 'npx playwright install chromium'
             sh './scripts/start.sh'
             sh 'npx playwright test'

@@ -336,7 +336,6 @@ export function denormalizeContact(contact: Contact): JCalCard {
   }
   const singles: [string, string | undefined][] = [
     ['nickname', contact.nickname],
-    ['photo', contact.photo],
     ['bday', contact.birthday],
     ['title', contact.title],
     ['role', contact.role],

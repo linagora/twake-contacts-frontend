@@ -102,7 +102,7 @@ export const EditContactPage: React.FC = () => {
   }
 
   const handleDelete = async (): Promise<void> => {
-    if (!openpaasId) return
+    if (!openpaasId || !contactId) return
     try {
       await dispatch(
         deleteContact({
@@ -128,7 +128,7 @@ export const EditContactPage: React.FC = () => {
       backTo={backTo}
       onSubmit={handleSubmit}
       contact={contact}
-      onDelete={handleDelete}
+      onDelete={() => void handleDelete()}
     />
   )
 }

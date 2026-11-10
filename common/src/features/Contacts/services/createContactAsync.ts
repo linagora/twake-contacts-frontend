@@ -11,7 +11,15 @@ export interface CreateContactArgs {
   contact: Contact
 }
 
-export const createContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const createContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    CreateContactArgs,
+    CreateContactArgs,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     CreateContactArgs,
     CreateContactArgs,

@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals", "node", "@testing-library/jest-dom/vitest"],
+    "paths": {
+      "@/*": ["./apps/private/src/*"],
+      "@common/*": ["./common/src/*"],
+      "@private/*": ["./apps/private/src/*"],
+      "@injected/*": ["./common/src/*"]
+    }
+  },
+  "include": [
+    "apps/private/src",
+    "apps/private/*.ts",
+    "common/src",
+    "common/*.ts",
+    "common/*.d.ts"
+  ]
+}

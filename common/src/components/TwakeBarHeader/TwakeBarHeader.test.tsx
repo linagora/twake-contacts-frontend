@@ -1,9 +1,15 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  RenderResult,
+  screen
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { setupStore } from '@common/app/store'
+import { AppStore, setupStore } from '@common/app/store'
 import { setAppLoading } from '@common/app/loadingSlice'
 import { TwakeBarHeader } from './TwakeBarHeader'
-import { logOut } from '@linagora/twake-oidc'
+import { logOut, type TokenSet } from '@linagora/twake-oidc'
 import { ensureSdkSignedIn, getPlatformSdk } from '@common/utils/sdkSession'
 import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
@@ -32,7 +38,7 @@ const renderBar = (
     token?: string
     signedIn?: boolean
   } = {}
-) => {
+): RenderResult & { store: AppStore } => {
   const store = setupStore()
   const state = store.getState()
   const testStore = setupStore({
@@ -50,7 +56,7 @@ const renderBar = (
         sid: 'sid',
         workplaceFqdn: options.workplace
       },
-      tokens: options.token ? { id_token: options.token } : null
+      tokens: options.token ? ({ id_token: options.token } as TokenSet) : null
     }
   })
   return {
@@ -78,7 +84,7 @@ describe('TwakeBarHeader', () => {
     expect(screen.getByRole('button')).toBeInTheDocument()
     expect(mockBar).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        fallback: expect.objectContaining({ user: undefined })
+        fallback: expect.objectContaining({ user: undefined }) as unknown
       })
     )
   })
@@ -127,8 +133,10 @@ describe('TwakeBarHeader', () => {
   it('resolves the workplace fallback and tolerates a refused token exchange', async () => {
     window.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
     vi.mocked(ensureSdkSignedIn).mockRejectedValueOnce(new Error('refused'))
-    await act(async () => {
+    // the async act lets the refused token exchange settle
+    await act(() => {
       renderBar({ token: 'id-token' })
+      return Promise.resolve()
     })
     expect(ensureSdkSignedIn).toHaveBeenCalledWith(
       'https://alice.twake.app',
@@ -157,7 +165,10 @@ describe('TwakeBarHeader', () => {
     expect(screen.getByTestId('sdk-provider')).toBeInTheDocument()
     expect(mockBar).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        fallback: expect.objectContaining({ apps: [], helpLink: undefined })
+        fallback: expect.objectContaining({
+          apps: [],
+          helpLink: undefined
+        }) as unknown
       })
     )
   })

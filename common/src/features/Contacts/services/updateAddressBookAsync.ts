@@ -12,10 +12,16 @@ export interface UpdateAddressBookPayload {
 
 export const updateAddressBookThunk = (
   create: ReducerCreators<ContactsState>
-) =>
-  create.asyncThunk<
-    UpdateAddressBookPayload,
+): ReturnType<
+  typeof create.asyncThunk<
     Omit<UpdateAddressBookPayload, 'userId'>,
+    UpdateAddressBookPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
+  create.asyncThunk<
+    Omit<UpdateAddressBookPayload, 'userId'>,
+    UpdateAddressBookPayload,
     { rejectValue: RejectedError }
   >(
     async ({ userId, addressBookId, name }, { rejectWithValue }) => {

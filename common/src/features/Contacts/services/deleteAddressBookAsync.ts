@@ -6,7 +6,13 @@ import { toContactsErrorKey } from '../contactsUtils'
 
 export const deleteAddressBookThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    { addressBookId: string },
+    { userId: string; addressBookId: string },
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { addressBookId: string },
     { userId: string; addressBookId: string },
@@ -29,6 +35,7 @@ export const deleteAddressBookThunk = (
           operation: isCopy ? 'remove' : 'delete',
           requestId: action.meta.requestId
         }
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- address books are a dictionary keyed by id
         delete state.addressBooks[addressBookId]
       },
       rejected: (state, action) => {

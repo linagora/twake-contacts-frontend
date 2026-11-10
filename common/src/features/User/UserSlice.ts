@@ -1,5 +1,6 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
+import type { TokenSet } from '@linagora/twake-oidc'
 import {
   getOpenPaasUserDataThunk,
   updateUserConfigurationsThunk
@@ -26,7 +27,7 @@ export interface RejectedError {
 
 export interface UserState {
   userData: userData
-  tokens: Record<string, string> | null
+  tokens: TokenSet | null
   coreConfig: CoreConfig
   loading: boolean
   error: string | null
@@ -53,11 +54,9 @@ const UserSlice = createAppSlice({
       state.userData = action.payload
       state.loading = false
     }),
-    setTokens: create.reducer(
-      (state, action: PayloadAction<Record<string, string>>) => {
-        state.tokens = action.payload
-      }
-    ),
+    setTokens: create.reducer((state, action: PayloadAction<TokenSet>) => {
+      state.tokens = action.payload
+    }),
     setLanguage: create.reducer((state, action: PayloadAction<string>) => {
       state.coreConfig.language = action.payload
       if (state.userData) {

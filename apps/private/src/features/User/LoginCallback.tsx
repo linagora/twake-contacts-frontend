@@ -7,6 +7,7 @@ import {
   setUserError
 } from '@common/features/User/UserSlice'
 import { completeLogin } from '@linagora/twake-oidc'
+import { userData as UserData } from '@common/features/User/userDataTypes'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -41,12 +42,14 @@ export const CallbackResume: React.FC = () => {
         // No sign-in pending: the callback page was reloaded or opened directly
         if (!data) {
           dispatch(setAppLoading(false))
-          navigate('/', { replace: true })
+          void navigate('/', { replace: true })
           return
         }
 
         returnToRef.current = data.returnTo
-        dispatch(setUserData(data.userinfo))
+        // The OIDC claims seed the profile, getOpenPaasUserData completes it below.
+        // The claims' JSON index signature does not overlap the profile interface.
+        dispatch(setUserData(data.userinfo as unknown as UserData))
         dispatch(setTokens(data.tokenSet))
 
         await dispatch(getOpenPaasUserData())
@@ -54,7 +57,7 @@ export const CallbackResume: React.FC = () => {
         console.error('OIDC callback error:', e)
         dispatch(setAppLoading(false))
         dispatch(setUserError(getErrorMessage(e)))
-        navigate('/error', { replace: true })
+        void navigate('/error', { replace: true })
       }
     }
 
@@ -67,7 +70,7 @@ export const CallbackResume: React.FC = () => {
     if (userData.loading) return
     if (userData.error) {
       dispatch(setAppLoading(false))
-      navigate('/error', { replace: true })
+      void navigate('/error', { replace: true })
       return
     }
     if (!userData.userData || !userData.tokens) return
@@ -81,7 +84,7 @@ export const CallbackResume: React.FC = () => {
     }
 
     const returnTo = returnToRef.current
-    navigate(returnTo.startsWith('/contacts') ? returnTo : DEFAULT_PATH, {
+    void navigate(returnTo.startsWith('/contacts') ? returnTo : DEFAULT_PATH, {
       replace: true
     })
   }, [

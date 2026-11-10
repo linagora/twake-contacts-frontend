@@ -56,9 +56,7 @@ async function typeSearchQuery(value: string): Promise<void> {
   fireEvent.focus(input)
   fireEvent.input(input, { target: { value } })
 
-  await act(async () => {
-    vi.advanceTimersByTime(300)
-  })
+  await act(() => vi.advanceTimersByTimeAsync(300))
   // Debounce has completed; Testing Library can now poll using real timers.
   vi.useRealTimers()
 }

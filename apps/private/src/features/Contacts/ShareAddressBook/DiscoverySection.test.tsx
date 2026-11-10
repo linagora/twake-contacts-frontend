@@ -1,3 +1,4 @@
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -24,11 +25,11 @@ function renderSection(isPublic?: boolean): void {
           acl: [],
           canWrite: true,
           contacts: [],
-          offset: 0,
-          hasMore: false,
           isPublic
         }
       },
+      listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }

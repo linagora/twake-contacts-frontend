@@ -82,7 +82,15 @@ function applyModuleConfigurations(
   }
 }
 
-export const getOpenPaasUserDataThunk = (create: ReducerCreators<UserState>) =>
+export const getOpenPaasUserDataThunk = (
+  create: ReducerCreators<UserState>
+): ReturnType<
+  typeof create.asyncThunk<
+    OpenPaasUserData,
+    void,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<OpenPaasUserData, void, { rejectValue: RejectedError }>(
     async (_, { rejectWithValue }) => {
       try {

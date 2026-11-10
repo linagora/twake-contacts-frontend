@@ -21,14 +21,14 @@ function renderEntryPaper(onRemove?: () => void): void {
 }
 
 describe('EntryPaper', () => {
-  it('names the remove button "Remove", not "Close"', async () => {
+  it('names the remove button "Remove", not "Close"', () => {
     const onRemove = vi.fn()
     renderEntryPaper(onRemove)
 
     expect(
       screen.queryByRole('button', { name: 'Close' })
     ).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    userEvent.click(screen.getByRole('button', { name: 'Remove' }))
 
     expect(onRemove).toHaveBeenCalledTimes(1)
   })
@@ -36,7 +36,7 @@ describe('EntryPaper', () => {
   it('shows a "Remove" tooltip when hovering the remove button', async () => {
     renderEntryPaper(vi.fn())
 
-    await userEvent.hover(screen.getByRole('button', { name: 'Remove' }))
+    userEvent.hover(screen.getByRole('button', { name: 'Remove' }))
 
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Remove')
   })

@@ -83,7 +83,13 @@ function replaceListingEnd(
 // listings showing it: its own and every book one
 export const fetchUpdatedContactsThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    ReloadedListing[],
+    FetchUpdatedContactsPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     ReloadedListing[],
     FetchUpdatedContactsPayload,

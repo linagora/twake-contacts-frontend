@@ -11,6 +11,7 @@ const rootReducer = combineReducers({
   loading: loadingReducer
 })
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- the store type is inferred by configureStore
 export const setupStore = (preloadedState?: Partial<RootState>) => {
   return configureStore({
     reducer: rootReducer,

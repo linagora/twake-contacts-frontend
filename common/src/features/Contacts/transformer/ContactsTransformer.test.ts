@@ -8,6 +8,7 @@ import {
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
   _links: { self: { href: '/addressbooks/owner/book.json' } },
   'dav:name': 'QA Book',
+  'dav:syncToken': 0,
   'dav:acl': ['dav:read', 'dav:write'],
   'dav:share-access': shareAccess
 })

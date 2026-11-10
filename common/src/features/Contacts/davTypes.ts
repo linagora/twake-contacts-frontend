@@ -104,6 +104,7 @@ export interface DavAddressBookItem {
   'dav:acl'?: string[]
   'dav:share-access'?: number | null
   '{DAV:}displayname'?: string
+  '{DAV:}acl'?: string[]
   acl?: AclEntry[]
   '{http://open-paas.org/contacts}numberOfContacts'?: number | null
   '{http://open-paas.org/contacts}type'?: string
