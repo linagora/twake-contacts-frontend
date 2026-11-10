@@ -167,6 +167,19 @@ tooling. To check that a dependency has the same range in every workspace:
 npm run lint:deps
 ```
 
+Lint fails on any warning. A rule may only be disabled for one line, with a reason:
+`// eslint-disable-next-line <rule> -- <reason>`.
+
+### Type checking
+
+Rsbuild transpiles without type checking. To run the TypeScript compiler on the app and `common`:
+
+```bash
+npm run typecheck
+```
+
+The `e2e/` package has its own `npm run typecheck`. CI runs both.
+
 ---
 
 ## Running with Docker

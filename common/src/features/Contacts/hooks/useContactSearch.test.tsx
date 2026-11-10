@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import { setupStore } from '@common/app/store'
 import { UserState } from '@common/features/User/UserSlice'
 import { searchContacts } from '../ContactsDao'
-import { AddressBook } from '../contactsTypes'
+import { AddressBookWithContacts } from '../contactsTypes'
 import { DEFAULT_CONTACT_SORT } from '../constants'
 import { useContactSearch } from './useContactSearch'
 
@@ -12,17 +12,18 @@ vi.mock('../ContactsDao')
 
 const mockedSearchContacts = searchContacts as Mock
 
-const book = (id: string, userId: string): AddressBook => ({
+const book = (id: string, userId: string): AddressBookWithContacts => ({
   id,
   userId,
   name: id,
   contactsCount: 0,
   acl: [],
-  canWrite: false
+  canWrite: false,
+  contacts: []
 })
 
 function renderSearch(
-  addressBooks: Record<string, AddressBook>
+  addressBooks: Record<string, AddressBookWithContacts>
 ): (search: string) => Promise<unknown> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,

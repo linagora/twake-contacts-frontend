@@ -55,7 +55,15 @@ function addOrReplaceContactInBook(
   }
 }
 
-export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const moveContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    MoveContactArgs,
+    MoveContactArgs,
+    { rejectValue: ContactsOperationError }
+  >
+> =>
   create.asyncThunk<
     MoveContactArgs,
     MoveContactArgs,

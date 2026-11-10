@@ -1,5 +1,5 @@
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, RenderResult, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -48,7 +48,7 @@ const defaultPreloadedState = {
 const renderMobileTopBar = (
   props: Partial<MobileTopBarProps> = {},
   preloadedState = defaultPreloadedState
-) => {
+): RenderResult & { props: MobileTopBarProps } => {
   const store = setupStore(preloadedState)
   const defaultProps: MobileTopBarProps = {
     onOpenSidebar: vi.fn(),

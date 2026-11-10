@@ -12,7 +12,13 @@ export interface PublishAddressBookPayload {
 
 export const publishAddressBookThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    void,
+    PublishAddressBookPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     void,
     PublishAddressBookPayload,

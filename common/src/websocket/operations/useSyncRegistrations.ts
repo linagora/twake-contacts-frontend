@@ -1,7 +1,10 @@
 import { useAppSelector } from '@common/app/hooks'
-import { WebSocketConnection } from '@linagora/twake-websocket'
+import { useWebSocketConnection } from '@linagora/twake-websocket'
 import { useRef, useEffect } from 'react'
 import { shallowEqual } from 'react-redux'
+
+// twake-websocket does not export the WebSocketConnection interface
+type WebSocketConnection = ReturnType<typeof useWebSocketConnection>
 
 export function useSyncRegistrations(
   connection: Pick<WebSocketConnection, 'socketRef' | 'isOpen' | 'epoch'>

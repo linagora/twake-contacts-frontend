@@ -64,7 +64,7 @@ describe('App error boundary', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(error.message)
       expect(screen.queryByTestId('routes')).not.toBeInTheDocument()
       expect(Sentry.captureException).toHaveBeenCalledWith(error, {
-        contexts: { react: { componentStack: expect.any(String) } }
+        contexts: { react: { componentStack: expect.any(String) as unknown } }
       })
     } finally {
       consoleError.mockRestore()

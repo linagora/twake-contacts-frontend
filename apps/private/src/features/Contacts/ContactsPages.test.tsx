@@ -27,6 +27,13 @@ const mockUseBreakpoints = vi.hoisted(() =>
   }))
 )
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+const originalConfig = { ...mockConfig }
+
 vi.mock('@linagora/twake-mui', async () => {
   const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
     '@linagora/twake-mui'
@@ -223,14 +230,6 @@ describe('AddressBookPage', () => {
 })
 
 describe('ContactPage', () => {
-  const originalMailSpaUrl = (window as Window & { MAIL_SPA_URL?: string })
-    .MAIL_SPA_URL
-  const originalChatSpaUrl = (window as Window & { CHAT_SPA_URL?: string })
-    .CHAT_SPA_URL
-  const originalCalendarSpaUrl = (
-    window as Window & { CALENDAR_SPA_URL?: string }
-  ).CALENDAR_SPA_URL
-
   beforeEach(() => {
     mockUseBreakpoints.mockReturnValue({
       isMobile: false,
@@ -238,33 +237,15 @@ describe('ContactPage', () => {
       isDesktop: true,
       isExtraLarge: false
     })
-    ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
-      'https://mail.example.com'
-    ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
-      'https://chat.example.com/#/chat/@{target}'
-    ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
-      'https://calendar.example.com'
+    Object.assign(mockConfig, {
+      MAIL_SPA_URL: 'https://mail.example.com',
+      CHAT_SPA_URL: 'https://chat.example.com/#/chat/@{target}',
+      CALENDAR_SPA_URL: 'https://calendar.example.com'
+    })
   })
 
   afterEach(() => {
-    if (originalMailSpaUrl !== undefined) {
-      ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
-        originalMailSpaUrl
-    } else {
-      delete (window as Window & { MAIL_SPA_URL?: string }).MAIL_SPA_URL
-    }
-    if (originalChatSpaUrl !== undefined) {
-      ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
-        originalChatSpaUrl
-    } else {
-      delete (window as Window & { CHAT_SPA_URL?: string }).CHAT_SPA_URL
-    }
-    if (originalCalendarSpaUrl !== undefined) {
-      ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
-        originalCalendarSpaUrl
-    } else {
-      delete (window as Window & { CALENDAR_SPA_URL?: string }).CALENDAR_SPA_URL
-    }
+    Object.assign(mockConfig, originalConfig)
   })
 
   it('renders the contact details', () => {

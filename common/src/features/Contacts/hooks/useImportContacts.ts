@@ -16,7 +16,10 @@ export function useImportContacts(): ImportContacts {
 
   const importIntoBook = useCallback(
     (fileId: string, addressBookId: string): Promise<void> =>
-      importContacts(fileId, bookJsonHref({ userId, bookId: addressBookId })),
+      importContacts(
+        fileId,
+        bookJsonHref({ userId: userId ?? '', bookId: addressBookId })
+      ),
     [userId]
   )
 

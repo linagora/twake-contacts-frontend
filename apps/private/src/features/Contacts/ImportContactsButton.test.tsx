@@ -1,11 +1,17 @@
 import type { MockedFunction } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  RenderResult,
+  screen,
+  waitFor
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
-import { setupStore } from '@common/app/store'
+import { AppStore, RootState, setupStore } from '@common/app/store'
 import {
   importContacts,
   uploadImportFile
@@ -23,7 +29,7 @@ const mockImportContacts = importContacts as MockedFunction<
   typeof importContacts
 >
 
-const defaultPreloadedState = {
+const defaultPreloadedState: Partial<RootState> = {
   user: { userData: { openpaasId: 'u1' } } as UserState,
   contacts: {
     addressBooks: {
@@ -55,8 +61,8 @@ const defaultPreloadedState = {
 
 const renderWithProviders = (
   ui: React.ReactElement,
-  preloadedState = defaultPreloadedState
-) => {
+  preloadedState: Partial<RootState> = defaultPreloadedState
+): RenderResult & { store: AppStore } => {
   const store = setupStore(preloadedState)
   return {
     store,
@@ -72,7 +78,9 @@ const renderWithProviders = (
   }
 }
 
-const renderButton = (addressBookId?: string) =>
+const renderButton = (
+  addressBookId?: string
+): RenderResult & { store: AppStore } =>
   renderWithProviders(<ImportContactsButton addressBookId={addressBookId} />)
 
 const selectFile = (container: HTMLElement): void => {

@@ -11,7 +11,13 @@ export interface CreateAddressBookArgs {
 
 export const createAddressBookThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    AddressBook,
+    CreateAddressBookArgs,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     AddressBook,
     CreateAddressBookArgs,

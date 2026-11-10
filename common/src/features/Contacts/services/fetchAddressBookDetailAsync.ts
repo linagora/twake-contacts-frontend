@@ -80,7 +80,13 @@ export const reduceAddressBookMemberResolved = (
 
 export const fetchAddressBookDetailThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    { addressBookId: string },
+    FetchAddressBookDetailPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { addressBookId: string },
     FetchAddressBookDetailPayload,

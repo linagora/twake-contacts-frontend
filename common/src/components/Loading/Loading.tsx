@@ -1,6 +1,6 @@
 import { Box, CircularProgress } from '@linagora/twake-mui'
 
-export function Loading() {
+export function Loading(): React.ReactElement {
   return (
     <Box
       data-testid="loading"

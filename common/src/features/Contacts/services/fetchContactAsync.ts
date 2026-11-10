@@ -18,7 +18,15 @@ const isContactMissing = (
 
 // Only the first pages of a book are in the store, so a contact opened from
 // a link or after a reload may have to be fetched on its own
-export const fetchContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const fetchContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    { addressBookId: string; contact: Contact },
+    FetchContactArgs,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { addressBookId: string; contact: Contact },
     FetchContactArgs,

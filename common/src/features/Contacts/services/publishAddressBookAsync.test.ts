@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import reducer, { publishAddressBook } from '../ContactsSlice'
 import { ContactsState } from '../contactsTypes'
+import { DEFAULT_CONTACT_SORT } from '../constants'
 
 const arg = { userId: 'owner', addressBookId: 'book' }
 const initial: ContactsState = {
@@ -12,11 +13,11 @@ const initial: ContactsState = {
       contactsCount: 0,
       acl: [],
       canWrite: true,
-      contacts: [],
-      offset: 0,
-      hasMore: false
+      contacts: []
     }
   },
+  listings: {},
+  sort: DEFAULT_CONTACT_SORT,
   loading: false,
   error: null
 }

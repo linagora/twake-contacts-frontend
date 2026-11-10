@@ -6,7 +6,15 @@ import { placeContactInListings } from '../contactListings'
 import { toContactsErrorKey } from '../contactsUtils'
 import { CreateContactArgs } from './createContactAsync'
 
-export const updateContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const updateContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    CreateContactArgs,
+    CreateContactArgs,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     CreateContactArgs,
     CreateContactArgs,

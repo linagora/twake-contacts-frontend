@@ -125,7 +125,7 @@ const STREET_INDEX = 2
 // RFC 7095 3.3.1.3 mandates an array, but some writers emit a plain string:
 // keep it as the street rather than hiding it from the user.
 function toAddressComponents(rawValue: unknown): unknown[] | null {
-  if (Array.isArray(rawValue)) return rawValue
+  if (Array.isArray(rawValue)) return rawValue as unknown[]
   if (typeof rawValue === 'string' && rawValue.trim()) {
     const components: unknown[] = []
     components[STREET_INDEX] = rawValue
@@ -279,7 +279,8 @@ export function normalizeContactsCount(count: unknown): number | null {
 // dav:share-access is a JSON number from esn-sabre, but may come as a numeric
 // string or a single-element array; anything else is treated as absent
 function normalizeShareAccess(value: unknown): number | undefined {
-  const scalar = Array.isArray(value) && value.length === 1 ? value[0] : value
+  const scalar: unknown =
+    Array.isArray(value) && value.length === 1 ? (value[0] as unknown) : value
   if (typeof scalar === 'number') {
     return Number.isInteger(scalar) ? scalar : undefined
   }
@@ -502,7 +503,6 @@ export function denormalizeContact(contact: Contact): JCalCard {
     ])
   }
   const singles: [string, string | undefined][] = [
-    ['photo', contact.photo],
     ['title', contact.title],
     ['role', contact.role],
     ['note', contact.note]

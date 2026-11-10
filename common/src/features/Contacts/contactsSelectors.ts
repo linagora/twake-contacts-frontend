@@ -9,8 +9,11 @@ import {
   ContactEntry
 } from './contactsTypes'
 
-const selectAddressBooks = (state: RootState) => state.contacts.addressBooks
-const selectListings = (state: RootState) => state.contacts.listings
+const selectAddressBooks = (
+  state: RootState
+): RootState['contacts']['addressBooks'] => state.contacts.addressBooks
+const selectListings = (state: RootState): RootState['contacts']['listings'] =>
+  state.contacts.listings
 
 export const selectBook = createSelector(
   [

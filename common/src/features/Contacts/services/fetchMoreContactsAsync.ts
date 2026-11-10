@@ -41,7 +41,13 @@ export async function fetchListingPage(
 
 export const fetchMoreContactsThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    { entries: ContactEntry[]; next: string | null; after: string | null },
+    FetchMoreContactsPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { entries: ContactEntry[]; next: string | null; after: string | null },
     FetchMoreContactsPayload,

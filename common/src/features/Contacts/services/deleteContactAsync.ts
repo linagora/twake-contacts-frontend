@@ -15,7 +15,15 @@ export interface DeleteContactArgs {
   contactId: string
 }
 
-export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const deleteContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    DeleteContactArgs,
+    DeleteContactArgs,
+    { rejectValue: ContactsOperationError }
+  >
+> =>
   create.asyncThunk<
     DeleteContactArgs,
     DeleteContactArgs,

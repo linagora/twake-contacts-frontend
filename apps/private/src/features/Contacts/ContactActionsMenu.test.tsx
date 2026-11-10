@@ -110,6 +110,8 @@ describe('ContactActionsMenu', () => {
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
         },
+        listings: {},
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }
@@ -156,6 +158,8 @@ describe('ContactActionsMenu', () => {
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
         },
+        listings: {},
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }

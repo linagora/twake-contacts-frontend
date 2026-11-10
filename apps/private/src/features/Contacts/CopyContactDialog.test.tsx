@@ -1,3 +1,4 @@
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock } from 'vitest'
 import { useState } from 'react'
 import {
@@ -67,6 +68,7 @@ const renderDialog = (
         }
       },
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }

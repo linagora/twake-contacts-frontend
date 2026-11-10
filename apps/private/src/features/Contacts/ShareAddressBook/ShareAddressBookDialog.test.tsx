@@ -1,3 +1,4 @@
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock, MockedFunction } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -62,6 +63,7 @@ function renderDialog(onClose = vi.fn()): Mock {
         }
       },
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }
@@ -80,7 +82,7 @@ function renderDialog(onClose = vi.fn()): Mock {
 
 describe('ShareAddressBookDialog', () => {
   beforeEach(() => {
-    mockedResolveMember.mockImplementation(async m => m)
+    mockedResolveMember.mockImplementation(m => Promise.resolve(m))
   })
   afterEach(() => vi.resetAllMocks())
 

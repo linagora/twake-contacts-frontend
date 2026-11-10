@@ -39,6 +39,6 @@ export const useInitializeApp = (): void => {
     }
 
     void initiateLogin()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once, when the user data changes, not on each dispatch identity
   }, [userData.userData])
 }

@@ -23,7 +23,9 @@ vi.mock('./features/Contacts/ContactsPage', async () => {
     await vi.importActual<typeof import('react-router')>('react-router')
   return {
     ContactsPage: () => {
-      useEffect(() => mockMount(), [])
+      useEffect(() => {
+        mockMount()
+      }, [])
       return <Outlet />
     }
   }
@@ -54,7 +56,10 @@ const setMobile = (isMobile: boolean): void => {
   >)
 }
 
-const appRoutesTree = (store = setupStore(), path = '/contacts/new') => (
+const appRoutesTree = (
+  store = setupStore(),
+  path = '/contacts/new'
+): React.ReactElement => (
   <Provider store={store}>
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">
