@@ -244,6 +244,51 @@ export class DavClient {
     return uid
   }
 
+  /**
+   * Writes a contact as a jCard (RFC 7095), the format the app itself writes: for the shapes a
+   * vCard text cannot express (an ADR whose value is a string, a component that is an array).
+   * `properties` are the jCard properties without `version` and `uid`, which are added.
+   */
+  async putJCard(
+    bookId: string,
+    uid: string,
+    properties: unknown[][]
+  ): Promise<void> {
+    const response = await this.request(
+      'PUT',
+      `/addressbooks/${this.user.id}/${bookId}/${encodeURIComponent(uid)}.vcf`,
+      {
+        contentType: 'application/vcard+json',
+        body: JSON.stringify([
+          'vcard',
+          [
+            ['version', {}, 'text', '4.0'],
+            ['uid', {}, 'text', uid],
+            ...properties
+          ]
+        ])
+      }
+    )
+    await this.#expect(response, [201, 204], `Writing the jCard ${uid}`)
+  }
+
+  /** The jCard properties of a contact, as the app reads them */
+  async getJCardProperties(bookId: string, uid: string): Promise<unknown[][]> {
+    const response = await this.request(
+      'GET',
+      `/addressbooks/${this.user.id}/${bookId}/${encodeURIComponent(uid)}.vcf`,
+      { accept: 'application/vcard+json' }
+    )
+    await this.#expect(response, [200], `Reading the jCard ${uid}`)
+    const body: unknown = await response.json()
+    if (!Array.isArray(body) || !Array.isArray(body[1])) {
+      throw new Error(`Not a jCard: ${JSON.stringify(body)}`)
+    }
+    return (body[1] as unknown[]).filter((p): p is unknown[] =>
+      Array.isArray(p)
+    )
+  }
+
   /** The vCard of a contact, or null when it does not exist */
   async getContact(bookId: string, uid: string): Promise<string | null> {
     const response = await this.request(

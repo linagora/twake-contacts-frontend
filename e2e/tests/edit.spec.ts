@@ -285,4 +285,67 @@ test.describe('EDIT edit contact', () => {
     await expect(form.typeSelectors).toHaveText(['Label', 'Label'])
     await expect(new ContactPage(page).notFound).toHaveCount(0)
   })
+
+  test('EDIT-11 an edit keeps every nickname and every Matrix id', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    await dav.putJCard('qa-book', 'qa-multi', [
+      ['fn', {}, 'text', 'Multi Value'],
+      ['n', {}, 'text', ['Value', 'Multi', '', '', '']],
+      ['nickname', {}, 'text', 'Mo', 'Mv'],
+      ['socialprofile', { type: 'matrix' }, 'text', '@multi:example.com'],
+      ['socialprofile', { type: 'Matrix' }, 'text', '@multi:other.example']
+    ])
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+    const contact = await contacts.openContact('Multi Value')
+
+    const form = await contact.edit()
+    await expect(form.matrixId).toHaveValue('@multi:example.com')
+    await form.firstName.fill('Multiple')
+    await form.saveEdit('Multiple Value')
+
+    const properties = await dav.getJCardProperties('qa-book', 'qa-multi')
+    const nicknames = properties
+      .filter(p => p[0] === 'nickname')
+      .flatMap(p => p.slice(3))
+      .flatMap(v => (typeof v === 'string' ? v.split(',') : v))
+    expect(nicknames).toEqual(['Mo', 'Mv'])
+    expect(
+      properties.filter(p => p[0] === 'socialprofile').map(p => p[3])
+    ).toEqual(['@multi:example.com', '@multi:other.example'])
+  })
+
+  test('EDIT-12 a saved email is a plain address and a saved URL a uri', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    await dav.putJCard('qa-book', 'qa-types', [
+      ['fn', {}, 'text', 'Typed Values'],
+      ['n', {}, 'text', ['Values', 'Typed', '', '', '']],
+      ['email', { type: 'work' }, 'uri', 'mailto:typed.values@example.com'],
+      ['url', {}, 'uri', 'https://example.com/typed']
+    ])
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+    const contact = await contacts.openContact('Typed Values')
+
+    const form = await contact.edit()
+    await expect(form.emails).toHaveValue('typed.values@example.com')
+    await form.firstName.fill('Retyped')
+    await form.saveEdit('Retyped Values')
+
+    const vcard = (await dav.getContact('qa-book', 'qa-types')) ?? ''
+    const emailLine = vcard.split(/\r?\n/).find(l => l.startsWith('EMAIL'))
+    const urlLine = vcard.split(/\r?\n/).find(l => l.startsWith('URL'))
+    expect(emailLine).toMatch(/:typed\.values@example\.com$/)
+    expect(emailLine).not.toMatch(/mailto:|VALUE=URI/i)
+    expect(urlLine).toMatch(/:https:\/\/example\.com\/typed$/)
+    expect(urlLine).not.toMatch(/VALUE=TEXT/i)
+  })
 })
