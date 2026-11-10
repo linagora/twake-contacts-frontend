@@ -151,7 +151,7 @@ describe('fetchContacts', () => {
 
       const state = store.getState()
       expect(selectBook(state, id)).toBe(undefined)
-      expect(selectContactEntries(state, id, undefined, 'u1')).toEqual([])
+      expect(selectContactEntries(state, id, undefined)).toEqual([])
       expect(selectListingKeyToLoadMore(state, id)).toBe(id)
     }
   )
@@ -171,7 +171,7 @@ describe('fetchContacts', () => {
 
       const state = store.getState()
       expect(selectBook(state, id)?.id).toBe(id)
-      expect(selectContactEntries(state, id, undefined, 'u1')).toEqual([
+      expect(selectContactEntries(state, id, undefined)).toEqual([
         { addressBookId: id, contact: alice }
       ])
       expect(Object.keys(state.contacts.addressBooks)).toEqual([id])

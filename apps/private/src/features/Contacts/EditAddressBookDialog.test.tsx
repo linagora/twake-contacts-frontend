@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { render, RenderResult, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -6,14 +7,17 @@ import en from '@common/locales/en.json'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { EditAddressBookDialog } from './EditAddressBookDialog'
 
-const book: AddressBook = {
-  id: 'team',
-  userId: 'alice',
-  name: 'Team',
-  contactsCount: 0,
-  acl: [],
-  canWrite: true
-}
+const book: AddressBook = classifyAddressBook(
+  {
+    id: 'team',
+    userId: 'alice',
+    name: 'Team',
+    contactsCount: 0,
+    acl: [],
+    canWrite: true
+  },
+  'alice'
+)
 
 const renderDialog = (
   onConfirm: (values: { name: string }) => void,

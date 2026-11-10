@@ -139,6 +139,20 @@ define.lint(lint => [
       '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/require-await': 'error'
     }
+  },
+  {
+    // the kind of an address book is decided by addressBookModel.ts alone
+    files: ['apps/**/*.ts', 'apps/**/*.tsx'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/^(dab|domain-members|collected)$/]',
+          message: 'Use book.kind / book.capabilities'
+        }
+      ]
+    }
   }
 ])
 

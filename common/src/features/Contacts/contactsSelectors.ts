@@ -3,6 +3,7 @@ import { RootState } from '@common/app/store'
 import { ALL_CONTACTS_LISTING } from './constants'
 import { makeContactLookup } from './contactListings'
 import { isWritableTargetBook } from './contactsUtils'
+import { isOwnAddressBook, isSharedAddressBook } from './addressBookModel'
 import {
   AddressBook,
   AddressBookWithContacts,
@@ -25,24 +26,12 @@ export const selectBook = createSelector(
 
 export type BookScope = 'mine' | 'shared' | 'onlyMine'
 
-export const matchesScope = (
-  book: AddressBook,
-  scope?: BookScope,
-  userId?: string
-): boolean => {
+export const matchesScope = (book: AddressBook, scope?: BookScope): boolean => {
   switch (scope) {
     case 'shared':
-      return (
-        book.ownerId !== undefined &&
-        book.ownerId !== userId &&
-        book.id !== 'dab'
-      )
+      return isSharedAddressBook(book)
     case 'onlyMine':
-      return (
-        (book.ownerId === undefined || book.ownerId === userId) &&
-        book.id !== 'dab'
-      )
-
+      return isOwnAddressBook(book)
     default:
       return true
   }
@@ -53,14 +42,11 @@ export const matchesScope = (
 const getViewListingKeys = (
   books: Record<string, AddressBookWithContacts>,
   addressBookId?: string,
-  scope?: BookScope,
-  userId?: string
+  scope?: BookScope
 ): string[] => {
   if (addressBookId) return [addressBookId]
   if (scope && scope !== 'mine') {
-    return Object.keys(books).filter(id =>
-      matchesScope(books[id], scope, userId)
-    )
+    return Object.keys(books).filter(id => matchesScope(books[id], scope))
   }
   return [ALL_CONTACTS_LISTING]
 }
@@ -69,9 +55,7 @@ const selectViewListingKeys = createSelector(
   [
     selectAddressBooks,
     (_state: RootState, addressBookId?: string) => addressBookId,
-    (_state: RootState, _id?: string, scope?: BookScope) => scope,
-    (_state: RootState, _id?: string, _scope?: BookScope, userId?: string) =>
-      userId
+    (_state: RootState, _id?: string, scope?: BookScope) => scope
   ],
   getViewListingKeys
 )
@@ -100,12 +84,11 @@ export const selectContactEntries = createSelector(
 export const selectListingKeyToLoadMore = (
   state: RootState,
   addressBookId?: string,
-  scope?: BookScope,
-  userId?: string
+  scope?: BookScope
 ): string | null => {
   const listings = selectListings(state)
   return (
-    selectViewListingKeys(state, addressBookId, scope, userId).find(
+    selectViewListingKeys(state, addressBookId, scope).find(
       key => !listings[key] || listings[key].hasMore
     ) ?? null
   )

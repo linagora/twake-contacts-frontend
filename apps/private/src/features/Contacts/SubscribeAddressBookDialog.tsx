@@ -9,7 +9,7 @@ import {
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import {
-  AddressBook,
+  RawAddressBook,
   UserResult
 } from '@common/features/Contacts/contactsTypes'
 import { UserAutocomplete } from './UserAutocomplete'
@@ -21,7 +21,7 @@ interface Props {
   isSubscribing?: boolean
   error?: string | null
   onClose: () => void
-  onConfirm: (user: UserResult, books: AddressBook[]) => void
+  onConfirm: (user: UserResult, books: RawAddressBook[]) => void
 }
 
 export const SubscribeAddressBookDialog: React.FC<Props> = ({

@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react'
+import { isOwnAddressBook } from '@common/features/Contacts/addressBookModel'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
-import {
-  canShareAddressBook,
-  getAddressBookDisplayName
-} from '@common/features/Contacts/contactsUtils'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { fetchAddressBookDetail } from '@common/features/Contacts/ContactsSlice'
 import { useAppDispatch } from '@common/app/hooks'
 import { Icon, ShareExternal } from '@linagora/twake-icons'
@@ -24,7 +22,7 @@ export interface AddressBookHeaderProps {
 // are read on the page of the book to tell with how many people it is shared
 const useOwnBookMembers = (book: AddressBook): void => {
   const dispatch = useAppDispatch()
-  const isOwnBook = !book.ownerId && book.id !== 'dab'
+  const isOwnBook = isOwnAddressBook(book)
   useEffect(() => {
     if (!isOwnBook) return
     void dispatch(
@@ -50,7 +48,7 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
     book,
     onRemoved: () => void navigate('/contacts')
   })
-  const canShare = canShareAddressBook(book)
+  const canShare = book.capabilities.share
   useOwnBookMembers(book)
 
   return (

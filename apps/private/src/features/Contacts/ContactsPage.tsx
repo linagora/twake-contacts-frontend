@@ -53,8 +53,7 @@ export const ContactsPage: React.FC = () => {
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const currentBook = addressBookId ? addressBooks[addressBookId] : undefined
   const book = useAppSelector(state => selectBook(state, addressBookId))
-  const canWriteCurrentBook =
-    (currentBook?.canWrite && addressBookId !== 'dab') ?? false
+  const canWriteCurrentBook = currentBook?.capabilities.addContacts ?? false
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
   const isAddressBookPage =

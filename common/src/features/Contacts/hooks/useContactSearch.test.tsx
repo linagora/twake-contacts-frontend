@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { setupStore } from '@common/app/store'
 import { UserState } from '@common/features/User/UserSlice'
+import { classifyAddressBook } from '../addressBookModel'
 import { searchContacts } from '../ContactsDao'
 import { AddressBookWithContacts } from '../contactsTypes'
 import { DEFAULT_CONTACT_SORT } from '../constants'
@@ -12,15 +13,19 @@ vi.mock('../ContactsDao')
 
 const mockedSearchContacts = searchContacts as Mock
 
-const book = (id: string, userId: string): AddressBookWithContacts => ({
-  id,
-  userId,
-  name: id,
-  contactsCount: 0,
-  acl: [],
-  canWrite: false,
-  contacts: []
-})
+const book = (id: string, userId: string): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId,
+      name: id,
+      contactsCount: 0,
+      acl: [],
+      canWrite: false,
+      contacts: []
+    },
+    'u1'
+  )
 
 function renderSearch(
   addressBooks: Record<string, AddressBookWithContacts>
@@ -56,26 +61,18 @@ describe('useContactSearch', () => {
     expect(mockedSearchContacts).not.toHaveBeenCalled()
   })
 
-  it('searches the domain book as domain-members and maps its results back to dab', async () => {
+  // the DAO maps the domain book to the id of its members, see ContactsDao.test.ts
+  it('searches every book of the store and resolves to the entries of the DAO', async () => {
     const contact = { id: 'c1', displayName: 'Alice' }
-    mockedSearchContacts.mockResolvedValue([
-      { addressBookId: 'domain-members', contact },
-      { addressBookId: 'contacts', contact }
-    ])
-    const search = renderSearch({
-      dab: book('dab', 'd1'),
-      contacts: book('contacts', 'u1')
-    })
+    const entries = [{ addressBookId: 'dab', contact }]
+    mockedSearchContacts.mockResolvedValue(entries)
+    const domainBook = book('dab', 'd1')
+    const ownBook = book('contacts', 'u1')
+    const search = renderSearch({ dab: domainBook, contacts: ownBook })
 
-    await expect(search('alice')).resolves.toEqual([
-      { addressBookId: 'dab', contact },
-      { addressBookId: 'contacts', contact }
-    ])
+    await expect(search('alice')).resolves.toEqual(entries)
     expect(mockedSearchContacts).toHaveBeenCalledWith(
-      [
-        { userId: 'd1', addressBookId: 'domain-members' },
-        { userId: 'u1', addressBookId: 'contacts' }
-      ],
+      [domainBook, ownBook],
       'alice'
     )
   })

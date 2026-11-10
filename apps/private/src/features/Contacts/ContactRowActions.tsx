@@ -18,15 +18,13 @@ import { useDeleteContact } from './useDeleteContact'
 interface ContactRowActionsProps {
   contact: Contact
   addressBookId: string
-  readOnly?: boolean
 }
 
 type OpenDialog = 'delete' | 'copy' | 'move' | null
 
 export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   contact,
-  addressBookId,
-  readOnly
+  addressBookId
 }) => {
   const { t } = useI18n()
   const { exportContact } = useContactsExport()
@@ -40,7 +38,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const isMenuOpen = Boolean(anchorEl)
-  const isReadOnly = readOnly || !book?.canWrite
+  const isReadOnly = !book?.capabilities.editContacts
 
   const handleCloseDialog = (): void => setOpenDialog(null)
   const handleOpenDeleteDialog = (): void => {

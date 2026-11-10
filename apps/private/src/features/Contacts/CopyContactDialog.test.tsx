@@ -1,3 +1,7 @@
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock } from 'vitest'
 import { useState } from 'react'
@@ -27,15 +31,19 @@ import { ContactTransferDialog } from './CopyContactDialog'
 vi.mock('@common/features/Contacts/ContactsDao')
 
 const contact = { id: 'c1', displayName: 'Alice', emails: [] }
-const book = (id: string, canWrite = true): AddressBookWithContacts => ({
-  id,
-  userId: `owner-${id}`,
-  name: id,
-  canWrite,
-  acl: [],
-  contactsCount: 0,
-  contacts: []
-})
+const book = (id: string, canWrite = true): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: `owner-${id}`,
+      name: id,
+      canWrite,
+      acl: [],
+      contactsCount: 0,
+      contacts: []
+    },
+    `owner-${id}`
+  )
 const LocationDisplay = (): React.ReactElement => (
   <div data-testid="location">{useLocation().pathname}</div>
 )
@@ -49,7 +57,7 @@ const renderDialog = (
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         source: {
           ...book('source', sourceCanWrite),
           contacts: [contact],
@@ -66,7 +74,7 @@ const renderDialog = (
           ownerId: 'u2',
           ownerDisplayName: 'Bob Owner'
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

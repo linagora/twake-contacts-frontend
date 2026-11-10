@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import type { Mock } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react'
@@ -75,7 +76,7 @@ describe('ContactSearchBar', () => {
     mockedSearchContacts.mockResolvedValue([])
 
     renderSearchBar({
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         contacts: {
           id: 'contacts',
           userId: 'u1',
@@ -103,7 +104,7 @@ describe('ContactSearchBar', () => {
           canWrite: false,
           contacts: []
         }
-      }
+      })
     })
 
     await typeSearchQuery('alice')
@@ -111,9 +112,9 @@ describe('ContactSearchBar', () => {
     await waitFor(() => {
       expect(mockedSearchContacts).toHaveBeenCalledWith(
         [
-          { userId: 'u1', addressBookId: 'contacts' },
-          { userId: 'u1', addressBookId: 'collected' },
-          { userId: 'd1', addressBookId: 'domain-members' }
+          expect.objectContaining({ userId: 'u1', id: 'contacts' }),
+          expect.objectContaining({ userId: 'u1', id: 'collected' }),
+          expect.objectContaining({ userId: 'd1', id: 'dab' })
         ],
         'alice'
       )
@@ -130,7 +131,7 @@ describe('ContactSearchBar', () => {
 
     renderSearchBar(
       {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           collected: {
             id: 'collected',
             userId: 'u1',
@@ -140,7 +141,7 @@ describe('ContactSearchBar', () => {
             canWrite: false,
             contacts: []
           }
-        }
+        })
       },
       true
     )

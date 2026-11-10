@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock, MockedFunction } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
@@ -52,15 +53,18 @@ function renderDialog(onClose = vi.fn()): Mock {
     } as UserState,
     contacts: {
       addressBooks: {
-        book1: {
-          id: 'book1',
-          userId: 'alice',
-          name: 'Friends',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
-        }
+        book1: classifyAddressBook(
+          {
+            id: 'book1',
+            userId: 'alice',
+            name: 'Friends',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          'alice'
+        )
       },
       listings: {},
       sort: DEFAULT_CONTACT_SORT,

@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
@@ -35,25 +36,31 @@ const bob: userData = {
   role: AddressBookAccessLevel.Viewer
 }
 
-const aliceBook: AddressBookWithContacts = {
-  id: 'book1',
-  userId: 'alice',
-  name: 'Clients',
-  contactsCount: null,
-  acl: [],
-  canWrite: true,
-  contacts: []
-}
+const aliceBook: AddressBookWithContacts = classifyAddressBook(
+  {
+    id: 'book1',
+    userId: 'alice',
+    name: 'Clients',
+    contactsCount: null,
+    acl: [],
+    canWrite: true,
+    contacts: []
+  },
+  'alice'
+)
 
-const bookSharedWithBob: AddressBookWithContacts = {
-  ...aliceBook,
-  id: 'copy1',
-  userId: 'bob',
-  ownerId: 'alice',
-  ownerDisplayName: 'alice alice',
-  shareAccess: AddressBookAccessLevel.Viewer,
-  canWrite: false
-}
+const bookSharedWithBob: AddressBookWithContacts = classifyAddressBook(
+  {
+    ...aliceBook,
+    id: 'copy1',
+    userId: 'bob',
+    ownerId: 'alice',
+    ownerDisplayName: 'alice alice',
+    shareAccess: AddressBookAccessLevel.Viewer,
+    canWrite: false
+  },
+  'bob'
+)
 
 const LocationProbe: React.FC = () => <output>{useLocation().pathname}</output>
 

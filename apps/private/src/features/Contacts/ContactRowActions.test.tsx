@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import {
   fireEvent,
@@ -52,7 +53,7 @@ const renderRowActions = (canWrite = true): ReturnType<typeof setupStore> => {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         book1: {
           id: 'book1',
           userId: 'u1',
@@ -62,7 +63,7 @@ const renderRowActions = (canWrite = true): ReturnType<typeof setupStore> => {
           canWrite,
           contacts: [contact]
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

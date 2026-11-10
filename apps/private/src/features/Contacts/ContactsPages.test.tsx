@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import { fetchContact } from '@common/features/Contacts/ContactsDao'
 import {
@@ -117,7 +118,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
         error: null
       },
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           collected: {
             id: 'collected',
             userId: 'u1',
@@ -183,7 +184,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
               }
             ]
           }
-        },
+        }),
         listings: {
           [ALL_CONTACTS_LISTING]: makeListing([
             ['book2', 'c2'],

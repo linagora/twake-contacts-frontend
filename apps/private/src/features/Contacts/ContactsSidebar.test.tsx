@@ -1,9 +1,17 @@
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
   DEFAULT_CONTACT_SORT
 } from '@common/features/Contacts/constants'
-import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+import {
+  AddressBookWithContacts,
+  Contact,
+  RawAddressBook
+} from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -47,15 +55,19 @@ vi.mock('@linagora/twake-mui', async () => {
   }
 })
 
-const makeBook = (id: string, name: string): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  name,
-  contactsCount: 0,
-  acl: [],
-  canWrite: true,
-  contacts: []
-})
+const makeBook = (id: string, name: string): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      name,
+      contactsCount: 0,
+      acl: [],
+      canWrite: true,
+      contacts: []
+    },
+    'u1'
+  )
 
 function LocationDisplay(): React.ReactElement {
   const location = useLocation()
@@ -64,41 +76,44 @@ function LocationDisplay(): React.ReactElement {
 
 function renderSidebar(
   path: string,
-  addressBooks?: Record<string, AddressBookWithContacts>,
+  addressBooks?: Record<string, RawAddressBook & { contacts: Contact[] }>,
   onClose?: () => void
 ): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: addressBooks ?? {
-        contacts: {
-          id: DEFAULT_ADDRESS_BOOK_ID,
-          userId: 'u1',
-          name: 'My contacts',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
+      addressBooks: classifyAddressBooks(
+        addressBooks ?? {
+          contacts: {
+            id: DEFAULT_ADDRESS_BOOK_ID,
+            userId: 'u1',
+            name: 'My contacts',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book1: {
+            id: 'book1',
+            userId: 'u1',
+            name: 'Book 1',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book2: {
+            id: 'book2',
+            userId: 'u1',
+            name: 'Book 2',
+            contactsCount: 0,
+            acl: [],
+            canWrite: false,
+            contacts: []
+          }
         },
-        book1: {
-          id: 'book1',
-          userId: 'u1',
-          name: 'Book 1',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
-        },
-        book2: {
-          id: 'book2',
-          userId: 'u1',
-          name: 'Book 2',
-          contactsCount: 0,
-          acl: [],
-          canWrite: false,
-          contacts: []
-        }
-      },
+        'u1'
+      ),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

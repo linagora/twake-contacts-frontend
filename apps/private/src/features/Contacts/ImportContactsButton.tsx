@@ -24,8 +24,7 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
   const targetBookId = addressBookId ?? DEFAULT_ADDRESS_BOOK_ID
   const targetBook = useAppSelector(state => selectBook(state, targetBookId))
 
-  // Only show import on writable, non-domain address books
-  if (!targetBook?.canWrite || targetBook.id === 'dab') {
+  if (!targetBook?.capabilities.addContacts) {
     return null
   }
 

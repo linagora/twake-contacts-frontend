@@ -1,4 +1,5 @@
 import { encodeDavSegment } from '@linagora/twake-utils'
+import { DOMAIN_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 
 /**
  * The single place where the paths of esn-sabre's CardDAV resources are built.
@@ -23,7 +24,7 @@ export interface DavBookRef {
 const DAV_PROXY_PREFIX = 'dav'
 
 /** The domain book is stored as dab, while Sabre lists its contacts in domain-members. */
-const STORE_DOMAIN_BOOK_ID = 'dab'
+const STORE_DOMAIN_BOOK_ID = DOMAIN_ADDRESS_BOOK_ID
 const SERVER_DOMAIN_MEMBERS_ID = 'domain-members'
 
 export function toServerBookId(bookId: string): string {

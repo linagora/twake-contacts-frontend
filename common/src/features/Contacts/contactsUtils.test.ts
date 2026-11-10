@@ -1,19 +1,16 @@
 import {
   aDomainBook,
   aSharedBook,
-  aSubscribedBook,
   anAddressBook,
   theCollectedBook,
   theDefaultBook
 } from '@common/test/builders'
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
 import {
-  canShareAddressBook,
   getAddressBookDisplayName,
   isContactTransferDestination,
   sortAddressBooks
 } from './contactsUtils'
-import { AddressBookAccessLevel } from './davTypes'
 
 const t = (key: string): string => key
 
@@ -112,44 +109,6 @@ describe('getAddressBookDisplayName', () => {
     const book = anAddressBook({ canWrite: false, ...partial })
 
     expect(getAddressBookDisplayName(book, t).trim()).not.toBe('')
-  })
-})
-
-describe('canShareAddressBook', () => {
-  it('lets the owner share the book', () => {
-    expect(canShareAddressBook(anAddressBook())).toBe(true)
-  })
-
-  it('lets a sharee with administration rights share the book', () => {
-    expect(
-      canShareAddressBook(
-        aSharedBook({ access: AddressBookAccessLevel.Editor })
-      )
-    ).toBe(true)
-  })
-
-  it('does not let a read-write sharee share the book', () => {
-    expect(
-      canShareAddressBook(
-        aSharedBook({ access: AddressBookAccessLevel.ReadWrite })
-      )
-    ).toBe(false)
-  })
-
-  it('does not let a read-only sharee share the book', () => {
-    expect(
-      canShareAddressBook(
-        aSharedBook({ access: AddressBookAccessLevel.Viewer })
-      )
-    ).toBe(false)
-  })
-
-  it('does not let a subscriber of a public read-write book share it', () => {
-    expect(canShareAddressBook(aSubscribedBook({ canWrite: true }))).toBe(false)
-  })
-
-  it('does not share the domain address book', () => {
-    expect(canShareAddressBook(aDomainBook({ name: 'Domain' }))).toBe(false)
   })
 })
 

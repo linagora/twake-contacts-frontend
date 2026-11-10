@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
-import {
-  canShareAddressBook,
-  getAddressBookDisplayName
-} from '@common/features/Contacts/contactsUtils'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import {
   Download,
   Icon,
@@ -64,7 +61,7 @@ export const useAddressBookActions = ({
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
 
-  const isCopy = Boolean(book.ownerId)
+  const isCopy = book.capabilities.removeFromList
 
   const closeMenu = (): void => setAnchorEl(null)
 
@@ -129,7 +126,7 @@ export const useAddressBookActions = ({
       onClose={closeMenu}
       onClick={e => e.stopPropagation()}
     >
-      {canShareAddressBook(book) && (
+      {book.capabilities.share && (
         <ActionsMenuItem onClick={openShareDialog}>
           <ListItemIcon>
             <Icon icon={ShareExternal} />
@@ -137,7 +134,7 @@ export const useAddressBookActions = ({
           <ListItemText>{t('contacts.menu.share')}</ListItemText>
         </ActionsMenuItem>
       )}
-      {book.canWrite && !isCopy && (
+      {book.capabilities.rename && (
         <ActionsMenuItem onClick={openEditDialog}>
           <ListItemIcon>
             <Icon icon={Pen} />

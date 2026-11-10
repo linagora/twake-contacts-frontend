@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { render, screen } from '@testing-library/react'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
@@ -9,14 +10,17 @@ import { AddressBookInfoCard } from './AddressBookInfoCard'
 const dictionaries: Record<string, object> = { en, ru }
 
 function renderCard(contactsCount: number | null, lang = 'en'): void {
-  const book: AddressBook = {
-    id: 'book1',
-    userId: 'u1',
-    name: 'Zeta',
-    contactsCount,
-    acl: [],
-    canWrite: true
-  }
+  const book: AddressBook = classifyAddressBook(
+    {
+      id: 'book1',
+      userId: 'u1',
+      name: 'Zeta',
+      contactsCount,
+      acl: [],
+      canWrite: true
+    },
+    'u1'
+  )
 
   render(
     <TwakeMuiThemeProvider>

@@ -49,7 +49,6 @@ interface ContactActionsMenuProps {
   contact: Contact
   addressBookId: string
   onDeleted?: () => void
-  readOnly?: boolean
 }
 
 type OpenDialog = 'delete' | null
@@ -57,8 +56,7 @@ type OpenDialog = 'delete' | null
 export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   contact,
   addressBookId,
-  onDeleted,
-  readOnly
+  onDeleted
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
@@ -67,7 +65,7 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
   const deleteContact = useDeleteContact(addressBookId, contact)
 
-  if (!book?.canWrite) return null
+  if (!book?.capabilities.editContacts) return null
 
   const handleCloseDialog = (): void => setOpenDialog(null)
   const handleOpenDeleteDialog = (): void => setOpenDialog('delete')
@@ -102,7 +100,6 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
           )
         }
         onDelete={handleOpenDeleteDialog}
-        readOnly={readOnly}
       />
       {openDialog === 'delete' && (
         <DeleteContactDialog

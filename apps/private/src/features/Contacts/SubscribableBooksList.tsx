@@ -1,16 +1,16 @@
 import { Stack, Typography } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import {
-  AddressBook,
+  RawAddressBook,
   UserResult
 } from '@common/features/Contacts/contactsTypes'
 import { AddressBookPaper } from './AddressBookPaper'
 
 interface Props {
   user: UserResult
-  books: AddressBook[]
+  books: RawAddressBook[]
   emptyMessageKey: string | null
-  onRemove: (book: AddressBook) => void
+  onRemove: (book: RawAddressBook) => void
 }
 
 export const SubscribableBooksList: React.FC<Props> = ({

@@ -1,17 +1,25 @@
-import { AddressBook } from '@common/features/Contacts/contactsTypes'
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
+import {
+  AddressBook,
+  RawAddressBook
+} from '@common/features/Contacts/contactsTypes'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { userData } from '@common/features/User/userDataTypes'
 import { getSharingStatus } from './sharingStatus'
 
-const ownBook = (overrides: Partial<AddressBook> = {}): AddressBook => ({
-  id: 'book1',
-  userId: 'alice',
-  name: 'Clients',
-  contactsCount: null,
-  acl: [],
-  canWrite: true,
-  ...overrides
-})
+// classified for the user the book is listed for
+const ownBook = (overrides: Partial<RawAddressBook> = {}): AddressBook => {
+  const book: RawAddressBook = {
+    id: 'book1',
+    userId: 'alice',
+    name: 'Clients',
+    contactsCount: null,
+    acl: [],
+    canWrite: true,
+    ...overrides
+  }
+  return classifyAddressBook(book, book.userId)
+}
 
 const member = (
   openpaasId: string,

@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import type { MockedFunction } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import {
@@ -32,7 +33,7 @@ const mockImportContacts = importContacts as MockedFunction<
 const defaultPreloadedState: Partial<RootState> = {
   user: { userData: { openpaasId: 'u1' } } as UserState,
   contacts: {
-    addressBooks: {
+    addressBooks: classifyAddressBooks({
       contacts: {
         id: 'contacts',
         userId: 'u1',
@@ -51,7 +52,7 @@ const defaultPreloadedState: Partial<RootState> = {
         canWrite: true,
         contacts: []
       }
-    },
+    }),
     listings: {},
     sort: DEFAULT_CONTACT_SORT,
     loading: false,
@@ -115,7 +116,7 @@ describe('ImportContactsButton', () => {
     renderWithProviders(<ImportContactsButton />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           book1: {
             id: 'book1',
             userId: 'u1',
@@ -125,7 +126,7 @@ describe('ImportContactsButton', () => {
             canWrite: true,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,
@@ -235,7 +236,7 @@ describe('ImportContactsButton', () => {
     renderWithProviders(<ImportContactsButton addressBookId="readonlyBook" />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           readonlyBook: {
             id: 'readonlyBook',
             userId: 'u1',
@@ -245,7 +246,7 @@ describe('ImportContactsButton', () => {
             canWrite: false,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,
@@ -262,7 +263,7 @@ describe('ImportContactsButton', () => {
     renderWithProviders(<ImportContactsButton addressBookId="dab" />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           dab: {
             id: 'dab',
             userId: 'domain1',
@@ -272,7 +273,7 @@ describe('ImportContactsButton', () => {
             canWrite: true,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,

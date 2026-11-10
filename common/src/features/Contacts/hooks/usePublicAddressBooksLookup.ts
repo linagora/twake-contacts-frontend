@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
-import { AddressBook, UserResult } from '../contactsTypes'
+import { RawAddressBook, UserResult } from '../contactsTypes'
 import { fetchSubscribableAddressBooks } from '../ContactsDao'
 
 interface Lookup {
   userId: string
-  books: AddressBook[]
+  books: RawAddressBook[]
   failed: boolean
 }
 
 /** Loads the address books of `user` that the current user may subscribe to. */
 export function usePublicAddressBooksLookup(user: UserResult | null): {
-  fetched: AddressBook[] | null
+  fetched: RawAddressBook[] | null
   failed: boolean
 } {
   const [result, setResult] = useState<Lookup | null>(null)
@@ -19,7 +19,7 @@ export function usePublicAddressBooksLookup(user: UserResult | null): {
     if (!user) return
     let cancelled = false
     const load = async (): Promise<void> => {
-      let books: AddressBook[] = []
+      let books: RawAddressBook[] = []
       let failed = false
       try {
         books = await fetchSubscribableAddressBooks(user.id)

@@ -8,10 +8,12 @@
  */
 import type { LoadingState } from '@common/app/loadingSlice'
 import type { RootState } from '@common/app/store'
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import {
   COLLECTED_ADDRESS_BOOK_ID,
   DEFAULT_ADDRESS_BOOK_ID,
   DEFAULT_CONTACT_SORT,
+  DOMAIN_ADDRESS_BOOK_ID,
   READ_ONLY_SHARE_ACCESSES
 } from '@common/features/Contacts/constants'
 import type {
@@ -28,7 +30,7 @@ import type { userData } from '@common/features/User/userDataTypes'
 
 export const TEST_USER_ID = 'u1'
 export const OTHER_USER_ID = 'u2'
-export const DOMAIN_ADDRESS_BOOK_ID = 'dab'
+export { DOMAIN_ADDRESS_BOOK_ID }
 
 type BookOverrides = Partial<AddressBookWithContacts>
 
@@ -41,22 +43,32 @@ export const aContact = (overrides: Partial<Contact> = {}): Contact => ({
 
 /**
  * A writable book of the test user. Its name defaults to its id and its
- * contacts count to the number of its contacts.
+ * contacts count to the number of its contacts. Its kind and capabilities
+ * follow from its fields, as in the store, unless overridden.
  */
 export const anAddressBook = (
   overrides: BookOverrides = {}
 ): AddressBookWithContacts => {
-  const id = overrides.id ?? 'book1'
-  const contacts = overrides.contacts ?? []
+  const { kind, capabilities, ...fields } = overrides
+  const id = fields.id ?? 'book1'
+  const contacts = fields.contacts ?? []
+  const book = classifyAddressBook(
+    {
+      id,
+      userId: TEST_USER_ID,
+      name: id,
+      contactsCount: contacts.length,
+      acl: [],
+      canWrite: true,
+      contacts,
+      ...fields
+    },
+    TEST_USER_ID
+  )
   return {
-    id,
-    userId: TEST_USER_ID,
-    name: id,
-    contactsCount: contacts.length,
-    acl: [],
-    canWrite: true,
-    contacts,
-    ...overrides
+    ...book,
+    ...(kind && { kind }),
+    ...(capabilities && { capabilities })
   }
 }
 

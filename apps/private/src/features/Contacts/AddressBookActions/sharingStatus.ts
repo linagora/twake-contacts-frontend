@@ -1,3 +1,4 @@
+import { isSharedAddressBook } from '@common/features/Contacts/addressBookModel'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { getRoleTranslationKey } from '../ShareAddressBook/sharingHelpers'
@@ -29,8 +30,8 @@ const countMembers = (book: AddressBook): number =>
 export const getSharingStatus = (
   book: AddressBook
 ): SharingStatus | undefined => {
-  if (book.id === 'dab') return undefined
-  if (book.ownerId) {
+  if (book.kind === 'domain') return undefined
+  if (isSharedAddressBook(book)) {
     const roleKey = getRoleTranslationKey(getAccessLevel(book))
     return book.ownerDisplayName && roleKey
       ? { kind: 'sharedWithMe', owner: book.ownerDisplayName, roleKey }

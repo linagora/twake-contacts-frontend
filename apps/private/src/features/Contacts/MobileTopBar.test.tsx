@@ -1,3 +1,4 @@
+import { byId, theDefaultBook } from '@common/test/builders'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, RenderResult, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -27,17 +28,7 @@ vi.mock('@linagora/twake-mui', async () => {
 const defaultPreloadedState = {
   user: { userData: { openpaasId: 'u1' } } as UserState,
   contacts: {
-    addressBooks: {
-      contacts: {
-        id: 'contacts',
-        userId: 'u1',
-        name: 'My contacts',
-        contactsCount: 0,
-        acl: [],
-        canWrite: true,
-        contacts: []
-      }
-    },
+    addressBooks: byId(theDefaultBook({ name: 'My contacts' })),
     listings: {},
     sort: DEFAULT_CONTACT_SORT,
     loading: false,

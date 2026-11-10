@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import {
@@ -38,16 +39,20 @@ const makeBook = (
   id: string,
   contacts: Contact[],
   ownerId?: string
-): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  ownerId,
-  name: id,
-  contactsCount: null,
-  acl: [],
-  canWrite: true,
-  contacts
-})
+): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      ownerId,
+      name: id,
+      contactsCount: null,
+      acl: [],
+      canWrite: true,
+      contacts
+    },
+    'u1'
+  )
 
 const makeListing = (
   addressBookId: string,

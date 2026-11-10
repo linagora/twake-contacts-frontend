@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
@@ -32,7 +33,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         contacts: {
           id: DEFAULT_ADDRESS_BOOK_ID,
           userId: 'u1',
@@ -103,7 +104,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
           canWrite: true,
           contacts: []
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

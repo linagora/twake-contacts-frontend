@@ -20,6 +20,7 @@ import {
   searchContacts,
   subscribeToAddressBook
 } from './ContactsDao'
+import { classifyAddressBook } from './addressBookModel'
 import { formatAddress } from './contactsUtils'
 import {
   AddressBookAccessLevel,
@@ -30,7 +31,7 @@ import {
   JCalProperty,
   JCalValue
 } from './davTypes'
-import { AddressBook } from './contactsTypes'
+import { AddressBook, RawAddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
 import { matchPath } from 'react-router'
 
@@ -799,7 +800,10 @@ describe('fetchContact', () => {
   })
 
   it('reads the single vCard of the contact as jCard', async () => {
-    const contact = await fetchContact({ ...book, id: 'contacts' }, 'c60')
+    const contact = await fetchContact(
+      classifyAddressBook({ ...book, id: 'contacts' }, 'bob'),
+      'c60'
+    )
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/contacts/c60.vcf',
@@ -815,7 +819,10 @@ describe('fetchContact', () => {
   })
 
   it('reads a domain member from the domain members book', async () => {
-    await fetchContact({ ...book, id: 'dab', userId: 'domain-1' }, 'm1')
+    await fetchContact(
+      classifyAddressBook({ ...book, id: 'dab', userId: 'domain-1' }, 'bob'),
+      'm1'
+    )
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/domain-1/domain-members/m1.vcf',
@@ -835,7 +842,7 @@ describe('fetchContact', () => {
     expect(match?.params.contactId).toBe(listed.id)
 
     const fetched = await fetchContact(
-      { ...book, id: 'contacts' },
+      classifyAddressBook({ ...book, id: 'contacts' }, 'bob'),
       match?.params.contactId ?? ''
     )
 
@@ -849,14 +856,17 @@ describe('fetchContact', () => {
 
 describe('fetchContactsPage', () => {
   const card: JCalCard = ['vcard', [['fn', {}, 'text', 'Alice Roche']]]
-  const book: AddressBook = {
-    id: 'book1',
-    userId: 'u1',
-    name: 'Book 1',
-    contactsCount: null,
-    acl: [],
-    canWrite: true
-  }
+  const book: AddressBook = classifyAddressBook(
+    {
+      id: 'book1',
+      userId: 'u1',
+      name: 'Book 1',
+      contactsCount: null,
+      acl: [],
+      canWrite: true
+    },
+    'u1'
+  )
 
   const mockResponse = (response: DavContactsResponse): void => {
     vi.mocked(api.get).mockReturnValue({
@@ -1011,7 +1021,19 @@ describe('searchContacts', () => {
     } as never)
 
     const entries = await searchContacts(
-      [{ userId: 'u1', addressBookId: 'book1' }],
+      [
+        classifyAddressBook(
+          {
+            id: 'book1',
+            userId: 'u1',
+            name: 'book1',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true
+          },
+          'u1'
+        )
+      ],
       'jane'
     )
 
@@ -1071,7 +1093,7 @@ describe('fetchAddressBooks', () => {
 })
 
 describe('subscribeToAddressBook', () => {
-  const source: AddressBook = {
+  const source: RawAddressBook = {
     id: 'public1',
     userId: 'alice-id',
     name: 'Alice Public Read',
@@ -1119,7 +1141,8 @@ describe('subscribeToAddressBook', () => {
         shareAccess: 5,
         ownerId: 'alice-id',
         sourceBookId: 'team',
-        ownerDisplayName: 'alice alice'
+        ownerDisplayName: 'alice alice',
+        kind: 'delegated'
       })
     )
   })
@@ -1136,7 +1159,8 @@ describe('subscribeToAddressBook', () => {
       expect.objectContaining({
         sourceBookId: 'public1',
         canWrite: false,
-        ownerId: 'alice-id'
+        ownerId: 'alice-id',
+        kind: 'subscribed'
       })
     )
   })
@@ -1179,6 +1203,10 @@ describe('fetchAddressBooks', () => {
       json: () => Promise.resolve({ _embedded: { 'dav:addressbook': [] } })
     } as unknown as ReturnType<typeof api.get>)
     vi.mocked(api).mockReset()
+    vi.mocked(fetchUserById).mockResolvedValue({
+      firstname: 'Bob',
+      lastname: 'Martin'
+    } as never)
   })
 
   const domainBook = (numberOfContacts: unknown): void => {
@@ -1239,6 +1267,102 @@ describe('fetchAddressBooks', () => {
     const books = await fetchAddressBooks('u1')
 
     expect(books.map(book => book.id)).toEqual(['contacts'])
+  })
+
+  it('classifies every book for the current user', async () => {
+    vi.mocked(api.get).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          _embedded: {
+            'dav:addressbook': [
+              {
+                _links: { self: { href: '/addressbooks/me-id/contacts.json' } },
+                'dav:acl': ['dav:read', 'dav:write']
+              },
+              {
+                _links: { self: { href: '/addressbooks/me-id/family.json' } },
+                'dav:acl': ['dav:read', 'dav:write']
+              },
+              {
+                _links: { self: { href: '/addressbooks/me-id/shared.json' } },
+                'dav:acl': ['dav:read'],
+                'dav:share-access': 2,
+                'openpaas:source': '/addressbooks/bob-id/team.json'
+              },
+              {
+                _links: { self: { href: '/addressbooks/me-id/public.json' } },
+                'dav:acl': ['dav:read'],
+                'openpaas:source': '/addressbooks/bob-id/public.json'
+              }
+            ]
+          }
+        })
+    } as unknown as ReturnType<typeof api.get>)
+
+    const books = await fetchAddressBooks('me-id')
+
+    expect(books.map(({ id, kind }) => ({ id, kind }))).toEqual([
+      { id: 'contacts', kind: 'default' },
+      { id: 'family', kind: 'personal' },
+      { id: 'shared', kind: 'delegated' },
+      { id: 'public', kind: 'subscribed' }
+    ])
+    expect(books[2].capabilities.addContacts).toBe(false)
+  })
+})
+
+describe('searchContacts', () => {
+  const book = (id: string, userId: string): AddressBook =>
+    classifyAddressBook(
+      { id, userId, name: id, contactsCount: 0, acl: [], canWrite: false },
+      'me-id'
+    )
+
+  it('searches the domain book in its members, and stores its results as the domain book', async () => {
+    vi.mocked(api.post).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          _embedded: {
+            'dav:item': [
+              {
+                _links: {
+                  self: {
+                    href: '/addressbooks/domain-id/domain-members/c1.vcf'
+                  }
+                },
+                data: ['vcard', [['fn', {}, 'text', 'Alice']]]
+              },
+              {
+                _links: {
+                  self: { href: '/addressbooks/me-id/contacts/c2.vcf' }
+                },
+                data: ['vcard', [['fn', {}, 'text', 'Bob']]]
+              }
+            ]
+          }
+        })
+    } as unknown as ReturnType<typeof api.post>)
+
+    const entries = await searchContacts(
+      [book('contacts', 'me-id'), book('dab', 'domain-id')],
+      'a'
+    )
+
+    expect(vi.mocked(api.post).mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        json: {
+          query: 'a',
+          addressBooks: [
+            { userId: 'me-id', addressBookId: 'contacts' },
+            { userId: 'domain-id', addressBookId: 'domain-members' }
+          ]
+        }
+      })
+    )
+    expect(entries.map(entry => entry.addressBookId)).toEqual([
+      'dab',
+      'contacts'
+    ])
   })
 })
 
@@ -1350,14 +1474,17 @@ describe('export', () => {
   const vcf = new Blob(['BEGIN:VCARD\r\nEND:VCARD\r\n'], {
     type: 'text/vcard'
   })
-  const book: AddressBook = {
-    id: 'book1',
-    userId: 'bob',
-    name: 'Team',
-    contactsCount: 2,
-    acl: [],
-    canWrite: true
-  }
+  const book: AddressBook = classifyAddressBook(
+    {
+      id: 'book1',
+      userId: 'bob',
+      name: 'Team',
+      contactsCount: 2,
+      acl: [],
+      canWrite: true
+    },
+    'bob'
+  )
 
   beforeEach(() => {
     vi.mocked(api.get).mockReset()

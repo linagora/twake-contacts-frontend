@@ -3,7 +3,9 @@ import {
   aDomainBook,
   aSharedBook,
   anAddressBook,
-  byId
+  byId,
+  theCollectedBook,
+  theDefaultBook
 } from '@common/test/builders'
 import { categorizeAddressBooks, getCreateContactLink } from './sidebarHelpers'
 
@@ -56,15 +58,24 @@ describe('sidebarHelpers', () => {
         aDomainBook()
       )
 
-      const categorized = categorizeAddressBooks(
-        books,
-        TEST_USER_ID,
-        key => key
-      )
+      const categorized = categorizeAddressBooks(books, key => key)
 
       expect(categorized.personalBooks.map(b => b.id)).toEqual(['b1'])
       expect(categorized.sharedBooks.map(b => b.id)).toEqual(['b2'])
       expect(categorized.domainBooks.map(b => b.id)).toEqual(['dab'])
+    })
+
+    it('does not list the default and the collected books', () => {
+      const books = byId(
+        theDefaultBook(),
+        theCollectedBook(),
+        anAddressBook({ id: 'own' })
+      )
+
+      const categorized = categorizeAddressBooks(books, key => key)
+
+      expect(categorized.personalBooks.map(b => b.id)).toEqual(['own'])
+      expect(categorized.sharedBooks).toEqual([])
     })
   })
 })
