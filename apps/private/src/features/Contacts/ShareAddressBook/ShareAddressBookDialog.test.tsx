@@ -168,6 +168,7 @@ describe('ShareAddressBookDialog', () => {
   })
 
   it('announces the people the book was shared with', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
     mockedUpdateShares.mockResolvedValue(undefined)
     mockedSearchUsers.mockResolvedValue([
@@ -180,10 +181,10 @@ describe('ShareAddressBookDialog', () => {
     ])
     renderDialog()
 
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(await screen.findByText('Shared with bob bob')).toHaveAttribute(
       'role',
@@ -192,6 +193,7 @@ describe('ShareAddressBookDialog', () => {
   })
 
   it('announces a failure to share', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
     mockedUpdateShares.mockRejectedValue(new Error('Bad Request'))
     mockedSearchUsers.mockResolvedValue([
@@ -204,10 +206,10 @@ describe('ShareAddressBookDialog', () => {
     ])
     renderDialog()
 
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     await waitFor(() =>
       expect(
