@@ -15,7 +15,10 @@
       "error": "Could not copy the contact. It may already exist in the destination address book."
     },
     "title": "Contacts",
-    "tabs": { "mine": "My contacts", "shared": "Shared with me" },
+    "tabs": {
+      "mine": "My contacts",
+      "shared": "Shared with me"
+    },
     "myContacts": "My contacts",
     "shared": "Shared",
     "domainAddressBook": "Domain Address Book",
@@ -94,7 +97,7 @@
       "editSuccess": "Address book updated successfully"
     },
     "edit": {
-      "title": "Edit address book",
+      "title": "Rename address book",
       "name": "Name",
       "description": "Description",
       "cancel": "Cancel",
@@ -112,10 +115,8 @@
       "openChat": "Open chat",
       "createEvent": "Create event",
       "edit": "Edit",
+      "rename": "Rename",
       "delete": "Delete",
-      "chat": "Chat",
-      "mail": "Send email",
-      "schedule": "Schedule",
       "share": "Share",
       "remove": "Remove from my list",
       "export": "Export"

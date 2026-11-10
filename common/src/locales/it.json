@@ -15,7 +15,10 @@
       "error": "Impossibile copiare il contatto. Potrebbe già esistere nella rubrica di destinazione."
     },
     "title": "Contatti",
-    "tabs": { "mine": "I miei contatti", "shared": "Condiviso con me" },
+    "tabs": {
+      "mine": "I miei contatti",
+      "shared": "Condiviso con me"
+    },
     "myContacts": "I miei contatti",
     "shared": "Condivisi",
     "domainAddressBook": "Rubrica del dominio",
@@ -65,7 +68,7 @@
       "invalidEmail": "Indirizzo email non valido"
     },
     "edit": {
-      "title": "Modifica rubrica",
+      "title": "Rinomina rubrica",
       "name": "Nome",
       "description": "Descrizione",
       "cancel": "Annulla",
@@ -83,10 +86,8 @@
       "openChat": "Apri chat",
       "createEvent": "Crea evento",
       "edit": "Modifica",
+      "rename": "Rinomina",
       "delete": "Elimina",
-      "chat": "Chat",
-      "mail": "Invia email",
-      "schedule": "Pianifica",
       "share": "Condividi",
       "remove": "Rimuovi dalla mia lista",
       "export": "Esporta"

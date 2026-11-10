@@ -15,7 +15,10 @@
       "error": "No se pudo copiar el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
     "title": "Contactos",
-    "tabs": { "mine": "Mis contactos", "shared": "Compartido conmigo" },
+    "tabs": {
+      "mine": "Mis contactos",
+      "shared": "Compartido conmigo"
+    },
     "myContacts": "Mis contactos",
     "shared": "Compartidos",
     "domainAddressBook": "Libreta de direcciones del dominio",
@@ -65,7 +68,7 @@
       "invalidEmail": "Dirección de correo electrónico no válida"
     },
     "edit": {
-      "title": "Editar libreta de direcciones",
+      "title": "Cambiar nombre de la libreta de direcciones",
       "name": "Nombre",
       "description": "Descripción",
       "cancel": "Cancelar",
@@ -83,10 +86,8 @@
       "openChat": "Abrir chat",
       "createEvent": "Crear evento",
       "edit": "Editar",
+      "rename": "Cambiar nombre",
       "delete": "Eliminar",
-      "chat": "Chat",
-      "mail": "Enviar correo",
-      "schedule": "Programar",
       "share": "Compartir",
       "remove": "Quitar de mi lista",
       "export": "Exportar"

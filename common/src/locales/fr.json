@@ -15,7 +15,10 @@
       "error": "Impossible de copier le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
     "title": "Contacts",
-    "tabs": { "mine": "Mes contacts", "shared": "Partagé avec moi" },
+    "tabs": {
+      "mine": "Mes contacts",
+      "shared": "Partagé avec moi"
+    },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
     "domainAddressBook": "Carnet d'adresses du domaine",
@@ -65,7 +68,7 @@
       "invalidEmail": "Adresse email invalide"
     },
     "edit": {
-      "title": "Modifier le carnet d'adresses",
+      "title": "Renommer le carnet d’adresses",
       "name": "Nom",
       "description": "Description",
       "cancel": "Annuler",
@@ -83,10 +86,8 @@
       "openChat": "Ouvrir le chat",
       "createEvent": "Créer un événement",
       "edit": "Modifier",
+      "rename": "Renommer",
       "delete": "Supprimer",
-      "chat": "Discuter",
-      "mail": "Envoyer un e-mail",
-      "schedule": "Planifier",
       "share": "Partager",
       "remove": "Retirer de ma liste",
       "export": "Exporter"

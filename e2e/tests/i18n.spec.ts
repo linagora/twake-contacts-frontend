@@ -30,7 +30,7 @@ function labels(lang: string): Labels {
       myContacts: string
       name: string
       tabs: { shared: string }
-      menu: { mail: string }
+      menu: { sendMail: string }
     }
   }
   return {
@@ -38,7 +38,7 @@ function labels(lang: string): Labels {
     myContacts: contacts.myContacts,
     shared: contacts.tabs.shared,
     name: contacts.name,
-    mail: contacts.menu.mail
+    mail: contacts.menu.sendMail
   }
 }
 

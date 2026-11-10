@@ -61,7 +61,7 @@ export const ContactQuickActions: React.FC<ContactQuickActionsProps> = ({
   const actions = [
     {
       icon: EmailOpen,
-      label: t('contacts.menu.mail'),
+      label: t('contacts.menu.sendMail'),
       testId: 'contact-mail-button',
       onClick: (): void => {
         if (firstEmail) openMailComposer(firstEmail, { workplaceFqdn })
@@ -70,7 +70,7 @@ export const ContactQuickActions: React.FC<ContactQuickActionsProps> = ({
     },
     {
       icon: Discuss,
-      label: t('contacts.menu.chat'),
+      label: t('contacts.menu.openChat'),
       testId: 'contact-chat-button',
       onClick: (): void => {
         if (chatTarget) openChat(chatTarget, { workplaceFqdn })
@@ -79,7 +79,7 @@ export const ContactQuickActions: React.FC<ContactQuickActionsProps> = ({
     },
     {
       icon: CalendarToday,
-      label: t('contacts.menu.schedule'),
+      label: t('contacts.menu.createEvent'),
       testId: 'contact-calendar-button',
       onClick: (): void => {
         if (firstEmail) openCalendarEvent(firstEmail, { workplaceFqdn })
