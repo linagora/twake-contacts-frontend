@@ -55,16 +55,19 @@ export const useDuplicateEmails = (enabled: boolean): DuplicateEmails => {
     [addressBookRefs]
   )
 
+  const canCheck = enabled && addressBookRefs.length > 0
+
+  const needsSearch = useCallback(
+    (email: string): boolean =>
+      isValidEmail(email) && !requestedEmails.current.has(email),
+    []
+  )
+
   const checkEmail = useCallback(
     (index: number, value: string): void => {
       clearTimeout(timers.current.get(index))
       const email = normalizeEmail(value)
-      if (
-        !enabled ||
-        addressBookRefs.length === 0 ||
-        !isValidEmail(email) ||
-        requestedEmails.current.has(email)
-      ) {
+      if (!canCheck || !needsSearch(email)) {
         return
       }
       timers.current.set(
@@ -75,7 +78,7 @@ export const useDuplicateEmails = (enabled: boolean): DuplicateEmails => {
         }, DUPLICATE_CHECK_DELAY_MS)
       )
     },
-    [enabled, addressBookRefs, searchDuplicates]
+    [canCheck, needsSearch, searchDuplicates]
   )
 
   // read from the field's current value: an answer for a former value is not shown
