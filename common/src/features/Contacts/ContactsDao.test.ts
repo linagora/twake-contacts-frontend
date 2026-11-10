@@ -583,6 +583,48 @@ describe('denormalizeContact', () => {
     ])
   })
 
+  it('writes back the UID of a card whose file name differs from it', () => {
+    const contact = normalizeContact({
+      _links: {
+        self: { href: '/addressbooks/u/contacts/0f8b7a6c.vcf' }
+      },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['uid', {}, 'text', '6F9E1D20-1C55-4B7A-8E42-77C1F3A0D9E4'],
+          ['fn', {}, 'text', 'Jane Doe']
+        ]
+      ]
+    })
+
+    expect(contact.id).toBe('0f8b7a6c')
+    expect(
+      denormalizeContact(contact)[1].filter(prop => prop[0] === 'uid')
+    ).toEqual([['uid', {}, 'text', '6F9E1D20-1C55-4B7A-8E42-77C1F3A0D9E4']])
+  })
+
+  it('keeps the uri value type of an urn:uuid UID', () => {
+    const uid: JCalProperty = [
+      'uid',
+      {},
+      'uri',
+      'urn:uuid:0f8b7a6c-1234-4abc-9def-001122334455'
+    ]
+    const contact = normalizeContact({
+      _links: {
+        self: {
+          href: '/addressbooks/u/contacts/0f8b7a6c-1234-4abc-9def-001122334455.vcf'
+        }
+      },
+      data: ['vcard', [['version', {}, 'text', '4.0'], uid]]
+    })
+
+    expect(
+      denormalizeContact(contact)[1].filter(prop => prop[0] === 'uid')
+    ).toEqual([uid])
+  })
+
   it('writes every address component back in vCard order', () => {
     const address = {
       type: 'work',

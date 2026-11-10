@@ -82,6 +82,8 @@ export interface Contact {
   role?: string
   categories?: string[]
   note?: string
+  /** The card's own UID property, written back as read: it may differ from the file name `id`. */
+  uidProperty?: JCalProperty
   passthroughProps?: JCalProperty[]
 }
 
