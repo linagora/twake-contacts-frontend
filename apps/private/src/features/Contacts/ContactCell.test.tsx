@@ -81,6 +81,76 @@ describe('ContactCell', () => {
     }
   )
 
+  describe('calendar and chat actions', () => {
+    const rowWithChat = {
+      addressBookId: 'ab1',
+      contact: {
+        id: 'c1',
+        displayName: 'Anna Default',
+        emails: [{ type: null, value: 'anna@example.com' }],
+        socialProfiles: [{ type: 'matrix', value: 'anna' }]
+      }
+    } as unknown as VirtualizedTableRow
+
+    const renderChatCell = (lang: keyof typeof locales): void => {
+      const store = setupStore({
+        user: { userData: { openpaasId: 'u1' } } as UserState
+      })
+      render(
+        <Provider store={store}>
+          <TwakeMuiThemeProvider>
+            <I18n dictRequire={() => locales[lang]} lang={lang}>
+              <ContactCell row={rowWithChat} column={column} />
+            </I18n>
+          </TwakeMuiThemeProvider>
+        </Provider>
+      )
+    }
+
+    beforeEach(() => {
+      mockConfig.CALENDAR_SPA_URL = 'https://calendar.example.com'
+      mockConfig.CHAT_SPA_URL = 'https://chat.example.com'
+    })
+
+    afterEach(() => {
+      delete mockConfig.CALENDAR_SPA_URL
+      delete mockConfig.CHAT_SPA_URL
+    })
+
+    it.each(Object.keys(locales) as (keyof typeof locales)[])(
+      'labels the popover calendar and chat actions like the row menu in %s',
+      lang => {
+        renderChatCell(lang)
+
+        fireEvent.click(screen.getByText('Anna Default'))
+
+        expect(
+          screen.getByRole('link', {
+            name: locales[lang].contacts.menu.createEvent
+          })
+        ).toBeInTheDocument()
+        expect(
+          screen.getByRole('link', {
+            name: locales[lang].contacts.menu.openChat
+          })
+        ).toBeInTheDocument()
+      }
+    )
+
+    it.each([
+      ['calendar', enLocale.contacts.menu.createEvent],
+      ['chat', enLocale.contacts.menu.openChat]
+    ])('shows a single tooltip on the %s action', async (_, label) => {
+      renderChatCell('en')
+      fireEvent.click(screen.getByText('Anna Default'))
+
+      fireEvent.mouseOver(screen.getByRole('link', { name: label }))
+
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(label)
+      expect(screen.getAllByRole('tooltip')).toHaveLength(1)
+    })
+  })
+
   describe('name popover', () => {
     const sendMailLink = (): HTMLElement | null =>
       screen.queryByRole('link', { name: enLocale.contacts.menu.sendMail })
