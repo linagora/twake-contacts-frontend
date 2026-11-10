@@ -1,8 +1,8 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
 import {
-  CONTRAST_STORAGE_KEY,
   type ContrastMode,
+  persistContrastMode,
   readInitialContrastMode
 } from './contrastMode'
 
@@ -38,7 +38,7 @@ const SettingsSlice = createAppSlice({
     setContrastMode: create.reducer(
       (state, action: PayloadAction<ContrastMode>) => {
         state.contrastMode = action.payload
-        localStorage.setItem(CONTRAST_STORAGE_KEY, action.payload)
+        persistContrastMode(action.payload)
       }
     )
   })
