@@ -9,7 +9,8 @@ import {
   ContactName,
   ContactOrg,
   ContactPhone,
-  ContactSocialProfile
+  ContactSocialProfile,
+  PhoneValueType
 } from '../contactsTypes'
 import {
   DavAddressBookItem,
@@ -82,13 +83,20 @@ function parseEmails(card: JCalCard): ContactEmail[] {
     .filter(e => e.value)
 }
 
+const TEL_SCHEME = /^tel:/i
+const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
+
 function parsePhones(card: JCalCard): ContactPhone[] {
   return getCardProperties(card, 'tel')
     .map(prop => {
       const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^tel:/, '')
+      // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
+      const isTelUri = TEL_SCHEME.test(raw)
+      const value = raw.replace(TEL_SCHEME, '')
       const type = getTypeParam(prop[1])
-      return { type, value }
+      return isTelUri
+        ? { type, value, valueType: TEL_URI_VALUE_TYPE }
+        : { type, value }
     })
     .filter(p => p.value)
 }
@@ -105,6 +113,17 @@ function toAddressComponents(rawValue: unknown): unknown[] | null {
     return components
   }
   return null
+}
+
+function makePhoneProperty(phone: ContactPhone): JCalProperty {
+  return phone.valueType === TEL_URI_VALUE_TYPE
+    ? [
+        'tel',
+        phone.type ? { type: phone.type } : {},
+        'uri',
+        `tel:${phone.value}`
+      ]
+    : makeTypedProperty('tel', phone.type, phone.value)
 }
 
 function parseAddresses(card: JCalCard): ContactAddress[] {
@@ -339,7 +358,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     properties.push(makeTypedProperty('email', email.type, email.value))
   })
   contact.phones?.forEach(phone => {
-    properties.push(makeTypedProperty('tel', phone.type, phone.value))
+    properties.push(makePhoneProperty(phone))
   })
   contact.addresses?.forEach(address => {
     properties.push(

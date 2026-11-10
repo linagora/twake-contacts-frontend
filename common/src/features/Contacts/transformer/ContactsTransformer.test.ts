@@ -1,7 +1,8 @@
 import {
   AddressBookAccessLevel,
   DavAddressBookItem,
-  DavContactItem
+  DavContactItem,
+  JCalProperty
 } from '../davTypes'
 import { userData } from '../../User/userDataTypes'
 import {
@@ -10,6 +11,59 @@ import {
   normalizeAddressBook,
   normalizeContact
 } from './ContactsTransformer'
+
+describe('TEL value type round trip', () => {
+  const cardWithTel = (tel: JCalProperty): DavContactItem =>
+    ({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jürgen Müller'],
+          tel
+        ]
+      ]
+    }) as unknown as DavContactItem
+
+  const savedTels = (tel: JCalProperty): JCalProperty[] =>
+    denormalizeContact(normalizeContact(cardWithTel(tel)))[1].filter(
+      p => p[0] === 'tel'
+    )
+
+  it('keeps a uri TEL as a tel: uri on save', () => {
+    expect(
+      savedTels(['tel', { type: 'work' }, 'uri', 'tel:+49-30-1234;ext=5'])
+    ).toEqual([['tel', { type: 'work' }, 'uri', 'tel:+49-30-1234;ext=5']])
+  })
+
+  it('shows a uri TEL without its scheme', () => {
+    const contact = normalizeContact(
+      cardWithTel(['tel', {}, 'uri', 'tel:+49-30-1234'])
+    )
+    expect(contact.phones).toEqual([
+      { type: null, value: '+49-30-1234', valueType: 'uri' }
+    ])
+  })
+
+  it('keeps a text TEL as text on save', () => {
+    expect(savedTels(['tel', { type: 'home' }, 'text', '+33 1 23'])).toEqual([
+      ['tel', { type: 'home' }, 'text', '+33 1 23']
+    ])
+  })
+
+  it('writes a new phone as text', () => {
+    const card = denormalizeContact({
+      id: 'c1',
+      displayName: 'New',
+      emails: [],
+      phones: [{ type: 'cell', value: '0612' }]
+    })
+    expect(card[1].filter(p => p[0] === 'tel')).toEqual([
+      ['tel', { type: 'cell' }, 'text', '0612']
+    ])
+  })
+})
 
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
   _links: { self: { href: '/addressbooks/owner/book.json' } },

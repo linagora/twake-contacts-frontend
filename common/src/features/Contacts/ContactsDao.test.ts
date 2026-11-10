@@ -153,7 +153,7 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withTelUri).phones).toEqual([
-      { type: 'Work', value: '0788668833' }
+      { type: 'Work', value: '0788668833', valueType: 'uri' }
     ])
   })
 

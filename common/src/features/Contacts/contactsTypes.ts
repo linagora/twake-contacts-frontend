@@ -38,9 +38,15 @@ export interface ContactAddress {
   country: string
 }
 
+/** vCard 4 TEL value type (RFC 6350 6.4.1): a `tel:` URI or a free text number. */
+export type PhoneValueType = 'uri' | 'text'
+
 export interface ContactPhone {
   type: string | null
+  /** Number without the `tel:` scheme. */
   value: string
+  /** 'uri' when read as a `tel:` URI; absent (written as text) otherwise or for a new phone. */
+  valueType?: PhoneValueType
 }
 
 export interface ContactEmail {
