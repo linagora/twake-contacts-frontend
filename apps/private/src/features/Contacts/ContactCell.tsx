@@ -94,7 +94,7 @@ export const ContactCell: React.FC<ContactCellProps> = ({
           {nameElement}
           <ContactPopover.Actions>
             <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
-            <Tooltip disableInteractive title={t('contacts.menu.createEvent')}>
+            <Tooltip title={t('contacts.menu.createEvent')}>
               <span>
                 <ContactPopover.CalendarAction
                   url={calendarUrl}
@@ -102,7 +102,7 @@ export const ContactCell: React.FC<ContactCellProps> = ({
                 />
               </span>
             </Tooltip>
-            <Tooltip disableInteractive title={t('contacts.menu.openChat')}>
+            <Tooltip title={t('contacts.menu.openChat')}>
               <span>
                 <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
               </span>

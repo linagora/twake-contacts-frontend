@@ -215,14 +215,27 @@ describe('ContactsSidebar', () => {
     expect(label.closest('.u-midellipsis')).toBeNull()
   })
 
-  it('does not let the address book name tooltip capture clicks meant for the next entry', async () => {
+  it('opens the address book name tooltip beside the entry, not over the next one', async () => {
     renderSidebar('/contacts')
 
     fireEvent.mouseOver(screen.getByText('Book 1'))
 
     const tooltip = await screen.findByRole('tooltip')
     expect(tooltip).toHaveTextContent('Book 1')
-    expect(tooltip).not.toHaveClass('MuiTooltip-popperInteractive')
+    expect(tooltip).toHaveAttribute('data-popper-placement', 'right')
+  })
+
+  it('keeps the address book name tooltip open while the pointer moves onto it', async () => {
+    renderSidebar('/contacts')
+
+    const label = screen.getByText('Book 1')
+    fireEvent.mouseOver(label)
+    const tooltip = await screen.findByRole('tooltip')
+    fireEvent.mouseLeave(label)
+    fireEvent.mouseOver(tooltip)
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Book 1')
   })
 
   it('hides create button on mobile', () => {

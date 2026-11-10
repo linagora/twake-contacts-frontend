@@ -18,7 +18,7 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
       className="u-flex u-flex-items-center"
     >
       <ContactAvatar size={94} initialsVariant="h2" displayName={displayName} />
-      <Tooltip disableInteractive title={displayName || title || ''}>
+      <Tooltip title={displayName || title || ''}>
         <Typography variant="h4" noWrap>
           {displayName || title || ''}
         </Typography>

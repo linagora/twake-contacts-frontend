@@ -22,7 +22,7 @@ export function EntryPaper({
       <ListItem
         secondaryAction={
           onRemove && (
-            <Tooltip disableInteractive title={t('contacts.form.remove')}>
+            <Tooltip title={t('contacts.form.remove')}>
               <IconButton
                 aria-label={t('contacts.form.remove')}
                 onClick={onRemove}

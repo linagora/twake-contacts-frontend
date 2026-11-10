@@ -131,7 +131,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
         secondaryAction={
           isHovered || isMenuOpen || isMobile ? (
             <>
-              <Tooltip disableInteractive title={t('contacts.menu.more')}>
+              <Tooltip placement="right" title={t('contacts.menu.more')}>
                 <IconButton
                   size="xsmall"
                   onClick={handleMenuOpen}
@@ -189,10 +189,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
           aria-current={getAriaCurrent(selected)}
         >
           <NavIcon icon={Peoples} />
-          <Tooltip
-            disableInteractive
-            title={getAddressBookDisplayName(book, t)}
-          >
+          <Tooltip placement="right" title={getAddressBookDisplayName(book, t)}>
             <NavText className="u-mr-1" secondaryText={book.ownerDisplayName}>
               <Box className="u-ellipsis">
                 {getAddressBookDisplayName(book, t)}
