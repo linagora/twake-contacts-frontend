@@ -87,11 +87,14 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
     },
     {
       fulfilled: (state, action) => {
+        const { fromAddressBookId, toAddressBookId, contact } = action.payload
         state.transferSuccess = {
           operation: 'move',
-          requestId: action.meta.requestId
+          requestId: action.meta.requestId,
+          contactId: contact.id,
+          contactName: contact.displayName,
+          destinationId: toAddressBookId
         }
-        const { fromAddressBookId, toAddressBookId, contact } = action.payload
         const fromBook = state.addressBooks[fromAddressBookId]
         if (fromBook) {
           state.addressBooks[fromAddressBookId] = removeContactFromBook(

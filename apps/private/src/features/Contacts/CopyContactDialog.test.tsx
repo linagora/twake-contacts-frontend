@@ -8,6 +8,7 @@ import {
   within
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
@@ -34,6 +35,9 @@ const book = (id: string, canWrite = true): AddressBookWithContacts => ({
   contactsCount: 0,
   contacts: []
 })
+const LocationDisplay = (): React.ReactElement => (
+  <div data-testid="location">{useLocation().pathname}</div>
+)
 const renderDialog = (
   mode: 'copy' | 'move' = 'copy',
   sourceCanWrite = true
@@ -91,7 +95,12 @@ const renderDialog = (
     <Provider store={store}>
       <TwakeMuiThemeProvider>
         <I18n dictRequire={() => en} lang="en">
-          <DialogHarness />
+          <MemoryRouter initialEntries={['/contacts']}>
+            <Routes>
+              <Route path="*" element={<DialogHarness />} />
+            </Routes>
+            <LocationDisplay />
+          </MemoryRouter>
         </I18n>
       </TwakeMuiThemeProvider>
     </Provider>
@@ -169,7 +178,9 @@ it.each(transferCases)(
     selectDestination()
     fireEvent.click(screen.getByRole('button', { name: label }))
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(screen.getByRole('alert')).toHaveTextContent(messages.success)
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      messages.success.replace('%{name}', 'Alice').replace('%{book}', 'target')
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(store.getState().contacts.transferSuccess).toBeNull()
     expect(dao).toHaveBeenCalledWith(
@@ -253,5 +264,35 @@ it.each(['copy', 'move'] as const)(
         listbox.getByRole('option', { name: /Alpha Shared/ })
       ) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  }
+)
+
+it.each(['copy', 'move'] as const)(
+  'names the contact and its current book in the %s dialog',
+  mode => {
+    renderDialog(mode)
+    expect(screen.getByText('Alice · currently in source')).toBeInTheDocument()
+  }
+)
+
+it.each(transferCases)(
+  'opens the $mode result from the toast and closes it',
+  async ({ mode, label }) => {
+    vi.clearAllMocks()
+    vi.mocked(copyContact).mockResolvedValue('new-card-id')
+    vi.mocked(moveContact).mockResolvedValue()
+    const { store, onClose } = renderDialog(mode)
+    selectDestination('My contacts')
+    fireEvent.click(screen.getByRole('button', { name: label }))
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `“Alice” ${mode === 'copy' ? 'copied' : 'moved'} to My contacts`
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      `/contacts/contacts/${mode === 'copy' ? 'new-card-id' : 'c1'}`
+    )
+    expect(store.getState().contacts.transferSuccess).toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   }
 )
