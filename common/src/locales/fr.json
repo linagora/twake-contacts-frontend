@@ -157,7 +157,10 @@
       "removeTitle": "Retirer ce carnet d'adresses ?",
       "removeConfirm": "Retirer",
       "editTitle": "Modifier le carnet d'adresses",
-      "editSuccess": "Carnet d'adresses modifié avec succès"
+      "editSuccess": "Carnet d'adresses modifié avec succès",
+      "sharedWith": "Partagé avec %{smart_count} personne |||| Partagé avec %{smart_count} personnes",
+      "public": "Visible par votre organisation",
+      "sharedBy": "Partagé par %{owner} · %{role}"
     },
     "share": {
       "title": "Partager %{name}",

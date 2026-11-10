@@ -8,9 +8,13 @@ import {
 import { Burger, Icon, Magnifier } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { useAppSelector } from '@common/app/hooks'
-import { selectContactEntries } from '@common/features/Contacts/contactsSelectors'
+import {
+  selectBook,
+  selectContactEntries
+} from '@common/features/Contacts/contactsSelectors'
 import { useSearchParams } from 'react-router'
 import { ImportContactsButton } from './ImportContactsButton'
+import { AddressBookMobileActions } from './AddressBookActions/AddressBookMobileActions'
 
 export interface MobileTopBarProps {
   onOpenSidebar: () => void
@@ -39,6 +43,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
   const entries = useAppSelector(state =>
     selectContactEntries(state, addressBookId, scope, openpaasId)
   )
+  const book = useAppSelector(state => selectBook(state, addressBookId))
 
   if (!isMobile) return
 
@@ -66,6 +71,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
         {isAddressBookPage && entries.length > 0 && (
           <ImportContactsButton addressBookId={addressBookId} />
         )}
+        {isAddressBookPage && book && <AddressBookMobileActions book={book} />}
         {!isAddressBookPage && (
           <Tooltip title={t('contacts.nav.search')}>
             <IconButton

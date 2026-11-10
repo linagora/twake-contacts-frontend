@@ -1,25 +1,10 @@
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { Dots, Icon, Peoples } from '@linagora/twake-icons'
 import {
-  canShareAddressBook,
-  getAddressBookDisplayName
-} from '@common/features/Contacts/contactsUtils'
-import {
-  Trash,
-  Dots,
-  Download,
-  Icon,
-  Peoples,
-  Pen,
-  ShareExternal
-} from '@linagora/twake-icons'
-import {
-  ActionsMenu,
-  ActionsMenuItem,
   Box,
   IconButton,
-  ListItemIcon,
-  ListItemText,
   NavIcon,
   NavItem,
   NavLink,
@@ -29,18 +14,8 @@ import {
 } from '@linagora/twake-mui'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
-import { ShareAddressBookDialog } from '../ShareAddressBook/ShareAddressBookDialog'
 import { getAriaCurrent } from './sidebarHelpers'
-import { useAppDispatch } from '@common/app/hooks'
-import {
-  deleteAddressBook,
-  updateAddressBook
-} from '@common/features/Contacts/ContactsSlice'
-import { DeleteAddressBookDialog } from '../DeleteAddressBookDialog'
-import { EditAddressBookDialog } from '../EditAddressBookDialog'
-import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
-import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { downloadFile, toFileName } from '@common/utils/downloadFile'
+import { useAddressBookActions } from '../AddressBookActions/useAddressBookActions'
 
 export interface AddressBookNavItemProps {
   book: AddressBook
@@ -58,66 +33,13 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const { t } = useI18n()
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [exportError, setExportError] = useState<string | null>(null)
-
-  const dispatch = useAppDispatch()
-  const isCopy = Boolean(book.ownerId)
-
-  const removeBook = (): void => {
-    void dispatch(
-      deleteAddressBook({ userId: book.userId, addressBookId: book.id })
-    )
-      .unwrap()
-      .then(() => {
-        if (selected) void navigate('/contacts')
-        return
-      })
-      .catch(() => {})
-  }
-
-  const handleDelete = (): void => {
-    handleMenuClose()
-    setIsConfirmOpen(true)
-  }
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
-    event.stopPropagation()
-    event.preventDefault()
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleMenuClose = (): void => {
-    setAnchorEl(null)
-  }
-
-  const handleEdit = (): void => {
-    handleMenuClose()
-    setIsEditOpen(true)
-  }
-
-  const handleShare = (): void => {
-    setIsShareDialogOpen(true)
-    handleMenuClose()
-  }
-
-  const handleExport = (): void => {
-    handleMenuClose()
-    exportAddressBook(book)
-      .then(blob =>
-        downloadFile(
-          blob,
-          toFileName(getAddressBookDisplayName(book, t), 'vcf')
-        )
-      )
-      .catch(() => setExportError(t('contacts.errors.exportAddressBook')))
-  }
-
-  const isMenuOpen = Boolean(anchorEl)
+  const { isMenuOpen, openMenu, menu, dialogs } = useAddressBookActions({
+    book,
+    onRemoved: () => {
+      if (selected) void navigate('/contacts')
+    }
+  })
 
   return (
     <div
@@ -134,51 +56,13 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
               <Tooltip disableInteractive title={t('contacts.menu.more')}>
                 <IconButton
                   size="xsmall"
-                  onClick={handleMenuOpen}
+                  onClick={openMenu}
                   onBlur={() => setIsHovered(false)}
                 >
                   <Icon icon={Dots} size={10} rotate={90} />
                 </IconButton>
               </Tooltip>
-              <ActionsMenu
-                ref={{ current: anchorEl }}
-                open={isMenuOpen}
-                onClose={handleMenuClose}
-                onClick={e => e.stopPropagation()}
-              >
-                {canShareAddressBook(book) && (
-                  <ActionsMenuItem onClick={handleShare}>
-                    <ListItemIcon>
-                      <Icon icon={ShareExternal} />
-                    </ListItemIcon>
-                    <ListItemText>{t('contacts.menu.share')}</ListItemText>
-                  </ActionsMenuItem>
-                )}
-                {book.canWrite && !isCopy && (
-                  <ActionsMenuItem onClick={handleEdit}>
-                    <ListItemIcon>
-                      <Icon icon={Pen} />
-                    </ListItemIcon>
-                    <ListItemText>{t('contacts.menu.rename')}</ListItemText>
-                  </ActionsMenuItem>
-                )}
-                <ActionsMenuItem onClick={handleExport}>
-                  <ListItemIcon>
-                    <Icon icon={Download} />
-                  </ListItemIcon>
-                  <ListItemText>{t('contacts.menu.export')}</ListItemText>
-                </ActionsMenuItem>
-                <ActionsMenuItem onClick={handleDelete}>
-                  <ListItemIcon>
-                    <Icon icon={Trash} />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t(
-                      isCopy ? 'contacts.menu.remove' : 'contacts.menu.delete'
-                    )}
-                  </ListItemText>
-                </ActionsMenuItem>
-              </ActionsMenu>
+              {menu}
             </>
           ) : null
         }
@@ -201,39 +85,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
           </Tooltip>
         </NavLink>
       </NavItem>
-      <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
-      {isShareDialogOpen && (
-        <ShareAddressBookDialog
-          addressBookId={book.id}
-          onClose={() => setIsShareDialogOpen(false)}
-        />
-      )}
-      {isConfirmOpen && (
-        <DeleteAddressBookDialog
-          book={book}
-          onClose={() => setIsConfirmOpen(false)}
-          onConfirm={() => {
-            setIsConfirmOpen(false)
-            removeBook()
-          }}
-        />
-      )}
-      {isEditOpen && (
-        <EditAddressBookDialog
-          book={book}
-          onClose={() => setIsEditOpen(false)}
-          onConfirm={({ name }) => {
-            setIsEditOpen(false)
-            void dispatch(
-              updateAddressBook({
-                userId: book.userId,
-                addressBookId: book.id,
-                name
-              })
-            )
-          }}
-        />
-      )}
+      {dialogs}
     </div>
   )
 }
