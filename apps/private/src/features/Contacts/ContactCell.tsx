@@ -4,7 +4,6 @@ import {
   ContactPopover,
   Skeleton,
   Stack,
-  Tooltip,
   Typography,
   VirtualizedTableColumn,
   VirtualizedTableRow
@@ -94,19 +93,16 @@ export const ContactCell: React.FC<ContactCellProps> = ({
           {nameElement}
           <ContactPopover.Actions>
             <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
-            <Tooltip disableInteractive title={t('contacts.menu.createEvent')}>
-              <span>
-                <ContactPopover.CalendarAction
-                  url={calendarUrl}
-                  disabled={!calendarUrl}
-                />
-              </span>
-            </Tooltip>
-            <Tooltip disableInteractive title={t('contacts.menu.openChat')}>
-              <span>
-                <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
-              </span>
-            </Tooltip>
+            <ContactPopover.CalendarAction
+              url={calendarUrl}
+              disabled={!calendarUrl}
+              label={t('contacts.menu.createEvent')}
+            />
+            <ContactPopover.ChatAction
+              url={chatUrl}
+              disabled={!chatUrl}
+              label={t('contacts.menu.openChat')}
+            />
           </ContactPopover.Actions>
         </ContactNamePopover>
       )
