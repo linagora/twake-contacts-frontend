@@ -54,6 +54,28 @@ function componentText(value: unknown): string {
   return value.map(scalarText).filter(Boolean).join(' ')
 }
 
+function getTextValues(prop: JCalProperty): string[] {
+  return prop
+    .slice(3)
+    .flatMap(value =>
+      typeof value === 'string' ||
+      (typeof value === 'number' && Number.isFinite(value))
+        ? [String(value)]
+        : []
+    )
+}
+
+function parseUriValues(
+  prop: JCalProperty,
+  scheme: RegExp
+): { type: string | null; value: string }[] {
+  const type = getTypeParam(prop[1])
+  return getTextValues(prop)
+    .map(raw => raw.replace(scheme, ''))
+    .filter(Boolean)
+    .map(value => ({ type, value }))
+}
+
 function getTypeParam(params: JCalParams): string | null {
   const type = params.type
   if (typeof type === 'string') return type
@@ -76,32 +98,26 @@ function parseName(card: JCalCard): ContactName | null {
 }
 
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return getCardProperties(card, 'email')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^mailto:/, '')
-      const type = getTypeParam(prop[1])
-      return { type, value }
-    })
-    .filter(e => e.value)
+  return getCardProperties(card, 'email').flatMap(prop =>
+    parseUriValues(prop, /^mailto:/)
+  )
 }
 
 const TEL_SCHEME = /^tel:/i
 const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
 
 function parsePhones(card: JCalCard): ContactPhone[] {
-  return getCardProperties(card, 'tel')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
+  return getCardProperties(card, 'tel').flatMap(prop => {
+    const type = getTypeParam(prop[1])
+    return getTextValues(prop).flatMap((raw): ContactPhone[] => {
       // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
-      const isTelUri = TEL_SCHEME.test(raw)
       const value = raw.replace(TEL_SCHEME, '')
-      const type = getTypeParam(prop[1])
-      return isTelUri
-        ? { type, value, valueType: TEL_URI_VALUE_TYPE }
-        : { type, value }
+      if (!value) return []
+      return TEL_SCHEME.test(raw)
+        ? [{ type, value, valueType: TEL_URI_VALUE_TYPE }]
+        : [{ type, value }]
     })
-    .filter(p => p.value)
+  })
 }
 
 const STREET_INDEX = 2
