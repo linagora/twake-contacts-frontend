@@ -35,6 +35,7 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] NAV-11 (P3) The selected sidebar entry is exposed to assistive technologies — `navigation.spec.ts`
 - [ ] NAV-12 (P3) Create keeps the address book of the URL while the books load
 - [x] NAV-13 (P3) Address books with an empty or numeric name — `navigation.spec.ts`
+- [x] NAV-14 (P3) Address book ids named like JavaScript object members (`constructor`, `toString`) — `navigation.spec.ts`
 
 ## Address books
 
@@ -103,6 +104,9 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [ ] VIEW-07 (P3) Long values on the contact page are truncated with a tooltip
 - [x] VIEW-08 (P2) Link to a contact beyond the first loaded page — `view.spec.ts`
 - [ ] VIEW-09 (P3) Wide initials stay inside the large avatar
+- [x] VIEW-10 (P3) A contact stored as `new.vcf` opens its contact page, not the creation form — `view.spec.ts`
+- [x] VIEW-11 (P3) Addresses of other clients (blank components, multi-line street) shown without stray separators — `view.spec.ts`
+- [x] VIEW-12 (P3) Initials of names starting with an emoji or a punctuation mark — `view.spec.ts`
 
 ## Edit contact
 
@@ -116,6 +120,8 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 - [x] EDIT-08 (P3) Move a contact into a read-write shared book — `edit.spec.ts`
 - [x] EDIT-09 (P3) An untyped address stays untyped after an edit — `edit.spec.ts`
 - [x] EDIT-10 (P3) Empty phone and address rows of the edit form are untyped — `edit.spec.ts`
+- [x] EDIT-11 (P2) An edit keeps every nickname and every Matrix id — `edit.spec.ts`
+- [x] EDIT-12 (P2) A saved email is a plain address (no `mailto:`) and a saved URL a `uri` — `edit.spec.ts`
 
 ## Delete contact
 

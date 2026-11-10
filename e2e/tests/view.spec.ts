@@ -242,4 +242,82 @@ test.describe('VIEW contact page', () => {
     await contacts.open('/contacts/contacts/does-not-exist')
     await expect(contact.notFound).toBeVisible()
   })
+
+  test('VIEW-10 a contact stored as new.vcf opens its contact page', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    await dav.putContact('qa-book', {
+      uid: 'new',
+      firstName: 'Newton',
+      lastName: 'Card'
+    })
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+
+    const contact = await contacts.openContact('Newton Card')
+    await expect(page).toHaveURL('/contacts/qa-book/new')
+    await expect(contact.name).toHaveText('Newton Card')
+
+    // A direct link too, and not the creation form
+    await contacts.open('/contacts/qa-book/new')
+    await expect(contact.name).toHaveText('Newton Card')
+    await expect(contact.editButton).toBeVisible()
+    await expect(new ContactFormPage(page).firstName).toHaveCount(0)
+  })
+
+  test('VIEW-11 addresses of other clients are shown without stray separators', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    await dav.putJCard('qa-book', 'qa-adr', [
+      ['fn', {}, 'text', 'Odd Address'],
+      ['n', {}, 'text', ['Address', 'Odd', '', '', '']],
+      // Blank components around a locality
+      [
+        'adr',
+        { type: 'work' },
+        'text',
+        [' ', ' ', '2 Side Road', 'Paris', ' ', ' ', ' ']
+      ],
+      // A street of several lines (a component that is an array, RFC 7095 3.3.1.3)
+      [
+        'adr',
+        {},
+        'text',
+        ['', '', ['3 Long Lane', 'Floor 4'], 'Lyon', '', '69001', '']
+      ]
+    ])
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+    const contact = await contacts.openContact('Odd Address')
+
+    await expect(contact.detail('2 Side Road, Paris')).toContainText('Work')
+    await expect(
+      contact.detail('3 Long Lane Floor 4, 69001 Lyon')
+    ).toBeVisible()
+  })
+
+  test('VIEW-12 initials of names starting with an emoji or a punctuation mark', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'qa-book', name: 'QA Book' })
+    await dav.putContact('qa-book', { firstName: '🦊', lastName: 'Fox' })
+    await dav.putContact('qa-book', { firstName: '(Jane)', lastName: 'Doe' })
+    const contacts = await new LoginPage(page).loginAs(user)
+    await contacts.openBook('QA Book')
+
+    let contact = await contacts.openContact('🦊 Fox')
+    await expect(contact.main.getByText('🦊F', { exact: true })).toBeVisible()
+
+    await contact.backLink.click()
+    contact = await contacts.openContact('(Jane) Doe')
+    await expect(contact.main.getByText('JD', { exact: true })).toBeVisible()
+  })
 })

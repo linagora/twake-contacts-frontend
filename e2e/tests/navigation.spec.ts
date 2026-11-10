@@ -311,4 +311,26 @@ test.describe('NAV sidebar and navigation', () => {
     await new ContactPage(page).backLink.click()
     await expect(page).toHaveURL('/contacts/qa-empty')
   })
+
+  test('NAV-14 address book ids named like JavaScript object members', async ({
+    page,
+    user,
+    dav
+  }) => {
+    await dav.createAddressBook({ id: 'constructor', name: 'Builders' })
+    await dav.putContact('constructor', {
+      firstName: 'Bob',
+      lastName: 'Builder'
+    })
+    const contacts = await new LoginPage(page).loginAs(user)
+
+    await contacts.openBook('Builders')
+    await expect(page).toHaveURL('/contacts/constructor')
+    await expect(contacts.heading).toHaveText('Builders')
+    await expect(contacts.row('Bob Builder')).toBeVisible()
+
+    // No such book: the not-found state, not a crash (the fixture fails on page errors)
+    await contacts.open('/contacts/toString')
+    await expect(contacts.addressBookNotFound).toBeVisible()
+  })
 })
