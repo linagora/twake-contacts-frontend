@@ -114,6 +114,7 @@ describe('ShareAddressBookDialog', () => {
   })
 
   it('lists the members once they are fetched after a failure', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockRejectedValueOnce(new Error('Bad Request'))
       .mockResolvedValue({ members: [bob], isPublic: false })
@@ -131,10 +132,10 @@ describe('ShareAddressBookDialog', () => {
     expect(
       await screen.findByText('Failed to load the members of this address book')
     ).toBeInTheDocument()
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(await screen.findByText('bob bob')).toBeInTheDocument()
     expect(
@@ -143,6 +144,7 @@ describe('ShareAddressBookDialog', () => {
   })
 
   it('lists a member shared again right after being removed', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockResolvedValueOnce({ members: [bob], isPublic: false })
       .mockResolvedValueOnce({ members: [], isPublic: false })
@@ -158,20 +160,21 @@ describe('ShareAddressBookDialog', () => {
     ])
     renderDialog()
 
-    userEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+    await user.click(await screen.findByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(mockedFetchDetails).toHaveBeenCalledTimes(2))
     expect(screen.queryByText('bob bob')).not.toBeInTheDocument()
 
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(await screen.findByText('bob bob')).toBeInTheDocument()
     expect(mockedFetchDetails).toHaveBeenCalledTimes(3)
   })
 
   it('keeps the focus on the role selector after a role change', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails.mockResolvedValue({ members: [bob], isPublic: false })
     let resolveUpdate: () => void = () => undefined
     mockedUpdateShares.mockReturnValue(
@@ -184,8 +187,8 @@ describe('ShareAddressBookDialog', () => {
     const selector = await screen.findByRole('button', {
       name: 'Role of bob bob'
     })
-    userEvent.click(selector)
-    userEvent.click(
+    await user.click(selector)
+    await user.click(
       within(screen.getByRole('menu')).getByRole('menuitemradio', {
         name: 'Editor'
       })
@@ -201,11 +204,12 @@ describe('ShareAddressBookDialog', () => {
     expect(selector).toHaveAttribute('aria-disabled', 'false')
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
-    userEvent.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalled()
   })
 
   it('moves the focus to the "Add contacts" field after a removal', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockResolvedValueOnce({ members: [bob], isPublic: false })
       .mockResolvedValue({ members: [], isPublic: false })
@@ -214,13 +218,13 @@ describe('ShareAddressBookDialog', () => {
 
     const removeButton = await screen.findByRole('button', { name: 'Remove' })
     removeButton.focus()
-    userEvent.click(removeButton)
+    await user.click(removeButton)
 
     await waitFor(() => expect(mockedFetchDetails).toHaveBeenCalledTimes(2))
     expect(screen.queryByText('bob bob')).not.toBeInTheDocument()
     expect(screen.getByPlaceholderText('Add contacts')).toHaveFocus()
 
-    userEvent.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalled()
   })
 })

@@ -8,8 +8,7 @@ import {
 } from '@linagora/twake-mui'
 import { useEffect, useRef } from 'react'
 import { useAppSelector } from '@common/app/hooks'
-import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined'
-import ReplayIcon from '@mui/icons-material/Replay'
+import { Icon, Refresh, WarningCircle } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
 interface ErrorProps {
@@ -69,7 +68,7 @@ export const Error: React.FC<ErrorProps> = ({
                 justifyContent: 'center'
               }}
             >
-              <ErrorOutlinedIcon sx={{ fontSize: 40 }} />
+              <Icon icon={WarningCircle} size={40} />
             </Box>
 
             <Typography variant="h5">{t('error.title')}</Typography>
@@ -89,7 +88,7 @@ export const Error: React.FC<ErrorProps> = ({
             <Button
               variant="contained"
               color="error"
-              startIcon={<ReplayIcon />}
+              startIcon={<Icon icon={Refresh} />}
               onClick={() => (window.location.href = '/')}
               sx={{
                 textTransform: 'none',

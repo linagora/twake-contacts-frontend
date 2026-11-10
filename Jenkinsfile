@@ -20,6 +20,10 @@ pipeline {
       stage('Compile') {
           steps {
             sh 'npm ci'
+            // one range per dependency across the workspaces
+            sh 'npm run lint:deps'
+            // fail on known high-severity vulnerabilities of the shipped dependencies
+            sh 'npm audit --omit=dev --audit-level=high'
           }
       }
       stage('Test') {

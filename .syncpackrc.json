@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/syncpack/schema.json",
+  "versionGroups": [
+    {
+      "label": "Workspace packages are linked by npm workspaces",
+      "dependencies": ["@contacts/**"],
+      "isIgnored": true
+    }
+  ]
+}

@@ -39,12 +39,13 @@ describe('MemberRow', () => {
     ).toHaveTextContent('Read & write')
   })
 
-  it('changes a read-write member to Viewer', () => {
+  it('changes a read-write member to Viewer', async () => {
+    const user = userEvent.setup()
     const member = bob(AddressBookAccessLevel.ReadWrite)
     const onUpdateMember = renderMemberRow(member)
 
-    userEvent.click(screen.getByRole('button', { name: 'Role of bob bob' }))
-    userEvent.click(
+    await user.click(screen.getByRole('button', { name: 'Role of bob bob' }))
+    await user.click(
       within(screen.getByRole('menu')).getByRole('menuitemradio', {
         name: 'Viewer'
       })
@@ -56,10 +57,11 @@ describe('MemberRow', () => {
     )
   })
 
-  it('does not offer read-write to a Viewer', () => {
+  it('does not offer read-write to a Viewer', async () => {
+    const user = userEvent.setup()
     renderMemberRow(bob(AddressBookAccessLevel.Viewer))
 
-    userEvent.click(screen.getByRole('button', { name: 'Role of bob bob' }))
+    await user.click(screen.getByRole('button', { name: 'Role of bob bob' }))
 
     expect(
       within(screen.getByRole('menu'))

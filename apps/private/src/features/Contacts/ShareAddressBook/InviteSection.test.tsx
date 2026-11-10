@@ -52,12 +52,13 @@ describe('InviteSection', () => {
   })
 
   it('keeps the focus in the "Add contacts" field after Send', async () => {
+    const user = userEvent.setup()
     const onShare = renderInviteSection()
     const input = screen.getByPlaceholderText('Add contacts')
 
-    userEvent.type(input, 'bob')
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.type(input, 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(onShare).toHaveBeenCalledWith(
       [expect.objectContaining({ openpaasId: 'bob' })],
