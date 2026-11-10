@@ -62,7 +62,7 @@ export interface Contact {
   id: string
   displayName: string
   name?: ContactName
-  nickname?: string
+  nicknames?: string[]
   birthday?: string
   emails: ContactEmail[]
   phones?: ContactPhone[]
