@@ -68,10 +68,11 @@ describe('InviteSection', () => {
   })
 
   it('names the remove button of a picked person', async () => {
+    const user = userEvent.setup()
     renderInviteSection()
 
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
 
     expect(
       screen.getAllByRole('button', { name: 'Remove bob bob' })
@@ -79,12 +80,13 @@ describe('InviteSection', () => {
   })
 
   it('removes the picked person and gives the focus back to the field', async () => {
+    const user = userEvent.setup()
     const onShare = renderInviteSection()
     const input = screen.getByPlaceholderText('Add contacts')
 
-    userEvent.type(input, 'bob')
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Remove bob bob' }))
+    await user.type(input, 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Remove bob bob' }))
 
     expect(
       screen.queryByRole('button', { name: 'Remove bob bob' })

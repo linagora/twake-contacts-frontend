@@ -115,7 +115,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                     deleteIcon={
                       <Tooltip title={removeLabel}>
                         <IconButton aria-label={removeLabel} size="small">
-                          <Icon icon={CrossSmall} />
+                          <Icon icon={CrossSmall} aria-hidden />
                         </IconButton>
                       </Tooltip>
                     }
