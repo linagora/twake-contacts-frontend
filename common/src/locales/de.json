@@ -62,7 +62,8 @@
       "addressBook": "Adressbuch",
       "editTitle": "Kontakt bearbeiten",
       "newContact": "Neuer Kontakt",
-      "invalidEmail": "Ungültige E-Mail-Adresse"
+      "invalidEmail": "Ungültige E-Mail-Adresse, z. B. name@beispiel.de",
+      "nameRequired": "Geben Sie einen Vor- oder Nachnamen ein"
     },
     "edit": {
       "title": "Adressbuch bearbeiten",

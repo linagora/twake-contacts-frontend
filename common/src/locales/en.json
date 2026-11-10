@@ -62,7 +62,8 @@
       "addressBook": "Address book",
       "editTitle": "Edit contact",
       "newContact": "New contact",
-      "invalidEmail": "Invalid email address"
+      "invalidEmail": "Invalid email address, e.g. name@example.com",
+      "nameRequired": "Enter a first name or a last name"
     },
     "addressBook": {
       "createTitle": "New address book",

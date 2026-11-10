@@ -62,7 +62,8 @@
       "addressBook": "Carnet d'adresses",
       "editTitle": "Modifier le contact",
       "newContact": "Nouveau contact",
-      "invalidEmail": "Adresse email invalide"
+      "invalidEmail": "Adresse e-mail invalide, par ex. nom@exemple.com",
+      "nameRequired": "Saisissez un prénom ou un nom"
     },
     "edit": {
       "title": "Modifier le carnet d'adresses",

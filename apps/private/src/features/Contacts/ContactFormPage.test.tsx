@@ -160,6 +160,41 @@ describe('CreateContactPage', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 
+  it('says that a first or last name is required', () => {
+    renderPage(['/contacts/new'])
+
+    const hint = screen.getByText('Enter a first name or a last name')
+    const firstName = screen.getByLabelText('First name')
+    const lastName = screen.getByLabelText('Last name')
+
+    expect(firstName).toHaveAttribute('aria-required', 'true')
+    expect(lastName).toHaveAttribute('aria-required', 'true')
+    expect(firstName).toHaveAttribute('aria-describedby', hint.id)
+    expect(lastName).toHaveAttribute('aria-describedby', hint.id)
+    expect(firstName).toHaveAccessibleDescription(
+      'Enter a first name or a last name'
+    )
+    expect(lastName).toHaveAccessibleDescription(
+      'Enter a first name or a last name'
+    )
+  })
+
+  it('removes aria-required once a last name is entered', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: 'Roche' }
+    })
+
+    expect(screen.getByLabelText('First name')).not.toHaveAttribute(
+      'aria-required'
+    )
+    expect(screen.getByLabelText('Last name')).not.toHaveAttribute(
+      'aria-required'
+    )
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
   it('keeps the title when names contain only spaces', () => {
     renderPage(['/contacts/new'])
 

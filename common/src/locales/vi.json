@@ -62,7 +62,8 @@
       "addressBook": "Sổ địa chỉ",
       "editTitle": "Chỉnh sửa liên hệ",
       "newContact": "Liên hệ mới",
-      "invalidEmail": "Địa chỉ email không hợp lệ"
+      "invalidEmail": "Địa chỉ email không hợp lệ, ví dụ: ten@example.com",
+      "nameRequired": "Nhập tên hoặc họ"
     },
     "edit": {
       "title": "Chỉnh sửa sổ địa chỉ",

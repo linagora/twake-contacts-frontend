@@ -62,7 +62,8 @@
       "addressBook": "Rubrica",
       "editTitle": "Modifica contatto",
       "newContact": "Nuovo contatto",
-      "invalidEmail": "Indirizzo email non valido"
+      "invalidEmail": "Indirizzo email non valido, ad es. nome@esempio.com",
+      "nameRequired": "Inserisci un nome o un cognome"
     },
     "edit": {
       "title": "Modifica rubrica",

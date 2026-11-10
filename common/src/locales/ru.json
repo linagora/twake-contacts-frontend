@@ -62,7 +62,8 @@
       "addressBook": "Адресная книга",
       "editTitle": "Изменить контакт",
       "newContact": "Новый контакт",
-      "invalidEmail": "Неверный адрес электронной почты"
+      "invalidEmail": "Неверный адрес эл. почты, например name@example.com",
+      "nameRequired": "Введите имя или фамилию"
     },
     "edit": {
       "title": "Изменить адресную книгу",

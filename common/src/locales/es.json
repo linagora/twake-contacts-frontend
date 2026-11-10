@@ -62,7 +62,8 @@
       "addressBook": "Libreta de direcciones",
       "editTitle": "Editar contacto",
       "newContact": "Nuevo contacto",
-      "invalidEmail": "Dirección de correo electrónico no válida"
+      "invalidEmail": "Dirección de correo no válida, p. ej. nombre@ejemplo.com",
+      "nameRequired": "Introduce un nombre o un apellido"
     },
     "edit": {
       "title": "Editar libreta de direcciones",
