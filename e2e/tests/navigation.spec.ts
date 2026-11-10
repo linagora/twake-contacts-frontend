@@ -15,7 +15,7 @@ test.describe('NAV sidebar and navigation', () => {
 
     const contacts = await new LoginPage(page).loginAs(user)
 
-    const entries = contacts.nav.getByRole('listitem')
+    const entries = contacts.entries
     await expect(entries).toHaveText([
       /^My contacts/,
       'alpha',
@@ -164,13 +164,23 @@ test.describe('NAV sidebar and navigation', () => {
     const contacts = await new LoginPage(page).loginAs(user)
     await contacts.openBook('QA Book')
 
+    await expect(contacts.myContactsChevron).toHaveAccessibleName('Collapse')
+    await expect(contacts.myContacts).not.toHaveAttribute('aria-expanded')
+    await expect(contacts.myContacts.getByRole('button')).toHaveCount(0)
+
     await contacts.myContactsChevron.click()
-    await expect(contacts.myContacts).toHaveAttribute('aria-expanded', 'false')
+    await expect(contacts.myContactsChevron).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
     await expect(contacts.book('QA Book')).toBeHidden()
     await expect(contacts.newAddressBookButton).toBeVisible()
 
     await contacts.myContactsChevron.click()
-    await expect(contacts.myContacts).toHaveAttribute('aria-expanded', 'true')
+    await expect(contacts.myContactsChevron).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
     await expect(contacts.book('QA Book')).toBeVisible()
 
     await contacts.myContacts.click()
@@ -190,7 +200,7 @@ test.describe('NAV sidebar and navigation', () => {
 
     const contacts = await new LoginPage(page).loginAs(user)
 
-    const entries = contacts.nav.getByRole('listitem')
+    const entries = contacts.entries
     await expect(entries).toHaveText([/^My contacts/, 'Shared', /^QA Book/])
     await expect(contacts.bookEntry('QA Book')).toContainText(owner.displayName)
     await contacts.book('QA Book').hover()
@@ -224,7 +234,7 @@ test.describe('NAV sidebar and navigation', () => {
 
     const contacts = await new LoginPage(page).loginAs(user)
 
-    const entries = contacts.nav.getByRole('listitem')
+    const entries = contacts.entries
     await expect(entries).toHaveText([
       /^My contacts/,
       'QA Book',
@@ -233,6 +243,19 @@ test.describe('NAV sidebar and navigation', () => {
       `Mid Carol${carol.displayName}`,
       `Zulu Shared${bob.displayName}`
     ])
+
+    const sharedToggle = contacts.nav.getByRole('button', {
+      name: 'Shared',
+      exact: true
+    })
+    await expect(sharedToggle).toHaveAttribute('aria-expanded', 'true')
+    await sharedToggle.focus()
+    await page.keyboard.press('Enter')
+    await expect(sharedToggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(contacts.book('Alpha Shared')).toBeHidden()
+    await page.keyboard.press(' ')
+    await expect(sharedToggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(contacts.book('Alpha Shared')).toBeVisible()
 
     await contacts.sharedCaption.click()
     await expect(contacts.book('Alpha Shared')).toBeHidden()

@@ -42,14 +42,12 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   })
 
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-    >
+    <>
       <NavItem
-        key={book.id}
         variant={variant}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
         secondaryAction={
           isHovered || isMenuOpen || isMobile ? (
             <>
@@ -81,8 +79,9 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
             </NavText>
           </Tooltip>
         </NavLink>
+        {/* inside the entry: the sidebar list only holds <li> elements */}
+        {dialogs}
       </NavItem>
-      {dialogs}
-    </div>
+    </>
   )
 }

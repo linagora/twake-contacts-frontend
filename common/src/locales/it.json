@@ -24,6 +24,10 @@
     },
     "myContacts": "I miei contatti",
     "shared": "Condivisi",
+    "sidebar": {
+      "collapse": "Comprimi",
+      "expand": "Espandi"
+    },
     "domainAddressBook": "Rubrica del dominio",
     "create": "Crea",
     "name": "Nome",

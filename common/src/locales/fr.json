@@ -24,6 +24,10 @@
     },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
+    "sidebar": {
+      "collapse": "Réduire",
+      "expand": "Développer"
+    },
     "domainAddressBook": "Carnet d'adresses du domaine",
     "create": "Créer",
     "name": "Nom",
