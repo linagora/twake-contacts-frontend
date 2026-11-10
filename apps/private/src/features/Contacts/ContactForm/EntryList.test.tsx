@@ -1,9 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { Phone } from '@linagora/twake-icons'
+import { useState } from 'react'
 import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 import { EntryList } from './EntryList'
+import { ContactFormEntry } from './types'
 
 const mockUseBreakpoints = vi.hoisted(() =>
   vi.fn(() => ({
@@ -134,4 +136,61 @@ describe('EntryList', () => {
       }
     }
   )
+
+  describe('focus after removing a row', () => {
+    const StatefulEntryList: React.FC<{ initial: ContactFormEntry[] }> = ({
+      initial
+    }) => {
+      const [entries, setEntries] = useState(initial)
+      return (
+        <EntryList
+          icon={Phone}
+          entries={entries}
+          types={['home', 'work']}
+          label="Phone"
+          onChange={vi.fn()}
+          onRemove={index =>
+            setEntries(previous => previous.filter((_, i) => i !== index))
+          }
+        />
+      )
+    }
+
+    const removeButtons = (): HTMLElement[] =>
+      screen.getAllByRole('button', { name: 'Remove' })
+
+    const phoneInput = (value: string): HTMLElement =>
+      screen.getByDisplayValue(value)
+
+    it('focuses the value of the row taking the place of the removed one', () => {
+      renderWithProviders(
+        <StatefulEntryList
+          initial={[
+            { type: 'home', value: '1' },
+            { type: 'work', value: '2' },
+            { type: 'home', value: '3' }
+          ]}
+        />
+      )
+
+      fireEvent.click(removeButtons()[0])
+
+      expect(phoneInput('3')).toHaveFocus()
+    })
+
+    it('focuses the value of the previous row when the last row is removed', () => {
+      renderWithProviders(
+        <StatefulEntryList
+          initial={[
+            { type: 'home', value: '1' },
+            { type: 'work', value: '2' }
+          ]}
+        />
+      )
+
+      fireEvent.click(removeButtons()[0])
+
+      expect(phoneInput('1')).toHaveFocus()
+    })
+  })
 })

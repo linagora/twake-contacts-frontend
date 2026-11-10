@@ -27,6 +27,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsLoadErrorState } from './ContactsLoadErrorState'
 import { ContactsTable } from './ContactsTable'
+import { useFocusHeadingOnArrival } from './focusHeadingOnArrival'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 import { ImportContactsButton } from './ImportContactsButton'
 
@@ -39,6 +40,7 @@ export const AddressBookPage: React.FC = () => {
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)
   const sort = useAppSelector(state => state.contacts.sort)
+  const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedTab: BookScope =
@@ -166,7 +168,11 @@ export const AddressBookPage: React.FC = () => {
             className="u-flex-items-center u-w-100"
             spacing={2}
           >
-            {!isMobile && <Typography variant="h4">{title}</Typography>}
+            {!isMobile && (
+              <Typography variant="h4" ref={headingRef} tabIndex={-1}>
+                {title}
+              </Typography>
+            )}
             {!addressBookId && (
               <Tabs
                 className={isMobile ? 'u-w-100' : ''}

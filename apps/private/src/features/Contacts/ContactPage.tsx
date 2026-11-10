@@ -37,6 +37,10 @@ import { ContactActionsMenu } from './ContactActionsMenu'
 import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
 import { ContactQuickActions } from './ContactQuickActions'
 import { ContactDetailsSkeleton } from './ContactSkeletons'
+import {
+  FOCUS_HEADING_STATE,
+  useFocusHeadingOnArrival
+} from './focusHeadingOnArrival'
 import { useContact } from './useContact'
 
 interface ContactFieldProps {
@@ -160,7 +164,9 @@ export const ContactPage: React.FC = () => {
     (isHiddenAddressBook(addressBookId)
       ? '/contacts'
       : `/contacts/${addressBookId}`)
-  const handleDeleted = (): void => void navigate(backTo)
+  const handleDeleted = (): void =>
+    void navigate(backTo, { state: FOCUS_HEADING_STATE })
+  const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()
 
   if (loading) {
     return <ContactDetailsSkeleton />
@@ -190,7 +196,10 @@ export const ContactPage: React.FC = () => {
         <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
       ) : (
         <>
-          <AvatarHeader displayName={contact.displayName} />
+          <AvatarHeader
+            displayName={contact.displayName}
+            headingRef={headingRef}
+          />
           <ContactQuickActions contact={contact} />
           <List>
             {!!contact.categories?.length && (

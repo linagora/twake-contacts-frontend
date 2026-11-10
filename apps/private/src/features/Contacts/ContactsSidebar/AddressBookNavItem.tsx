@@ -38,6 +38,7 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { DeleteAddressBookDialog } from '../DeleteAddressBookDialog'
 import { EditAddressBookDialog } from '../EditAddressBookDialog'
+import { FOCUS_HEADING_STATE } from '../focusHeadingOnArrival'
 import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
@@ -74,7 +75,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
     )
       .unwrap()
       .then(() => {
-        if (selected) void navigate('/contacts')
+        if (selected) void navigate('/contacts', { state: FOCUS_HEADING_STATE })
         return
       })
       .catch(() => {})

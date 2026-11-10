@@ -133,5 +133,49 @@ describe('ContactCell', () => {
 
       expect(sendMailLink()).not.toBeInTheDocument()
     })
+
+    const nameButton = (): HTMLElement =>
+      screen.getByRole('button', { name: /Anna Default/ })
+
+    const openWithKeyboard = (): void => {
+      nameButton().focus()
+      fireEvent.keyDown(nameButton(), { key: 'Enter' })
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+    }
+
+    it('gives the focus back to the name after Escape', () => {
+      renderCell('en')
+      openWithKeyboard()
+      expect(sendMailLink()).toBeInTheDocument()
+
+      pressEscape()
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+      expect(nameButton()).toHaveFocus()
+    })
+
+    it('gives the focus back to the name after its close button', () => {
+      renderCell('en')
+      openWithKeyboard()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+      expect(nameButton()).toHaveFocus()
+    })
+
+    it('does not move the focus to the name after a hover opening', () => {
+      renderCell('en')
+      hoverName()
+
+      pressEscape()
+
+      expect(nameButton()).not.toHaveFocus()
+    })
   })
 })

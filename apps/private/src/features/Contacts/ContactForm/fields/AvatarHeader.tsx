@@ -4,11 +4,14 @@ import { ContactAvatar } from '../../ContactAvatar'
 interface AvatarHeaderProps {
   displayName: string
   title?: string
+  // given by pages focusing their heading on arrival
+  headingRef?: React.Ref<HTMLHeadingElement>
 }
 
 export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
   displayName,
-  title
+  title,
+  headingRef
 }) => {
   const { isMobile } = useBreakpoints()
   return (
@@ -19,7 +22,12 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
     >
       <ContactAvatar size={94} initialsVariant="h2" displayName={displayName} />
       <Tooltip disableInteractive title={displayName || title || ''}>
-        <Typography variant="h4" noWrap>
+        <Typography
+          variant="h4"
+          noWrap
+          ref={headingRef}
+          tabIndex={headingRef ? -1 : undefined}
+        >
           {displayName || title || ''}
         </Typography>
       </Tooltip>
