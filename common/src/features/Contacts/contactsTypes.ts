@@ -64,6 +64,8 @@ export interface Contact {
   name?: ContactName
   nickname?: string
   birthday?: string
+  // BDAY as read, kept to write back its value type and parameters unchanged
+  birthdayProp?: JCalProperty
   emails: ContactEmail[]
   phones?: ContactPhone[]
   addresses?: ContactAddress[]
