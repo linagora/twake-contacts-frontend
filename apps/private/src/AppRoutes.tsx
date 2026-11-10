@@ -28,7 +28,8 @@ export function AppRoutes(): React.JSX.Element {
         <Route path="/contacts" element={<ContactsPage />}>
           <Route index element={<AddressBookPage />} />
           <Route path="new" element={<CreateContactPage />} />
-          <Route path=":addressBookId/new" element={<CreateContactPage />} />
+          {/* Under a static segment: `:addressBookId/new` would shadow a contact whose id is "new" */}
+          <Route path="new/:addressBookId" element={<CreateContactPage />} />
           <Route path=":addressBookId" element={<AddressBookPage />} />
           <Route path=":addressBookId/:contactId" element={<ContactPage />} />
           <Route

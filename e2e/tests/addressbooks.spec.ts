@@ -96,9 +96,10 @@ test.describe('ABOOK address books', () => {
     await contacts.createAddressBook('Work Book')
     await contacts.openBook('Work Book')
     const bookUrl = new URL(page.url()).pathname
+    const bookId = bookUrl.split('/').at(-1)
 
     const form = await contacts.clickCreate()
-    await expect(page).toHaveURL(`${bookUrl}/new`)
+    await expect(page).toHaveURL(`/contacts/new/${bookId}`)
     await expect(form.addressBook).toHaveText('Work Book')
     await form.fill({ firstName: 'Wendy' })
     await form.save()

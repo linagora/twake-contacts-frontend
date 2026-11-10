@@ -117,7 +117,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
             <Routes>
               <Route path="/contacts/new" element={<CreateContactPage />} />
               <Route
-                path="/contacts/:addressBookId/new"
+                path="/contacts/new/:addressBookId"
                 element={<CreateContactPage />}
               />
               <Route
@@ -233,7 +233,7 @@ describe('CreateContactPage', () => {
   })
 
   it('preselects address book from URL param', () => {
-    renderPage(['/contacts/book1/new'])
+    renderPage(['/contacts/new/book1'])
 
     const addressBookSelect = screen.getByLabelText('Address book')
     expect(addressBookSelect).toHaveTextContent('Book 1')
@@ -266,7 +266,7 @@ describe('CreateContactPage', () => {
     vi.mocked(saveContact).mockImplementation(
       () => new Promise<void>(resolve => (resolveSave = resolve))
     )
-    renderPage(['/contacts/book1/new'])
+    renderPage(['/contacts/new/book1'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
       target: { value: 'Dbl' }
@@ -287,7 +287,7 @@ describe('CreateContactPage', () => {
   it('re-enables Save when the creation fails', async () => {
     vi.mocked(saveContact).mockReset()
     vi.mocked(saveContact).mockRejectedValue(new Error('Server error'))
-    renderPage(['/contacts/book1/new'])
+    renderPage(['/contacts/new/book1'])
 
     fireEvent.change(screen.getByLabelText('First name'), {
       target: { value: 'Dbl' }
@@ -301,7 +301,7 @@ describe('CreateContactPage', () => {
   })
 
   it('links back to main page for hidden address books', () => {
-    renderPage(['/contacts/contacts/new'])
+    renderPage(['/contacts/new/contacts'])
 
     expect(screen.getByRole('link', { name: /back/i })).toHaveAttribute(
       'href',
