@@ -13,6 +13,7 @@ import {
   selectContactEntries
 } from '@common/features/Contacts/contactsSelectors'
 import { useSearchParams } from 'react-router'
+import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
 import { ImportContactsButton } from './ImportContactsButton'
 import { AddressBookMobileActions } from './AddressBookActions/AddressBookMobileActions'
 
@@ -85,6 +86,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
             </IconButton>
           </Tooltip>
         )}
+        <ContrastToggle />
       </Stack>
     </Stack>
   )

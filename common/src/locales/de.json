@@ -212,7 +212,8 @@
   },
   "theme": {
     "darkMode": "Dunkelmodus",
-    "lightMode": "Hellmodus"
+    "lightMode": "Hellmodus",
+    "highContrast": "Hoher Kontrast"
   },
   "twakeBar": {
     "home": "Startseite",

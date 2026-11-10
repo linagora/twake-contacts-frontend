@@ -212,7 +212,8 @@
   },
   "theme": {
     "darkMode": "Modo oscuro",
-    "lightMode": "Modo claro"
+    "lightMode": "Modo claro",
+    "highContrast": "Alto contraste"
   },
   "twakeBar": {
     "home": "Inicio",

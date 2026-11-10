@@ -31,6 +31,7 @@ import { CreateAddressBookDialog } from './CreateAddressBookDialog'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 import { MobileTopBar } from './MobileTopBar'
 import { ThemeToggle } from '@common/components/ThemeToggle/ThemeToggle'
+import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
 import { SkipLink } from './SkipLink'
 
 const MAIN_CONTENT_ID = 'main-content'
@@ -119,7 +120,10 @@ export const ContactsPage: React.FC = () => {
               className="u-flex-items-center u-flex-justify-between u-mb-1"
             >
               <ContactSearchBar />
-              {config.DEBUG && <ThemeToggle />}
+              <Stack direction="row" className="u-flex-items-center">
+                {!isMobile && <ContrastToggle />}
+                {config.DEBUG && <ThemeToggle />}
+              </Stack>
             </Stack>
           )}
           {error && (

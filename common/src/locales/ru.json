@@ -212,7 +212,8 @@
   },
   "theme": {
     "darkMode": "Тёмный режим",
-    "lightMode": "Светлый режим"
+    "lightMode": "Светлый режим",
+    "highContrast": "Высокая контрастность"
   },
   "twakeBar": {
     "home": "Главная",

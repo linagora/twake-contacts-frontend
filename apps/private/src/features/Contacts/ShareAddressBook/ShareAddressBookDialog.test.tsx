@@ -90,6 +90,18 @@ describe('ShareAddressBookDialog', () => {
   })
   afterEach(() => vi.resetAllMocks())
 
+  it('offers the high contrast toggle while the dialog is open', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    renderDialog()
+
+    const toggle = within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'High contrast'
+    })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('lists a member whose profile lookup has not answered yet', async () => {
     const invitedBob = { ...bob, name: bob.email }
     mockedFetchDetails.mockResolvedValue({

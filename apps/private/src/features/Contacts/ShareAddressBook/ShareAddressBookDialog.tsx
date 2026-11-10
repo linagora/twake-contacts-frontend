@@ -11,6 +11,7 @@ import {
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { useAppSelector, useAppDispatch } from '@common/app/hooks'
+import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
 import {
   fetchAddressBookDetail,
   updateAddressBookShares
@@ -452,13 +453,16 @@ export const ShareAddressBookDialog: React.FC<ShareAddressBookDialogProps> = ({
           {t('contacts.share.title', {
             name: book?.name || t('contacts.share.defaultAddressBookName')
           })}
-          <IconButton
-            edge="end"
-            aria-label={t('contacts.form.close')}
-            onClick={onClose}
-          >
-            <Icon icon={Cross} />
-          </IconButton>
+          <Stack direction="row" className="u-flex-items-center">
+            <ContrastToggle />
+            <IconButton
+              edge="end"
+              aria-label={t('contacts.form.close')}
+              onClick={onClose}
+            >
+              <Icon icon={Cross} />
+            </IconButton>
+          </Stack>
         </Stack>
       </DialogTitle>
 

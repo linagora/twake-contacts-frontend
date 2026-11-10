@@ -198,7 +198,12 @@ export const aStoreState = (
     error: null,
     ...overrides.user
   },
-  settings: { language: 'en', themeMode: 'light', ...overrides.settings },
+  settings: {
+    language: 'en',
+    themeMode: 'light',
+    contrastMode: 'default',
+    ...overrides.settings
+  },
   loading: { isLoading: false, ...overrides.loading }
 })
 

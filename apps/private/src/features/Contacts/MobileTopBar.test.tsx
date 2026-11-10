@@ -67,6 +67,17 @@ const renderMobileTopBar = (
 }
 
 describe('MobileTopBar', () => {
+  it.each([true, false])(
+    'renders the high contrast toggle (address book page: %s)',
+    isAddressBookPage => {
+      renderMobileTopBar({ isAddressBookPage })
+
+      expect(
+        screen.getByRole('button', { name: en.theme.highContrast })
+      ).toHaveAttribute('aria-pressed', 'false')
+    }
+  )
+
   it('renders menu icon button and calls onOpenSidebar when clicked', () => {
     const onOpenSidebar = vi.fn()
     renderMobileTopBar({ onOpenSidebar })

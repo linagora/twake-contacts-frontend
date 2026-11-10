@@ -21,7 +21,7 @@ export const CollapseToggleButton: React.FC<CollapseToggleButtonProps> = ({
   )
 
   return (
-    <Tooltip disableInteractive title={label}>
+    <Tooltip title={label}>
       <IconButton
         size="xsmall"
         aria-label={label}
