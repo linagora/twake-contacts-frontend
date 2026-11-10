@@ -180,7 +180,8 @@
     "title": "Something went wrong",
     "unknown": "An unknown error occurred",
     "retry": "Try Again",
-    "version": "Version %{version}"
+    "version": "Version %{version}",
+    "loadUser": "Failed to load your user information"
   },
   "configError": {
     "title": "The application is misconfigured",

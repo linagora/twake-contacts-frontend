@@ -219,6 +219,43 @@ it.each(transferCases)(
   }
 )
 
+it('reports a failed move with the translated message, never the raw HTTP text', async () => {
+  vi.clearAllMocks()
+  const rawMessage = 'Request failed with status code 500 Internal Server Error'
+  vi.mocked(moveContact).mockRejectedValue(
+    Object.assign(new Error(rawMessage), {
+      name: 'HTTPError',
+      response: { status: 500 }
+    })
+  )
+  const { store } = renderDialog('move')
+  selectDestination()
+  fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    en.contacts.moveContact.error
+  )
+  expect(store.getState().contacts.error).toBe('contacts.moveContact.error')
+  expect(screen.queryByText(rawMessage)).not.toBeInTheDocument()
+})
+
+it('reports a forbidden move with the permission message', async () => {
+  vi.clearAllMocks()
+  vi.mocked(moveContact).mockRejectedValue(
+    Object.assign(new Error('Forbidden'), {
+      name: 'HTTPError',
+      response: { status: 403 }
+    })
+  )
+  const { store } = renderDialog('move')
+  selectDestination()
+  fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+
+  await waitFor(() =>
+    expect(store.getState().contacts.error).toBe('contacts.errors.forbidden')
+  )
+})
+
 it.each(transferCases)(
   'allows $mode into My contacts',
   async ({ mode, label }) => {

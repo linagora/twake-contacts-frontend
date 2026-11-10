@@ -180,7 +180,8 @@
     "title": "Etwas ist schiefgelaufen",
     "unknown": "Ein unbekannter Fehler ist aufgetreten",
     "retry": "Erneut versuchen",
-    "version": "Version %{version}"
+    "version": "Version %{version}",
+    "loadUser": "Ihre Benutzerinformationen konnten nicht geladen werden"
   },
   "configError": {
     "title": "Die Anwendung ist falsch konfiguriert",

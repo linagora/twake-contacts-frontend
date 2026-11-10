@@ -6,16 +6,15 @@ import {
   useBreakpoints
 } from '@linagora/twake-mui'
 import { Icon, Pen, Trash } from '@linagora/twake-icons'
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { deleteContact } from '@common/features/Contacts/ContactsSlice'
+import { useAppSelector } from '@common/app/hooks'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
-import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { editContactPath } from './contactPath'
 import { DeleteContactDialog } from './DeleteContactDialog'
+import { useDeleteContact } from './useDeleteContact'
 
 interface ContactActionsBarProps {
   primaryAction: React.ReactNode
@@ -63,12 +62,10 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
-  const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const deleteContact = useDeleteContact(addressBookId, contact)
 
   if (!book?.canWrite) return null
 
@@ -80,21 +77,9 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
   }
 
   const handleDelete = async (): Promise<void> => {
-    if (!openpaasId) return
-    try {
-      await dispatch(
-        deleteContact({
-          userId: openpaasId,
-          addressBookId,
-          contactId: contact.id
-        })
-      ).unwrap()
-      setOpenDialog(null)
-      onDeleted?.()
-    } catch (error: unknown) {
-      const err = error as { message?: string }
-      setDeleteError(err.message || t('error.unknown'))
-    }
+    const deleted = await deleteContact()
+    setOpenDialog(null)
+    if (deleted) onDeleted?.()
   }
 
   return (
@@ -126,7 +111,6 @@ export const ContactActionsMenu: React.FC<ContactActionsMenuProps> = ({
           onConfirm={() => void handleDelete()}
         />
       )}
-      <ErrorSnackbar error={deleteError} onClose={() => setDeleteError(null)} />
     </>
   )
 }

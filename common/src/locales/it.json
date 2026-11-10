@@ -180,7 +180,8 @@
     "title": "Si è verificato un problema",
     "unknown": "Si è verificato un errore sconosciuto",
     "retry": "Riprova",
-    "version": "Versione %{version}"
+    "version": "Versione %{version}",
+    "loadUser": "Impossibile caricare le informazioni dell'utente"
   },
   "configError": {
     "title": "L’applicazione non è configurata correttamente",

@@ -180,7 +180,8 @@
     "title": "Une erreur s'est produite",
     "unknown": "Une erreur inconnue s'est produite",
     "retry": "Réessayer",
-    "version": "Version %{version}"
+    "version": "Version %{version}",
+    "loadUser": "Impossible de charger vos informations utilisateur"
   },
   "configError": {
     "title": "L’application est mal configurée",

@@ -180,7 +180,8 @@
     "title": "Đã xảy ra lỗi",
     "unknown": "Có lỗi không xác định",
     "retry": "Thử lại",
-    "version": "Phiên bản %{version}"
+    "version": "Phiên bản %{version}",
+    "loadUser": "Không thể tải thông tin người dùng"
   },
   "configError": {
     "title": "Ứng dụng được cấu hình sai",

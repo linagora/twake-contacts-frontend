@@ -180,7 +180,8 @@
     "title": "Se ha producido un error",
     "unknown": "Se ha producido un error desconocido",
     "retry": "Reintentar",
-    "version": "Versión %{version}"
+    "version": "Versión %{version}",
+    "loadUser": "No se ha podido cargar su información de usuario"
   },
   "configError": {
     "title": "La aplicación está mal configurada",

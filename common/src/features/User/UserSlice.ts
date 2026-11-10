@@ -16,11 +16,6 @@ interface CoreConfig {
   [key: string]: unknown
 }
 
-export interface RejectedError {
-  message: string
-  status?: number
-}
-
 export interface UserState {
   userData: userData
   tokens: Record<string, string> | null
