@@ -4,7 +4,7 @@ import {
   AddressBook,
   UserResult
 } from '@common/features/Contacts/contactsTypes'
-import { usePublicBooksLookup } from './usePublicBooksLookup'
+import { usePublicAddressBooksLookup } from '@common/features/Contacts/hooks/usePublicAddressBooksLookup'
 
 type EmptyMessageKey =
   | 'contacts.addressBook.noneAvailable'
@@ -41,7 +41,7 @@ export function usePublicAddressBooks(): {
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
   const [user, setUser] = useState<UserResult | null>(null)
   const [removedKeys, setRemovedKeys] = useState<string[]>([])
-  const { fetched, failed } = usePublicBooksLookup(user)
+  const { fetched, failed } = usePublicAddressBooksLookup(user)
 
   const subscribedKeys = getSubscribedKeys(Object.values(addressBooks))
   const available = (fetched ?? []).filter(b => !subscribedKeys.has(bookKey(b)))

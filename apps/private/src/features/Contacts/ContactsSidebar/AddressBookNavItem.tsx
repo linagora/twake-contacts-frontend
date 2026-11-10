@@ -38,7 +38,7 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { DeleteAddressBookDialog } from '../DeleteAddressBookDialog'
 import { EditAddressBookDialog } from '../EditAddressBookDialog'
-import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
+import { useContactsExport } from '@common/features/Contacts/hooks/useContactsExport'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
 
@@ -56,6 +56,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   onNavigate
 }) => {
   const { t } = useI18n()
+  const { exportAddressBook } = useContactsExport()
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)

@@ -16,8 +16,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@common/*": ["./common/src/*"],
-      "@private/*": ["./apps/private/src/*"]
+      "@common/*": ["./common/src/*"]
     }
   }
 }

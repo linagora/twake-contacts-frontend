@@ -1,10 +1,7 @@
 import { Button, Snackbar, Alert, useBreakpoints } from '@linagora/twake-mui'
 import { Icon, Upload } from '@linagora/twake-icons'
 import { useAppSelector } from '@common/app/hooks'
-import {
-  importContacts,
-  uploadImportFile
-} from '@common/features/Contacts/ContactsDao'
+import { useImportContacts } from '@common/features/Contacts/hooks/useImportContacts'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
@@ -23,7 +20,7 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
-  const userId = useAppSelector(state => state.user.userData.openpaasId)
+  const { uploadFile, importIntoBook } = useImportContacts()
   const targetBookId = addressBookId ?? DEFAULT_ADDRESS_BOOK_ID
   const targetBook = useAppSelector(state => selectBook(state, targetBookId))
 
@@ -47,10 +44,9 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
     if (!file) return
 
     try {
-      const fileId = await uploadImportFile(file)
+      const fileId = await uploadFile(file)
       setUploadSuccess(true)
-      const target = `/addressbooks/${userId}/${targetBook.id}.json`
-      await importContacts(fileId, target)
+      await importIntoBook(fileId, targetBook.id)
     } catch (err) {
       setUploadSuccess(false)
       setError(t('error.unknown'))

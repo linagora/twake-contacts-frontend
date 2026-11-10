@@ -40,7 +40,6 @@
     "lint:fix": "rs lint --fix apps common && rs fmt",
     "lint:fmt": "rs fmt --check",
     "fmt": "rs fmt",
-    "copy-from-common": "node scripts/copy-from-common.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

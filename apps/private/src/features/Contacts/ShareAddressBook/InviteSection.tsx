@@ -12,7 +12,7 @@ import {
 import { useI18n } from 'twake-i18n'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { RoleSelector } from './RoleSelector'
-import { searchUsers } from '@common/features/User/UserDao'
+import { useUserDirectorySearch } from '@common/features/User/hooks/useUserDirectorySearch'
 import { ToUserData } from '@common/features/User/type/OpenPaasUserData'
 import { userData } from '@common/features/User/userDataTypes'
 import { UserSearch } from '@common/components/Common/UserSearch'
@@ -35,6 +35,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
   searchInputRef: externalSearchInputRef
 }) => {
   const { t } = useI18n()
+  const searchUsers = useUserDirectorySearch()
 
   // Selected users to invite (since Autocomplete is multiple)
   const [selectedUsers, setSelectedUsers] = useState<userData[]>([])
@@ -69,7 +70,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             !selectedIds.has(user.openpaasId as string)
         )
     },
-    [nonInvitableIds, selectedUsers]
+    [searchUsers, nonInvitableIds, selectedUsers]
   )
 
   return (

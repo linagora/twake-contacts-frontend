@@ -5,7 +5,7 @@ import { deleteContact } from '@common/features/Contacts/ContactsSlice'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { exportContact } from '@common/features/Contacts/ContactsDao'
+import { useContactsExport } from '@common/features/Contacts/hooks/useContactsExport'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -28,6 +28,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   readOnly
 }) => {
   const { t } = useI18n()
+  const { exportContact } = useContactsExport()
   const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()

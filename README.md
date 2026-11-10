@@ -9,8 +9,14 @@ This project aims at serving a Single Page Application allowing a user to intera
 This frontend application is built in a monorepo structure with Rsbuild, React, and TypeScript. It shares its
 technical stack with [twake-calendar-frontend](https://github.com/linagora/twake-calendar-frontend), and interacts with:
 
-- [esn-sabre](https://github.com/linagora/esn-sabre/) CalDAV + CardDAV server, tailor made for LINAGORA needs.
-- An OpenPaaS / ESN backend, for the user profile, user configurations and the DAV JWT.
+- [twake-calendar-side-service](https://github.com/linagora/twake-calendar-side-service), the backend the app
+  calls: user profile and configuration, people search, contact search, vCard import, and the websocket pushing
+  the changes of the address books.
+- [esn-sabre](https://github.com/linagora/esn-sabre/) CalDAV + CardDAV server, tailor made for LINAGORA needs,
+  reached through the side service for the address books and their contacts.
+
+Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) before changing the store, the listings or the data access.
+The end-to-end tests are described in [`e2e/README.md`](e2e/README.md).
 
 ---
 
@@ -19,7 +25,9 @@ technical stack with [twake-calendar-frontend](https://github.com/linagora/twake
 The repository is organized as a monorepo workspace:
 
 - **[`apps/private`](apps/private)**: The main private contacts application. Accessible by authenticated users.
-- **[`common`](common)**: Shared components, hooks, translation locales, and utility functions.
+- **[`common`](common)**: Shared components, hooks, store, data access, translation locales, and utility functions.
+- **[`e2e`](e2e)**: Playwright end-to-end tests against a real backend, see [`e2e/README.md`](e2e/README.md).
+- **[`docs`](docs)**: [architecture](docs/ARCHITECTURE.md) and [decision records](docs/adr).
 
 ---
 
@@ -30,9 +38,17 @@ The repository is organized as a monorepo workspace:
 | Route | Description |
 |-------|-------------|
 | `/` | Login handler |
-| `/contacts` | Main contacts view (authenticated) |
-| `/callback` | OAuth callback |
+| `/contacts` | My contacts: the contacts of every address book |
+| `/contacts/new` | New contact, in the default address book |
+| `/contacts/:addressBookId` | The contacts of an address book |
+| `/contacts/:addressBookId/new` | New contact, in that address book |
+| `/contacts/:addressBookId/:contactId` | A contact |
+| `/contacts/:addressBookId/:contactId/edit` | Edit a contact |
+| `/callback` | OIDC callback |
 | `/error` | Error page |
+
+Every `/contacts` route is nested in the contacts layout (sidebar and top bar), see
+[`AppRoutes.tsx`](apps/private/src/AppRoutes.tsx).
 
 ---
 
@@ -158,8 +174,13 @@ The application loads configuration dynamically at runtime from static JavaScrip
 | Variable | Description |
 |----------|-------------|
 | `SSO_BASE_URL`, `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI`, `SSO_RESPONSE_TYPE`, `SSO_CODE_CHALLENGE_METHOD`, `SSO_POST_LOGOUT_REDIRECT` | OIDC provider settings |
-| `SIDE_SERVICE_BASE_URL` | Contacts backend` |
+| `SIDE_SERVICE_BASE_URL` | twake-calendar-side-service, the backend every call goes to |
+| `WEBSOCKET_URL` | Websocket of the side service, pushing the changes of the address books |
 | `DAV_BASE_URL` | Base URL displayed to users in the address book details |
+| `CONTACTS_NS` | XML namespace of the esn-sabre contacts properties |
+| `MAIL_SPA_URL`, `CHAT_SPA_URL`, `CALENDAR_SPA_URL` | Applications a contact can be reached from, see `.env.example.js` for the placeholders |
+| `WORKPLACE_FQDN_FALLBACK` | Workplace used when the OIDC provider exposes none |
+| `SUPPORT_URL` | Optional help link of the Twake Bar |
 | `DEBUG` | Disables the Nginx browser cache when `true` |
 | `LANG` | Default language, overridden by the user configuration |
 | `SENTRY_DSN` | Optional, omit to disable Sentry |

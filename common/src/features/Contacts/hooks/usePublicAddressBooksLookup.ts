@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import {
-  AddressBook,
-  UserResult
-} from '@common/features/Contacts/contactsTypes'
-import { fetchSubscribableAddressBooks } from '@common/features/Contacts/ContactsDao'
+import { AddressBook, UserResult } from '../contactsTypes'
+import { fetchSubscribableAddressBooks } from '../ContactsDao'
 
 interface Lookup {
   userId: string
@@ -11,7 +8,8 @@ interface Lookup {
   failed: boolean
 }
 
-export function usePublicBooksLookup(user: UserResult | null): {
+/** Loads the address books of `user` that the current user may subscribe to. */
+export function usePublicAddressBooksLookup(user: UserResult | null): {
   fetched: AddressBook[] | null
   failed: boolean
 } {

@@ -10,6 +10,48 @@ define.lint(lint => [
       'no-console': ['warn', { allow: ['info', 'warn', 'error'] }]
     }
   },
+  // Layers, see docs/ARCHITECTURE.md: common never depends on an app, and apps
+  // reach the backend through the hooks and thunks of common, never its DAOs or ky
+  {
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './common',
+              from: './apps',
+              message: 'common/ must not depend on an app.'
+            },
+            {
+              target: './apps',
+              from: './common/src/features/**/*Dao.ts',
+              message:
+                'Reach the backend through a hook or a thunk of common/, not a DAO.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['apps/**'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'ky',
+              message: 'Reach the backend through a hook or a thunk of common/.'
+            }
+          ]
+        }
+      ]
+    }
+  },
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {

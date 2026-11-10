@@ -1,9 +1,6 @@
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { useAppDispatch } from '@common/app/hooks'
 import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
-import {
-  AddressBookRef,
-  searchContacts
-} from '@common/features/Contacts/ContactsDao'
+import { useContactSearch } from '@common/features/Contacts/hooks/useContactSearch'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
@@ -12,7 +9,7 @@ import {
   Stack,
   useBreakpoints
 } from '@linagora/twake-mui'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactAvatar } from './ContactAvatar'
@@ -36,22 +33,7 @@ export const ContactSearchBar: React.FC = () => {
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
-  const addressBooksRecord = useAppSelector(
-    state => state.contacts.addressBooks
-  )
-  const addressBooks = useMemo(
-    () => Object.values(addressBooksRecord),
-    [addressBooksRecord]
-  )
-
-  const addressBookRefs = useMemo<AddressBookRef[]>(
-    () =>
-      addressBooks.map(book => ({
-        userId: book.userId,
-        addressBookId: book.id === 'dab' ? 'domain-members' : book.id
-      })),
-    [addressBooks]
-  )
+  const searchContacts = useContactSearch()
 
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])
@@ -60,7 +42,7 @@ export const ContactSearchBar: React.FC = () => {
 
   const fetchSearchResults = useCallback(
     async (search: string) => {
-      if (addressBookRefs.length === 0 || !search.trim()) {
+      if (!search.trim()) {
         setOptions([])
         setLoading(false)
         return
@@ -68,7 +50,7 @@ export const ContactSearchBar: React.FC = () => {
 
       setLoading(true)
       try {
-        const entries = await searchContacts(addressBookRefs, search)
+        const entries = await searchContacts(search)
         setOptions(buildSearchOptions(entries))
       } catch {
         setOptions([])
@@ -76,7 +58,7 @@ export const ContactSearchBar: React.FC = () => {
         setLoading(false)
       }
     },
-    [addressBookRefs]
+    [searchContacts]
   )
 
   useEffect(() => {
@@ -89,15 +71,13 @@ export const ContactSearchBar: React.FC = () => {
 
   const handleChange = (_event: unknown, value: SearchOption | null): void => {
     if (value) {
-      const storeAddressBookId =
-        value.addressBookId === 'domain-members' ? 'dab' : value.addressBookId
       dispatch(
         addContactFromSearch({
-          addressBookId: storeAddressBookId,
+          addressBookId: value.addressBookId,
           contact: value.contact
         })
       )
-      void navigate(`/contacts/${storeAddressBookId}/${value.contact.id}`)
+      void navigate(`/contacts/${value.addressBookId}/${value.contact.id}`)
       setInputValue('')
       setOptions([])
     }

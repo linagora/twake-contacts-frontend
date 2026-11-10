@@ -1,3 +1,4 @@
+- Read docs/ARCHITECTURE.md before changing the store, the listings or the data access
 - Dictionary-based data structure mapping address books to their contacts
 - Shared addressbooks User ID persisted in the addressbooks dictonary 
 - Sidebar selection navigates to /contacts/:addressBookId
