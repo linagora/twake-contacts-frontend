@@ -117,7 +117,12 @@ export const AddressBookPage: React.FC = () => {
         >
           {t('contacts.back')}
         </Button>
-        <Typography color="text.secondary">
+        <Typography
+          // on phones, the top bar title is already the page h1
+          component={isMobile ? 'p' : 'h1'}
+          variant="body1"
+          color="text.secondary"
+        >
           {t('contacts.addressBookNotFound')}
         </Typography>
       </Stack>
@@ -185,7 +190,12 @@ export const AddressBookPage: React.FC = () => {
             spacing={2}
           >
             {!isMobile && (
-              <Typography variant="h4" ref={headingRef} tabIndex={-1}>
+              <Typography
+                variant="h4"
+                component="h1"
+                ref={headingRef}
+                tabIndex={-1}
+              >
                 {title}
               </Typography>
             )}

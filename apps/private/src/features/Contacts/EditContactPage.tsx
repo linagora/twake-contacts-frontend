@@ -62,7 +62,9 @@ export const EditContactPage: React.FC = () => {
         >
           {t('contacts.back')}
         </Button>
-        <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
+        <Typography component="h1" variant="body1" color="text.secondary">
+          {t('contacts.notFound')}
+        </Typography>
       </Stack>
     )
   }

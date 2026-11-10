@@ -251,3 +251,48 @@ describe('ContactsPage address book success toast', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
+
+describe('ContactsPage landmarks', () => {
+  it('has a single main landmark and a search landmark', () => {
+    renderPage()
+
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('search')).toContainElement(
+      screen.getByPlaceholderText(en.contacts.search.placeholder)
+    )
+  })
+})
+
+describe('ContactsPage skip link', () => {
+  it('is the first link of the page, translated', () => {
+    renderPage({ lang: 'fr', dict: fr })
+
+    const [firstLink] = screen.getAllByRole('link')
+    expect(firstLink).toHaveTextContent(fr.contacts.nav.skipToContent)
+    expect(firstLink).toHaveAttribute('href', '#main-content')
+  })
+
+  it('stays visually hidden until it gets the focus', () => {
+    renderPage()
+    const skipLink = screen.getByRole('link', {
+      name: en.contacts.nav.skipToContent
+    })
+    expect(skipLink).toHaveClass('u-visuallyhidden')
+
+    act(() => skipLink.focus())
+    expect(skipLink).not.toHaveClass('u-visuallyhidden')
+
+    act(() => skipLink.blur())
+    expect(skipLink).toHaveClass('u-visuallyhidden')
+  })
+
+  it('moves the focus to the main area', () => {
+    renderPage()
+
+    fireEvent.click(
+      screen.getByRole('link', { name: en.contacts.nav.skipToContent })
+    )
+
+    expect(screen.getByRole('main')).toHaveFocus()
+  })
+})

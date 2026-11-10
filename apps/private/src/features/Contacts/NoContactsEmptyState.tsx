@@ -31,6 +31,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
       iconSize="normal"
       text={t('contacts.empty.subtitle')}
       title={t('contacts.empty.title')}
+      componentsProps={{ title: { component: 'h2' } }}
     >
       <Stack className="u-flex-items-center u-mt-1">{action}</Stack>
     </Empty>

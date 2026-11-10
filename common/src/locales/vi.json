@@ -113,7 +113,8 @@
     },
     "nav": {
       "menu": "Menu",
-      "search": "Tìm kiếm"
+      "search": "Tìm kiếm",
+      "skipToContent": "Chuyển đến nội dung chính"
     },
     "errors": {
       "load": "Không thể tải danh bạ",

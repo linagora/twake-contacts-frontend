@@ -113,7 +113,8 @@
     },
     "nav": {
       "menu": "Menu",
-      "search": "Cerca"
+      "search": "Cerca",
+      "skipToContent": "Vai al contenuto principale"
     },
     "errors": {
       "load": "Impossibile caricare i contatti",

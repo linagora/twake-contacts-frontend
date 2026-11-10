@@ -64,6 +64,7 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
       <Stack spacing={0.5} className="u-flex-items-start u-ov-hidden">
         <Typography
           variant="h4"
+          component="h1"
           className="u-ellipsis u-w-100"
           ref={headingRef}
           tabIndex={headingRef ? -1 : undefined}

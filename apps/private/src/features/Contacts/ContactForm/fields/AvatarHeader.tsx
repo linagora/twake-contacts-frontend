@@ -24,6 +24,7 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
       <Tooltip title={displayName || title || ''}>
         <Typography
           variant="h4"
+          component="h1"
           noWrap
           ref={headingRef}
           tabIndex={headingRef ? -1 : undefined}
