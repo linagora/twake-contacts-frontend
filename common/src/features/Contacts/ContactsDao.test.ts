@@ -226,7 +226,11 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withTelUri).phones).toEqual([
-      { type: 'Work', value: '0788668833', valueType: 'uri' }
+      {
+        type: 'Work',
+        value: '0788668833',
+        source: { valueType: 'uri', value: 'tel:0788668833' }
+      }
     ])
   })
 
@@ -586,6 +590,9 @@ describe('getCardProperty', () => {
   })
 })
 
+const telProperties = (card: JCalCard): JCalProperty[] =>
+  card[1].filter(prop => prop[0] === 'tel')
+
 describe('denormalizeContact', () => {
   it('builds the jCal card the DAV server expects', () => {
     const card = denormalizeContact({
@@ -652,6 +659,43 @@ describe('denormalizeContact', () => {
     expect(
       denormalizeContact(contact)[1].filter(prop => prop[0] === 'uid')
     ).toEqual([uid])
+  })
+
+  it('writes an unchanged TEL URI back as stored', () => {
+    const stored: JCalProperty = [
+      'tel',
+      { type: 'work' },
+      'uri',
+      'tel:7042;phone-context=example.com'
+    ]
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: ['vcard', [['version', {}, 'text', '4.0'], stored]]
+    })
+
+    expect(telProperties(denormalizeContact(contact))).toEqual([stored])
+  })
+
+  it('writes the readable number of a changed phone', () => {
+    const card = denormalizeContact({
+      id: 'c-1',
+      displayName: 'Alice Roche',
+      emails: [],
+      phones: [
+        {
+          type: 'work',
+          value: '7043',
+          source: {
+            valueType: 'uri',
+            value: 'tel:7042;phone-context=example.com'
+          }
+        }
+      ]
+    })
+
+    expect(telProperties(card)).toEqual([
+      ['tel', { type: 'work' }, 'text', '7043']
+    ])
   })
 
   it('writes every address component back in vCard order', () => {

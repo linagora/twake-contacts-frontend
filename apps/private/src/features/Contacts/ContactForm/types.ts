@@ -86,25 +86,27 @@ export function makeContactFromForm(
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
-  // rows are paired with the base addresses before the blank ones are dropped
-  const addresses = values.addresses
-    .map((entry, index) => ({ entry, original: base?.addresses?.[index] }))
-    .filter(({ entry }) => hasValue(entry))
-    .map(({ entry, original }) => {
-      const untouched = original && formatAddress(original) === entry.value
-      return untouched
-        ? { ...original, type: entry.type }
-        : {
-            type: entry.type,
-            poBox: '',
-            extended: '',
-            street: entry.value.trim(),
-            locality: '',
-            region: '',
-            postalCode: '',
-            country: ''
-          }
-    })
+  const addresses = values.addresses.filter(hasValue).map((entry, index) => {
+    const original = base?.addresses?.[index]
+    const untouched = original && formatAddress(original) === entry.value
+    return untouched
+      ? { ...original, type: entry.type }
+      : {
+          type: entry.type,
+          poBox: '',
+          extended: '',
+          street: entry.value.trim(),
+          locality: '',
+          region: '',
+          postalCode: '',
+          country: ''
+        }
+  })
+  const phones = values.phones.filter(hasValue).map(entry => {
+    const original = base?.phones?.find(phone => phone.value === entry.value)
+    return original ? { ...original, type: entry.type } : entry
+  })
+  const otherProfiles = (base?.socialProfiles ?? []).filter(p => !isMatrix(p))
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
@@ -114,13 +116,7 @@ export function makeContactFromForm(
     emails: values.emails
       .filter(hasValue)
       .map(entry => ({ ...entry, value: entry.value.trim() })),
-    phones: values.phones.filter(hasValue).map(entry => {
-      // an unchanged number keeps the value type it was read with, an edited one is text
-      const valueType = base?.phones?.find(
-        phone => phone.value === entry.value
-      )?.valueType
-      return valueType ? { ...entry, valueType } : entry
-    }),
+    phones,
     addresses,
     socialProfiles: updateMatrixProfile(base?.socialProfiles ?? [], matrixId)
   }

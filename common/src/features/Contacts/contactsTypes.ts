@@ -53,13 +53,18 @@ export interface ContactAddress {
 
 /** vCard 4 TEL value type (RFC 6350 6.4.1): a `tel:` URI or a free text number. */
 export type PhoneValueType = 'uri' | 'text'
+/** TEL value as stored on the server, kept so an unchanged phone is saved back as is. */
+export interface ContactPhoneSource {
+  valueType: string
+  value: string
+}
 
 export interface ContactPhone {
   type: string | null
   /** Number without the `tel:` scheme. */
   value: string
-  /** 'uri' when read as a `tel:` URI; absent (written as text) otherwise or for a new phone. */
-  valueType?: PhoneValueType
+  // only set when the stored value differs from the readable one, e.g. a tel: URI
+  source?: ContactPhoneSource
 }
 
 export interface ContactEmail {

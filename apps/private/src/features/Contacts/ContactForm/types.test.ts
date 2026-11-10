@@ -209,4 +209,31 @@ describe('saving an unchanged contact', () => {
       ['uid', {}, 'uri', uid]
     ])
   })
+
+  it('keeps the stored value of an untouched phone', () => {
+    const source = {
+      valueType: 'uri',
+      value: 'tel:7042;phone-context=example.com'
+    }
+    const withPhones: Contact = {
+      ...contact,
+      phones: [
+        { type: 'work', value: '7042', source },
+        {
+          type: 'home',
+          value: '7043',
+          source: { ...source, value: 'tel:7043;phone-context=example.com' }
+        }
+      ]
+    }
+    const values = makeFormValuesFromContact(withPhones, 'book')
+    values.phones[1] = { type: 'home', value: '7044' }
+
+    const saved = makeContactFromForm(values, withPhones)
+
+    expect(saved.phones).toEqual([
+      { type: 'work', value: '7042', source },
+      { type: 'home', value: '7044' }
+    ])
+  })
 })
