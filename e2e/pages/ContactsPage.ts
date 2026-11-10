@@ -91,7 +91,7 @@ export class ContactsPage {
     this.themeToggle = page.getByRole('button', {
       name: /^(Dark mode|Light mode)$/
     })
-    this.heading = this.main.getByRole('heading', { level: 4 })
+    this.heading = this.main.getByRole('heading', { level: 1 })
     this.mineTab = this.main.getByRole('tab', { name: 'My contacts' })
     this.sharedTab = this.main.getByRole('tab', { name: 'Shared with me' })
     this.importButton = this.main.getByRole('button', { name: 'Import' })
@@ -330,16 +330,17 @@ export class ContactsPage {
     await expect(dialog.root).toBeHidden()
   }
 
-  /** Picks a file for the Import button, as the native file chooser would */
+  /** Picks a file in the native file chooser the Import button opens */
   async importFile(name: string, content: string): Promise<void> {
-    await this.importButton
-      .first()
-      .locator('input[type=file]')
-      .setInputFiles({
-        name,
-        mimeType: 'text/vcard',
-        buffer: Buffer.from(content)
-      })
+    const [chooser] = await Promise.all([
+      this.page.waitForEvent('filechooser'),
+      this.importButton.first().click()
+    ])
+    await chooser.setFiles({
+      name,
+      mimeType: 'text/vcard',
+      buffer: Buffer.from(content)
+    })
   }
 
   // ------------------------------------------------------------------- search

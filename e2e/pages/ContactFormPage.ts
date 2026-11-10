@@ -45,7 +45,7 @@ export class ContactFormPage {
     this.backLink = this.main.getByRole('link', { name: 'Back' })
     this.saveButton = this.main.getByRole('button', { name: 'Save' })
     this.deleteButton = this.main.getByRole('button', { name: 'Delete' })
-    this.title = this.main.getByRole('heading', { level: 4 })
+    this.title = this.main.getByRole('heading', { level: 1 })
     this.firstName = this.main.getByRole('textbox', { name: 'First name' })
     this.lastName = this.main.getByRole('textbox', { name: 'Last name' })
     this.addressBook = this.main.getByRole('combobox', { name: 'Address book' })

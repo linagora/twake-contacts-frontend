@@ -133,7 +133,8 @@ test.describe('NAV sidebar and navigation', () => {
 
     await expect(contacts.addressBookNotFound).toBeVisible()
     await expect(contacts.backLink).toBeVisible()
-    await expect(contacts.heading).toHaveCount(0)
+    // the not-found message is the page h1
+    await expect(contacts.heading).toHaveText('Address book not found')
     await expect(contacts.emptyState).toHaveCount(0)
     await expect(contacts.importButton).toHaveCount(0)
     await expect(contacts.table).toHaveCount(0)

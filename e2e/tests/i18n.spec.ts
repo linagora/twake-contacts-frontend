@@ -65,7 +65,7 @@ test.describe('I18N languages', () => {
     await expect(
       contacts.sidebar.getByRole('link', { name: 'Créer' })
     ).toBeVisible()
-    await expect(main.getByRole('heading', { level: 4 })).toHaveText(
+    await expect(main.getByRole('heading', { level: 1 })).toHaveText(
       'Mes contacts'
     )
     await expect(
@@ -113,7 +113,7 @@ test.describe('I18N languages', () => {
       await expect(
         contacts.sidebar.getByRole('link', { name: expected.create })
       ).toBeVisible()
-      await expect(contacts.main.getByRole('heading', { level: 4 })).toHaveText(
+      await expect(contacts.main.getByRole('heading', { level: 1 })).toHaveText(
         expected.myContacts
       )
       await expect(

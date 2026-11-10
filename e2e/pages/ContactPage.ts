@@ -27,7 +27,7 @@ export class ContactPage {
     this.backLink = this.main.getByRole('link', { name: 'Back' })
     this.editButton = this.main.getByRole('button', { name: 'Edit' })
     this.deleteButton = this.main.getByRole('button', { name: 'Delete' })
-    this.name = this.main.getByRole('heading', { level: 4 })
+    this.name = this.main.getByRole('heading', { level: 1 })
     this.sendEmailButton = page.getByTestId('contact-mail-button')
     this.chatButton = page.getByTestId('contact-chat-button')
     this.scheduleButton = page.getByTestId('contact-calendar-button')

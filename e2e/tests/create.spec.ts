@@ -84,7 +84,7 @@ test.describe('CREATE create contact', () => {
     )
     const contact = await contacts.openContact('Spacey')
     await expect(contact.detail('spacey@example.com')).toHaveText(
-      'spacey@example.com'
+      'Emailspacey@example.com'
     )
   })
 

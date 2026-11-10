@@ -28,7 +28,10 @@ test.describe('RESP phone layout', () => {
       page.getByRole('combobox', { name: 'Search contacts...' })
     ).toBeVisible()
     await expect(main.getByRole('tab', { name: 'My contacts' })).toBeVisible()
-    await expect(main.getByRole('heading', { level: 4 })).toHaveCount(0)
+    // the top bar title is the only h1: no desktop page title on top of it
+    await expect(main.getByRole('heading', { level: 1 })).toHaveText([
+      'My contacts'
+    ])
     // only the name and the actions
     await expect(main.getByRole('columnheader')).toHaveText([/^Name/, ''])
     await expect(create).toHaveAttribute('href', '/contacts/new')

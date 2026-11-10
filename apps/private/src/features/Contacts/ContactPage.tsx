@@ -109,7 +109,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
             </Typography>
           )}
           {copyLabel && (
-            <Tooltip title={copyLabel}>
+            <Tooltip placement="right" title={copyLabel}>
               <IconButton
                 aria-label={copyLabel}
                 onClick={handleCopy}

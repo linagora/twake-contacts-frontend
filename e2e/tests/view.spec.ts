@@ -28,12 +28,13 @@ test.describe('VIEW contact page', () => {
     await expect(contact.sendEmailButton).toHaveText('Send email')
     await expect(contact.chatButton).toHaveText('Open chat')
     await expect(contact.scheduleButton).toHaveText('Create event')
-    // no category: no row with the label icon alone
+    // no category: no row with the label icon alone. Each row starts with its
+    // kind, read out to screen readers in place of the icon
     await expect(contact.details).toHaveText([
-      '+33612345678Work',
-      'jane.doe@example.com',
-      'jane',
-      '1 rue de ParisHome'
+      'Phone+33612345678Work',
+      'Emailjane.doe@example.com',
+      'Matrix idjane',
+      'Address1 rue de ParisHome'
     ])
   })
 

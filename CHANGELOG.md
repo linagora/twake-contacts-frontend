@@ -38,7 +38,13 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - Runtime configuration via static JS files (`.env.js`, `appList.js`), validated at startup: `SSO_BASE_URL`,
   `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI` and `SIDE_SERVICE_BASE_URL` are required, and a missing or
   malformed setting shows a page naming it
-- Bounded API retry policy: 15 s timeout per attempt, reads retried twice, writes never replayed automatically
+- Bounded API retry policy: 15 s timeout per attempt, reads retried twice, writes never replayed automatically,
+  a `Retry-After` header capped to 3 s
+- Address book page header with its sharing status and the actions of the sidebar
+- Warning when a new contact's email already belongs to another contact
+- High-contrast mode, switchable from every screen
+- Skip link, a single main landmark, an h1 and a page title on every screen, and the interface language on
+  the document
 - Fallback page asking to refresh when the application bundle fails to load
 - Build version in `version.js`, shown on the error page and sent as the Sentry release
 - Docker image `linagora/twake-contacts-web`, with security headers and a configurable CSP `frame-ancestors`
@@ -58,3 +64,13 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - vCard handling: ADR components in RFC 6350 order, untyped phones and addresses kept untyped, trimmed emails
 - Labels of address books without a name and of shared books named after their owner
 - Long contact and address book names are ellipsized
+- vCard round trips keep the card UID, the BDAY, TEL and ADR value types, the ADR components after the
+  seventh and every value of a multi-valued EMAIL or TEL; malformed server answers (hrefs, ACLs, share
+  access, invites, N components) no longer break a listing
+- Contact ids are the decoded card file names, so cards with reserved characters open and save
+- Accessibility: labelled fields and value kinds, decorative icons hidden, hoverable tooltips, keyboard
+  operable sidebar sections, focus kept in place after closing a popover, removing a row or saving, share
+  and search results announced to screen readers
+- Each contact action has one name everywhere, and address books are renamed with "Rename"
+- Copy and move feedback names the contact and its destination
+- Backend error messages are no longer shown to users

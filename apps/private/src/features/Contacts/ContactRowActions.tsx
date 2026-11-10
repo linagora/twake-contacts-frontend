@@ -83,9 +83,11 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
         {/* TEMPORARY: reveal on row hover through CSS until twake-mui ships a
             MuiTableRow rule for hover-only actions. VirtualizedTable owns the
             row, so the old isHovered state is no longer reachable from here.
-            The menu is portaled, so the row loses :hover while it is open. */}
+            The menu is portaled, so the row loses :hover while it is open.
+            The tooltips sit beside their button, not below: an interactive
+            tooltip below would cover the actions of the next row. */}
         {!isReadOnly && !isMobile && (
-          <Tooltip title={t('contacts.menu.edit')}>
+          <Tooltip placement="left" title={t('contacts.menu.edit')}>
             <IconButton
               size="medium"
               aria-label={t('contacts.menu.edit')}
@@ -99,7 +101,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title={t('contacts.menu.more')}>
+        <Tooltip placement="right" title={t('contacts.menu.more')}>
           <IconButton
             size="medium"
             aria-label={t('contacts.menu.more')}

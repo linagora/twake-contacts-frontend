@@ -28,9 +28,7 @@ test.describe('IMP import', () => {
       page.waitForEvent('filechooser'),
       contacts.importButton.click()
     ])
-    await expect(
-      contacts.importButton.locator('input[type=file]')
-    ).toHaveAttribute('accept', '.vcf')
+    expect(await chooser.element().getAttribute('accept')).toBe('.vcf')
     await chooser.setFiles({
       name: 'import.vcf',
       mimeType: 'text/vcard',

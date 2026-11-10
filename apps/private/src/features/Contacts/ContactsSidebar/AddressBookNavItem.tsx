@@ -35,6 +35,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
   const [isHovered, setIsHovered] = useState(false)
+  const [entry, setEntry] = useState<HTMLLIElement | null>(null)
   const { isMenuOpen, openMenu, menu, dialogs } = useAddressBookActions({
     book,
     onRemoved: () => {
@@ -45,6 +46,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   return (
     <>
       <NavItem
+        ref={setEntry}
         variant={variant}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -72,7 +74,13 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
           aria-current={getAriaCurrent(selected)}
         >
           <NavIcon icon={Peoples} />
-          <Tooltip placement="right" title={getAddressBookDisplayName(book, t)}>
+          {/* beside the whole entry, not the name: an interactive tooltip next to
+              the name would cover the "More actions" button of the entry */}
+          <Tooltip
+            placement="right"
+            title={getAddressBookDisplayName(book, t)}
+            slotProps={entry ? { popper: { anchorEl: entry } } : undefined}
+          >
             <NavText className="u-mr-1" secondaryText={book.ownerDisplayName}>
               <Box className="u-ellipsis">
                 {getAddressBookDisplayName(book, t)}
