@@ -265,6 +265,32 @@ describe('ContactPage', () => {
     )
   })
 
+  it('names the kind of each contact value for screen readers', () => {
+    renderContacts('/contacts/book1/c1')
+
+    const items = screen.getAllByRole('listitem')
+    expect(items.map(item => item.textContent)).toEqual([
+      expect.stringMatching(/^TeamInformation/),
+      expect.stringMatching(/^Phone\+3365024491/),
+      expect.stringMatching(/^Emailmartinez@twake\.app/),
+      expect.stringMatching(/^Address23 Rue de Mogador, 75009 Paris/)
+    ])
+    items.forEach(item => {
+      expect(item.querySelector('.u-visuallyhidden')).toBeInTheDocument()
+    })
+  })
+
+  it('hides the decorative icons of the contact values', () => {
+    renderContacts('/contacts/book1/c1')
+
+    screen
+      .getAllByRole('listitem')
+      .flatMap(item => Array.from(item.querySelectorAll('svg')))
+      .forEach(svg => {
+        expect(svg.closest('[aria-hidden="true"]')).not.toBeNull()
+      })
+  })
+
   it('shows quick action buttons with labels on desktop', () => {
     renderContacts('/contacts/book1/c1')
 
