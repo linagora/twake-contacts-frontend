@@ -35,7 +35,7 @@
     ]
   },
   "engines": {
-    "node": "24.x"
+    "node": "^24.15.0"
   },
   "compatibility": {
     "esn-sabre": ">=2.4.7.9",

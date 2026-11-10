@@ -24,7 +24,7 @@ describe('ContactAvatar', () => {
       </TwakeMuiThemeProvider>
     )
 
-    expect(backgroundOf('AD')).toContain('#6DCFFF')
+    expect(backgroundOf('AD')).toContain('rgb(109, 207, 255)')
   })
 
   it('renders the initials with the given typography variant', () => {
@@ -56,7 +56,7 @@ describe('ContactAvatar', () => {
       getComputedStyle(
         container.querySelector('.MuiAvatar-root') as HTMLElement
       ).background
-    ).toContain('#6DCFFF')
+    ).toContain('rgb(109, 207, 255)')
   })
 
   it('falls back to the sunrise colour without a display name', () => {
@@ -70,7 +70,7 @@ describe('ContactAvatar', () => {
       getComputedStyle(
         container.querySelector('.MuiAvatar-root') as HTMLElement
       ).background
-    ).toContain('#F8D280')
+    ).toContain('rgb(248, 210, 128)')
   })
 
   it('shows a people icon without a display name', () => {
