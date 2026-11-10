@@ -11,6 +11,7 @@ import {
   useBreakpoints
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
+import { translateContactType } from '@common/locales/dynamicKeys'
 import { FormRow } from './FormRow'
 import { ContactFormEntry } from './types'
 
@@ -114,7 +115,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                   <MenuItem value="">{t('contacts.form.typeLabel')}</MenuItem>
                   {types.map(type => (
                     <MenuItem key={type} value={type}>
-                      {t(`contacts.types.${type}`)}
+                      {translateContactType(type, t)}
                     </MenuItem>
                   ))}
                 </Select>

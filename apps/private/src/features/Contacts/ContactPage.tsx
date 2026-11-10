@@ -1,3 +1,4 @@
+import { translateContactType } from '@common/locales/dynamicKeys'
 import {
   formatAddress,
   isHiddenAddressBook
@@ -96,7 +97,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
         >
           {type && (
             <Typography variant="body2" color="text.secondary">
-              {t(`contacts.types.${type.toLowerCase()}`)}
+              {translateContactType(type, t)}
             </Typography>
           )}
           {copyLabel && (

@@ -26,6 +26,17 @@ import {
 } from '@common/features/Contacts/contactsUtils'
 import { useAddressBookOptions } from './AddressBookOptions'
 
+const TRANSLATION_KEYS = {
+  copy: {
+    title: 'contacts.copyContact.title',
+    error: 'contacts.copyContact.error'
+  },
+  move: {
+    title: 'contacts.moveContact.title',
+    error: 'contacts.moveContact.error'
+  }
+} as const
+
 interface ContactTransferDialogProps {
   contact: Contact
   addressBookId: string
@@ -104,8 +115,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
   mode = 'copy'
 }) => {
   const { t } = useI18n()
-  const translationKey =
-    mode === 'move' ? 'contacts.moveContact' : 'contacts.copyContact'
+  const translationKeys = TRANSLATION_KEYS[mode]
   const {
     books,
     destinationId,
@@ -130,7 +140,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
       onClick={event => event.stopPropagation()}
     >
       <DialogTitle id={`${mode}-contact-title`}>
-        {t(`${translationKey}.title`)}
+        {t(translationKeys.title)}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
@@ -140,9 +150,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
               book: getAddressBookDisplayName(sourceBook, t)
             })}
           </Typography>
-          {error && (
-            <Alert severity="error">{t(`${translationKey}.error`)}</Alert>
-          )}
+          {error && <Alert severity="error">{t(translationKeys.error)}</Alert>}
           {books.length === 0 ? (
             <Typography>{t('contacts.copyContact.empty')}</Typography>
           ) : (

@@ -1,5 +1,4 @@
 {
-  "locale": "es-es",
   "contacts": {
     "moveContact": {
       "success": "“%{name}” movido a %{book}",
@@ -52,7 +51,6 @@
       "clear": "Borrar",
       "firstName": "Nombre",
       "lastName": "Apellidos",
-      "addTeam": "Añadir equipo",
       "matrixId": "ID de Matrix",
       "phone": "Teléfono",
       "addPhone": "Añadir teléfono",
@@ -68,8 +66,6 @@
       "save": "Guardar",
       "addressBook": "Libreta de direcciones",
       "moveHint": "Al guardar, este contacto se moverá a %{book}.",
-      "editTitle": "Editar contacto",
-      "newContact": "Nuevo contacto",
       "invalidEmail": "Dirección de correo electrónico no válida",
       "duplicateEmail": "%{name} ya tiene esta dirección de correo, en %{book}.",
       "duplicateEmailMany": "%{smart_count} contacto ya tiene esta dirección de correo. |||| %{smart_count} contactos ya tienen esta dirección de correo.",
@@ -78,7 +74,6 @@
     "edit": {
       "title": "Cambiar nombre de la libreta de direcciones",
       "name": "Nombre",
-      "description": "Descripción",
       "cancel": "Cancelar",
       "save": "Guardar"
     },
@@ -112,7 +107,6 @@
     },
     "nav": {
       "menu": "Menú",
-      "settings": "Configuración",
       "search": "Buscar"
     },
     "errors": {
@@ -126,7 +120,6 @@
       "subscribe": "No se ha podido añadir la libreta de direcciones",
       "deleteAddressBook": "No se ha podido eliminar la libreta de direcciones",
       "removeAddressBook": "No se ha podido quitar la libreta de direcciones de tu lista",
-      "updateAddressBook": "No se ha podido actualizar la libreta de direcciones",
       "exportAddressBook": "No se pudo exportar la libreta de direcciones",
       "exportContact": "No se pudo exportar el contacto"
     },
@@ -156,8 +149,6 @@
       "removeDescription": "«%{name}» se quitará de su lista. Podrá volver a añadirla buscando a su propietario.",
       "removeTitle": "¿Quitar esta libreta de direcciones?",
       "removeConfirm": "Quitar",
-      "editTitle": "Editar libreta de direcciones",
-      "editSuccess": "Libreta de direcciones actualizada correctamente",
       "sharedWith": "Compartida con %{smart_count} persona |||| Compartida con %{smart_count} personas",
       "public": "Visible para su organización",
       "sharedBy": "Compartida por %{owner} · %{role}"
@@ -200,12 +191,6 @@
   "theme": {
     "darkMode": "Modo oscuro",
     "lightMode": "Modo claro"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Versión móvil próximamente",
-      "subtitle": "Abra Twake Contacts en un ordenador para disfrutar de todas las funciones. Pronto estará disponible una versión móvil totalmente optimizada."
-    }
   },
   "twakeBar": {
     "home": "Inicio",

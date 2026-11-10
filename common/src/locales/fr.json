@@ -1,5 +1,4 @@
 {
-  "locale": "fr-fr",
   "contacts": {
     "moveContact": {
       "success": "« %{name} » déplacé vers %{book}",
@@ -52,7 +51,6 @@
       "clear": "Effacer",
       "firstName": "Prénom",
       "lastName": "Nom",
-      "addTeam": "Ajouter une équipe",
       "matrixId": "Identifiant Matrix",
       "phone": "Téléphone",
       "addPhone": "Ajouter un téléphone",
@@ -68,8 +66,6 @@
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
       "moveHint": "L’enregistrement déplacera ce contact vers %{book}.",
-      "editTitle": "Modifier le contact",
-      "newContact": "Nouveau contact",
       "invalidEmail": "Adresse email invalide",
       "duplicateEmail": "%{name} a déjà cette adresse e-mail, dans %{book}.",
       "duplicateEmailMany": "%{smart_count} contact a déjà cette adresse e-mail. |||| %{smart_count} contacts ont déjà cette adresse e-mail.",
@@ -78,7 +74,6 @@
     "edit": {
       "title": "Renommer le carnet d’adresses",
       "name": "Nom",
-      "description": "Description",
       "cancel": "Annuler",
       "save": "Enregistrer"
     },
@@ -112,7 +107,6 @@
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Paramètres",
       "search": "Rechercher"
     },
     "errors": {
@@ -126,7 +120,6 @@
       "subscribe": "Impossible d'ajouter le carnet d'adresses",
       "deleteAddressBook": "Impossible de supprimer le carnet d'adresses",
       "removeAddressBook": "Impossible de retirer le carnet d'adresses de votre liste",
-      "updateAddressBook": "Impossible de modifier le carnet d'adresses",
       "exportAddressBook": "Échec de l'export du carnet d'adresses",
       "exportContact": "Échec de l'export du contact"
     },
@@ -156,8 +149,6 @@
       "removeDescription": "« %{name} » sera retiré de votre liste. Vous pourrez le retrouver en recherchant son propriétaire.",
       "removeTitle": "Retirer ce carnet d'adresses ?",
       "removeConfirm": "Retirer",
-      "editTitle": "Modifier le carnet d'adresses",
-      "editSuccess": "Carnet d'adresses modifié avec succès",
       "sharedWith": "Partagé avec %{smart_count} personne |||| Partagé avec %{smart_count} personnes",
       "public": "Visible par votre organisation",
       "sharedBy": "Partagé par %{owner} · %{role}"
@@ -200,12 +191,6 @@
   "theme": {
     "darkMode": "Mode sombre",
     "lightMode": "Mode clair"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Version mobile bientôt disponible",
-      "subtitle": "Veuillez ouvrir Twake Contacts sur un ordinateur pour profiter de toutes les fonctionnalités. Une version mobile entièrement optimisée sera bientôt disponible."
-    }
   },
   "twakeBar": {
     "home": "Accueil",

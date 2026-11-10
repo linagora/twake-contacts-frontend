@@ -1,5 +1,4 @@
 {
-  "locale": "en-gb",
   "contacts": {
     "moveContact": {
       "success": "“%{name}” moved to %{book}",
@@ -52,7 +51,6 @@
       "clear": "Clear",
       "firstName": "First name",
       "lastName": "Last name",
-      "addTeam": "Add team",
       "matrixId": "Matrix id",
       "phone": "Phone",
       "addPhone": "Add phone",
@@ -68,8 +66,6 @@
       "save": "Save",
       "addressBook": "Address book",
       "moveHint": "Saving will move this contact to %{book}.",
-      "editTitle": "Edit contact",
-      "newContact": "New contact",
       "invalidEmail": "Invalid email address",
       "duplicateEmail": "%{name} already has this email address, in %{book}.",
       "duplicateEmailMany": "%{smart_count} contact already has this email address. |||| %{smart_count} contacts already have this email address.",
@@ -101,8 +97,6 @@
       "removeDescription": "“%{name}” will be removed from your list. You can find it again by searching for its owner.",
       "removeTitle": "Remove this address book?",
       "removeConfirm": "Remove",
-      "editTitle": "Edit address book",
-      "editSuccess": "Address book updated successfully",
       "sharedWith": "Shared with %{smart_count} person |||| Shared with %{smart_count} people",
       "public": "Visible to your organization",
       "sharedBy": "Shared by %{owner} · %{role}"
@@ -110,7 +104,6 @@
     "edit": {
       "title": "Rename address book",
       "name": "Name",
-      "description": "Description",
       "cancel": "Cancel",
       "save": "Save"
     },
@@ -144,7 +137,6 @@
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Settings",
       "search": "Search"
     },
     "errors": {
@@ -158,7 +150,6 @@
       "subscribe": "Failed to add address book",
       "deleteAddressBook": "Failed to delete the address book",
       "removeAddressBook": "Failed to remove the address book from your list",
-      "updateAddressBook": "Failed to update address book",
       "exportAddressBook": "Failed to export the address book",
       "exportContact": "Failed to export the contact"
     },
@@ -200,12 +191,6 @@
   "theme": {
     "darkMode": "Dark mode",
     "lightMode": "Light mode"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Mobile version coming soon",
-      "subtitle": "Please open Twake Contacts on a desktop to enjoy all features. A fully optimized mobile version is coming soon."
-    }
   },
   "twakeBar": {
     "home": "Home",

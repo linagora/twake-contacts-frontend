@@ -79,9 +79,6 @@ describe('AppRoutes', () => {
     expect(
       screen.getByRole('textbox', { name: 'First name' })
     ).toBeInTheDocument()
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
   })
 
   it('opens the contact page of a card named new', () => {
@@ -113,16 +110,10 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('textbox', { name: 'First name' })).toHaveValue(
       'Resize'
     )
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
 
     setMobile(false)
     rerender(appRoutesTree(store))
 
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'First name' })).toHaveValue(
       'Resize'
     )

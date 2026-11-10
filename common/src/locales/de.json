@@ -1,5 +1,4 @@
 {
-  "locale": "de-de",
   "contacts": {
     "moveContact": {
       "success": "„%{name}“ nach %{book} verschoben",
@@ -52,7 +51,6 @@
       "clear": "Löschen",
       "firstName": "Vorname",
       "lastName": "Nachname",
-      "addTeam": "Team hinzufügen",
       "matrixId": "Matrix-ID",
       "phone": "Telefon",
       "addPhone": "Telefonnummer hinzufügen",
@@ -68,8 +66,6 @@
       "save": "Speichern",
       "addressBook": "Adressbuch",
       "moveHint": "Beim Speichern wird dieser Kontakt nach %{book} verschoben.",
-      "editTitle": "Kontakt bearbeiten",
-      "newContact": "Neuer Kontakt",
       "invalidEmail": "Ungültige E-Mail-Adresse",
       "duplicateEmail": "%{name} hat diese E-Mail-Adresse bereits, in %{book}.",
       "duplicateEmailMany": "%{smart_count} Kontakt hat diese E-Mail-Adresse bereits. |||| %{smart_count} Kontakte haben diese E-Mail-Adresse bereits.",
@@ -78,7 +74,6 @@
     "edit": {
       "title": "Adressbuch umbenennen",
       "name": "Name",
-      "description": "Beschreibung",
       "cancel": "Abbrechen",
       "save": "Speichern"
     },
@@ -112,7 +107,6 @@
     },
     "nav": {
       "menu": "Menü",
-      "settings": "Einstellungen",
       "search": "Suchen"
     },
     "errors": {
@@ -126,7 +120,6 @@
       "subscribe": "Adressbuch konnte nicht hinzugefügt werden",
       "deleteAddressBook": "Adressbuch konnte nicht gelöscht werden",
       "removeAddressBook": "Adressbuch konnte nicht aus Ihrer Liste entfernt werden",
-      "updateAddressBook": "Adressbuch konnte nicht aktualisiert werden",
       "exportAddressBook": "Das Adressbuch konnte nicht exportiert werden",
       "exportContact": "Der Kontakt konnte nicht exportiert werden"
     },
@@ -156,8 +149,6 @@
       "removeDescription": "„%{name}“ wird aus Ihrer Liste entfernt. Sie können es wieder hinzufügen, indem Sie nach dem Eigentümer suchen.",
       "removeTitle": "Dieses Adressbuch entfernen?",
       "removeConfirm": "Entfernen",
-      "editTitle": "Adressbuch bearbeiten",
-      "editSuccess": "Adressbuch erfolgreich aktualisiert",
       "sharedWith": "Mit %{smart_count} Person geteilt |||| Mit %{smart_count} Personen geteilt",
       "public": "Für Ihre Organisation sichtbar",
       "sharedBy": "Geteilt von %{owner} · %{role}"
@@ -200,12 +191,6 @@
   "theme": {
     "darkMode": "Dunkelmodus",
     "lightMode": "Hellmodus"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Mobile Version in Kürze verfügbar",
-      "subtitle": "Bitte öffnen Sie Twake Contacts auf einem Computer, um alle Funktionen nutzen zu können. Eine vollständig optimierte mobile Version ist bald verfügbar."
-    }
   },
   "twakeBar": {
     "home": "Startseite",
