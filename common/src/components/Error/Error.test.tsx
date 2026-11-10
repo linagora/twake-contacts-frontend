@@ -7,6 +7,12 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { Error } from './Error'
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+
 const renderError = (): void => {
   const store = setupStore({
     user: { error: 'Boom' } as UserState
@@ -24,11 +30,11 @@ const renderError = (): void => {
 
 describe('Error page', () => {
   afterEach(() => {
-    delete (window as Partial<Window>).APP_VERSION
+    delete mockConfig.APP_VERSION
   })
 
   it('shows the version of the build', () => {
-    window.APP_VERSION = 'sha-1234abcd'
+    mockConfig.APP_VERSION = 'sha-1234abcd'
 
     renderError()
 

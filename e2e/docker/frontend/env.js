@@ -31,3 +31,9 @@ var MAIL_SPA_URL = 'http://mail.e2e.local'
 var CHAT_SPA_URL = 'http://chat.e2e.local/#/chat/@{target}'
 var CALENDAR_SPA_URL = 'http://calendar.e2e.local'
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.e2e.local'
+
+// Not used by the e2e stack, listed for completeness (see README "Configuring the Application")
+var WEBSOCKET_URL = ''
+var SUPPORT_URL = ''
+var SENTRY_DSN = ''
+var SENTRY_ENVIRONMENT = ''

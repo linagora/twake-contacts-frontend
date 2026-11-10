@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import {
   resolveChatSpaUrl,
   type UriTemplateContext
@@ -15,13 +16,13 @@ export function openChat(
   target: string,
   context: Omit<UriTemplateContext, 'target'> = {}
 ): boolean {
-  const template = window.CHAT_SPA_URL
+  const template = config.CHAT_SPA_URL
   if (!template) return false
 
   const url = resolveChatSpaUrl(template, {
     ...context,
     target,
-    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+    workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
   })
   if (!url) return false
 

@@ -182,6 +182,12 @@
     "retry": "Thử lại",
     "version": "Phiên bản %{version}"
   },
+  "configError": {
+    "title": "Ứng dụng được cấu hình sai",
+    "hint": "Quản trị viên cần sửa các thiết lập sau trong .env.js:",
+    "missing": "Thiếu %{name}",
+    "invalid": "%{name} không hợp lệ"
+  },
   "common": {
     "ok": "OK"
   },

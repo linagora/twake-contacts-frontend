@@ -35,7 +35,10 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - Real time updates over websocket
 - Dark mode toggle
 - English, French, Vietnamese, Russian, Spanish, German and Italian translations
-- Runtime configuration via static JS files (`.env.js`, `appList.js`)
+- Runtime configuration via static JS files (`.env.js`, `appList.js`), validated at startup: `SSO_BASE_URL`,
+  `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI` and `SIDE_SERVICE_BASE_URL` are required, and a missing or
+  malformed setting shows a page naming it
+- Bounded API retry policy: 15 s timeout per attempt, reads retried twice, writes never replayed automatically
 - Fallback page asking to refresh when the application bundle fails to load
 - Build version in `version.js`, shown on the error page and sent as the Sentry release
 - Docker image `linagora/twake-contacts-web`, with security headers and a configurable CSP `frame-ancestors`

@@ -182,6 +182,12 @@
     "retry": "Riprova",
     "version": "Versione %{version}"
   },
+  "configError": {
+    "title": "L’applicazione non è configurata correttamente",
+    "hint": "L’amministratore deve correggere queste impostazioni di .env.js:",
+    "missing": "%{name} è mancante",
+    "invalid": "%{name} non è valido"
+  },
   "common": {
     "ok": "OK"
   },

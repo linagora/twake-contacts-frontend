@@ -206,19 +206,37 @@ The application loads configuration dynamically at runtime from static JavaScrip
 1. Copy `public/.env.example.js` to `public/.env.js`
 2. Customize the variables in `public/.env.js` to match your environment.
 
-| Variable | Description |
-|----------|-------------|
-| `SSO_BASE_URL`, `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI`, `SSO_RESPONSE_TYPE`, `SSO_CODE_CHALLENGE_METHOD`, `SSO_POST_LOGOUT_REDIRECT` | OIDC provider settings |
-| `SIDE_SERVICE_BASE_URL` | twake-calendar-side-service, the backend every call goes to |
-| `WEBSOCKET_URL` | Websocket of the side service, pushing the changes of the address books |
-| `DAV_BASE_URL` | Base URL displayed to users in the address book details |
-| `CONTACTS_NS` | XML namespace of the esn-sabre contacts properties |
-| `MAIL_SPA_URL`, `CHAT_SPA_URL`, `CALENDAR_SPA_URL` | Applications a contact can be reached from, see `.env.example.js` for the placeholders |
-| `WORKPLACE_FQDN_FALLBACK` | Workplace used when the OIDC provider exposes none |
-| `SUPPORT_URL` | Optional help link of the Twake Bar |
-| `DEBUG` | Disables the Nginx browser cache when `true` |
-| `LANG` | Default language, overridden by the user configuration |
-| `SENTRY_DSN` | Optional, omit to disable Sentry |
+The settings are validated at startup by `common/src/config.ts`: when a
+**required** setting is missing, or any setting is malformed, the app shows a
+page naming it instead of starting. The table below is generated from that schema: update it
+with `npm run config:doc` (a test fails when it drifts).
+
+<!-- config:start -->
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SSO_BASE_URL` | **required** | Absolute URL of the OIDC provider |
+| `SSO_CLIENT_ID` | **required** | OIDC client id of the app |
+| `SSO_SCOPE` | **required** | OIDC scopes, space separated. Add `workplaceFqdn` to let the Twake Bar find the workplace |
+| `SSO_REDIRECT_URI` | **required** | Absolute URL the OIDC provider redirects to after login (`<app>/callback`) |
+| `SSO_RESPONSE_TYPE` | `"code"` | OIDC response type |
+| `SSO_CODE_CHALLENGE_METHOD` | `"S256"` | OIDC PKCE code challenge method |
+| `SSO_POST_LOGOUT_REDIRECT` | optional | Absolute URL the OIDC provider redirects to after logout |
+| `SIDE_SERVICE_BASE_URL` | **required** | Absolute URL of the contacts backend (side service), prefix of every API call |
+| `DAV_BASE_URL` | optional | Base URL displayed to users in the address book details |
+| `WEBSOCKET_URL` | optional | Base URL of the side service websocket (`wss://...`, or `https://...` converted to `wss://`). Live updates are disabled when omitted |
+| `CONTACTS_NS` | `"http://open-paas.org/contacts"` | XML namespace of the contacts properties on the DAV server |
+| `MAIL_SPA_URL` | optional | Mail app URL template (`{localpart}`, `{workplaceFqdn}`), target of the "Send email" actions. Hidden when omitted |
+| `CHAT_SPA_URL` | optional | Chat app URL template (`{localpart}`, `{workplaceFqdn}`, `{workplaceFqdn.localpart}`, `{workplaceFqdn.domain}`, `{target}`), target of the "Open chat" actions. Hidden when omitted |
+| `CALENDAR_SPA_URL` | optional | Calendar app URL template (`{localpart}`, `{workplaceFqdn}`), target of the "Create event" actions. Hidden when omitted |
+| `WORKPLACE_FQDN_FALLBACK` | optional | Workplace FQDN template (`{localpart}`) used when the OIDC provider does not expose `workplaceFqdn` |
+| `SUPPORT_URL` | optional | Help link of the Twake Bar when the workplace session is unavailable |
+| `appList` | `[]` | Fallback applications of the Twake Bar (`{ name, link, icon }[]`), defined in `appList.js` |
+| `SENTRY_DSN` | optional | Sentry DSN. Sentry is disabled when omitted |
+| `SENTRY_ENVIRONMENT` | optional | Sentry environment of the reported events (e.g. `production`, `staging`) |
+| `APP_VERSION` | optional | Version of the app, sent to Sentry as the release |
+| `DEBUG` | `false` | Shows the theme toggle and disables the Nginx browser cache when `true` |
+| `LANG` | `"en"` | Default language, overridden by the user configuration |
+<!-- config:end -->
 
 **Note**: `.env.js` is gitignored, so each environment can have its own configuration.
 

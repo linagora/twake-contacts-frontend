@@ -17,6 +17,12 @@ import ruLocale from '@common/locales/ru.json'
 import viLocale from '@common/locales/vi.json'
 import { ContactCell } from './ContactCell'
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+
 const locales = {
   de: deLocale,
   en: enLocale,
@@ -55,11 +61,11 @@ const renderCell = (lang: keyof typeof locales): void => {
 
 describe('ContactCell', () => {
   beforeEach(() => {
-    window.MAIL_SPA_URL = 'https://mail.example.com'
+    mockConfig.MAIL_SPA_URL = 'https://mail.example.com'
   })
 
   afterEach(() => {
-    delete window.MAIL_SPA_URL
+    delete mockConfig.MAIL_SPA_URL
   })
 
   it.each(Object.keys(locales) as (keyof typeof locales)[])(

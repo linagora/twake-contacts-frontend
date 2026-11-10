@@ -182,6 +182,12 @@
     "retry": "Try Again",
     "version": "Version %{version}"
   },
+  "configError": {
+    "title": "The application is misconfigured",
+    "hint": "The administrator must fix these settings of .env.js:",
+    "missing": "%{name} is missing",
+    "invalid": "%{name} is invalid"
+  },
   "common": {
     "ok": "Ok"
   },

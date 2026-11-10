@@ -16,6 +16,7 @@
     "lint:fix": "rs lint --fix apps common && rs fmt",
     "lint:fmt": "rs fmt --check",
     "fmt": "rs fmt",
+    "config:doc": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/print-config-doc.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint:deps": "syncpack lint --dependency-types prod,dev,peer"

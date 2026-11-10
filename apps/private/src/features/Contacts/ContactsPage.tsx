@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import {
   Content,
   Layout,
@@ -113,7 +114,7 @@ export const ContactsPage: React.FC = () => {
               className="u-flex-items-center u-flex-justify-between u-mb-1"
             >
               <ContactSearchBar />
-              {window.DEBUG && <ThemeToggle />}
+              {config.DEBUG && <ThemeToggle />}
             </Stack>
           )}
           {error && (

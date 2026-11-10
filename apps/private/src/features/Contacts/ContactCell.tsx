@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Chip,
@@ -52,25 +53,25 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       const chatTarget = matrixProfile?.value
 
       const mailUrl =
-        firstEmail && window.MAIL_SPA_URL
-          ? generateMailComposerUrl(window.MAIL_SPA_URL, [firstEmail], {
+        firstEmail && config.MAIL_SPA_URL
+          ? generateMailComposerUrl(config.MAIL_SPA_URL, [firstEmail], {
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
       const calendarUrl =
-        firstEmail && window.CALENDAR_SPA_URL
-          ? generateCalendarEventUrl(window.CALENDAR_SPA_URL, [firstEmail], {
+        firstEmail && config.CALENDAR_SPA_URL
+          ? generateCalendarEventUrl(config.CALENDAR_SPA_URL, [firstEmail], {
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
       const chatUrl =
-        chatTarget && window.CHAT_SPA_URL
-          ? resolveChatSpaUrl(window.CHAT_SPA_URL, {
+        chatTarget && config.CHAT_SPA_URL
+          ? resolveChatSpaUrl(config.CHAT_SPA_URL, {
               target: chatTarget,
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
 
