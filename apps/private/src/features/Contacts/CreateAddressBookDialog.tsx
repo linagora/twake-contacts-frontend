@@ -3,15 +3,14 @@ import {
   Button,
   Dialog,
   DialogActions,
+  DialogCloseButton,
   DialogContent,
   DialogTitle,
-  IconButton,
   InputAdornment,
-  ListItem,
   TextField,
   Typography
 } from '@linagora/twake-mui'
-import { Cross, Icon, Peoples } from '@linagora/twake-icons'
+import { Icon, Peoples } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
 interface CreateAddressBookDialogProps {
@@ -40,23 +39,10 @@ export const CreateAddressBookDialog: React.FC<
       maxWidth="sm"
       slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
     >
-      <DialogTitle>
-        <ListItem
-          disableGutters
-          disablePadding
-          secondaryAction={
-            <IconButton
-              edge="end"
-              aria-label={t('contacts.form.close')}
-              onClick={onClose}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          }
-        >
-          {t('contacts.addressBook.createTitle')}
-        </ListItem>
+      <DialogTitle className="dialogTitleWithClose">
+        {t('contacts.addressBook.createTitle')}
       </DialogTitle>
+      <DialogCloseButton onClick={onClose} />
       <DialogContent>
         <Typography className="u-mb-1">
           {t('contacts.addressBook.nameLabel')}

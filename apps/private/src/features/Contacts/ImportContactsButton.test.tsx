@@ -103,6 +103,28 @@ describe('ImportContactsButton', () => {
     expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
   })
 
+  it('renders a real button with the file input outside of it', () => {
+    const { container } = renderButton('book1')
+    const button = screen.getByRole('button', { name: 'Import' })
+    const input = container.querySelector('input[type="file"]')
+
+    expect(button.tagName).toBe('BUTTON')
+    expect(input).not.toBeNull()
+    expect(button).not.toContainElement(input as HTMLElement)
+  })
+
+  it('opens the file chooser when clicking the button', () => {
+    const { container } = renderButton('book1')
+    const input = container.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement
+    const clickSpy = vi.spyOn(input, 'click')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import' }))
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+  })
+
   it('does not render when "contacts" address book is not available', () => {
     renderWithProviders(<ImportContactsButton />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,

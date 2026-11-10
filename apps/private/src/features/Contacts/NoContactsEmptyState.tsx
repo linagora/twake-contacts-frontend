@@ -1,6 +1,6 @@
 import { useAppSelector } from '@common/app/hooks'
 import { ThemeMode } from '@common/features/Settings/SettingsSlice'
-import { Empty, Stack, Typography } from '@linagora/twake-mui'
+import { Empty, Stack } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 
 const ILLUSTRATION_BY_THEME: Record<ThemeMode, string> = {
@@ -29,18 +29,10 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
         />
       }
       iconSize="normal"
-      text={
-        <Stack
-          spacing={2}
-          className="u-flex u-flex-items-center u-flex-justify-center u-flex-grow-1"
-        >
-          <Typography variant="body1">
-            {t('contacts.empty.subtitle')}
-          </Typography>
-          {action}
-        </Stack>
-      }
+      text={t('contacts.empty.subtitle')}
       title={t('contacts.empty.title')}
-    />
+    >
+      <Stack className="u-flex-items-center u-mt-1">{action}</Stack>
+    </Empty>
   )
 }

@@ -65,21 +65,20 @@ export const ImportContactsButton: React.FC<ImportContactsButtonProps> = ({
       <Button
         size={isMobile ? 'small' : 'medium'}
         variant="outlined"
-        component="label"
         startIcon={<Icon icon={Upload} />}
         onClick={handleImportClick}
       >
         {t('contacts.empty.import')}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".vcf"
-          hidden
-          onChange={e => {
-            void handleFileChange(e)
-          }}
-        />
       </Button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".vcf"
+        hidden
+        onChange={e => {
+          void handleFileChange(e)
+        }}
+      />
       <Snackbar
         open={uploadSuccess}
         autoHideDuration={6000}

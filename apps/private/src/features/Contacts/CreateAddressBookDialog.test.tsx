@@ -25,6 +25,21 @@ const nameField = (): HTMLElement =>
   screen.getByPlaceholderText(en.contacts.addressBook.namePlaceholder)
 
 describe('CreateAddressBookDialog', () => {
+  it('names the dialog after its title only, with the close button outside the heading', () => {
+    renderDialog(vi.fn())
+
+    const heading = screen.getByRole('heading', {
+      name: en.contacts.addressBook.createTitle
+    })
+    const closeButton = screen.getByRole('button', { name: 'Close' })
+
+    expect(
+      screen.getByRole('dialog', { name: en.contacts.addressBook.createTitle })
+    ).toBeInTheDocument()
+    expect(heading).not.toContainElement(closeButton)
+    expect(heading.querySelector('li')).toBeNull()
+  })
+
   it('creates the address book when pressing Enter in the name field', () => {
     const onConfirm = vi.fn()
     renderDialog(onConfirm)

@@ -24,7 +24,7 @@ export const AddressBookInfoCard: React.FC<AddressBookInfoCardProps> = ({
       className="u-pv-half u-ph-2 u-bdrs-6"
       style={{ backgroundColor: 'var(--twake-palette-background-contrast)' }}
     >
-      <ListItem dense disableGutters>
+      <ListItem component="div" dense disableGutters>
         <ListItemAvatar className="u-miw-1">
           <Avatar
             sx={{ height: 32, width: 32 }}
