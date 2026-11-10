@@ -158,6 +158,7 @@
       "title": "Condividi %{name}",
       "invitePeople": "Invita persone",
       "addContacts": "Aggiungi contatti",
+      "removeInvitee": "Rimuovi %{name}",
       "send": "Invia",
       "owner": "Proprietario",
       "emptyTitle": "Nessuno è stato ancora aggiunto",

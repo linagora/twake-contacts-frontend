@@ -158,6 +158,7 @@
       "title": "Поделиться %{name}",
       "invitePeople": "Пригласить людей",
       "addContacts": "Добавить контакты",
+      "removeInvitee": "Убрать %{name}",
       "send": "Отправить",
       "owner": "Владелец",
       "emptyTitle": "Пока никто не добавлен",
