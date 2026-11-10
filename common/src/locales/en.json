@@ -91,7 +91,10 @@
       "removeTitle": "Remove this address book?",
       "removeConfirm": "Remove",
       "editTitle": "Edit address book",
-      "editSuccess": "Address book updated successfully"
+      "editSuccess": "Address book updated successfully",
+      "sharedWith": "Shared with %{smart_count} person |||| Shared with %{smart_count} people",
+      "public": "Visible to your organization",
+      "sharedBy": "Shared by %{owner} · %{role}"
     },
     "edit": {
       "title": "Edit address book",

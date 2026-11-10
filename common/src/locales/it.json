@@ -147,7 +147,10 @@
       "removeTitle": "Rimuovere questa rubrica?",
       "removeConfirm": "Rimuovi",
       "editTitle": "Modifica rubrica",
-      "editSuccess": "Rubrica aggiornata con successo"
+      "editSuccess": "Rubrica aggiornata con successo",
+      "sharedWith": "Condivisa con %{smart_count} persona |||| Condivisa con %{smart_count} persone",
+      "public": "Visibile alla tua organizzazione",
+      "sharedBy": "Condivisa da %{owner} · %{role}"
     },
     "share": {
       "title": "Condividi %{name}",

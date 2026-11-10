@@ -148,7 +148,10 @@
       "removeTitle": "¿Quitar esta libreta de direcciones?",
       "removeConfirm": "Quitar",
       "editTitle": "Editar libreta de direcciones",
-      "editSuccess": "Libreta de direcciones actualizada correctamente"
+      "editSuccess": "Libreta de direcciones actualizada correctamente",
+      "sharedWith": "Compartida con %{smart_count} persona |||| Compartida con %{smart_count} personas",
+      "public": "Visible para su organización",
+      "sharedBy": "Compartida por %{owner} · %{role}"
     },
     "share": {
       "title": "Compartir %{name}",

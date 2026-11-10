@@ -29,6 +29,7 @@ import { ContactsLoadErrorState } from './ContactsLoadErrorState'
 import { ContactsTable } from './ContactsTable'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 import { ImportContactsButton } from './ImportContactsButton'
+import { AddressBookHeader } from './AddressBookActions/AddressBookHeader'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
@@ -152,6 +153,19 @@ export const AddressBookPage: React.FC = () => {
     )
   }
 
+  const importButton = !isMobile &&
+    (addressBookId !== 'dab' || book?.canWrite) &&
+    showTable && <ImportContactsButton addressBookId={addressBookId} />
+
+  if (book && addressBookId && !isMobile && !loading) {
+    return (
+      <Stack spacing={2} className="u-flex-auto u-ov-hidden">
+        <AddressBookHeader book={book}>{importButton}</AddressBookHeader>
+        {renderContent()}
+      </Stack>
+    )
+  }
+
   return (
     <Stack spacing={2} className="u-flex-auto u-ov-hidden">
       <Stack
@@ -187,9 +201,7 @@ export const AddressBookPage: React.FC = () => {
             )}
           </Stack>
         )}
-        {!isMobile &&
-          (addressBookId !== 'dab' || book?.canWrite) &&
-          showTable && <ImportContactsButton addressBookId={addressBookId} />}
+        {importButton}
       </Stack>
       {renderContent()}
     </Stack>

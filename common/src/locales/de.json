@@ -148,7 +148,10 @@
       "removeTitle": "Dieses Adressbuch entfernen?",
       "removeConfirm": "Entfernen",
       "editTitle": "Adressbuch bearbeiten",
-      "editSuccess": "Adressbuch erfolgreich aktualisiert"
+      "editSuccess": "Adressbuch erfolgreich aktualisiert",
+      "sharedWith": "Mit %{smart_count} Person geteilt |||| Mit %{smart_count} Personen geteilt",
+      "public": "Für Ihre Organisation sichtbar",
+      "sharedBy": "Geteilt von %{owner} · %{role}"
     },
     "share": {
       "title": "%{name} teilen",
