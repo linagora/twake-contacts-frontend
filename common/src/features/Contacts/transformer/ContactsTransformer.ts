@@ -373,7 +373,10 @@ export function normalizeContact(item: DavContactItem): Contact {
   if (nicknames.some(Boolean)) contact.nicknames = nicknames
 
   const birthday = parseBirthday(card)
-  if (birthday) contact.birthday = birthday
+  if (birthday) {
+    contact.birthday = birthday
+    contact.birthdayProp = getCardProperties(card, 'bday')[0]
+  }
 
   const phones = parsePhones(card)
   if (phones.length > 0) contact.phones = phones
@@ -419,6 +422,25 @@ function makeTypedProperty(
   value: JCalValue
 ): JCalProperty {
   return [name, type ? { type } : {}, 'text', value]
+}
+
+// RFC 6350 §4.3.4 date-and-or-time, in the extended form jCard uses (RFC 7095 §3.5.3)
+const DATE_AND_OR_TIME =
+  /^(\d{4}(-\d{2}(-\d{2})?)?|--\d{2}(-\d{2})?|---\d{2})(T[\d:.+\-Z]*)?$|^T[\d:.+\-Z]+$/
+
+// RFC 6350 §6.2.5: BDAY is date-and-or-time by default, text only for a free-form value
+function birthdayValueType(value: string): string {
+  return DATE_AND_OR_TIME.test(value) ? 'date-and-or-time' : 'text'
+}
+
+// an unchanged BDAY is written back as read, keeping its value type and parameters
+function makeBirthdayProperty(
+  birthday: string,
+  original: JCalProperty | undefined
+): JCalProperty {
+  // a numeric BDAY from a non-conformant writer is shown as text: unchanged, it is kept as is
+  if (original && String(original[3]) === birthday) return original
+  return ['bday', {}, birthdayValueType(birthday), birthday]
 }
 
 /** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */
@@ -481,7 +503,6 @@ export function denormalizeContact(contact: Contact): JCalCard {
   }
   const singles: [string, string | undefined][] = [
     ['photo', contact.photo],
-    ['bday', contact.birthday],
     ['title', contact.title],
     ['role', contact.role],
     ['note', contact.note]
@@ -489,6 +510,11 @@ export function denormalizeContact(contact: Contact): JCalCard {
   singles.forEach(([name, value]) => {
     if (value) properties.push([name, {}, 'text', value])
   })
+  if (contact.birthday) {
+    properties.push(
+      makeBirthdayProperty(contact.birthday, contact.birthdayProp)
+    )
+  }
   properties.push(...(contact.passthroughProps ?? []))
   return ['vcard', properties]
 }

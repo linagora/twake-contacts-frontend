@@ -339,3 +339,59 @@ describe('denormalizeContact', () => {
     expect(urls).toEqual([['url', {}, 'uri', 'https://mei.example/']])
   })
 })
+
+describe('BDAY round trip', () => {
+  const cardWith = (bday: JCalProperty): DavContactItem =>
+    ({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [['version', {}, 'text', '4.0'], ['fn', {}, 'text', 'Jane Doe'], bday]
+      ]
+    }) as unknown as DavContactItem
+
+  const savedBday = (contact: Contact): JCalProperty[] =>
+    denormalizeContact(contact)[1].filter(p => p[0] === 'bday')
+
+  it.each(['date', 'date-and-or-time', 'text'])(
+    'keeps a %s BDAY value type on an unchanged save',
+    type => {
+      const contact = normalizeContact(
+        cardWith(['bday', {}, type, '1980-02-03'])
+      )
+      expect(savedBday(contact)).toEqual([['bday', {}, type, '1980-02-03']])
+    }
+  )
+
+  it('keeps the BDAY parameters on an unchanged save', () => {
+    const bday: JCalProperty = [
+      'bday',
+      { 'x-apple-omit-year': '1604' },
+      'date',
+      '1604-04-12'
+    ]
+    expect(savedBday(normalizeContact(cardWith(bday)))).toEqual([bday])
+  })
+
+  it.each(['1985-07-14', '--07-14', '1985-07-14T10:00:00Z'])(
+    'writes a changed date birthday %s as date-and-or-time',
+    value => {
+      const contact = normalizeContact(
+        cardWith(['bday', {}, 'date', '1980-02-03'])
+      )
+      expect(savedBday({ ...contact, birthday: value })).toEqual([
+        ['bday', {}, 'date-and-or-time', value]
+      ])
+    }
+  )
+
+  it('writes a free-form birthday as text', () => {
+    const contact: Contact = {
+      id: 'c1',
+      displayName: 'Jane Doe',
+      emails: [],
+      birthday: 'circa 1800'
+    }
+    expect(savedBday(contact)).toEqual([['bday', {}, 'text', 'circa 1800']])
+  })
+})
