@@ -7,18 +7,28 @@ import {
 import { AddressBook, ContactAddress } from './contactsTypes'
 import { AddressBookAccessLevel } from './davTypes'
 
+// trims the parts and drops the blank ones, so that a whitespace-only
+// component leaves no stray separator behind
+function joinNonBlank(parts: string[], separator: string): string {
+  return parts
+    .map(part => part.trim())
+    .filter(Boolean)
+    .join(separator)
+}
+
 /** Joins the address components in postal order, e.g. "10 Avenue des Champs, 75008 Paris, France". */
 export function formatAddress(address: ContactAddress): string {
-  return [
-    address.poBox,
-    address.extended,
-    address.street,
-    [address.postalCode, address.locality].filter(Boolean).join(' '),
-    address.region,
-    address.country
-  ]
-    .filter(Boolean)
-    .join(', ')
+  return joinNonBlank(
+    [
+      address.poBox,
+      address.extended,
+      address.street,
+      joinNonBlank([address.postalCode, address.locality], ' '),
+      address.region,
+      address.country
+    ],
+    ', '
+  )
 }
 
 export function isHiddenAddressBook(id: string): boolean {

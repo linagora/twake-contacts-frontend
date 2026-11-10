@@ -476,6 +476,36 @@ describe('formatAddress', () => {
       })
     ).toBe('Building B, 10 Avenue des Champs, 75008 Paris, France')
   })
+
+  it('skips whitespace-only components', () => {
+    expect(
+      formatAddress({
+        type: null,
+        poBox: ' ',
+        extended: '',
+        street: 'Paris',
+        locality: ' ',
+        region: '',
+        postalCode: '',
+        country: ''
+      })
+    ).toBe('Paris')
+  })
+
+  it('trims the components', () => {
+    expect(
+      formatAddress({
+        type: null,
+        poBox: '',
+        extended: '',
+        street: ' 10 Rue de la Paix ',
+        locality: 'Paris ',
+        region: '\t',
+        postalCode: ' 75002',
+        country: 'France'
+      })
+    ).toBe('10 Rue de la Paix, 75002 Paris, France')
+  })
 })
 
 describe('fetchContact', () => {
