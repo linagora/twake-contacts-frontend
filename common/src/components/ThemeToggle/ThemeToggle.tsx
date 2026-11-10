@@ -23,7 +23,7 @@ export const ThemeToggle: React.FC = () => {
   const label = isDark ? t('theme.lightMode') : t('theme.darkMode')
 
   return (
-    <Tooltip disableInteractive title={label}>
+    <Tooltip title={label}>
       <IconButton onClick={handleToggle} aria-label={label}>
         <Icon icon={Contrast} />
       </IconButton>

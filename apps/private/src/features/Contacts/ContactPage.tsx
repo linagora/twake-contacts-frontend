@@ -84,7 +84,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
         <ListItemIcon>
           <Icon icon={icon} />
         </ListItemIcon>
-        <Tooltip disableInteractive title={value}>
+        <Tooltip title={value}>
           <ListItemText
             primary={value}
             slotProps={{ primary: { noWrap: true } }}
@@ -101,7 +101,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
             </Typography>
           )}
           {copyLabel && (
-            <Tooltip disableInteractive title={copyLabel}>
+            <Tooltip title={copyLabel}>
               <IconButton
                 aria-label={copyLabel}
                 onClick={handleCopy}

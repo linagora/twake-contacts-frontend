@@ -124,7 +124,7 @@ export const EntryList: React.FC<EntryListProps> = ({
             {shouldRenderRemoveGrid && (
               <Grid size={isMobile ? 2 : 1}>
                 {index > 0 && (
-                  <Tooltip disableInteractive title={t('contacts.form.remove')}>
+                  <Tooltip title={t('contacts.form.remove')}>
                     <IconButton
                       onClick={() => onRemove(index)}
                       aria-label={t('contacts.form.remove')}

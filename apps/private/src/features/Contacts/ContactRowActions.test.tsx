@@ -102,6 +102,50 @@ describe('ContactRowActions', () => {
   })
 })
 
+describe('ContactRowActions tooltip', () => {
+  const showMoreActionsTooltip = async (): Promise<HTMLElement> => {
+    fireEvent.mouseOver(screen.getByRole('button', { name: 'More actions' }))
+    return screen.findByRole('tooltip', { name: en.contacts.menu.more })
+  }
+
+  it('stays open while the pointer moves onto it', async () => {
+    renderRowActions()
+    const tooltip = await showMoreActionsTooltip()
+
+    fireEvent.mouseLeave(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.mouseOver(tooltip)
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    expect(
+      screen.getByRole('tooltip', { name: en.contacts.menu.more })
+    ).toBeInTheDocument()
+  })
+
+  it('closes when the pointer leaves both the button and the tooltip', async () => {
+    renderRowActions()
+    const tooltip = await showMoreActionsTooltip()
+
+    fireEvent.mouseLeave(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.mouseOver(tooltip)
+    fireEvent.mouseLeave(tooltip)
+
+    await waitFor(() =>
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    )
+  })
+
+  it('closes on Escape', async () => {
+    renderRowActions()
+    await showMoreActionsTooltip()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() =>
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    )
+  })
+})
+
 describe('ContactRowActions export', () => {
   const vcf = new Blob(['BEGIN:VCARD'], { type: 'text/vcard' })
 

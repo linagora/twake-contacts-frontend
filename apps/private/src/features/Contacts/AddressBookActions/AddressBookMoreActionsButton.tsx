@@ -15,7 +15,7 @@ export const AddressBookMoreActionsButton: React.FC<
   const { t } = useI18n()
   return (
     <>
-      <Tooltip disableInteractive title={t('contacts.menu.more')}>
+      <Tooltip title={t('contacts.menu.more')}>
         <IconButton
           size="medium"
           aria-label={t('contacts.menu.more')}
