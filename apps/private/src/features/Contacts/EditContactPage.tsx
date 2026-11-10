@@ -6,6 +6,7 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
@@ -35,6 +36,10 @@ export const EditContactPage: React.FC = () => {
       : allWritableBooks
   const writableBooks = formBooks.filter(book => book.id !== 'dab')
   const { contact, loading } = useContact(addressBookId, contactId)
+
+  useDocumentTitle(
+    !contact && !loading ? t('contacts.notFound') : t('contacts.form.editTitle')
+  )
 
   if (addressBookId === 'dab') {
     return <Navigate to={`/contacts/${addressBookId}/${contactId}`} replace />

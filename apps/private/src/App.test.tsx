@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import * as Sentry from '@sentry/react'
 import { setupStore } from '@common/app/store'
+import { setLanguage } from '@common/features/Settings/SettingsSlice'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import App from './App'
 
@@ -72,5 +73,38 @@ describe('App error boundary', () => {
         <div data-testid="header" />
       ))
     }
+  })
+})
+
+describe('App language', () => {
+  afterEach(() => {
+    localStorage.removeItem('lang')
+    document.documentElement.lang = 'en'
+  })
+
+  it('declares the interface language on the document', () => {
+    const store = setupStore()
+    store.dispatch(setLanguage('fr'))
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+    expect(document.documentElement.lang).toBe('fr')
+
+    act(() => {
+      store.dispatch(setLanguage('ru'))
+    })
+    expect(document.documentElement.lang).toBe('ru')
+  })
+
+  it('declares English by default', () => {
+    document.documentElement.lang = ''
+    render(
+      <Provider store={setupStore()}>
+        <App />
+      </Provider>
+    )
+    expect(document.documentElement.lang).toBe('en')
   })
 })

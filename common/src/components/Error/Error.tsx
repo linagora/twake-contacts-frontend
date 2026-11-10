@@ -8,6 +8,7 @@ import {
 } from '@linagora/twake-mui'
 import { useEffect, useRef } from 'react'
 import { useAppSelector } from '@common/app/hooks'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useI18n } from 'twake-i18n'
@@ -24,6 +25,8 @@ export const Error: React.FC<ErrorProps> = ({
   const { t } = useI18n()
   const userError = useAppSelector(state => state.user.error)
   const initialError = useRef(userError)
+
+  useDocumentTitle(t('error.title'))
 
   useEffect(() => {
     if (!initialError.current && !isCrashFallback) {

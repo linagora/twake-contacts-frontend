@@ -3,6 +3,7 @@ import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
@@ -21,6 +22,8 @@ export const CreateContactPage: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const writableBooks = useAppSelector(selectWritableBooks)
   const loading = useAppSelector(state => state.contacts.loading)
+
+  useDocumentTitle(t('contacts.form.createTitle'))
 
   if (loading && writableBooks.length === 0) {
     return <ContactFormSkeleton />

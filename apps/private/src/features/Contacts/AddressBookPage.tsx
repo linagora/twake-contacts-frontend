@@ -12,6 +12,7 @@ import {
   selectListingKeyToLoadMore
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import {
   Button,
@@ -74,6 +75,16 @@ export const AddressBookPage: React.FC = () => {
     ? getAddressBookDisplayName(book, t)
     : t('contacts.myContacts')
 
+  const bookNotFound = !!addressBookId && !book && !loading
+
+  const pageTitle = (): string => {
+    if (bookNotFound) return t('contacts.addressBookNotFound')
+    if (scope === 'shared') return t('contacts.tabs.shared')
+    return title
+  }
+
+  useDocumentTitle(pageTitle())
+
   const loadMore = useCallback(() => {
     // pages are read once the books are known, to place their contacts
     if (!openpaasId || loading || !listingKeyToLoadMore) return
@@ -103,7 +114,7 @@ export const AddressBookPage: React.FC = () => {
     if (!listingToLoadMore || entries.length === 0) loadMore()
   }, [listingToLoadMore, entries.length, loadMore])
 
-  if (addressBookId && !book && !loading) {
+  if (bookNotFound) {
     return (
       <Stack spacing={3}>
         <Button
