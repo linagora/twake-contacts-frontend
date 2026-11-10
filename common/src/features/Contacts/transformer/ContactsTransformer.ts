@@ -217,6 +217,20 @@ export function normalizeContactsCount(count: unknown): number | null {
     : null
 }
 
+// dav:share-access is a JSON number from esn-sabre, but may come as a numeric
+// string or a single-element array; anything else is treated as absent
+function normalizeShareAccess(value: unknown): number | undefined {
+  const scalar = Array.isArray(value) && value.length === 1 ? value[0] : value
+  if (typeof scalar === 'number') {
+    return Number.isInteger(scalar) ? scalar : undefined
+  }
+  if (typeof scalar === 'string' && scalar.trim() !== '') {
+    const parsed = Number(scalar)
+    return Number.isInteger(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
 export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const href = raw._links?.self?.href
   const id = extractId(href, '.json')
@@ -224,7 +238,7 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const userId = href?.split('/').at(-2) ?? ''
   const acl = raw['dav:acl'] ?? []
   // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
-  const shareAccess = raw['dav:share-access'] ?? undefined
+  const shareAccess = normalizeShareAccess(raw['dav:share-access'])
   const isReadOnlyShare = READ_ONLY_SHARE_ACCESSES.some(
     access => access === shareAccess
   )
