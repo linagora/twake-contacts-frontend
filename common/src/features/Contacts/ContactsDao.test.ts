@@ -11,6 +11,7 @@ import { fetchUserById } from '@common/features/User/UserDao'
 import {
   exportAddressBook,
   exportContact,
+  fetchAddressBooks,
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
@@ -28,7 +29,7 @@ import { AddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
 
 vi.mock('@common/utils/apiUtils', () => ({
-  api: { get: vi.fn(), post: vi.fn() }
+  api: Object.assign(vi.fn(), { get: vi.fn(), post: vi.fn() })
 }))
 vi.mock('@common/features/User/UserDao', () => ({ fetchUserById: vi.fn() }))
 
@@ -685,6 +686,49 @@ describe('subscribeToAddressBook', () => {
 
     expect(book.ownerDisplayName).toBe('alice')
   })
+})
+
+describe('fetchAddressBooks', () => {
+  beforeEach(() => {
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
+      json: () => Promise.resolve({ _embedded: { 'dav:addressbook': [] } })
+    } as unknown as ReturnType<typeof api.get>)
+    vi.mocked(api).mockReset()
+  })
+
+  const domainBook = (numberOfContacts: unknown): void => {
+    vi.mocked(api).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          '{DAV:}displayname': 'Domain',
+          '{DAV:}acl': ['{DAV:}read'],
+          '{http://open-paas.org/contacts}numberOfContacts': numberOfContacts
+        })
+    } as unknown as ReturnType<typeof api>)
+  }
+
+  const fetchDomainBook = async (): Promise<AddressBook | undefined> => {
+    const books = await fetchAddressBooks('alice-id', [
+      { domainId: 'domain-1', joinedAt: '2026-01-01' }
+    ])
+    return books.find(book => book.id === 'dab')
+  }
+
+  it('reads the count of the domain book', async () => {
+    domainBook(12)
+
+    expect((await fetchDomainBook())?.contactsCount).toBe(12)
+  })
+
+  it.each(['12', 1.5, -1])(
+    'reads a malformed count %p of the domain book as unknown',
+    async numberOfContacts => {
+      domainBook(numberOfContacts)
+
+      expect((await fetchDomainBook())?.contactsCount).toBeNull()
+    }
+  )
 })
 
 describe('fetchSubscribableAddressBooks', () => {

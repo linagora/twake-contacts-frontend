@@ -163,6 +163,13 @@ function normalizeAddressBookName(name: unknown): string {
     : ''
 }
 
+// The count comes from the server unchecked: anything but a non-negative integer is unknown
+export function normalizeContactsCount(count: unknown): number | null {
+  return Number.isInteger(count) && (count as number) >= 0
+    ? (count as number)
+    : null
+}
+
 export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const href = raw._links?.self?.href
   const id = extractId(href, '.json')
@@ -179,7 +186,7 @@ export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
     userId,
     name: normalizeAddressBookName(raw['dav:name']),
     isDefault: isDefaultAddressBook(raw, id),
-    contactsCount: raw.numberOfContacts ?? null,
+    contactsCount: normalizeContactsCount(raw.numberOfContacts),
     acl,
     canWrite:
       !isReadOnlyShare &&

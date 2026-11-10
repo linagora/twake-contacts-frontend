@@ -20,7 +20,8 @@ import {
 import {
   denormalizeContact,
   normalizeAddressBook,
-  normalizeContact
+  normalizeContact,
+  normalizeContactsCount
 } from './transformer/ContactsTransformer'
 import { CONTACTS_PAGINATION_LIMIT, SEARCH_LIMIT } from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
@@ -154,7 +155,9 @@ function normalizeDomainAddressBook(
     id: 'dab',
     userId: domainId,
     name: raw['{DAV:}displayname'] ?? '',
-    contactsCount: raw[`{${CONTACTS_NS}}numberOfContacts`] ?? null,
+    contactsCount: normalizeContactsCount(
+      raw[`{${CONTACTS_NS}}numberOfContacts`]
+    ),
     acl,
     canWrite: acl.some(p => p === '{DAV:}write-content' || p === '{DAV:}bind')
   }
