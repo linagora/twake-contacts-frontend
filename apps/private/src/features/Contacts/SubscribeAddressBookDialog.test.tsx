@@ -7,7 +7,13 @@ import en from '@common/locales/en.json'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 
 vi.mock('./UserAutocomplete', () => ({
-  UserAutocomplete: () => null
+  UserAutocomplete: ({
+    labelledBy
+  }: {
+    labelledBy?: string
+  }): React.ReactElement => (
+    <input role="combobox" aria-labelledby={labelledBy} />
+  )
 }))
 
 vi.mock('./usePublicAddressBooks', () => ({
@@ -41,6 +47,16 @@ describe('SubscribeAddressBookDialog', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByRole('dialog', { name: 'Add a shared address book' })
+    ).toBeInTheDocument()
+  })
+
+  it('labels the user field with the visible sentence', () => {
+    renderDialog()
+
+    expect(
+      screen.getByRole('combobox', {
+        name: 'Search for a user to see their address books'
+      })
     ).toBeInTheDocument()
   })
 

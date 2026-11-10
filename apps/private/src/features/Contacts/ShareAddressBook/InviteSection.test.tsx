@@ -43,6 +43,14 @@ describe('InviteSection', () => {
     expect(screen.getByPlaceholderText('Add contacts')).toHaveFocus()
   })
 
+  it('labels the "Add contacts" field with the "Invite people" sentence', () => {
+    renderInviteSection()
+
+    expect(
+      screen.getByRole('combobox', { name: 'Invite people' })
+    ).toHaveAttribute('placeholder', 'Add contacts')
+  })
+
   it('names the role selector', () => {
     renderInviteSection()
 

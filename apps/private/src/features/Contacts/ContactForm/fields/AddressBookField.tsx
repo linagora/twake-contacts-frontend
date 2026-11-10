@@ -7,7 +7,10 @@ import {
 import { Icon, People } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { useI18n } from 'twake-i18n'
-import { useAddressBookOptions } from '../../AddressBookOptions'
+import {
+  addressBookMenuProps,
+  useAddressBookOptions
+} from '../../AddressBookOptions'
 import { FormRow } from '../FormRow'
 
 interface AddressBookFieldProps {
@@ -43,6 +46,7 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
           value={value}
           onChange={e => onChange(e.target.value)}
           slotProps={{
+            select: { MenuProps: addressBookMenuProps },
             input: {
               startAdornment: (
                 <InputAdornment position="start">

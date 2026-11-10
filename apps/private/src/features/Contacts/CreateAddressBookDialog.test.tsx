@@ -40,6 +40,24 @@ describe('CreateAddressBookDialog', () => {
     expect(heading.querySelector('li')).toBeNull()
   })
 
+  it('labels the name field with the visible sentence', () => {
+    renderDialog(vi.fn())
+
+    expect(
+      screen.getByRole('textbox', { name: 'Enter a new address book name' })
+    ).toBe(nameField())
+  })
+
+  it('focuses the name field when clicking its label', async () => {
+    const user = userEvent.setup()
+    renderDialog(vi.fn())
+    nameField().blur()
+
+    await user.click(screen.getByText('Enter a new address book name'))
+
+    expect(nameField()).toHaveFocus()
+  })
+
   it('creates the address book when pressing Enter in the name field', async () => {
     const user = userEvent.setup()
     const onConfirm = vi.fn()

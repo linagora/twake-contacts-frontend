@@ -24,7 +24,10 @@ import {
   getAddressBookDisplayName,
   isContactTransferDestination
 } from '@common/features/Contacts/contactsUtils'
-import { useAddressBookOptions } from './AddressBookOptions'
+import {
+  addressBookMenuProps,
+  useAddressBookOptions
+} from './AddressBookOptions'
 
 const TRANSLATION_KEYS = {
   copy: {
@@ -161,6 +164,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
               value={destinationId}
               disabled={transferring}
               onChange={event => setDestinationId(event.target.value)}
+              slotProps={{ select: { MenuProps: addressBookMenuProps } }}
             >
               {options}
             </TextField>

@@ -117,7 +117,7 @@ test.describe('CREATE create contact', () => {
     await form.emails
       .nth(1)
       .locator('xpath=ancestor::*[contains(@class, "MuiGrid-container")][1]')
-      .getByRole('button', { name: 'Remove' })
+      .getByRole('button', { name: 'Remove email' })
       .click()
     await expect(form.emails).toHaveCount(1)
     await form.save()

@@ -55,6 +55,8 @@ describe('EntryList', () => {
         entries={[{ type: 'home', value: '123' }]}
         types={['home', 'work']}
         label="Phone"
+        typeLabel="Phone type"
+        removeLabel="Remove phone"
         onChange={vi.fn()}
         onRemove={vi.fn()}
         showTypeSelector={true}
@@ -114,6 +116,8 @@ describe('EntryList', () => {
           entries={entries}
           types={showTypeSelector ? ['home', 'work'] : []}
           label={showTypeSelector ? 'Phone' : 'Email'}
+          typeLabel="Phone type"
+          removeLabel="Remove phone"
           onChange={vi.fn()}
           onRemove={vi.fn()}
           showTypeSelector={showTypeSelector}
@@ -131,8 +135,11 @@ describe('EntryList', () => {
       })
       if (entries.length > 1 && showTypeSelector) {
         expect(
-          screen.getByRole('button', { name: 'Remove' })
+          screen.getByRole('button', { name: 'Remove phone' })
         ).toBeInTheDocument()
+        expect(
+          screen.getAllByRole('combobox', { name: 'Phone type' })
+        ).toHaveLength(entries.length)
       }
     }
   )
@@ -148,6 +155,7 @@ describe('EntryList', () => {
           entries={entries}
           types={['home', 'work']}
           label="Phone"
+          removeLabel="Remove phone"
           onChange={vi.fn()}
           onRemove={index =>
             setEntries(previous => previous.filter((_, i) => i !== index))
@@ -157,7 +165,7 @@ describe('EntryList', () => {
     }
 
     const removeButtons = (): HTMLElement[] =>
-      screen.getAllByRole('button', { name: 'Remove' })
+      screen.getAllByRole('button', { name: 'Remove phone' })
 
     const phoneInput = (value: string): HTMLElement =>
       screen.getByDisplayValue(value)

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useMemo, useCallback, useRef, useId } from 'react'
 import {
   Stack,
   Typography,
@@ -39,6 +39,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
 }) => {
   const { t } = useI18n()
   const searchUsers = useUserDirectorySearch()
+  const invitePeopleLabelId = useId()
 
   // Selected users to invite (since Autocomplete is multiple)
   const [selectedUsers, setSelectedUsers] = useState<userData[]>([])
@@ -78,7 +79,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
 
   return (
     <Stack spacing={1} className="u-mt-1">
-      <Typography variant="body2">
+      <Typography variant="body2" id={invitePeopleLabelId}>
         {t('contacts.share.invitePeople')}
       </Typography>
       <Stack direction="row" className="u-flex-items-center">
@@ -140,6 +141,10 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                 placeholder={t('contacts.share.addContacts')}
                 slotProps={{
                   ...params.slotProps,
+                  htmlInput: {
+                    ...params.slotProps?.htmlInput,
+                    'aria-labelledby': invitePeopleLabelId
+                  },
                   input: {
                     ...params.slotProps?.input,
                     endAdornment: (
