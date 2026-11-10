@@ -41,6 +41,7 @@ import { useContact } from './useContact'
 
 interface ContactFieldProps {
   icon: React.ComponentType
+  kindLabel: string
   value: string
   type?: string | null
   copyLabel?: string
@@ -49,6 +50,7 @@ interface ContactFieldProps {
 
 const ContactField: React.FC<ContactFieldProps> = ({
   icon,
+  kindLabel,
   value,
   type,
   copyLabel,
@@ -81,8 +83,9 @@ const ContactField: React.FC<ContactFieldProps> = ({
         }}
       >
         <ListItemIcon>
-          <Icon icon={icon} />
+          <Icon icon={icon} aria-hidden />
         </ListItemIcon>
+        <span className="u-visuallyhidden">{kindLabel}</span>
         <Tooltip disableInteractive title={value}>
           <ListItemText
             primary={value}
@@ -107,7 +110,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
                 size="small"
                 className="u-mr-auto"
               >
-                <Icon icon={Copy} />
+                <Icon icon={Copy} aria-hidden />
               </IconButton>
             </Tooltip>
           )}
@@ -132,7 +135,7 @@ const ContactField: React.FC<ContactFieldProps> = ({
                 aria-label={t('common.ok')}
                 onClick={handleCloseSnackbar}
               >
-                <Icon icon={CrossSmall} />
+                <Icon icon={CrossSmall} aria-hidden />
               </IconButton>
             }
           >
@@ -173,7 +176,7 @@ export const ContactPage: React.FC = () => {
           component={Link}
           to={backTo}
           variant="text"
-          startIcon={<Icon icon={Left} />}
+          startIcon={<Icon icon={Left} aria-hidden />}
         >
           {t('contacts.back')}
         </Button>
@@ -196,8 +199,9 @@ export const ContactPage: React.FC = () => {
             {!!contact.categories?.length && (
               <ListItem disableGutters>
                 <ListItemIcon>
-                  <Icon icon={Label} />
+                  <Icon icon={Label} aria-hidden />
                 </ListItemIcon>
+                <span className="u-visuallyhidden">{t('contacts.team')}</span>
                 <Stack direction="row" spacing={1}>
                   {contact.categories.map(category => (
                     <Chip key={category} label={category} size="small" square />
@@ -209,6 +213,7 @@ export const ContactPage: React.FC = () => {
               <ContactField
                 key={phone.value}
                 icon={Telephone}
+                kindLabel={t('contacts.phone')}
                 value={phone.value}
                 type={phone.type}
                 copyLabel={t('contacts.copy')}
@@ -219,6 +224,7 @@ export const ContactPage: React.FC = () => {
               <ContactField
                 key={email.value}
                 icon={Email}
+                kindLabel={t('contacts.email')}
                 value={email.value}
                 copyLabel={t('contacts.copy')}
                 copyToastMessage={t('contacts.emailWasCopied')}
@@ -230,6 +236,7 @@ export const ContactPage: React.FC = () => {
                 <ContactField
                   key={profile.value}
                   icon={Matrix}
+                  kindLabel={t('contacts.form.matrixId')}
                   value={profile.value}
                   copyLabel={t('contacts.copy')}
                   copyToastMessage={t('contacts.socialProfileWasCopied')}
@@ -239,6 +246,7 @@ export const ContactPage: React.FC = () => {
               <ContactField
                 key={formatAddress(address)}
                 icon={LocationOutlined}
+                kindLabel={t('contacts.form.address')}
                 value={formatAddress(address)}
                 type={address.type}
                 copyToastMessage={t('contacts.addressWasCopied')}

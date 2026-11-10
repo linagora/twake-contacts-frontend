@@ -85,7 +85,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Icon icon={icon} />
+                      <Icon icon={icon} aria-hidden />
                     </InputAdornment>
                   )
                 }
@@ -120,7 +120,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                     onClick={() => onRemove(index)}
                     aria-label={t('contacts.form.remove')}
                   >
-                    <Icon icon={Cross} />
+                    <Icon icon={Cross} aria-hidden />
                   </IconButton>
                 </Tooltip>
               )}
