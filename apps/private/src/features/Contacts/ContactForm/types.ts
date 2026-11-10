@@ -102,7 +102,6 @@ export function makeContactFromForm(
           country: ''
         }
   })
-  const otherProfiles = (base?.socialProfiles ?? []).filter(p => !isMatrix(p))
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
@@ -114,8 +113,32 @@ export function makeContactFromForm(
       .map(entry => ({ ...entry, value: entry.value.trim() })),
     phones: values.phones.filter(hasValue),
     addresses,
-    socialProfiles: matrixId
-      ? [...otherProfiles, { type: MATRIX_TYPE, value: matrixId }]
-      : otherProfiles
+    socialProfiles: updateMatrixProfile(base?.socialProfiles ?? [], matrixId)
   }
+}
+
+/**
+ * Applies the form Matrix id to the first Matrix profile, the one the form shows.
+ * Other profiles, including further Matrix ones, keep their type and order.
+ */
+function updateMatrixProfile(
+  profiles: ContactSocialProfile[],
+  matrixId: string
+): ContactSocialProfile[] {
+  const index = profiles.findIndex(isMatrix)
+  if (index === -1) {
+    return matrixId
+      ? [...profiles, { type: MATRIX_TYPE, value: matrixId }]
+      : profiles
+  }
+  const shown = profiles[index]
+  if (!matrixId) {
+    return profiles.filter((_, i) => i !== index)
+  }
+  if (shown.value.trim() === matrixId) {
+    return profiles
+  }
+  return profiles.map((profile, i) =>
+    i === index ? { ...profile, value: matrixId } : profile
+  )
 }
