@@ -37,6 +37,15 @@ describe('NoContactsEmptyState', () => {
     expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
   })
 
+  it('does not nest the subtitle or the action in another paragraph', () => {
+    const { container } = renderEmptyState('light')
+
+    expect(container.querySelector('p p, p div')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Import' }).closest('p')).toBe(
+      null
+    )
+  })
+
   it('uses the light illustration in light mode', () => {
     const { container } = renderEmptyState('light')
 

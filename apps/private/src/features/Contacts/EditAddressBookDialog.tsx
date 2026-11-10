@@ -4,13 +4,11 @@ import {
   Button,
   Dialog,
   DialogActions,
+  DialogCloseButton,
   DialogContent,
   DialogTitle,
-  IconButton,
-  ListItem,
   TextField
 } from '@linagora/twake-mui'
-import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
 export interface EditAddressBookDialogProps {
@@ -42,23 +40,10 @@ export const EditAddressBookDialog: React.FC<EditAddressBookDialogProps> = ({
       maxWidth="xs"
       slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
     >
-      <DialogTitle>
-        <ListItem
-          disableGutters
-          disablePadding
-          secondaryAction={
-            <IconButton
-              edge="end"
-              aria-label={t('contacts.form.close')}
-              onClick={onClose}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          }
-        >
-          {t('contacts.edit.title')}
-        </ListItem>
+      <DialogTitle className="dialogTitleWithClose">
+        {t('contacts.edit.title')}
       </DialogTitle>
+      <DialogCloseButton onClick={onClose} />
       <DialogContent>
         <TextField
           autoFocus

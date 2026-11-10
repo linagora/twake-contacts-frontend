@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Avatar,
+  List,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -32,29 +33,38 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
       <Typography variant="body2">
         {t('contacts.share.discovery.title')}
       </Typography>
-      <ListItem disableGutters>
-        <ListItemAvatar className="u-miw-1">
-          <Avatar className="u-bg-secondaryColorLight u-o-30">
-            <Icon icon={ManageSearch} width={20} height={20} color="inherit" />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          disableTypography
-          primary={
-            <Typography variant="body2">
-              {t('contacts.share.discovery.description')}
-            </Typography>
-          }
-        />
-        <Switch
-          checked={isPublic ?? false}
-          onChange={(e, checked) => void handleToggle(e, checked)}
-          disabled={isDisabled}
-          slotProps={{
-            input: { 'aria-label': t('contacts.share.discovery.toggleTooltip') }
-          }}
-        />
-      </ListItem>
+      <List disablePadding>
+        <ListItem disableGutters>
+          <ListItemAvatar className="u-miw-1">
+            <Avatar className="u-bg-secondaryColorLight u-o-30">
+              <Icon
+                icon={ManageSearch}
+                width={20}
+                height={20}
+                color="inherit"
+              />
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText
+            disableTypography
+            primary={
+              <Typography variant="body2">
+                {t('contacts.share.discovery.description')}
+              </Typography>
+            }
+          />
+          <Switch
+            checked={isPublic ?? false}
+            onChange={(e, checked) => void handleToggle(e, checked)}
+            disabled={isDisabled}
+            slotProps={{
+              input: {
+                'aria-label': t('contacts.share.discovery.toggleTooltip')
+              }
+            }}
+          />
+        </ListItem>
+      </List>
     </Stack>
   )
 }

@@ -107,6 +107,24 @@ describe('ShareAddressBookDialog', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('groups the owner and the members in one list', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [bob], isPublic: false })
+    renderDialog()
+
+    const roleSelector = await screen.findByRole('button', {
+      name: 'Role of bob bob'
+    })
+    const membersList = roleSelector.closest('ul') as HTMLElement
+
+    expect(membersList).not.toBeNull()
+    expect(within(membersList).getAllByRole('listitem')).toHaveLength(2)
+    expect(
+      screen
+        .getAllByRole('listitem')
+        .every(item => item.parentElement?.tagName === 'UL')
+    ).toBe(true)
+  })
+
   it('reports in the dialog a failure to fetch the members', async () => {
     mockedFetchDetails.mockRejectedValue(new Error('Bad Request'))
     renderDialog()
