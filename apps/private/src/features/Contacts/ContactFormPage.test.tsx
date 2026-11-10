@@ -6,8 +6,10 @@ import {
 import {
   fetchContact,
   moveContact as moveContactDao,
-  saveContact
+  saveContact,
+  searchContacts
 } from '@common/features/Contacts/ContactsDao'
+import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -322,6 +324,144 @@ describe('CreateContactPage', () => {
       'href',
       '/contacts'
     )
+  })
+})
+
+describe('CreateContactPage duplicate email warning', () => {
+  const camille = (id: string, email: string): ContactEntry => ({
+    addressBookId: 'alphaShared',
+    contact: {
+      id,
+      displayName: `Camille Durand ${id}`,
+      emails: [{ type: 'work', value: email }]
+    }
+  })
+
+  const typeEmail = (value: string): void => {
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: 'Camille' }
+    })
+    const emailField = screen.getByLabelText('Email')
+    fireEvent.change(emailField, { target: { value } })
+    fireEvent.blur(emailField)
+  }
+
+  beforeEach(() => {
+    vi.mocked(searchContacts).mockReset()
+  })
+
+  it('names the contact and its book when the typed email is already used', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    expect(
+      await screen.findByText(
+        'Camille Durand c9 already has this email address, in Alpha Shared (Bob Owner).'
+      )
+    ).toBeInTheDocument()
+    expect(searchContacts).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(searchContacts).mock.calls[0][1]).toBe(
+      'camille.durand@example.com'
+    )
+  })
+
+  it('opens the existing contact', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+    fireEvent.click(await screen.findByRole('button', { name: 'Open contact' }))
+
+    expect(screen.getByText('Contact')).toBeInTheDocument()
+  })
+
+  it('matches the address whatever its case', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('Camille.Durand@Example.com')
+
+    expect(
+      await screen.findByRole('button', { name: 'Open contact' })
+    ).toBeInTheDocument()
+  })
+
+  it('ignores contacts whose address only shares a prefix', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.d@example.com')
+
+    await waitFor(() => expect(searchContacts).toHaveBeenCalledTimes(1))
+    expect(
+      screen.queryByRole('button', { name: 'Open contact' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('counts the contacts when several have the address', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com'),
+      camille('c10', 'CAMILLE.DURAND@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    expect(
+      await screen.findByText('2 contacts already have this email address.')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps Save enabled and creates the contact', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    vi.mocked(saveContact).mockReset()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
+    renderPage(['/contacts/book1/new'])
+
+    typeEmail('camille.durand@example.com')
+    await screen.findByRole('button', { name: 'Open contact' })
+    const saveButton = screen.getByRole('button', { name: 'Save' })
+    expect(saveButton).toBeEnabled()
+    fireEvent.click(saveButton)
+
+    expect(await screen.findByText('Book')).toBeInTheDocument()
+    expect(saveContact).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows nothing when the search fails', async () => {
+    vi.mocked(searchContacts).mockRejectedValue(new Error('Server error'))
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    await waitFor(() => expect(searchContacts).toHaveBeenCalledTimes(1))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
+  it('does not check the email in the edit form', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'alice@example.com')
+    ])
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.blur(screen.getByLabelText('Email'))
+
+    await new Promise(resolve => setTimeout(resolve, 400))
+    expect(searchContacts).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
 
