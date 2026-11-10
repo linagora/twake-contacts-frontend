@@ -1,4 +1,5 @@
 import { PhoneValueType } from "@common/features/Contacts/contactsTypes"
+import { safeDecodeURIComponent } from './safeDecodeURIComponent'
 
 export function stripMailto(email?: string): string {
   return (email ?? '').trim().replace(/^mailto:/i, '')
@@ -7,14 +8,6 @@ export function stripMailto(email?: string): string {
 export const TEL_SCHEME = /^tel:/i
 export const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
 const PHONE_CONTEXT_PARAM = /;phone-context=[^;]*/gi
-
-export function safeDecodeURIComponent(value: string): string {
-  try {
-    return decodeURIComponent(value)
-  } catch {
-    return value
-  }
-}
 
 /**
  * Turns a TEL value into the number as a person reads it: removes the

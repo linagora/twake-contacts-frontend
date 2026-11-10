@@ -1,6 +1,7 @@
 import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
-import { stripTel, TEL_SCHEME, TEL_URI_VALUE_TYPE } from '@common/utils/normalizeIdentity'
+import { stripTel } from '@common/utils/normalizeIdentity'
+import { safeDecodeURIComponent } from '@common/utils/safeDecodeURIComponent'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
   Contact,
@@ -10,7 +11,6 @@ import {
   ContactOrg,
   ContactPhone,
   ContactSocialProfile,
-  PhoneValueType,
   RawAddressBook
 } from '../contactsTypes'
 import { hasUnchangedSource } from '../contactsUtils'
@@ -133,17 +133,6 @@ function toAddressComponents(rawValue: unknown): unknown[] | null {
   return null
 }
 
-// function makePhoneProperty(phone: ContactPhone): JCalProperty {
-//   return phone.valueType === TEL_URI_VALUE_TYPE
-//     ? [
-//         'tel',
-//         phone.type ? { type: phone.type } : {},
-//         'uri',
-//         `tel:${phone.value}`
-//       ]
-//     : makeTypedProperty('tel', phone.type, phone.value)
-// }
-
 // RFC 6350 §6.3.1 defines seven ADR components, RFC 9554 appends more after them
 const RFC6350_ADR_COMPONENTS = 7
 
@@ -257,11 +246,7 @@ function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
  * that is not a valid encoding is kept as it is.
  */
 export function decodeDavSegment(segment: string): string {
-  try {
-    return decodeURIComponent(segment)
-  } catch {
-    return segment
-  }
+  return safeDecodeURIComponent(segment)
 }
 
 function extractBookId(href: string | undefined): string {
