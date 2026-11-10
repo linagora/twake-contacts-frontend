@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 import { setupStore } from '@common/app/store'
+import { createDictionary } from '@common/utils/dictionary'
 import {
   deleteContact as deleteContactDao,
   fetchAddressBooks,
@@ -25,6 +26,11 @@ import {
   updateContact
 } from './ContactsSlice'
 import { ALL_CONTACTS_LISTING, DEFAULT_CONTACT_SORT } from './constants'
+import {
+  selectBook,
+  selectContactEntries,
+  selectListingKeyToLoadMore
+} from './contactsSelectors'
 import {
   AddressBookWithContacts,
   Contact,
@@ -100,7 +106,7 @@ describe('setContactSort', () => {
 
     const state = store.getState().contacts
     expect(state.sort).toStrictEqual({ by: 'email', order: 'desc' })
-    expect(state.listings).toStrictEqual({})
+    expect(state.listings).toStrictEqual(createDictionary())
   })
 })
 
@@ -146,6 +152,45 @@ describe('fetchContacts', () => {
     expect(listings.empty.hasMore).toBe(false)
     expect(listings.shared).toBe(undefined)
   })
+
+  it.each(['constructor', 'toString', '__proto__'])(
+    'selects no entry for the unknown book %s',
+    async id => {
+      vi.mocked(fetchAddressBooks).mockResolvedValue([
+        makeBook('book1', [], null)
+      ])
+      const store = makeStore({})
+
+      await store.dispatch(fetchContacts({ userId: 'u1' }))
+
+      const state = store.getState()
+      expect(selectBook(state, id)).toBe(undefined)
+      expect(selectContactEntries(state, id, undefined, 'u1')).toEqual([])
+      expect(selectListingKeyToLoadMore(state, id)).toBe(id)
+    }
+  )
+
+  it.each(['constructor', 'toString', '__proto__'])(
+    'lists the contacts of the book %s',
+    async id => {
+      vi.mocked(fetchAddressBooks).mockResolvedValue([makeBook(id, [], null)])
+      vi.mocked(fetchContactsPage).mockResolvedValue({
+        entries: [{ addressBookId: id, contact: alice }],
+        next: null
+      })
+      const store = makeStore({})
+
+      await store.dispatch(fetchContacts({ userId: 'u1' }))
+      await store.dispatch(fetchMoreContacts({ userId: 'u1', listingKey: id }))
+
+      const state = store.getState()
+      expect(selectBook(state, id)?.id).toBe(id)
+      expect(selectContactEntries(state, id, undefined, 'u1')).toEqual([
+        { addressBookId: id, contact: alice }
+      ])
+      expect(Object.keys(state.contacts.addressBooks)).toEqual([id])
+    }
+  )
 })
 
 describe('fetchContact', () => {

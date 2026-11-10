@@ -1,5 +1,6 @@
 import { copyContactThunk } from './services/copyContactAsync'
 import { createAppSlice } from '@common/app/createAppSlice'
+import { createDictionary } from '@common/utils/dictionary'
 import { DEFAULT_ADDRESS_BOOK_ID, DEFAULT_CONTACT_SORT } from './constants'
 import { Contact, ContactSort, ContactsState } from './contactsTypes'
 import {
@@ -27,8 +28,8 @@ import {
 } from './services/fetchAddressBookDetailAsync'
 
 const initialState: ContactsState = {
-  addressBooks: {},
-  listings: {},
+  addressBooks: createDictionary(),
+  listings: createDictionary(),
   sort: DEFAULT_CONTACT_SORT,
   // address books are not loaded yet: pages show skeletons, not empty
   // states, and wait for them to place the contacts they read
@@ -59,7 +60,7 @@ const ContactsSlice = createAppSlice({
     setContactSort: create.reducer(
       (state, action: { payload: ContactSort }) => {
         state.sort = action.payload
-        state.listings = {}
+        state.listings = createDictionary()
       }
     ),
     // stores the contact for its page without listing it: if it is in a

@@ -1,6 +1,7 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { DomainInfo } from '@common/features/User/userDataTypes'
+import { createDictionary } from '@common/utils/dictionary'
 import { fetchAddressBooks } from '../ContactsDao'
 import { AddressBook, ContactsState } from '../contactsTypes'
 import { toContactsErrorKey } from '../contactsUtils'
@@ -33,8 +34,8 @@ export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
         // The listings restart from their first page with the new books, while
         // the loaded contacts stay, as the one a contact page shows
         const previousBooks = state.addressBooks
-        state.addressBooks = {}
-        state.listings = {}
+        state.addressBooks = createDictionary()
+        state.listings = createDictionary()
         for (const book of action.payload) {
           state.addressBooks[book.id] = {
             ...book,
