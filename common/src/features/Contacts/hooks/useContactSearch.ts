@@ -1,17 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { useAppSelector } from '@common/app/hooks'
+import { fromServerBookId, toServerBookId } from '@common/api/davPaths'
 import { AddressBookRef, searchContacts } from '../ContactsDao'
 import { ContactEntry } from '../contactsTypes'
-
-// the domain book is 'dab' in the store and 'domain-members' for the search API
-const DOMAIN_ADDRESS_BOOK_ID = 'dab'
-const DOMAIN_MEMBERS_BOOK_ID = 'domain-members'
-
-/** Maps a search result's book id back to the id used by the store. */
-const toStoreAddressBookId = (addressBookId: string): string =>
-  addressBookId === DOMAIN_MEMBERS_BOOK_ID
-    ? DOMAIN_ADDRESS_BOOK_ID
-    : addressBookId
 
 /**
  * Searches `search` across every address book of the store. Resolves to no
@@ -27,8 +18,7 @@ export function useContactSearch(): (
     () =>
       Object.values(addressBooks).map(book => ({
         userId: book.userId,
-        addressBookId:
-          book.id === DOMAIN_ADDRESS_BOOK_ID ? DOMAIN_MEMBERS_BOOK_ID : book.id
+        addressBookId: toServerBookId(book.id)
       })),
     [addressBooks]
   )
@@ -39,7 +29,7 @@ export function useContactSearch(): (
       const entries = await searchContacts(addressBookRefs, search)
       return entries.map(entry => ({
         ...entry,
-        addressBookId: toStoreAddressBookId(entry.addressBookId)
+        addressBookId: fromServerBookId(entry.addressBookId)
       }))
     },
     [addressBookRefs]

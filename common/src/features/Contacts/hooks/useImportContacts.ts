@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useAppSelector } from '@common/app/hooks'
+import { bookJsonHref } from '@common/api/davPaths'
 import { importContacts, uploadImportFile } from '../ContactsDao'
 
 export interface ImportContacts {
@@ -15,7 +16,7 @@ export function useImportContacts(): ImportContacts {
 
   const importIntoBook = useCallback(
     (fileId: string, addressBookId: string): Promise<void> =>
-      importContacts(fileId, `/addressbooks/${userId}/${addressBookId}.json`),
+      importContacts(fileId, bookJsonHref({ userId, bookId: addressBookId })),
     [userId]
   )
 
