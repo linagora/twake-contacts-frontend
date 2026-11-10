@@ -258,6 +258,28 @@ describe('fetchMoreContacts', () => {
     expect(state.listings.book1.hasMore).toBe(true)
   })
 
+  it('lists a contact repeated inside one page once', async () => {
+    vi.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [
+        { addressBookId: 'book1', contact: alice },
+        { addressBookId: 'book1', contact: bob },
+        { addressBookId: 'book1', contact: alice }
+      ],
+      next: null
+    })
+    const store = makeStore({ book1: makeBook('book1', []) })
+
+    await store.dispatch(
+      fetchMoreContacts({ userId: 'u1', listingKey: 'book1' })
+    )
+
+    const state = store.getState().contacts
+    expect(getListedIds(state, 'book1')).toStrictEqual(['c1', 'c2'])
+    expect(
+      state.addressBooks.book1.contacts.map(contact => contact.id)
+    ).toStrictEqual(['c1', 'c2'])
+  })
+
   it('leaves out the contacts of address books it does not list', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     vi.mocked(fetchContactsPage).mockResolvedValue({
