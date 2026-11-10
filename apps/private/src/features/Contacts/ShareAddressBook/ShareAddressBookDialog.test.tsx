@@ -142,6 +142,57 @@ describe('ShareAddressBookDialog', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('announces the people the book was shared with', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    mockedUpdateShares.mockResolvedValue(undefined)
+    mockedSearchUsers.mockResolvedValue([
+      {
+        id: 'bob',
+        firstname: 'bob',
+        lastname: 'bob',
+        emails: ['bob@open-paas.org']
+      }
+    ])
+    renderDialog()
+
+    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
+    userEvent.click(await screen.findByText('bob@open-paas.org'))
+    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    expect(await screen.findByText('Shared with bob bob')).toHaveAttribute(
+      'role',
+      'status'
+    )
+  })
+
+  it('announces a failure to share', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    mockedUpdateShares.mockRejectedValue(new Error('Bad Request'))
+    mockedSearchUsers.mockResolvedValue([
+      {
+        id: 'bob',
+        firstname: 'bob',
+        lastname: 'bob',
+        emails: ['bob@open-paas.org']
+      }
+    ])
+    renderDialog()
+
+    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
+    userEvent.click(await screen.findByText('bob@open-paas.org'))
+    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getAllByRole('status')
+          .some(region => region.textContent === en.contacts.errors.share)
+      ).toBe(true)
+    )
+  })
+
   it('lists a member shared again right after being removed', async () => {
     mockedFetchDetails
       .mockResolvedValueOnce({ members: [bob], isPublic: false })

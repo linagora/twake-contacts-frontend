@@ -5,7 +5,8 @@ import {
   DialogContent,
   IconButton,
   Stack,
-  Alert
+  Alert,
+  Box
 } from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
@@ -20,10 +21,13 @@ import { buildFullShareesList } from '@common/features/Contacts/transformer/Cont
 import { toContactsErrorKey } from '@common/features/Contacts/contactsUtils'
 import { RejectedError } from '@common/utils/errorUtils'
 
+import { useLiveAnnouncement } from '../useLiveAnnouncement'
 import { AddressBookInfoCard } from './AddressBookInfoCard'
 import { InviteSection } from './InviteSection'
 import { MembersList } from './MembersList'
 import { DiscoverySection } from './DiscoverySection'
+
+const SHARE_STATUS_DURATION_MS = 5000
 
 interface ShareAddressBookDialogProps {
   addressBookId: string
@@ -119,6 +123,11 @@ interface ExecuteShareUpdatesParams {
   onDetailsRefreshed: () => void
 }
 
+type ShareOutcome =
+  | { status: 'skipped' }
+  | { status: 'shared' }
+  | { status: 'failed'; errorKey: string }
+
 const executeShareUpdates = async ({
   userDataId,
   bookId,
@@ -130,8 +139,8 @@ const executeShareUpdates = async ({
   onSettled,
   reportError,
   onDetailsRefreshed
-}: ExecuteShareUpdatesParams): Promise<void> => {
-  if (!userDataId || !bookId) return
+}: ExecuteShareUpdatesParams): Promise<ShareOutcome> => {
+  if (!userDataId || !bookId) return { status: 'skipped' }
   reportError(null)
 
   const sharees = buildFullShareesList(userDataId, invitedMembers, updates)
@@ -156,12 +165,16 @@ const executeShareUpdates = async ({
       .then(onDetailsRefreshed)
       .catch(() => undefined)
     onSuccess?.()
+    return { status: 'shared' }
   } catch (error) {
     console.error('Failed to update shares', error)
     onError?.(error)
-    reportError(
-      toContactsErrorKey(error as RejectedError, 'contacts.errors.share')
+    const errorKey = toContactsErrorKey(
+      error as RejectedError,
+      'contacts.errors.share'
     )
+    reportError(errorKey)
+    return { status: 'failed', errorKey }
   } finally {
     onSettled?.()
   }
@@ -191,11 +204,11 @@ const createHandleShare =
   }: HandleShareParams): ((
     users: UserDataType[],
     role: AddressBookAccessLevel
-  ) => Promise<void>) =>
+  ) => Promise<ShareOutcome>) =>
   async (
     users: UserDataType[],
     role: AddressBookAccessLevel
-  ): Promise<void> => {
+  ): Promise<ShareOutcome> => {
     setIsSharing(true)
     const updates = users
       .filter(u => u.openpaasId)
@@ -205,7 +218,7 @@ const createHandleShare =
         href: u.href || `mailto:${u.email}`
       }))
 
-    await executeShareUpdates({
+    return executeShareUpdates({
       userDataId,
       bookId,
       invitedMembers,
@@ -307,7 +320,7 @@ const useAddressBookSharingActions = ({
   handleShare: (
     users: UserDataType[],
     role: AddressBookAccessLevel
-  ) => Promise<void>
+  ) => Promise<ShareOutcome>
   handleUpdateMember: (
     user: UserDataType,
     role: AddressBookAccessLevel
@@ -325,7 +338,7 @@ const useAddressBookSharingActions = ({
         reportError,
         onDetailsRefreshed
       })
-      await handler(users, role)
+      return handler(users, role)
     },
     [
       userData.openpaasId,
@@ -407,6 +420,27 @@ export const ShareAddressBookDialog: React.FC<ShareAddressBookDialogProps> = ({
     reportError: setShareError,
     onDetailsRefreshed: clearDetailsError
   })
+  const { message: shareStatus, announce } = useLiveAnnouncement(
+    SHARE_STATUS_DURATION_MS
+  )
+
+  const shareAndAnnounce = async (
+    users: UserDataType[],
+    role: AddressBookAccessLevel
+  ): Promise<void> => {
+    const outcome = await handleShare(users, role)
+    if (outcome.status === 'shared') {
+      const sharedUsers = users.filter(u => u.openpaasId)
+      announce(
+        t('contacts.share.sentStatus', {
+          smart_count: sharedUsers.length,
+          names: sharedUsers.map(u => u.name || u.email).join(', ')
+        })
+      )
+    } else if (outcome.status === 'failed') {
+      announce(t(outcome.errorKey))
+    }
+  }
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
@@ -429,6 +463,9 @@ export const ShareAddressBookDialog: React.FC<ShareAddressBookDialogProps> = ({
       </DialogTitle>
 
       <DialogContent className="u-pb-2 u-pt-1">
+        <Box role="status" aria-live="polite" className="u-visuallyhidden">
+          {shareStatus}
+        </Box>
         <AddressBookInfoCard book={book} />
         {shareError && (
           <Alert
@@ -442,7 +479,7 @@ export const ShareAddressBookDialog: React.FC<ShareAddressBookDialogProps> = ({
         <InviteSection
           currentUserId={userData.openpaasId}
           invitedMembers={activeInvitedMembers}
-          onShare={(users, role) => void handleShare(users, role)}
+          onShare={(users, role) => void shareAndAnnounce(users, role)}
           loading={isSharing}
           searchInputRef={searchInputRef}
         />

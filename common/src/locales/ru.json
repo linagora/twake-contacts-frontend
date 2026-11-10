@@ -99,7 +99,8 @@
     "search": {
       "placeholder": "Поиск контактов...",
       "loading": "Загрузка...",
-      "noResults": "Контакты не найдены"
+      "noResults": "Контакты не найдены",
+      "resultsCount": "Найден %{smart_count} контакт |||| Найдено %{smart_count} контакта |||| Найдено %{smart_count} контактов"
     },
     "nav": {
       "menu": "Меню",
@@ -152,6 +153,7 @@
     },
     "share": {
       "title": "Поделиться %{name}",
+      "sentStatus": "Предоставлен доступ: %{names}",
       "invitePeople": "Пригласить людей",
       "addContacts": "Добавить контакты",
       "send": "Отправить",

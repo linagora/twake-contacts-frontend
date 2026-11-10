@@ -99,7 +99,8 @@
     "search": {
       "placeholder": "Rechercher des contacts...",
       "loading": "Chargement...",
-      "noResults": "Aucun contact trouvé"
+      "noResults": "Aucun contact trouvé",
+      "resultsCount": "%{smart_count} contact trouvé |||| %{smart_count} contacts trouvés"
     },
     "nav": {
       "menu": "Menu",
@@ -152,6 +153,7 @@
     },
     "share": {
       "title": "Partager %{name}",
+      "sentStatus": "Partagé avec %{names}",
       "invitePeople": "Inviter des personnes",
       "addContacts": "Ajouter des contacts",
       "send": "Envoyer",
