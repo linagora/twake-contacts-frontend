@@ -66,10 +66,11 @@
       "save": "Save",
       "addressBook": "Address book",
       "moveHint": "Saving will move this contact to %{book}.",
-      "invalidEmail": "Invalid email address",
+      "invalidEmail": "Invalid email address, e.g. name@example.com",
       "duplicateEmail": "%{name} already has this email address, in %{book}.",
       "duplicateEmailMany": "%{smart_count} contact already has this email address. |||| %{smart_count} contacts already have this email address.",
-      "openExisting": "Open contact"
+      "openExisting": "Open contact",
+      "nameRequired": "Enter a first name or a last name"
     },
     "addressBook": {
       "createTitle": "New address book",

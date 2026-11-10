@@ -66,10 +66,11 @@
       "save": "Lưu",
       "addressBook": "Sổ địa chỉ",
       "moveHint": "Khi lưu, liên hệ này sẽ được chuyển sang %{book}.",
-      "invalidEmail": "Địa chỉ email không hợp lệ",
+      "invalidEmail": "Địa chỉ email không hợp lệ, ví dụ: ten@example.com",
       "duplicateEmail": "%{name} đã có địa chỉ email này, trong %{book}.",
       "duplicateEmailMany": "%{smart_count} liên hệ đã có địa chỉ email này.",
-      "openExisting": "Mở liên hệ"
+      "openExisting": "Mở liên hệ",
+      "nameRequired": "Nhập tên hoặc họ"
     },
     "edit": {
       "title": "Đổi tên sổ địa chỉ",

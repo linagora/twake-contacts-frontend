@@ -66,10 +66,11 @@
       "save": "Speichern",
       "addressBook": "Adressbuch",
       "moveHint": "Beim Speichern wird dieser Kontakt nach %{book} verschoben.",
-      "invalidEmail": "Ungültige E-Mail-Adresse",
+      "invalidEmail": "Ungültige E-Mail-Adresse, z. B. name@beispiel.de",
       "duplicateEmail": "%{name} hat diese E-Mail-Adresse bereits, in %{book}.",
       "duplicateEmailMany": "%{smart_count} Kontakt hat diese E-Mail-Adresse bereits. |||| %{smart_count} Kontakte haben diese E-Mail-Adresse bereits.",
-      "openExisting": "Kontakt öffnen"
+      "openExisting": "Kontakt öffnen",
+      "nameRequired": "Geben Sie einen Vor- oder Nachnamen ein"
     },
     "edit": {
       "title": "Adressbuch umbenennen",

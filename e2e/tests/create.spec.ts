@@ -60,18 +60,24 @@ test.describe('CREATE create contact', () => {
 
     await form.fill({ firstName: 'Val', emails: ['not-an-email'] })
     await form.emails.first().press('Tab')
-    await expect(form.main.getByText('Invalid email address')).toBeVisible()
+    await expect(
+      form.main.getByText('Invalid email address, e.g. name@example.com')
+    ).toBeVisible()
     await expect(form.emails.first()).toHaveAttribute('aria-invalid', 'true')
     await expect(form.saveButton).toBeDisabled()
     await form.emails.first().fill('val@example.com')
-    await expect(form.main.getByText('Invalid email address')).toHaveCount(0)
+    await expect(
+      form.main.getByText('Invalid email address, e.g. name@example.com')
+    ).toHaveCount(0)
     await form.save()
     await expect(contacts.row('Val')).toContainText('val@example.com')
 
     form = await contacts.clickCreate()
     await form.fill({ firstName: 'Spacey', emails: ['  spacey@example.com  '] })
     await form.emails.first().press('Tab')
-    await expect(form.main.getByText('Invalid email address')).toHaveCount(0)
+    await expect(
+      form.main.getByText('Invalid email address, e.g. name@example.com')
+    ).toHaveCount(0)
     await form.save()
     await expect(contacts.row('Spacey').getByRole('cell').nth(1)).toHaveText(
       'spacey@example.com'

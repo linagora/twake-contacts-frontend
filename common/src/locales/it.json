@@ -66,10 +66,11 @@
       "save": "Salva",
       "addressBook": "Rubrica",
       "moveHint": "Salvando, questo contatto verrà spostato in %{book}.",
-      "invalidEmail": "Indirizzo email non valido",
+      "invalidEmail": "Indirizzo email non valido, ad es. nome@esempio.com",
       "duplicateEmail": "%{name} ha già questo indirizzo email, in %{book}.",
       "duplicateEmailMany": "%{smart_count} contatto ha già questo indirizzo email. |||| %{smart_count} contatti hanno già questo indirizzo email.",
-      "openExisting": "Apri contatto"
+      "openExisting": "Apri contatto",
+      "nameRequired": "Inserisci un nome o un cognome"
     },
     "edit": {
       "title": "Rinomina rubrica",

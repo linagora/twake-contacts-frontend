@@ -66,10 +66,11 @@
       "save": "Guardar",
       "addressBook": "Libreta de direcciones",
       "moveHint": "Al guardar, este contacto se moverá a %{book}.",
-      "invalidEmail": "Dirección de correo electrónico no válida",
+      "invalidEmail": "Dirección de correo no válida, p. ej. nombre@ejemplo.com",
       "duplicateEmail": "%{name} ya tiene esta dirección de correo, en %{book}.",
       "duplicateEmailMany": "%{smart_count} contacto ya tiene esta dirección de correo. |||| %{smart_count} contactos ya tienen esta dirección de correo.",
-      "openExisting": "Abrir contacto"
+      "openExisting": "Abrir contacto",
+      "nameRequired": "Introduce un nombre o un apellido"
     },
     "edit": {
       "title": "Cambiar nombre de la libreta de direcciones",

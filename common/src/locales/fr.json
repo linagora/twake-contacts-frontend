@@ -66,10 +66,11 @@
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
       "moveHint": "L’enregistrement déplacera ce contact vers %{book}.",
-      "invalidEmail": "Adresse email invalide",
+      "invalidEmail": "Adresse e-mail invalide, par ex. nom@exemple.com",
       "duplicateEmail": "%{name} a déjà cette adresse e-mail, dans %{book}.",
       "duplicateEmailMany": "%{smart_count} contact a déjà cette adresse e-mail. |||| %{smart_count} contacts ont déjà cette adresse e-mail.",
-      "openExisting": "Ouvrir le contact"
+      "openExisting": "Ouvrir le contact",
+      "nameRequired": "Saisissez un prénom ou un nom"
     },
     "edit": {
       "title": "Renommer le carnet d’adresses",
