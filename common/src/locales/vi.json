@@ -176,7 +176,8 @@
   "error": {
     "title": "Đã xảy ra lỗi",
     "unknown": "Có lỗi không xác định",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "version": "Phiên bản %{version}"
   },
   "common": {
     "ok": "OK"

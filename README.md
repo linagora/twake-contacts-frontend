@@ -9,8 +9,33 @@ This project aims at serving a Single Page Application allowing a user to intera
 This frontend application is built in a monorepo structure with Rsbuild, React, and TypeScript. It shares its
 technical stack with [twake-calendar-frontend](https://github.com/linagora/twake-calendar-frontend), and interacts with:
 
-- [esn-sabre](https://github.com/linagora/esn-sabre/) CalDAV + CardDAV server, tailor made for LINAGORA needs.
-- An OpenPaaS / ESN backend, for the user profile, user configurations and the DAV JWT.
+- [twake-calendar-side-service](https://github.com/linagora/twake-calendar-side-service), the backend it calls, for the user
+  profile, user configurations and the access to the address books.
+- [esn-sabre](https://github.com/linagora/esn-sabre/) CalDAV + CardDAV server, tailor made for LINAGORA needs,
+  reached through the side service.
+
+---
+
+## Compatibility
+
+This frontend relies on bespoke extensions of esn-sabre and on the side service APIs. It requires:
+
+| Backend | Minimum version |
+|---------|-----------------|
+| [esn-sabre](https://github.com/linagora/esn-sabre/) | 2.4.7.9 |
+| [twake-calendar-side-service](https://github.com/linagora/twake-calendar-side-service) | 2.4.7.7 |
+
+These minimums are declared in the `compatibility` field of the root `package.json`; a unit test checks that the
+versions the e2e suite runs against (`e2e/docker/Dockerfile.sabre`, `e2e/docker/Dockerfile.side-service`)
+satisfy them. Each release section of the [changelog](CHANGELOG.md) repeats them.
+
+---
+
+## Versions and releases
+
+Releases are semver tags `vX.Y.Z`, published as the `linagora/twake-contacts-web:X.Y.Z` image; every `main`
+build is published as `linagora/twake-contacts-web:sha-<8>`. The deployed version is exposed in
+`window.APP_VERSION` and on the error page. See [RELEASING.md](RELEASING.md).
 
 ---
 

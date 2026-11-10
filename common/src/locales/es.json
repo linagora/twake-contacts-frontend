@@ -176,7 +176,8 @@
   "error": {
     "title": "Se ha producido un error",
     "unknown": "Se ha producido un error desconocido",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "version": "Versión %{version}"
   },
   "common": {
     "ok": "Aceptar"

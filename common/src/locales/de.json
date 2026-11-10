@@ -176,7 +176,8 @@
   "error": {
     "title": "Etwas ist schiefgelaufen",
     "unknown": "Ein unbekannter Fehler ist aufgetreten",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "version": "Version %{version}"
   },
   "common": {
     "ok": "OK"
