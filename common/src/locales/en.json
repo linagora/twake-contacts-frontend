@@ -176,7 +176,9 @@
   "error": {
     "title": "Something went wrong",
     "unknown": "An unknown error occurred",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "loadUser": "Failed to load your user information",
+    "updateUserConfigurations": "Failed to save your settings"
   },
   "common": {
     "ok": "Ok"

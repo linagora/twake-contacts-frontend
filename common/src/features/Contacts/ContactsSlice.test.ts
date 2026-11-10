@@ -733,7 +733,7 @@ describe('moveContact', () => {
     expect(addressBooks.book2.contactsCount).toBeNull()
   })
 
-  it('sets an error when the move fails', async () => {
+  it('sets a translation key, not the raw message, when the move fails', async () => {
     vi.mocked(moveContactDao).mockRejectedValue(new Error('Move failed'))
     const store = makeStore({
       book1: makeBook('book1', [alice]),
@@ -749,7 +749,7 @@ describe('moveContact', () => {
       })
     )
 
-    expect(store.getState().contacts.error).toBe('Move failed')
+    expect(store.getState().contacts.error).toBe('contacts.moveContact.error')
   })
 })
 

@@ -176,7 +176,9 @@
   "error": {
     "title": "Đã xảy ra lỗi",
     "unknown": "Có lỗi không xác định",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "loadUser": "Không thể tải thông tin người dùng",
+    "updateUserConfigurations": "Không thể lưu cài đặt"
   },
   "common": {
     "ok": "OK"

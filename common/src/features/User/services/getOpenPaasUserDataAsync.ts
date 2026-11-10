@@ -1,7 +1,7 @@
-import { toRejectedError } from '@common/utils/errorUtils'
+import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { fetchCurrentUser } from '../UserDao'
-import { RejectedError, UserState } from '../UserSlice'
+import { UserState } from '../UserSlice'
 import { OpenPaasUserData, ToUserData } from '../type/OpenPaasUserData'
 import { ConfigurationItem, ModuleConfiguration } from '../userDataTypes'
 
@@ -103,8 +103,7 @@ export const getOpenPaasUserDataThunk = (create: ReducerCreators<UserState>) =>
       rejected: (state, action) => {
         state.loading = false
         if (action.payload?.status !== 401) {
-          state.error =
-            action.payload?.message || 'Failed to fetch user information'
+          state.error = 'error.loadUser'
         }
       }
     }

@@ -1,7 +1,7 @@
-import { toRejectedError } from '@common/utils/errorUtils'
+import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { patchConfigurations } from '../UserDao'
-import { RejectedError, UserState } from '../UserSlice'
+import { UserState } from '../UserSlice'
 import {
   ConfigurationUpdatesInput,
   makeConfigurationBody
@@ -82,9 +82,8 @@ export const updateUserConfigurationsThunk = (
       fulfilled: (state, action) => {
         applyUpdates(state, action.payload)
       },
-      rejected: (state, action) => {
-        state.error =
-          action.payload?.message || 'Failed to update user configurations'
+      rejected: state => {
+        state.error = 'error.updateUserConfigurations'
       }
     }
   )

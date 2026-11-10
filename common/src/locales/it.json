@@ -175,7 +175,9 @@
   "error": {
     "title": "Si è verificato un problema",
     "unknown": "Si è verificato un errore sconosciuto",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "loadUser": "Impossibile caricare le informazioni dell'utente",
+    "updateUserConfigurations": "Impossibile salvare le impostazioni"
   },
   "common": {
     "ok": "OK"

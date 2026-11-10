@@ -1,9 +1,13 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
-import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
+import { toOperationError } from '@common/utils/errorUtils'
 import { deleteContact } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
 import { placeContactInListings } from '../contactListings'
-import { toContactsErrorKey } from '../contactsUtils'
+import {
+  ContactsOperationError,
+  messageKeyFor,
+  operationMessageKey
+} from '../operationMessages'
 
 export interface DeleteContactArgs {
   userId: string
@@ -15,14 +19,14 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
   create.asyncThunk<
     DeleteContactArgs,
     DeleteContactArgs,
-    { rejectValue: RejectedError }
+    { rejectValue: ContactsOperationError }
   >(
     async (args, { rejectWithValue }) => {
       try {
         await deleteContact(args.userId, args.addressBookId, args.contactId)
         return args
       } catch (err) {
-        return rejectWithValue(toRejectedError(err))
+        return rejectWithValue(toOperationError(err, 'delete'))
       }
     },
     {
@@ -37,10 +41,9 @@ export const deleteContactThunk = (create: ReducerCreators<ContactsState>) =>
         placeContactInListings(state, { addressBookId, contactId })
       },
       rejected: (state, action) => {
-        state.error = toContactsErrorKey(
-          action.payload,
-          'contacts.errors.delete'
-        )
+        state.error = action.payload
+          ? messageKeyFor(action.payload)
+          : operationMessageKey('delete')
       }
     }
   )

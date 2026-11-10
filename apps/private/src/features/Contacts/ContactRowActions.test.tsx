@@ -1,5 +1,11 @@
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -11,7 +17,10 @@ import en from '@common/locales/en.json'
 import { openCalendarEvent } from '@common/utils/calendarSpaUrl'
 import { openChat } from '@common/utils/chatSpaUrl'
 import { openMailComposer } from '@common/utils/mailSpaUrl'
-import { exportContact } from '@common/features/Contacts/ContactsDao'
+import {
+  deleteContact,
+  exportContact
+} from '@common/features/Contacts/ContactsDao'
 import { downloadFile } from '@common/utils/downloadFile'
 import { ContactRowActions } from './ContactRowActions'
 
@@ -22,7 +31,8 @@ vi.mock('@common/features/Contacts/ContactsDao', async () => ({
   ...(await vi.importActual<
     typeof import('@common/features/Contacts/ContactsDao')
   >('@common/features/Contacts/ContactsDao')),
-  exportContact: vi.fn()
+  exportContact: vi.fn(),
+  deleteContact: vi.fn()
 }))
 vi.mock('@common/utils/downloadFile', async () => ({
   ...(await vi.importActual<typeof import('@common/utils/downloadFile')>(
@@ -38,7 +48,7 @@ const contact: Contact = {
   socialProfiles: [{ type: 'matrix', value: 'jane' }]
 }
 
-const renderRowActions = (canWrite = true): void => {
+const renderRowActions = (canWrite = true): ReturnType<typeof setupStore> => {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
@@ -70,6 +80,7 @@ const renderRowActions = (canWrite = true): void => {
       </TwakeMuiThemeProvider>
     </Provider>
   )
+  return store
 }
 
 describe('ContactRowActions', () => {
@@ -134,5 +145,59 @@ describe('ContactRowActions export', () => {
       await screen.findByText(en.contacts.errors.exportContact)
     ).toBeInTheDocument()
     expect(downloadFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('ContactRowActions delete', () => {
+  const rawMessage = 'Request failed with status code 500 Internal Server Error'
+
+  const confirmDelete = (): void => {
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: en.contacts.menu.delete })
+    )
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: en.contacts.delete.confirm
+      })
+    )
+  }
+
+  it('reports a failed deletion once, through the translated slice error', async () => {
+    vi.mocked(deleteContact).mockRejectedValue(
+      Object.assign(new Error(rawMessage), {
+        name: 'HTTPError',
+        response: { status: 500 }
+      })
+    )
+    const store = renderRowActions()
+
+    confirmDelete()
+
+    await waitFor(() =>
+      expect(store.getState().contacts.error).toBe('contacts.errors.delete')
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText(rawMessage)).not.toBeInTheDocument()
+    expect(store.getState().contacts.addressBooks.book1.contacts).toEqual([
+      contact
+    ])
+  })
+
+  it('closes the dialog once the contact is deleted', async () => {
+    vi.mocked(deleteContact).mockResolvedValue(undefined)
+    const store = renderRowActions()
+
+    confirmDelete()
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(deleteContact).toHaveBeenCalledWith('u1', 'book1', 'c1')
+    expect(store.getState().contacts.addressBooks.book1.contacts).toEqual([])
+    expect(store.getState().contacts.error).toBeNull()
   })
 })

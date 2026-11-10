@@ -176,7 +176,9 @@
   "error": {
     "title": "Se ha producido un error",
     "unknown": "Se ha producido un error desconocido",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "loadUser": "No se ha podido cargar su información de usuario",
+    "updateUserConfigurations": "No se ha podido guardar su configuración"
   },
   "common": {
     "ok": "Aceptar"

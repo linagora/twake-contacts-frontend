@@ -1,5 +1,5 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
-import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
+import { toOperationError } from '@common/utils/errorUtils'
 import { moveContact } from '../ContactsDao'
 import {
   AddressBookWithContacts,
@@ -8,6 +8,11 @@ import {
 } from '../contactsTypes'
 import { isContactTransferDestination } from '../contactsUtils'
 import { placeContactInListings } from '../contactListings'
+import {
+  ContactsOperationError,
+  messageKeyFor,
+  operationMessageKey
+} from '../operationMessages'
 
 export interface MoveContactArgs {
   userId: string
@@ -54,7 +59,7 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
   create.asyncThunk<
     MoveContactArgs,
     MoveContactArgs,
-    { rejectValue: RejectedError }
+    { rejectValue: ContactsOperationError }
   >(
     async (args, { getState, rejectWithValue }) => {
       try {
@@ -82,7 +87,7 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         )
         return args
       } catch (err) {
-        return rejectWithValue(toRejectedError(err))
+        return rejectWithValue(toOperationError(err, 'move'))
       }
     },
     {
@@ -115,7 +120,9 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         )
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to move contact'
+        state.error = action.payload
+          ? messageKeyFor(action.payload)
+          : operationMessageKey('move')
       }
     }
   )

@@ -31,9 +31,11 @@ export const Error: React.FC<ErrorProps> = ({
     }
   }, [isCrashFallback])
 
-  const errorMessage =
-    userError ||
-    (isCrashFallback ? errorBoundaryMessage?.message : t('error.unknown'))
+  const errorMessage = userError
+    ? t(userError)
+    : isCrashFallback
+      ? errorBoundaryMessage?.message
+      : t('error.unknown')
 
   return (
     <Fade in timeout={500}>

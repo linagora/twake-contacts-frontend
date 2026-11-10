@@ -176,7 +176,9 @@
   "error": {
     "title": "Etwas ist schiefgelaufen",
     "unknown": "Ein unbekannter Fehler ist aufgetreten",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "loadUser": "Ihre Benutzerinformationen konnten nicht geladen werden",
+    "updateUserConfigurations": "Ihre Einstellungen konnten nicht gespeichert werden"
   },
   "common": {
     "ok": "OK"
