@@ -9,7 +9,7 @@ import {
 import { ContactListing } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
@@ -486,6 +486,9 @@ describe('document title', () => {
     renderContacts('/contacts/book1/unknown')
 
     expect(await screen.findByText('Contact not found')).toBeInTheDocument()
-    expect(document.title).toBe('Contact not found – Twake Contacts')
+    // the title follows the rendered page in an effect
+    await waitFor(() =>
+      expect(document.title).toBe('Contact not found – Twake Contacts')
+    )
   })
 })

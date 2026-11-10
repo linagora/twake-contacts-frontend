@@ -5,7 +5,8 @@ import ky, { type KyInstance } from 'ky'
 /**
  * Only reads are retried: a write is never replayed automatically, the user
  * retries it from the error notification. With the backend down, an error
- * surfaces after at most 3 attempts of 15 s plus about 1 s of backoff.
+ * surfaces after at most 3 attempts of 15 s plus about 1 s of backoff; a
+ * Retry-After header cannot stretch a wait beyond 3 s.
  */
 export const API_POLICY = {
   timeout: 15_000,
@@ -13,7 +14,8 @@ export const API_POLICY = {
     limit: 2,
     methods: ['get', 'head', 'options'],
     statusCodes: [408, 429, 502, 503, 504],
-    backoffLimit: 3_000
+    backoffLimit: 3_000,
+    maxRetryAfter: 3_000
   }
 } as const
 

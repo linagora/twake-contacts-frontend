@@ -113,6 +113,32 @@ describe('api', () => {
       expect(API_POLICY.timeout).toBe(15_000)
       expect(API_POLICY.retry.limit).toBeLessThanOrEqual(3)
       expect(API_POLICY.retry.backoffLimit).toBe(3_000)
+      expect(API_POLICY.retry.maxRetryAfter).toBe(3_000)
+    })
+
+    it('caps the delay requested by a Retry-After header', async () => {
+      vi.useFakeTimers()
+      vi.spyOn(console, 'info').mockImplementation(() => {})
+      fetchSpy.mockImplementation(() =>
+        Promise.resolve(
+          new Response('{}', {
+            status: 503,
+            headers: { 'Retry-After': '3600' }
+          })
+        )
+      )
+
+      try {
+        const failure = expect(api.get('api/user')).rejects.toMatchObject({
+          response: { status: 503 }
+        })
+        await vi.advanceTimersByTimeAsync(10_000)
+        await failure
+      } finally {
+        vi.useRealTimers()
+      }
+
+      expect(fetchSpy).toHaveBeenCalledTimes(3)
     })
   })
 })
