@@ -18,6 +18,10 @@
     "tabs": { "mine": "My contacts", "shared": "Shared with me" },
     "myContacts": "My contacts",
     "shared": "Shared",
+    "sidebar": {
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
     "domainAddressBook": "Domain Address Book",
     "create": "Create",
     "name": "Name",

@@ -18,6 +18,10 @@
     "tabs": { "mine": "Мои контакты", "shared": "Поделились со мной" },
     "myContacts": "Мои контакты",
     "shared": "Общие",
+    "sidebar": {
+      "collapse": "Свернуть",
+      "expand": "Развернуть"
+    },
     "domainAddressBook": "Доменная адресная книга",
     "create": "Создать",
     "name": "Имя",

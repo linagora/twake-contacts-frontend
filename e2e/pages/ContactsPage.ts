@@ -35,8 +35,11 @@ export class ContactsPage {
   readonly main: Locator
   /** "Create" link at the top of the sidebar */
   readonly createLink: Locator
-  /** "My contacts" entry; with nested books, a button with a "Collapse"/"Expand" chevron */
+  /** The sidebar entries, without the items that only wrap a nested list of books */
+  readonly entries: Locator
+  /** "My contacts" entry */
   readonly myContacts: Locator
+  /** "Collapse"/"Expand" chevron next to "My contacts", when it has nested books */
   readonly myContactsChevron: Locator
   /** "+" right of "My contacts" */
   readonly newAddressBookButton: Locator
@@ -67,11 +70,13 @@ export class ContactsPage {
     this.nav = page.getByRole('navigation')
     this.main = page.getByRole('main').last()
     this.createLink = this.sidebar.getByRole('link', { name: 'Create' })
-    this.myContacts = this.nav
+    this.entries = this.nav
       .getByRole('listitem')
+      .filter({ hasNot: page.getByRole('list') })
+    this.myContacts = this.entries
       .first()
       .getByRole('button', { name: startsWith('My contacts') })
-    this.myContactsChevron = this.myContacts.getByRole('button', {
+    this.myContactsChevron = this.entries.first().getByRole('button', {
       name: /^(Collapse|Expand)$/
     })
     this.newAddressBookButton = this.nav.getByRole('button', {
@@ -136,9 +141,9 @@ export class ContactsPage {
 
   /** The sidebar entry of an address book (own, shared or added), by its name */
   bookEntry(name: string): Locator {
-    return this.nav
-      .getByRole('listitem')
-      .filter({ has: this.page.getByText(name, { exact: true }) })
+    return this.entries.filter({
+      has: this.page.getByText(name, { exact: true })
+    })
   }
 
   /** The clickable part of a sidebar entry; its name ends with the owner of a shared book */

@@ -120,14 +120,12 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const isMenuOpen = Boolean(anchorEl)
 
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-    >
+    <>
       <NavItem
-        key={book.id}
         variant={variant}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
         secondaryAction={
           isHovered || isMenuOpen || isMobile ? (
             <>
@@ -200,8 +198,11 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
             </NavText>
           </Tooltip>
         </NavLink>
+        <ErrorSnackbar
+          error={exportError}
+          onClose={() => setExportError(null)}
+        />
       </NavItem>
-      <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
       {isShareDialogOpen && (
         <ShareAddressBookDialog
           addressBookId={book.id}
@@ -234,6 +235,6 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
           }}
         />
       )}
-    </div>
+    </>
   )
 }
