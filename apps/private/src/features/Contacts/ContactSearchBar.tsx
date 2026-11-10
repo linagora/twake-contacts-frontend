@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactAvatar } from './ContactAvatar'
+import { contactPath } from './contactPath'
 
 interface SearchOption {
   contact: Contact
@@ -97,7 +98,7 @@ export const ContactSearchBar: React.FC = () => {
           contact: value.contact
         })
       )
-      void navigate(`/contacts/${storeAddressBookId}/${value.contact.id}`)
+      void navigate(contactPath(storeAddressBookId, value.contact.id))
       setInputValue('')
       setOptions([])
     }

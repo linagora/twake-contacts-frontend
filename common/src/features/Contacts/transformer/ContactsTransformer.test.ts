@@ -5,6 +5,7 @@ import {
   JCalProperty
 } from '../davTypes'
 import { userData } from '../../User/userDataTypes'
+import { Contact } from '../contactsTypes'
 import {
   buildFullShareesList,
   denormalizeContact,
@@ -62,6 +63,22 @@ describe('TEL value type round trip', () => {
     expect(card[1].filter(p => p[0] === 'tel')).toEqual([
       ['tel', { type: 'cell' }, 'text', '0612']
     ])
+  })
+})
+
+describe('normalizeContact', () => {
+  const contactAt = (href: string): Contact =>
+    normalizeContact({
+      _links: { self: { href } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo']]]
+    })
+
+  it('holds the decoded card file name as id', () => {
+    expect(contactAt('/addressbooks/bob/book1/a%2Fb.vcf').id).toBe('a/b')
+  })
+
+  it('keeps a file name that is not valid percent-encoding as is', () => {
+    expect(contactAt('/addressbooks/bob/book1/100%.vcf').id).toBe('100%')
   })
 })
 
