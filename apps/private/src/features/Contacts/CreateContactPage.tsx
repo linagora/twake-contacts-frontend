@@ -66,6 +66,7 @@ export const CreateContactPage: React.FC = () => {
       initialValues={initialValues}
       backTo={backTo}
       onSubmit={handleSubmit}
+      checkDuplicateEmails
     />
   )
 }

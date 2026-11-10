@@ -62,7 +62,10 @@
       "addressBook": "Rubrica",
       "editTitle": "Modifica contatto",
       "newContact": "Nuovo contatto",
-      "invalidEmail": "Indirizzo email non valido"
+      "invalidEmail": "Indirizzo email non valido",
+      "duplicateEmail": "%{name} ha già questo indirizzo email, in %{book}.",
+      "duplicateEmailMany": "%{smart_count} contatto ha già questo indirizzo email. |||| %{smart_count} contatti hanno già questo indirizzo email.",
+      "openExisting": "Apri contatto"
     },
     "edit": {
       "title": "Modifica rubrica",

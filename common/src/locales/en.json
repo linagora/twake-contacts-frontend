@@ -62,7 +62,10 @@
       "addressBook": "Address book",
       "editTitle": "Edit contact",
       "newContact": "New contact",
-      "invalidEmail": "Invalid email address"
+      "invalidEmail": "Invalid email address",
+      "duplicateEmail": "%{name} already has this email address, in %{book}.",
+      "duplicateEmailMany": "%{smart_count} contact already has this email address. |||| %{smart_count} contacts already have this email address.",
+      "openExisting": "Open contact"
     },
     "addressBook": {
       "createTitle": "New address book",

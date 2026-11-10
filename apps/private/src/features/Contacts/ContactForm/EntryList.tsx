@@ -26,6 +26,10 @@ export interface EntryListProps {
   validate?: (value: string) => boolean
   validationMessage?: string
   touched?: boolean[]
+  renderEntryFooter?: (
+    entry: ContactFormEntry,
+    index: number
+  ) => React.ReactNode
 }
 
 export const EntryList: React.FC<EntryListProps> = ({
@@ -39,7 +43,8 @@ export const EntryList: React.FC<EntryListProps> = ({
   showTypeSelector = true,
   validate,
   validationMessage,
-  touched = []
+  touched = [],
+  renderEntryFooter
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
@@ -68,65 +73,70 @@ export const EntryList: React.FC<EntryListProps> = ({
   return (
     <Stack spacing={3}>
       {entries.map((entry, index) => (
-        <FormRow key={index}>
-          <Grid size={textFieldSize}>
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
-              label={label}
-              value={entry.value}
-              onChange={e => onChange(index, { value: e.target.value })}
-              onBlur={() => onBlur?.(index)}
-              error={getError(entry.value, index)}
-              helperText={getError(entry.value, index) ? validationMessage : ''}
-              slotProps={{
-                htmlInput: { 'aria-label': label },
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Icon icon={icon} />
-                    </InputAdornment>
-                  )
-                }
-              }}
-            />
-          </Grid>
-          {showTypeSelector && (
-            <Grid size={isMobile ? 4 : 3}>
-              <Select
+        <Stack key={index} spacing={1}>
+          <FormRow>
+            <Grid size={textFieldSize}>
+              <TextField
                 fullWidth
                 size="small"
                 variant="outlined"
-                value={entry.type || ''}
-                onChange={e => onChange(index, { type: e.target.value })}
-                aria-label={t('contacts.form.type')}
-                displayEmpty
-              >
-                <MenuItem value="">{t('contacts.form.typeLabel')}</MenuItem>
-                {types.map(type => (
-                  <MenuItem key={type} value={type}>
-                    {t(`contacts.types.${type}`)}
-                  </MenuItem>
-                ))}
-              </Select>
+                label={label}
+                value={entry.value}
+                onChange={e => onChange(index, { value: e.target.value })}
+                onBlur={() => onBlur?.(index)}
+                error={getError(entry.value, index)}
+                helperText={
+                  getError(entry.value, index) ? validationMessage : ''
+                }
+                slotProps={{
+                  htmlInput: { 'aria-label': label },
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Icon icon={icon} />
+                      </InputAdornment>
+                    )
+                  }
+                }}
+              />
             </Grid>
-          )}
-          {shouldRenderRemoveGrid && (
-            <Grid size={isMobile ? 2 : 1}>
-              {index > 0 && (
-                <Tooltip disableInteractive title={t('contacts.form.remove')}>
-                  <IconButton
-                    onClick={() => onRemove(index)}
-                    aria-label={t('contacts.form.remove')}
-                  >
-                    <Icon icon={Cross} />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </Grid>
-          )}
-        </FormRow>
+            {showTypeSelector && (
+              <Grid size={isMobile ? 4 : 3}>
+                <Select
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  value={entry.type || ''}
+                  onChange={e => onChange(index, { type: e.target.value })}
+                  aria-label={t('contacts.form.type')}
+                  displayEmpty
+                >
+                  <MenuItem value="">{t('contacts.form.typeLabel')}</MenuItem>
+                  {types.map(type => (
+                    <MenuItem key={type} value={type}>
+                      {t(`contacts.types.${type}`)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+            )}
+            {shouldRenderRemoveGrid && (
+              <Grid size={isMobile ? 2 : 1}>
+                {index > 0 && (
+                  <Tooltip disableInteractive title={t('contacts.form.remove')}>
+                    <IconButton
+                      onClick={() => onRemove(index)}
+                      aria-label={t('contacts.form.remove')}
+                    >
+                      <Icon icon={Cross} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Grid>
+            )}
+          </FormRow>
+          {renderEntryFooter?.(entry, index)}
+        </Stack>
       ))}
     </Stack>
   )

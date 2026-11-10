@@ -1,9 +1,6 @@
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { useAppDispatch } from '@common/app/hooks'
 import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
-import {
-  AddressBookRef,
-  searchContacts
-} from '@common/features/Contacts/ContactsDao'
+import { searchContacts } from '@common/features/Contacts/ContactsDao'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
@@ -12,10 +9,11 @@ import {
   Stack,
   useBreakpoints
 } from '@linagora/twake-mui'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactAvatar } from './ContactAvatar'
+import { useSearchAddressBookRefs } from './useSearchAddressBookRefs'
 
 interface SearchOption {
   contact: Contact
@@ -36,22 +34,7 @@ export const ContactSearchBar: React.FC = () => {
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
-  const addressBooksRecord = useAppSelector(
-    state => state.contacts.addressBooks
-  )
-  const addressBooks = useMemo(
-    () => Object.values(addressBooksRecord),
-    [addressBooksRecord]
-  )
-
-  const addressBookRefs = useMemo<AddressBookRef[]>(
-    () =>
-      addressBooks.map(book => ({
-        userId: book.userId,
-        addressBookId: book.id === 'dab' ? 'domain-members' : book.id
-      })),
-    [addressBooks]
-  )
+  const addressBookRefs = useSearchAddressBookRefs()
 
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])

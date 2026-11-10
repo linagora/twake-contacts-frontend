@@ -24,6 +24,8 @@ import { NameFields } from './fields/NameFields'
 import { AddressBookField } from './fields/AddressBookField'
 import { MatrixIdField } from './fields/MatrixIdField'
 import { EntryList } from './EntryList'
+import { DuplicateEmailAlert } from './DuplicateEmailAlert'
+import { useDuplicateEmails } from './useDuplicateEmails'
 import { isValidEmail } from '@common/utils/validation'
 import {
   ContactFormValues,
@@ -53,6 +55,7 @@ interface ContactFormProps {
   onSubmit: (values: ContactFormValues) => void | Promise<void>
   contact?: Contact
   onDelete?: () => void
+  checkDuplicateEmails?: boolean
 }
 
 export const ContactForm: React.FC<ContactFormProps> = ({
@@ -63,7 +66,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   backTo,
   onSubmit,
   contact,
-  onDelete
+  onDelete,
+  checkDuplicateEmails = false
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
@@ -71,6 +75,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const submittingRef = useRef(false)
+  const { checkEmail, getDuplicates } = useDuplicateEmails(checkDuplicateEmails)
 
   const displayName = [values.givenName.trim(), values.familyName.trim()]
     .filter(Boolean)
@@ -214,11 +219,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               next[index] = true
               return next
             })
+            checkEmail(index, values.emails[index]?.value ?? '')
           }}
           showTypeSelector={false}
           validate={isValidEmail}
           validationMessage={t('contacts.form.invalidEmail')}
           touched={touchedEmails}
+          renderEntryFooter={entry => (
+            <DuplicateEmailAlert duplicates={getDuplicates(entry.value)} />
+          )}
         />
 
         <MatrixIdField

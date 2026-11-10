@@ -62,7 +62,10 @@
       "addressBook": "Carnet d'adresses",
       "editTitle": "Modifier le contact",
       "newContact": "Nouveau contact",
-      "invalidEmail": "Adresse email invalide"
+      "invalidEmail": "Adresse email invalide",
+      "duplicateEmail": "%{name} a déjà cette adresse e-mail, dans %{book}.",
+      "duplicateEmailMany": "%{smart_count} contact a déjà cette adresse e-mail. |||| %{smart_count} contacts ont déjà cette adresse e-mail.",
+      "openExisting": "Ouvrir le contact"
     },
     "edit": {
       "title": "Modifier le carnet d'adresses",

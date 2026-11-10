@@ -62,7 +62,10 @@
       "addressBook": "Sổ địa chỉ",
       "editTitle": "Chỉnh sửa liên hệ",
       "newContact": "Liên hệ mới",
-      "invalidEmail": "Địa chỉ email không hợp lệ"
+      "invalidEmail": "Địa chỉ email không hợp lệ",
+      "duplicateEmail": "%{name} đã có địa chỉ email này, trong %{book}.",
+      "duplicateEmailMany": "%{smart_count} liên hệ đã có địa chỉ email này.",
+      "openExisting": "Mở liên hệ"
     },
     "edit": {
       "title": "Chỉnh sửa sổ địa chỉ",
