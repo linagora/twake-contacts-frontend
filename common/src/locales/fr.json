@@ -1,5 +1,4 @@
 {
-  "locale": "fr-fr",
   "contacts": {
     "moveContact": {
       "success": "Contact déplacé avec succès",
@@ -15,7 +14,10 @@
       "error": "Impossible de copier le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
     "title": "Contacts",
-    "tabs": { "mine": "Mes contacts", "shared": "Partagé avec moi" },
+    "tabs": {
+      "mine": "Mes contacts",
+      "shared": "Partagé avec moi"
+    },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
     "domainAddressBook": "Carnet d'adresses du domaine",
@@ -45,7 +47,6 @@
       "clear": "Effacer",
       "firstName": "Prénom",
       "lastName": "Nom",
-      "addTeam": "Ajouter une équipe",
       "matrixId": "Identifiant Matrix",
       "phone": "Téléphone",
       "addPhone": "Ajouter un téléphone",
@@ -60,14 +61,11 @@
       "cancel": "Annuler",
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
-      "editTitle": "Modifier le contact",
-      "newContact": "Nouveau contact",
       "invalidEmail": "Adresse email invalide"
     },
     "edit": {
       "title": "Modifier le carnet d'adresses",
       "name": "Nom",
-      "description": "Description",
       "cancel": "Annuler",
       "save": "Enregistrer"
     },
@@ -103,7 +101,6 @@
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Paramètres",
       "search": "Rechercher"
     },
     "errors": {
@@ -117,7 +114,6 @@
       "subscribe": "Impossible d'ajouter le carnet d'adresses",
       "deleteAddressBook": "Impossible de supprimer le carnet d'adresses",
       "removeAddressBook": "Impossible de retirer le carnet d'adresses de votre liste",
-      "updateAddressBook": "Impossible de modifier le carnet d'adresses",
       "exportAddressBook": "Échec de l'export du carnet d'adresses",
       "exportContact": "Échec de l'export du contact"
     },
@@ -146,9 +142,7 @@
       "deleteConfirm": "Supprimer",
       "removeDescription": "« %{name} » sera retiré de votre liste. Vous pourrez le retrouver en recherchant son propriétaire.",
       "removeTitle": "Retirer ce carnet d'adresses ?",
-      "removeConfirm": "Retirer",
-      "editTitle": "Modifier le carnet d'adresses",
-      "editSuccess": "Carnet d'adresses modifié avec succès"
+      "removeConfirm": "Retirer"
     },
     "share": {
       "title": "Partager %{name}",

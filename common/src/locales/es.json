@@ -1,5 +1,4 @@
 {
-  "locale": "es-es",
   "contacts": {
     "moveContact": {
       "success": "Contacto movido correctamente",
@@ -15,7 +14,10 @@
       "error": "No se pudo copiar el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
     "title": "Contactos",
-    "tabs": { "mine": "Mis contactos", "shared": "Compartido conmigo" },
+    "tabs": {
+      "mine": "Mis contactos",
+      "shared": "Compartido conmigo"
+    },
     "myContacts": "Mis contactos",
     "shared": "Compartidos",
     "domainAddressBook": "Libreta de direcciones del dominio",
@@ -45,7 +47,6 @@
       "clear": "Borrar",
       "firstName": "Nombre",
       "lastName": "Apellidos",
-      "addTeam": "Añadir equipo",
       "matrixId": "ID de Matrix",
       "phone": "Teléfono",
       "addPhone": "Añadir teléfono",
@@ -60,14 +61,11 @@
       "cancel": "Cancelar",
       "save": "Guardar",
       "addressBook": "Libreta de direcciones",
-      "editTitle": "Editar contacto",
-      "newContact": "Nuevo contacto",
       "invalidEmail": "Dirección de correo electrónico no válida"
     },
     "edit": {
       "title": "Editar libreta de direcciones",
       "name": "Nombre",
-      "description": "Descripción",
       "cancel": "Cancelar",
       "save": "Guardar"
     },
@@ -103,7 +101,6 @@
     },
     "nav": {
       "menu": "Menú",
-      "settings": "Configuración",
       "search": "Buscar"
     },
     "errors": {
@@ -117,7 +114,6 @@
       "subscribe": "No se ha podido añadir la libreta de direcciones",
       "deleteAddressBook": "No se ha podido eliminar la libreta de direcciones",
       "removeAddressBook": "No se ha podido quitar la libreta de direcciones de tu lista",
-      "updateAddressBook": "No se ha podido actualizar la libreta de direcciones",
       "exportAddressBook": "No se pudo exportar la libreta de direcciones",
       "exportContact": "No se pudo exportar el contacto"
     },
@@ -146,9 +142,7 @@
       "deleteConfirm": "Eliminar",
       "removeDescription": "«%{name}» se quitará de su lista. Podrá volver a añadirla buscando a su propietario.",
       "removeTitle": "¿Quitar esta libreta de direcciones?",
-      "removeConfirm": "Quitar",
-      "editTitle": "Editar libreta de direcciones",
-      "editSuccess": "Libreta de direcciones actualizada correctamente"
+      "removeConfirm": "Quitar"
     },
     "share": {
       "title": "Compartir %{name}",

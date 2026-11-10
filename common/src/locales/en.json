@@ -1,5 +1,4 @@
 {
-  "locale": "en-gb",
   "contacts": {
     "moveContact": {
       "success": "Contact moved successfully",
@@ -15,7 +14,10 @@
       "error": "Could not copy the contact. It may already exist in the destination address book."
     },
     "title": "Contacts",
-    "tabs": { "mine": "My contacts", "shared": "Shared with me" },
+    "tabs": {
+      "mine": "My contacts",
+      "shared": "Shared with me"
+    },
     "myContacts": "My contacts",
     "shared": "Shared",
     "domainAddressBook": "Domain Address Book",
@@ -45,7 +47,6 @@
       "clear": "Clear",
       "firstName": "First name",
       "lastName": "Last name",
-      "addTeam": "Add team",
       "matrixId": "Matrix id",
       "phone": "Phone",
       "addPhone": "Add phone",
@@ -60,8 +61,6 @@
       "cancel": "Cancel",
       "save": "Save",
       "addressBook": "Address book",
-      "editTitle": "Edit contact",
-      "newContact": "New contact",
       "invalidEmail": "Invalid email address"
     },
     "addressBook": {
@@ -89,14 +88,11 @@
       "deleteConfirm": "Delete",
       "removeDescription": "“%{name}” will be removed from your list. You can find it again by searching for its owner.",
       "removeTitle": "Remove this address book?",
-      "removeConfirm": "Remove",
-      "editTitle": "Edit address book",
-      "editSuccess": "Address book updated successfully"
+      "removeConfirm": "Remove"
     },
     "edit": {
       "title": "Edit address book",
       "name": "Name",
-      "description": "Description",
       "cancel": "Cancel",
       "save": "Save"
     },
@@ -132,7 +128,6 @@
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Settings",
       "search": "Search"
     },
     "errors": {
@@ -146,7 +141,6 @@
       "subscribe": "Failed to add address book",
       "deleteAddressBook": "Failed to delete the address book",
       "removeAddressBook": "Failed to remove the address book from your list",
-      "updateAddressBook": "Failed to update address book",
       "exportAddressBook": "Failed to export the address book",
       "exportContact": "Failed to export the contact"
     },

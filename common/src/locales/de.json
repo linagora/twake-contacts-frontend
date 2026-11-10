@@ -1,5 +1,4 @@
 {
-  "locale": "de-de",
   "contacts": {
     "moveContact": {
       "success": "Kontakt erfolgreich verschoben",
@@ -15,7 +14,10 @@
       "error": "Der Kontakt konnte nicht kopiert werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
     "title": "Kontakte",
-    "tabs": { "mine": "Meine Kontakte", "shared": "Mir mitgeteilt" },
+    "tabs": {
+      "mine": "Meine Kontakte",
+      "shared": "Mir mitgeteilt"
+    },
     "myContacts": "Meine Kontakte",
     "shared": "Geteilt",
     "domainAddressBook": "Domain-Adressbuch",
@@ -45,7 +47,6 @@
       "clear": "Löschen",
       "firstName": "Vorname",
       "lastName": "Nachname",
-      "addTeam": "Team hinzufügen",
       "matrixId": "Matrix-ID",
       "phone": "Telefon",
       "addPhone": "Telefonnummer hinzufügen",
@@ -60,14 +61,11 @@
       "cancel": "Abbrechen",
       "save": "Speichern",
       "addressBook": "Adressbuch",
-      "editTitle": "Kontakt bearbeiten",
-      "newContact": "Neuer Kontakt",
       "invalidEmail": "Ungültige E-Mail-Adresse"
     },
     "edit": {
       "title": "Adressbuch bearbeiten",
       "name": "Name",
-      "description": "Beschreibung",
       "cancel": "Abbrechen",
       "save": "Speichern"
     },
@@ -103,7 +101,6 @@
     },
     "nav": {
       "menu": "Menü",
-      "settings": "Einstellungen",
       "search": "Suchen"
     },
     "errors": {
@@ -117,7 +114,6 @@
       "subscribe": "Adressbuch konnte nicht hinzugefügt werden",
       "deleteAddressBook": "Adressbuch konnte nicht gelöscht werden",
       "removeAddressBook": "Adressbuch konnte nicht aus Ihrer Liste entfernt werden",
-      "updateAddressBook": "Adressbuch konnte nicht aktualisiert werden",
       "exportAddressBook": "Das Adressbuch konnte nicht exportiert werden",
       "exportContact": "Der Kontakt konnte nicht exportiert werden"
     },
@@ -146,9 +142,7 @@
       "deleteConfirm": "Löschen",
       "removeDescription": "„%{name}“ wird aus Ihrer Liste entfernt. Sie können es wieder hinzufügen, indem Sie nach dem Eigentümer suchen.",
       "removeTitle": "Dieses Adressbuch entfernen?",
-      "removeConfirm": "Entfernen",
-      "editTitle": "Adressbuch bearbeiten",
-      "editSuccess": "Adressbuch erfolgreich aktualisiert"
+      "removeConfirm": "Entfernen"
     },
     "share": {
       "title": "%{name} teilen",

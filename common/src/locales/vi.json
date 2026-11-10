@@ -1,5 +1,4 @@
 {
-  "locale": "vi",
   "contacts": {
     "moveContact": {
       "success": "Đã di chuyển liên hệ thành công",
@@ -15,7 +14,10 @@
       "error": "Không thể sao chép liên hệ. Liên hệ có thể đã tồn tại trong sổ địa chỉ đích."
     },
     "title": "Danh bạ",
-    "tabs": { "mine": "Danh bạ của tôi", "shared": "Đã chia sẻ với tôi" },
+    "tabs": {
+      "mine": "Danh bạ của tôi",
+      "shared": "Đã chia sẻ với tôi"
+    },
     "myContacts": "Danh bạ của tôi",
     "shared": "Được chia sẻ",
     "domainAddressBook": "Sổ địa chỉ miền",
@@ -45,7 +47,6 @@
       "clear": "Xóa",
       "firstName": "Tên",
       "lastName": "Họ",
-      "addTeam": "Thêm nhóm",
       "matrixId": "ID Matrix",
       "phone": "Điện thoại",
       "addPhone": "Thêm số điện thoại",
@@ -60,14 +61,11 @@
       "cancel": "Hủy",
       "save": "Lưu",
       "addressBook": "Sổ địa chỉ",
-      "editTitle": "Chỉnh sửa liên hệ",
-      "newContact": "Liên hệ mới",
       "invalidEmail": "Địa chỉ email không hợp lệ"
     },
     "edit": {
       "title": "Chỉnh sửa sổ địa chỉ",
       "name": "Tên",
-      "description": "Mô tả",
       "cancel": "Hủy",
       "save": "Lưu"
     },
@@ -103,7 +101,6 @@
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Cài đặt",
       "search": "Tìm kiếm"
     },
     "errors": {
@@ -117,7 +114,6 @@
       "subscribe": "Không thể thêm sổ địa chỉ",
       "deleteAddressBook": "Không thể xóa sổ địa chỉ",
       "removeAddressBook": "Không thể gỡ sổ địa chỉ khỏi danh sách của bạn",
-      "updateAddressBook": "Không thể cập nhật sổ địa chỉ",
       "exportAddressBook": "Không thể xuất sổ địa chỉ",
       "exportContact": "Không thể xuất liên hệ"
     },
@@ -146,9 +142,7 @@
       "deleteConfirm": "Xóa",
       "removeDescription": "“%{name}” sẽ bị gỡ khỏi danh sách của bạn. Bạn có thể thêm lại bằng cách tìm chủ sở hữu.",
       "removeTitle": "Gỡ sổ địa chỉ này?",
-      "removeConfirm": "Gỡ",
-      "editTitle": "Chỉnh sửa sổ địa chỉ",
-      "editSuccess": "Đã cập nhật sổ địa chỉ thành công"
+      "removeConfirm": "Gỡ"
     },
     "share": {
       "title": "Chia sẻ %{name}",
