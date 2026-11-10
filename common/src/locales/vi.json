@@ -15,7 +15,10 @@
       "error": "Không thể sao chép liên hệ. Liên hệ có thể đã tồn tại trong sổ địa chỉ đích."
     },
     "title": "Danh bạ",
-    "tabs": { "mine": "Danh bạ của tôi", "shared": "Đã chia sẻ với tôi" },
+    "tabs": {
+      "mine": "Danh bạ của tôi",
+      "shared": "Đã chia sẻ với tôi"
+    },
     "myContacts": "Danh bạ của tôi",
     "shared": "Được chia sẻ",
     "domainAddressBook": "Sổ địa chỉ miền",
@@ -65,7 +68,7 @@
       "invalidEmail": "Địa chỉ email không hợp lệ"
     },
     "edit": {
-      "title": "Chỉnh sửa sổ địa chỉ",
+      "title": "Đổi tên sổ địa chỉ",
       "name": "Tên",
       "description": "Mô tả",
       "cancel": "Hủy",
@@ -83,10 +86,8 @@
       "openChat": "Mở trò chuyện",
       "createEvent": "Tạo sự kiện",
       "edit": "Chỉnh sửa",
+      "rename": "Đổi tên",
       "delete": "Xóa",
-      "chat": "Trò chuyện",
-      "mail": "Gửi email",
-      "schedule": "Lên lịch",
       "share": "Chia sẻ",
       "remove": "Gỡ khỏi danh sách của tôi",
       "export": "Xuất"

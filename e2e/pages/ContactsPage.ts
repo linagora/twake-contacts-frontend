@@ -198,7 +198,7 @@ export class ContactsPage {
 
   async openEditBookDialog(name: string): Promise<EditAddressBookDialog> {
     const menu = await this.openBookMenu(name)
-    await menu.getByRole('menuitem', { name: 'Edit' }).click()
+    await menu.getByRole('menuitem', { name: 'Rename' }).click()
     const dialog = new EditAddressBookDialog(this.page)
     await expect(dialog.root).toBeVisible()
     return dialog

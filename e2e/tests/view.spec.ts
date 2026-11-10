@@ -26,8 +26,8 @@ test.describe('VIEW contact page', () => {
     await expect(contact.deleteButton).toBeVisible()
     await expect(contact.main.getByText('JD', { exact: true })).toBeVisible()
     await expect(contact.sendEmailButton).toHaveText('Send email')
-    await expect(contact.chatButton).toHaveText('Chat')
-    await expect(contact.scheduleButton).toHaveText('Schedule')
+    await expect(contact.chatButton).toHaveText('Open chat')
+    await expect(contact.scheduleButton).toHaveText('Create event')
     // no category: no row with the label icon alone
     await expect(contact.details).toHaveText([
       '+33612345678Work',

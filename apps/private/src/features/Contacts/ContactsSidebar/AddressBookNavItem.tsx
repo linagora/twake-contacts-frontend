@@ -159,7 +159,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                     <ListItemIcon>
                       <Icon icon={Pen} />
                     </ListItemIcon>
-                    <ListItemText>{t('contacts.menu.edit')}</ListItemText>
+                    <ListItemText>{t('contacts.menu.rename')}</ListItemText>
                   </ActionsMenuItem>
                 )}
                 <ActionsMenuItem onClick={handleExport}>

@@ -15,7 +15,10 @@
       "error": "Der Kontakt konnte nicht kopiert werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
     "title": "Kontakte",
-    "tabs": { "mine": "Meine Kontakte", "shared": "Mir mitgeteilt" },
+    "tabs": {
+      "mine": "Meine Kontakte",
+      "shared": "Mir mitgeteilt"
+    },
     "myContacts": "Meine Kontakte",
     "shared": "Geteilt",
     "domainAddressBook": "Domain-Adressbuch",
@@ -65,7 +68,7 @@
       "invalidEmail": "Ungültige E-Mail-Adresse"
     },
     "edit": {
-      "title": "Adressbuch bearbeiten",
+      "title": "Adressbuch umbenennen",
       "name": "Name",
       "description": "Beschreibung",
       "cancel": "Abbrechen",
@@ -83,10 +86,8 @@
       "openChat": "Chat öffnen",
       "createEvent": "Termin erstellen",
       "edit": "Bearbeiten",
+      "rename": "Umbenennen",
       "delete": "Löschen",
-      "chat": "Chat",
-      "mail": "E-Mail senden",
-      "schedule": "Termin planen",
       "share": "Teilen",
       "remove": "Aus meiner Liste entfernen",
       "export": "Exportieren"

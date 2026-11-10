@@ -294,8 +294,8 @@ describe('ContactPage', () => {
     expect(chatButton).toBeInTheDocument()
     expect(calendarButton).toBeInTheDocument()
     expect(mailButton).toHaveTextContent('Send email')
-    expect(chatButton).toHaveTextContent('Chat')
-    expect(calendarButton).toHaveTextContent('Schedule')
+    expect(chatButton).toHaveTextContent('Open chat')
+    expect(calendarButton).toHaveTextContent('Create event')
   })
 
   it('shows quick action buttons without labels on mobile', () => {
@@ -316,8 +316,8 @@ describe('ContactPage', () => {
     expect(chatButton).toBeInTheDocument()
     expect(calendarButton).toBeInTheDocument()
     expect(mailButton).not.toHaveTextContent('Send email')
-    expect(chatButton).not.toHaveTextContent('Chat')
-    expect(calendarButton).not.toHaveTextContent('Schedule')
+    expect(chatButton).not.toHaveTextContent('Open chat')
+    expect(calendarButton).not.toHaveTextContent('Create event')
   })
 
   it('disable quick action buttons when contact has no email', () => {
