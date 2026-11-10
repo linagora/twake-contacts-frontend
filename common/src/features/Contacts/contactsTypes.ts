@@ -36,6 +36,8 @@ export interface ContactAddress {
   region: string
   postalCode: string
   country: string
+  /** Components after the seventh (e.g. RFC 9554 additions), kept for display and round-trip. */
+  extra?: string[]
 }
 
 /** vCard 4 TEL value type (RFC 6350 6.4.1): a `tel:` URI or a free text number. */

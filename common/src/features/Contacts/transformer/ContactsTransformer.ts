@@ -145,13 +145,19 @@ function makePhoneProperty(phone: ContactPhone): JCalProperty {
     : makeTypedProperty('tel', phone.type, phone.value)
 }
 
+// RFC 6350 §6.3.1 defines seven ADR components, RFC 9554 appends more after them
+const RFC6350_ADR_COMPONENTS = 7
+
 function parseAddresses(card: JCalCard): ContactAddress[] {
   return getCardProperties(card, 'adr')
     .map((prop): ContactAddress | null => {
       const values = toAddressComponents(prop[3])
       if (!values) return null
       const [poBox, extended, street, locality, region, postalCode, country] =
-        Array.from({ length: 7 }, (_, i) => componentText(values[i]))
+        Array.from({ length: RFC6350_ADR_COMPONENTS }, (_, i) =>
+          componentText(values[i])
+        )
+      const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
       const type = getTypeParam(prop[1])
       return {
         type,
@@ -161,7 +167,8 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         locality,
         region,
         postalCode,
-        country
+        country,
+        ...(extra.length > 0 && { extra })
       }
     })
     .filter((a): a is ContactAddress => a !== null)
@@ -447,7 +454,8 @@ export function denormalizeContact(contact: Contact): JCalCard {
         address.locality,
         address.region,
         address.postalCode,
-        address.country
+        address.country,
+        ...(address.extra ?? [])
       ])
     )
   })

@@ -86,22 +86,25 @@ export function makeContactFromForm(
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
-  const addresses = values.addresses.filter(hasValue).map((entry, index) => {
-    const original = base?.addresses?.[index]
-    const untouched = original && formatAddress(original) === entry.value
-    return untouched
-      ? { ...original, type: entry.type }
-      : {
-          type: entry.type,
-          poBox: '',
-          extended: '',
-          street: entry.value.trim(),
-          locality: '',
-          region: '',
-          postalCode: '',
-          country: ''
-        }
-  })
+  // rows are paired with the base addresses before the blank ones are dropped
+  const addresses = values.addresses
+    .map((entry, index) => ({ entry, original: base?.addresses?.[index] }))
+    .filter(({ entry }) => hasValue(entry))
+    .map(({ entry, original }) => {
+      const untouched = original && formatAddress(original) === entry.value
+      return untouched
+        ? { ...original, type: entry.type }
+        : {
+            type: entry.type,
+            poBox: '',
+            extended: '',
+            street: entry.value.trim(),
+            locality: '',
+            region: '',
+            postalCode: '',
+            country: ''
+          }
+    })
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),

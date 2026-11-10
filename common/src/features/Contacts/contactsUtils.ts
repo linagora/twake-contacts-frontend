@@ -25,7 +25,8 @@ export function formatAddress(address: ContactAddress): string {
       address.street,
       joinNonBlank([address.postalCode, address.locality], ' '),
       address.region,
-      address.country
+      address.country,
+      ...(address.extra ?? [])
     ],
     ', '
   )
