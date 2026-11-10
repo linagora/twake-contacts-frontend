@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef } from 'react'
 import { useAppSelector } from '@common/app/hooks'
 import { Icon, Refresh, WarningCircle } from '@linagora/twake-icons'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { useI18n } from 'twake-i18n'
 
 interface ErrorProps {
@@ -24,6 +25,8 @@ export const Error: React.FC<ErrorProps> = ({
   const { t } = useI18n()
   const userError = useAppSelector(state => state.user.error)
   const initialError = useRef(userError)
+
+  useDocumentTitle(t('error.title'))
 
   useEffect(() => {
     if (!initialError.current && !isCrashFallback) {

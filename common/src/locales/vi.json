@@ -73,6 +73,7 @@
       "typeLabel": "Nhãn",
       "cancel": "Hủy",
       "save": "Lưu",
+      "editTitle": "Chỉnh sửa liên hệ",
       "addressBook": "Sổ địa chỉ",
       "moveHint": "Khi lưu, liên hệ này sẽ được chuyển sang %{book}.",
       "invalidEmail": "Địa chỉ email không hợp lệ, ví dụ: ten@example.com",

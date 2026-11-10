@@ -73,6 +73,7 @@
       "typeLabel": "Label",
       "cancel": "Cancel",
       "save": "Save",
+      "editTitle": "Edit contact",
       "addressBook": "Address book",
       "moveHint": "Saving will move this contact to %{book}.",
       "invalidEmail": "Invalid email address, e.g. name@example.com",

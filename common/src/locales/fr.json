@@ -73,6 +73,7 @@
       "typeLabel": "Label",
       "cancel": "Annuler",
       "save": "Enregistrer",
+      "editTitle": "Modifier le contact",
       "addressBook": "Carnet d'adresses",
       "moveHint": "L’enregistrement déplacera ce contact vers %{book}.",
       "invalidEmail": "Adresse e-mail invalide, par ex. nom@exemple.com",

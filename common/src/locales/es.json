@@ -73,6 +73,7 @@
       "typeLabel": "Etiqueta",
       "cancel": "Cancelar",
       "save": "Guardar",
+      "editTitle": "Editar contacto",
       "addressBook": "Libreta de direcciones",
       "moveHint": "Al guardar, este contacto se moverá a %{book}.",
       "invalidEmail": "Dirección de correo no válida, p. ej. nombre@ejemplo.com",

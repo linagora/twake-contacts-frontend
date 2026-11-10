@@ -73,6 +73,7 @@
       "typeLabel": "Label",
       "cancel": "Abbrechen",
       "save": "Speichern",
+      "editTitle": "Kontakt bearbeiten",
       "addressBook": "Adressbuch",
       "moveHint": "Beim Speichern wird dieser Kontakt nach %{book} verschoben.",
       "invalidEmail": "Ungültige E-Mail-Adresse, z. B. name@beispiel.de",

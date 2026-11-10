@@ -3,6 +3,7 @@ import {
   formatAddress,
   isHiddenAddressBook
 } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import {
   Copy,
   CrossSmall,
@@ -171,6 +172,10 @@ export const ContactPage: React.FC = () => {
   const handleDeleted = (): void =>
     void navigate(backTo, { state: FOCUS_HEADING_STATE })
   const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()
+
+  useDocumentTitle(
+    loading ? undefined : (contact?.displayName ?? t('contacts.notFound'))
+  )
 
   if (loading) {
     return <ContactDetailsSkeleton />

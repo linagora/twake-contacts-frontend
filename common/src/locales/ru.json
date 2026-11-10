@@ -73,6 +73,7 @@
       "typeLabel": "Метка",
       "cancel": "Отмена",
       "save": "Сохранить",
+      "editTitle": "Изменить контакт",
       "addressBook": "Адресная книга",
       "moveHint": "При сохранении контакт будет перемещён в «%{book}».",
       "invalidEmail": "Неверный адрес эл. почты, например name@example.com",

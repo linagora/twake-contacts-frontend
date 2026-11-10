@@ -73,6 +73,7 @@
       "typeLabel": "Etichetta",
       "cancel": "Annulla",
       "save": "Salva",
+      "editTitle": "Modifica contatto",
       "addressBook": "Rubrica",
       "moveHint": "Salvando, questo contatto verrà spostato in %{book}.",
       "invalidEmail": "Indirizzo email non valido, ad es. nome@esempio.com",

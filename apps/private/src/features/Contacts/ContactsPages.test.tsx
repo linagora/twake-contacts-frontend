@@ -460,3 +460,32 @@ describe('before the address books are loaded', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
   })
 })
+
+describe('document title', () => {
+  beforeEach(() => {
+    document.title = 'Twake Contacts'
+  })
+
+  it.each([
+    ['/contacts', 'My contacts – Twake Contacts'],
+    ['/contacts?scope=shared', 'Shared with me – Twake Contacts'],
+    ['/contacts/book2', 'Book 2 – Twake Contacts'],
+    ['/contacts/deleted-book', 'Address book not found – Twake Contacts'],
+    ['/contacts/book1/c1', 'Isabella Martinez – Twake Contacts'],
+    ['/contacts/new', 'Create contact – Twake Contacts'],
+    ['/contacts/book1/c1/edit', 'Edit contact – Twake Contacts']
+  ])('names the screen at %s', (path, title) => {
+    renderContacts(path)
+
+    expect(document.title).toBe(title)
+  })
+
+  it('names a missing contact', async () => {
+    vi.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
+
+    renderContacts('/contacts/book1/unknown')
+
+    expect(await screen.findByText('Contact not found')).toBeInTheDocument()
+    expect(document.title).toBe('Contact not found – Twake Contacts')
+  })
+})

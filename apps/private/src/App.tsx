@@ -45,6 +45,10 @@ export default function App(): React.JSX.Element {
       l => !!l && isValidLanguage(l)
     ) || 'en'
 
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
   useInitializeApp()
 
   return (
