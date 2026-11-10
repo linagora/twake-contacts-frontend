@@ -132,6 +132,18 @@ To automatically fix formatting and lint errors:
 npm run lint:fix
 ```
 
+### Dependencies
+
+Each workspace declares what it imports: `apps/private` declares the app
+dependencies, `common` declares what `common/src` imports (the libraries shared
+with the app, such as React, Redux and the Twake UI kit, as
+`peerDependencies`), and the root `package.json` holds only the shared dev
+tooling. To check that a dependency has the same range in every workspace:
+
+```bash
+npm run lint:deps
+```
+
 ---
 
 ## Running with Docker

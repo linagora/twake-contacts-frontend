@@ -1,5 +1,11 @@
-import { ListItem, ListItemAvatar, ListItemText, Paper } from '@mui/material'
-import { IconButton, Tooltip } from '@linagora/twake-mui'
+import {
+  IconButton,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Paper,
+  Tooltip
+} from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 

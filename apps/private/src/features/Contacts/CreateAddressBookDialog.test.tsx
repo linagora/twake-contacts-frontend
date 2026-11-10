@@ -25,22 +25,24 @@ const nameField = (): HTMLElement =>
   screen.getByPlaceholderText(en.contacts.addressBook.namePlaceholder)
 
 describe('CreateAddressBookDialog', () => {
-  it('creates the address book when pressing Enter in the name field', () => {
+  it('creates the address book when pressing Enter in the name field', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), '  EnterTest {enter}')
+    await user.type(nameField(), '  EnterTest {Enter}')
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
     expect(onConfirm).toHaveBeenCalledWith('EnterTest')
   })
 
-  it('creates the address book when clicking Create', () => {
+  it('creates the address book when clicking Create', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), 'ClickTest')
-    userEvent.click(
+    await user.type(nameField(), 'ClickTest')
+    await user.click(
       screen.getByRole('button', { name: en.contacts.addressBook.save })
     )
 
@@ -48,20 +50,22 @@ describe('CreateAddressBookDialog', () => {
     expect(onConfirm).toHaveBeenCalledWith('ClickTest')
   })
 
-  it('does not create the address book when pressing Enter with a blank name', () => {
+  it('does not create the address book when pressing Enter with a blank name', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), '   {enter}')
+    await user.type(nameField(), '   {Enter}')
 
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it('does not create the address book again while it is being created', () => {
+  it('does not create the address book again while it is being created', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm, true)
 
-    userEvent.type(nameField(), 'Pending{enter}')
+    await user.type(nameField(), 'Pending{Enter}')
 
     expect(onConfirm).not.toHaveBeenCalled()
   })

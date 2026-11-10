@@ -53,6 +53,24 @@ define.lint(lint => [
     }
   },
   {
+    files: ['apps/**', 'common/src/**'],
+    rules: {
+      // The UI goes through the Twake UI kit only
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@mui/*'],
+              message:
+                'Import from @linagora/twake-mui or @linagora/twake-icons instead.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       '@typescript-eslint/no-unused-vars': [
