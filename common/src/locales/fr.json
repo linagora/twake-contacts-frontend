@@ -60,6 +60,7 @@
       "cancel": "Annuler",
       "save": "Enregistrer",
       "addressBook": "Carnet d'adresses",
+      "moveHint": "L’enregistrement déplacera ce contact vers %{book}.",
       "editTitle": "Modifier le contact",
       "newContact": "Nouveau contact",
       "invalidEmail": "Adresse email invalide"

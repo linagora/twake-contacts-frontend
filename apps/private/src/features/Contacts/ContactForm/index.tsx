@@ -25,6 +25,7 @@ import { AddressBookField } from './fields/AddressBookField'
 import { MatrixIdField } from './fields/MatrixIdField'
 import { EntryList } from './EntryList'
 import { isValidEmail } from '@common/utils/validation'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import {
   ContactFormValues,
   ContactFormListKey,
@@ -132,6 +133,18 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     email => email.value && !isValidEmail(email.value)
   )
 
+  const isMovingContact =
+    Boolean(contact) && values.addressBookId !== initialValues.addressBookId
+
+  const moveHint = isMovingContact
+    ? t('contacts.form.moveHint', {
+        book: getAddressBookDisplayName(
+          addressBooks.find(book => book.id === values.addressBookId),
+          t
+        )
+      })
+    : undefined
+
   const canSubmit =
     Boolean(values.addressBookId) &&
     Boolean(values.givenName.trim() || values.familyName.trim()) &&
@@ -189,6 +202,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           addressBooks={addressBooks}
           value={values.addressBookId}
           disabled={addressBookDisabled}
+          helperText={moveHint}
           onChange={value => setField('addressBookId', value)}
         />
 

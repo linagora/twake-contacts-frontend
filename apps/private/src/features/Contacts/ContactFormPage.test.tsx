@@ -239,6 +239,21 @@ describe('CreateContactPage', () => {
     expect(addressBookSelect).toHaveTextContent('Book 1')
   })
 
+  it('shows a visible label on the address book field and no move hint', () => {
+    renderPage(['/contacts/book1/new'])
+
+    const addressBookSelect = screen.getByRole('combobox', {
+      name: 'Address book'
+    })
+    const labelId = addressBookSelect.getAttribute('aria-labelledby') ?? ''
+    expect(document.getElementById(labelId)).toHaveTextContent('Address book')
+
+    fireEvent.mouseDown(addressBookSelect)
+    fireEvent.click(screen.getByRole('option', { name: 'Book 2' }))
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
+  })
+
   it('lists own, then writable shared address books, without the domain book', () => {
     renderPage(['/contacts/new'])
 
@@ -383,6 +398,28 @@ describe('EditContactPage', () => {
 
     const addressBookSelect = screen.getByLabelText('Address book')
     expect(addressBookSelect).not.toBeDisabled()
+  })
+
+  it('shows no move hint while the address book is unchanged', () => {
+    renderPage(['/contacts/book1/c1/edit'])
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
+  })
+
+  it('warns that saving moves the contact when another book is picked', () => {
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    fireEvent.click(screen.getByRole('option', { name: 'Book 2' }))
+
+    expect(
+      screen.getByText('Saving will move this contact to Book 2.')
+    ).toBeInTheDocument()
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Address book' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Book 1' }))
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
   })
 
   it('updates the contact and moves it to a different address book', async () => {

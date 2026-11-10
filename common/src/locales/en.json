@@ -60,6 +60,7 @@
       "cancel": "Cancel",
       "save": "Save",
       "addressBook": "Address book",
+      "moveHint": "Saving will move this contact to %{book}.",
       "editTitle": "Edit contact",
       "newContact": "New contact",
       "invalidEmail": "Invalid email address"

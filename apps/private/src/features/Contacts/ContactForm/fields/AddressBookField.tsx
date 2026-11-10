@@ -14,6 +14,7 @@ interface AddressBookFieldProps {
   addressBooks: AddressBook[]
   value: string
   disabled?: boolean
+  helperText?: string
   onChange: (value: string) => void
 }
 
@@ -21,6 +22,7 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
   addressBooks,
   value,
   disabled = false,
+  helperText,
   onChange
 }) => {
   const { t } = useI18n()
@@ -35,11 +37,12 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
           fullWidth
           size="small"
           variant="outlined"
+          label={t('contacts.form.addressBook')}
+          helperText={helperText}
           disabled={disabled}
           value={value}
           onChange={e => onChange(e.target.value)}
           slotProps={{
-            select: { 'aria-label': t('contacts.form.addressBook') },
             input: {
               startAdornment: (
                 <InputAdornment position="start">

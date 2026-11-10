@@ -60,6 +60,7 @@
       "cancel": "Abbrechen",
       "save": "Speichern",
       "addressBook": "Adressbuch",
+      "moveHint": "Beim Speichern wird dieser Kontakt nach %{book} verschoben.",
       "editTitle": "Kontakt bearbeiten",
       "newContact": "Neuer Kontakt",
       "invalidEmail": "Ungültige E-Mail-Adresse"

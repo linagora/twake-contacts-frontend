@@ -60,6 +60,7 @@
       "cancel": "Hủy",
       "save": "Lưu",
       "addressBook": "Sổ địa chỉ",
+      "moveHint": "Khi lưu, liên hệ này sẽ được chuyển sang %{book}.",
       "editTitle": "Chỉnh sửa liên hệ",
       "newContact": "Liên hệ mới",
       "invalidEmail": "Địa chỉ email không hợp lệ"
