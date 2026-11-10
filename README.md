@@ -20,6 +20,29 @@ The end-to-end tests are described in [`e2e/README.md`](e2e/README.md).
 
 ---
 
+## Compatibility
+
+This frontend relies on bespoke extensions of esn-sabre and on the side service APIs. It requires:
+
+| Backend | Minimum version |
+|---------|-----------------|
+| [esn-sabre](https://github.com/linagora/esn-sabre/) | 2.4.7.9 |
+| [twake-calendar-side-service](https://github.com/linagora/twake-calendar-side-service) | 2.4.7.7 |
+
+These minimums are declared in the `compatibility` field of the root `package.json`; a unit test checks that the
+versions the e2e suite runs against (`e2e/docker/Dockerfile.sabre`, `e2e/docker/Dockerfile.side-service`)
+satisfy them. Each release section of the [changelog](CHANGELOG.md) repeats them.
+
+---
+
+## Versions and releases
+
+Releases are semver tags `vX.Y.Z`, published as the `linagora/twake-contacts-web:X.Y.Z` image; every `main`
+build is published as `linagora/twake-contacts-web:sha-<8>`. The deployed version is exposed in
+`window.APP_VERSION` and on the error page. See [RELEASING.md](RELEASING.md).
+
+---
+
 ## Project Structure
 
 The repository is organized as a monorepo workspace:

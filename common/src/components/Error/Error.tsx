@@ -101,6 +101,12 @@ export const Error: React.FC<ErrorProps> = ({
             >
               {t('error.retry')}
             </Button>
+
+            {window.APP_VERSION && (
+              <Typography variant="caption" color="text.secondary">
+                {t('error.version', { version: window.APP_VERSION })}
+              </Typography>
+            )}
           </Stack>
         </Paper>
       </Box>

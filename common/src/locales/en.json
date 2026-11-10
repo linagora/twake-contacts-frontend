@@ -188,7 +188,8 @@
   "error": {
     "title": "Something went wrong",
     "unknown": "An unknown error occurred",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "version": "Version %{version}"
   },
   "common": {
     "ok": "Ok"

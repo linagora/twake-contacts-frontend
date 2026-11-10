@@ -188,7 +188,8 @@
   "error": {
     "title": "Une erreur s'est produite",
     "unknown": "Une erreur inconnue s'est produite",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "version": "Version %{version}"
   },
   "common": {
     "ok": "OK"

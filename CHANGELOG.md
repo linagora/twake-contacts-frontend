@@ -1,18 +1,57 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/), and this project adheres to
+[Semantic Versioning](https://semver.org/). See [RELEASING.md](RELEASING.md) for the release procedure.
 
-## [0.1.0] - Unreleased
+Every release section states the backend versions it was tested with, as declared in the `compatibility`
+field of `package.json`.
 
-First release of the Twake Contacts frontend, a Single Page Application allowing users to
-interact with their contacts. It shares its technical stack with the Twake Calendar frontend
-and interacts with twake-calendar-side-service, which serves `esn-sabre` (CardDAV).
+## [Unreleased]
+
+First release of the Twake Contacts frontend, a Single Page Application allowing users to manage their
+contacts. It shares its technical stack with the Twake Calendar frontend, reads and writes contacts on
+`esn-sabre` (CardDAV) through `twake-calendar-side-service`, and signs users in over OIDC.
+
+**Compatibility:** esn-sabre >= 2.4.7.9, twake-calendar-side-service >= 2.4.7.7
 
 ### Added
 
-- Private contacts application for authenticated users
-- OIDC login flow
-- Address book and contact listing over CardDAV
-- Multi-language support
-- Runtime configuration via static JS files
+- Private contacts application for authenticated users, with OIDC sign in through `@linagora/twake-oidc`
+  and SSO logout
+- Address books: listing in a sidebar sorted alphabetically and grouped by category (mine, shared, domain),
+  creation, editing, deletion and removal of shared books, with confirmation toasts
+- Address book sharing: share dialog with member roles, public discovery switch, discovery and
+  subscription of address books shared by other users
+- Domain address books
+- Contacts: listing loaded page by page with the server cursor, sorting by name or email from the column
+  headers, creation, editing and deletion in dedicated pages
+- Copy and move of contacts between address books, with a destination picker
+- Import of contacts into an address book, export of address books and contacts
+- Search across the user's address books
+- Contact popover and row actions: send an email, create an event, open a chat, copy details
+- Responsive layout for phones, with a navigation drawer
+- Twake top bar with the application menu and the account menu
+- Real time updates over websocket
+- Dark mode toggle
+- English, French, Vietnamese, Russian, Spanish, German and Italian translations
+- Runtime configuration via static JS files (`.env.js`, `appList.js`)
+- Fallback page asking to refresh when the application bundle fails to load
+- Build version in `version.js`, shown on the error page and sent as the Sentry release
+- Docker image `linagora/twake-contacts-web`, with security headers and a configurable CSP `frame-ancestors`
+- End to end test suite running against esn-sabre and the side service
+
+### Changed
+
+- The application talks to `twake-calendar-side-service` (`SIDE_SERVICE_BASE_URL`) instead of an OpenPaaS
+  backend and the DAV server directly
+
+### Fixed
+
+- Accessibility of the sidebar, the share dialog and the "Add a shared address book" dialog: accessible
+  names, focus kept inside dialogs, keyboard submission
+- Store kept up to date after creating, editing, moving or deleting a contact
+- Listing errors: a failed page stays retryable, the error banner is cleared on navigation
+- vCard handling: ADR components in RFC 6350 order, untyped phones and addresses kept untyped, trimmed emails
+- Labels of address books without a name and of shared books named after their owner
+- Long contact and address book names are ellipsized

@@ -187,7 +187,8 @@
   "error": {
     "title": "Si è verificato un problema",
     "unknown": "Si è verificato un errore sconosciuto",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "version": "Versione %{version}"
   },
   "common": {
     "ok": "OK"

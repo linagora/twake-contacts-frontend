@@ -38,6 +38,8 @@ export function setupSentryPlugin(
       project,
       authToken,
       telemetry: false,
+      // Same value as window.APP_VERSION, so that events match their source maps
+      release: { name: process.env.SENTRY_RELEASE },
       sourcemaps: {
         filesToDeleteAfterUpload: `${cleanOutputDir}/**/*.map`
       }

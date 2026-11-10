@@ -26,6 +26,17 @@ pipeline {
             sh 'npm audit --omit=dev --audit-level=high'
           }
       }
+      stage('Check Changelog') {
+        // A PR changing the app must update CHANGELOG.md, unless one of its commit messages
+        // contains [no changelog]
+        when {
+          changeRequest()
+        }
+        steps {
+          sh 'git fetch --no-tags origin "+refs/heads/$CHANGE_TARGET:refs/remotes/origin/$CHANGE_TARGET"'
+          sh 'sh scripts/check-changelog.sh "origin/$CHANGE_TARGET"'
+        }
+      }
       stage('Test') {
         steps {
           sh 'npm run test'
@@ -159,20 +170,29 @@ pipeline {
           // TODO(contacts): no Vault secrets yet, so Sentry sourcemaps are not uploaded.
           // Wrap this in withVault([... 'secret/jenkins/contacts-frontend' ...]) exporting
           // SENTRY_AUTH_TOKEN/ORG/PROJECT/URL once the path exists, as twake-calendar-frontend does.
+          // The release is already named after BUILD_VERSION (SENTRY_RELEASE) on both sides.
           script {
-            def shortSha = env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'dev'
-            env.DOCKER_TAG = 'branch-master'
-            env.BUILD_VERSION = shortSha
+            // Immutable tags: X.Y.Z for a release tag vX.Y.Z, sha-<8> for every main build.
+            // branch-master stays as a moving pointer to the latest main build, never deploy it.
+            def dockerTags
             if (env.TAG_NAME) {
-              env.DOCKER_TAG = env.TAG_NAME
-              env.BUILD_VERSION = env.TAG_NAME
+              env.BUILD_VERSION = env.TAG_NAME.replaceFirst('^v', '')
+              dockerTags = [env.BUILD_VERSION]
+            } else {
+              env.BUILD_VERSION = "sha-${env.GIT_COMMIT.take(8)}"
+              dockerTags = [env.BUILD_VERSION, 'branch-master']
             }
+            // Read by common/sentryBuildUtils.ts to name the Sentry release of the source maps
+            env.SENTRY_RELEASE = env.BUILD_VERSION
 
-            echo "Docker tag: ${env.DOCKER_TAG}"
+            echo "Build version: ${env.BUILD_VERSION}, docker tags: ${dockerTags}"
             sh 'npm run build'
-            sh 'docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-contacts-web:$DOCKER_TAG .'
-            sh 'docker login -u $DOCKER_HUB_CREDENTIAL_USR -p $DOCKER_HUB_CREDENTIAL_PSW'
-            sh 'docker push linagora/twake-contacts-web:$DOCKER_TAG'
+            sh 'docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-contacts-web:$BUILD_VERSION .'
+            sh 'echo $DOCKER_HUB_CREDENTIAL_PSW | docker login -u $DOCKER_HUB_CREDENTIAL_USR --password-stdin'
+            dockerTags.each { tag ->
+              sh "docker tag linagora/twake-contacts-web:\$BUILD_VERSION linagora/twake-contacts-web:${tag}"
+              sh "docker push linagora/twake-contacts-web:${tag}"
+            }
           }
         }
       }

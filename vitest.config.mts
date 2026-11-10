@@ -71,7 +71,11 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['apps/**/*.test.ts', 'common/**/*.test.ts']
+          include: [
+            'apps/**/*.test.ts',
+            'common/**/*.test.ts',
+            'scripts/**/*.test.ts'
+          ]
         }
       }
     ]
