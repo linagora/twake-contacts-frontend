@@ -7,8 +7,11 @@ import {
   Box,
   InputAdornment,
   Chip,
-  Avatar
+  Avatar,
+  IconButton,
+  Tooltip
 } from '@linagora/twake-mui'
+import { CrossSmall, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { RoleSelector } from './RoleSelector'
@@ -96,7 +99,10 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             getOptionKey={option => option.openpaasId ?? ''}
             renderValue={(value: userData[], getItemProps): React.ReactNode =>
               value.map((option, index) => {
-                const { key, ...tagProps } = getItemProps({ index })
+                const { key, onDelete, ...tagProps } = getItemProps({ index })
+                const removeLabel = t('contacts.share.removeInvitee', {
+                  name: option.name || option.email
+                })
                 return (
                   <Chip
                     key={key}
@@ -105,7 +111,22 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                       <Avatar size="xs">{getInitials(option.name)}</Avatar>
                     }
                     label={option.name}
+                    deleteIcon={
+                      <Tooltip title={removeLabel}>
+                        <IconButton aria-label={removeLabel} size="small">
+                          <Icon icon={CrossSmall} />
+                        </IconButton>
+                      </Tooltip>
+                    }
                     {...tagProps}
+                    onDelete={
+                      onDelete &&
+                      ((event: React.SyntheticEvent): void => {
+                        onDelete(event)
+                        // the removed chip held the focus: hand it back
+                        searchInputRef.current?.focus()
+                      })
+                    }
                   />
                 )
               })

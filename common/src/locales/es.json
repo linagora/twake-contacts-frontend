@@ -154,6 +154,7 @@
       "title": "Compartir %{name}",
       "invitePeople": "Invitar personas",
       "addContacts": "Añadir contactos",
+      "removeInvitee": "Quitar a %{name}",
       "send": "Enviar",
       "owner": "Propietario",
       "emptyTitle": "Nadie ha sido añadido aún",

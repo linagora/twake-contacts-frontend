@@ -65,4 +65,31 @@ describe('InviteSection', () => {
     )
     expect(input).toHaveFocus()
   })
+
+  it('names the remove button of a picked person', async () => {
+    renderInviteSection()
+
+    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    userEvent.click(await screen.findByText('bob@open-paas.org'))
+
+    expect(
+      screen.getAllByRole('button', { name: 'Remove bob bob' })
+    ).toHaveLength(1)
+  })
+
+  it('removes the picked person and gives the focus back to the field', async () => {
+    const onShare = renderInviteSection()
+    const input = screen.getByPlaceholderText('Add contacts')
+
+    userEvent.type(input, 'bob')
+    userEvent.click(await screen.findByText('bob@open-paas.org'))
+    userEvent.click(screen.getByRole('button', { name: 'Remove bob bob' }))
+
+    expect(
+      screen.queryByRole('button', { name: 'Remove bob bob' })
+    ).not.toBeInTheDocument()
+    expect(input).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(onShare).not.toHaveBeenCalled()
+  })
 })

@@ -154,6 +154,7 @@
       "title": "Partager %{name}",
       "invitePeople": "Inviter des personnes",
       "addContacts": "Ajouter des contacts",
+      "removeInvitee": "Retirer %{name}",
       "send": "Envoyer",
       "owner": "Propriétaire",
       "emptyTitle": "Personne n'a encore été ajouté",

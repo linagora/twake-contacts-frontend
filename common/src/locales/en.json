@@ -154,6 +154,7 @@
       "title": "Share %{name}",
       "invitePeople": "Invite people",
       "addContacts": "Add contacts",
+      "removeInvitee": "Remove %{name}",
       "send": "Send",
       "owner": "Owner",
       "emptyTitle": "No one has been added yet",

@@ -154,6 +154,7 @@
       "title": "Chia sẻ %{name}",
       "invitePeople": "Mời người khác",
       "addContacts": "Thêm liên hệ",
+      "removeInvitee": "Bỏ %{name}",
       "send": "Gửi",
       "owner": "Chủ sở hữu",
       "emptyTitle": "Chưa có ai được thêm",
