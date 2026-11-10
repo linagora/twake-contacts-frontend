@@ -1,8 +1,14 @@
-import { AddressBookAccessLevel, DavAddressBookItem } from '../davTypes'
+import {
+  AddressBookAccessLevel,
+  DavAddressBookItem,
+  DavContactItem
+} from '../davTypes'
 import { userData } from '../../User/userDataTypes'
 import {
   buildFullShareesList,
-  normalizeAddressBook
+  denormalizeContact,
+  normalizeAddressBook,
+  normalizeContact
 } from './ContactsTransformer'
 
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
@@ -169,5 +175,25 @@ describe('buildFullShareesList', () => {
         href: 'mailto:bob@example.com'
       }
     ])
+  })
+})
+
+describe('denormalizeContact', () => {
+  it('writes URL as a uri on save', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Mei Lin'],
+          ['url', {}, 'uri', 'https://mei.example/']
+        ]
+      ]
+    } as unknown as DavContactItem)
+
+    const urls = denormalizeContact(contact)[1].filter(p => p[0] === 'url')
+
+    expect(urls).toEqual([['url', {}, 'uri', 'https://mei.example/']])
   })
 })
