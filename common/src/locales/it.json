@@ -104,7 +104,8 @@
     "search": {
       "placeholder": "Cerca contatti...",
       "loading": "Caricamento...",
-      "noResults": "Nessun contatto trovato"
+      "noResults": "Nessun contatto trovato",
+      "resultsCount": "%{smart_count} contatto trovato |||| %{smart_count} contatti trovati"
     },
     "nav": {
       "menu": "Menu",
@@ -156,6 +157,7 @@
     },
     "share": {
       "title": "Condividi %{name}",
+      "sentStatus": "Condiviso con %{names}",
       "invitePeople": "Invita persone",
       "addContacts": "Aggiungi contatti",
       "removeInvitee": "Rimuovi %{name}",

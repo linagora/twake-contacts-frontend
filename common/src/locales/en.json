@@ -134,7 +134,8 @@
     "search": {
       "placeholder": "Search contacts...",
       "loading": "Loading...",
-      "noResults": "No contacts found"
+      "noResults": "No contacts found",
+      "resultsCount": "%{smart_count} contact found |||| %{smart_count} contacts found"
     },
     "nav": {
       "menu": "Menu",
@@ -156,6 +157,7 @@
     },
     "share": {
       "title": "Share %{name}",
+      "sentStatus": "Shared with %{names}",
       "invitePeople": "Invite people",
       "addContacts": "Add contacts",
       "removeInvitee": "Remove %{name}",

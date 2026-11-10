@@ -104,7 +104,8 @@
     "search": {
       "placeholder": "Tìm kiếm liên hệ...",
       "loading": "Đang tải...",
-      "noResults": "Không tìm thấy liên hệ"
+      "noResults": "Không tìm thấy liên hệ",
+      "resultsCount": "Tìm thấy %{smart_count} liên hệ"
     },
     "nav": {
       "menu": "Menu",
@@ -156,6 +157,7 @@
     },
     "share": {
       "title": "Chia sẻ %{name}",
+      "sentStatus": "Đã chia sẻ với %{names}",
       "invitePeople": "Mời người khác",
       "addContacts": "Thêm liên hệ",
       "removeInvitee": "Bỏ %{name}",
