@@ -93,11 +93,25 @@ function parsePhones(card: JCalCard): ContactPhone[] {
     .filter(p => p.value)
 }
 
+const STREET_INDEX = 2
+
+// RFC 7095 3.3.1.3 mandates an array, but some writers emit a plain string:
+// keep it as the street rather than hiding it from the user.
+function toAddressComponents(rawValue: unknown): unknown[] | null {
+  if (Array.isArray(rawValue)) return rawValue
+  if (typeof rawValue === 'string' && rawValue.trim()) {
+    const components: unknown[] = []
+    components[STREET_INDEX] = rawValue
+    return components
+  }
+  return null
+}
+
 function parseAddresses(card: JCalCard): ContactAddress[] {
   return getCardProperties(card, 'adr')
     .map((prop): ContactAddress | null => {
-      const values = prop[3]
-      if (!Array.isArray(values)) return null
+      const values = toAddressComponents(prop[3])
+      if (!values) return null
       const [poBox, extended, street, locality, region, postalCode, country] =
         Array.from({ length: 7 }, (_, i) => componentText(values[i]))
       const type = getTypeParam(prop[1])
