@@ -80,7 +80,7 @@ test.describe('NAV sidebar and navigation', () => {
 
     await contacts.openBook('QA Book')
     await contacts.clickCreate()
-    await expect(page).toHaveURL('/contacts/qa-book/new')
+    await expect(page).toHaveURL('/contacts/new/qa-book')
     await expect(form.addressBook).toHaveText('QA Book')
 
     // a read-only shared book falls back to the default book
@@ -307,7 +307,7 @@ test.describe('NAV sidebar and navigation', () => {
 
     const form = await contacts.clickCreate()
     await expect(form.addressBook).toHaveText('qa-empty')
-    await expect(page).toHaveURL('/contacts/qa-empty/new')
+    await expect(page).toHaveURL('/contacts/new/qa-empty')
     await new ContactPage(page).backLink.click()
     await expect(page).toHaveURL('/contacts/qa-empty')
   })
