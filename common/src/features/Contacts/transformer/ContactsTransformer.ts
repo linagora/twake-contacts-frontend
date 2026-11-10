@@ -255,12 +255,21 @@ function normalizeShareAccess(value: unknown): number | undefined {
   return undefined
 }
 
+// dav:acl comes as-is from the JSON payload, a malformed answer may not be a string array
+function normalizeAcl(acl: unknown): string[] {
+  return Array.isArray(acl)
+    ? acl.filter(
+        (privilege): privilege is string => typeof privilege === 'string'
+      )
+    : []
+}
+
 export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
   const href = readHref(raw._links?.self?.href)
   const id = extractId(href, '.json')
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
   const userId = href?.split('/').at(-2) ?? ''
-  const acl = raw['dav:acl'] ?? []
+  const acl = normalizeAcl(raw['dav:acl'])
   // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
   const shareAccess = normalizeShareAccess(raw['dav:share-access'])
   const isReadOnlyShare = READ_ONLY_SHARE_ACCESSES.some(

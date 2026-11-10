@@ -168,6 +168,29 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(book).isDefault).toBe(true)
   })
 
+  it.each([{ 0: 'dav:write' }, 'dav:write', [12, null], null])(
+    'normalizes a book whose acl is %p as a non-writable book',
+    acl => {
+      const raw = {
+        ...sharedBook(),
+        'dav:acl': acl
+      } as unknown as DavAddressBookItem
+      const book = normalizeAddressBook(raw)
+      expect(book.acl).toEqual([])
+      expect(book.canWrite).toBe(false)
+    }
+  )
+
+  it('ignores non-string entries of the acl', () => {
+    const raw = {
+      ...sharedBook(),
+      'dav:acl': [12, 'dav:write', null]
+    } as unknown as DavAddressBookItem
+    const book = normalizeAddressBook(raw)
+    expect(book.acl).toEqual(['dav:write'])
+    expect(book.canWrite).toBe(true)
+  })
+
   it('does not flag a shared copy of another book', () => {
     const book = {
       ...sharedBook(2),
