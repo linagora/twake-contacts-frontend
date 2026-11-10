@@ -63,4 +63,50 @@ describe('api', () => {
     expect(request.url).toBe('https://contacts.example.com/services/api/user')
     expect(response.status).toBe(401)
   })
+
+  describe('retries', () => {
+    beforeEach(() => {
+      fetchSpy.mockClear()
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('gives up on a failing request after a few seconds', async () => {
+      vi.useFakeTimers()
+      fetchSpy.mockImplementation(() =>
+        Promise.resolve(new Response('{}', { status: 500 }))
+      )
+
+      const failure = expect(
+        api.delete('dav/addressbooks/x')
+      ).rejects.toMatchObject({ response: { status: 500 } })
+      await vi.advanceTimersByTimeAsync(5000)
+      await failure
+
+      expect(fetchSpy).toHaveBeenCalledTimes(4)
+    })
+
+    it('caps the delay requested by a Retry-After header', async () => {
+      vi.useFakeTimers()
+      fetchSpy.mockImplementation(() =>
+        Promise.resolve(
+          new Response('{}', {
+            status: 503,
+            headers: { 'Retry-After': '3600' }
+          })
+        )
+      )
+
+      const failure = expect(api.get('api/user')).rejects.toMatchObject({
+        response: { status: 503 }
+      })
+      await vi.advanceTimersByTimeAsync(10000)
+      await failure
+
+      expect(fetchSpy).toHaveBeenCalledTimes(4)
+    })
+  })
 })
