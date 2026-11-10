@@ -186,7 +186,8 @@
   },
   "theme": {
     "darkMode": "Dunkelmodus",
-    "lightMode": "Hellmodus"
+    "lightMode": "Hellmodus",
+    "highContrast": "Hoher Kontrast"
   },
   "mobile": {
     "comingSoon": {

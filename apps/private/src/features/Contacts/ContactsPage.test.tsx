@@ -95,6 +95,16 @@ function renderPage(
   return store
 }
 
+describe('ContactsPage high contrast toggle', () => {
+  it('is always rendered next to the search bar', () => {
+    renderPage()
+
+    expect(
+      screen.getByRole('button', { name: en.theme.highContrast })
+    ).toBeInTheDocument()
+  })
+})
+
 describe('ContactsPage error banner', () => {
   it('clears the error when navigating to another page', () => {
     const store = renderPage()

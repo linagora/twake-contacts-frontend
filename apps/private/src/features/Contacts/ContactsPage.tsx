@@ -30,6 +30,7 @@ import { CreateAddressBookDialog } from './CreateAddressBookDialog'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 import { MobileTopBar } from './MobileTopBar'
 import { ThemeToggle } from '@common/components/ThemeToggle/ThemeToggle'
+import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
 
 export const ContactsPage: React.FC = () => {
   const [isCreateBookOpen, setIsCreateBookOpen] = useState(false)
@@ -113,7 +114,10 @@ export const ContactsPage: React.FC = () => {
               className="u-flex-items-center u-flex-justify-between u-mb-1"
             >
               <ContactSearchBar />
-              {window.DEBUG && <ThemeToggle />}
+              <Stack direction="row" className="u-flex-items-center">
+                {!isMobile && <ContrastToggle />}
+                {window.DEBUG && <ThemeToggle />}
+              </Stack>
             </Stack>
           )}
           {error && (

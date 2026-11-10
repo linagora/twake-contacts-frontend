@@ -185,7 +185,8 @@
   },
   "theme": {
     "darkMode": "Modalità scura",
-    "lightMode": "Modalità chiara"
+    "lightMode": "Modalità chiara",
+    "highContrast": "Contrasto elevato"
   },
   "mobile": {
     "comingSoon": {

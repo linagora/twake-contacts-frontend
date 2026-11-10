@@ -186,7 +186,8 @@
   },
   "theme": {
     "darkMode": "Chế độ tối",
-    "lightMode": "Chế độ sáng"
+    "lightMode": "Chế độ sáng",
+    "highContrast": "Độ tương phản cao"
   },
   "mobile": {
     "comingSoon": {

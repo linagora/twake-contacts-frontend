@@ -10,6 +10,7 @@ import { useI18n } from 'twake-i18n'
 import { useAppSelector } from '@common/app/hooks'
 import { selectContactEntries } from '@common/features/Contacts/contactsSelectors'
 import { useSearchParams } from 'react-router'
+import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
 import { ImportContactsButton } from './ImportContactsButton'
 
 export interface MobileTopBarProps {
@@ -76,6 +77,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
             </IconButton>
           </Tooltip>
         )}
+        <ContrastToggle />
       </Stack>
     </Stack>
   )

@@ -1,8 +1,10 @@
 import { useAppSelector } from '@common/app/hooks'
+import type { RootState } from '@common/app/store'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { Loading } from '@common/components/Loading/Loading'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import { AVAILABLE_LANGUAGES } from '@common/features/Settings/constants'
+import { highContrastThemeOptions } from '@common/features/Settings/highContrastTheme'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
 import {
   Box,
@@ -56,15 +58,21 @@ const isValidLanguage = (
   return !!lang && SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage)
 }
 
+const selectIsHighContrast = (state: RootState): boolean =>
+  state.settings.contrastMode === 'more'
+
+/** The high-contrast scheme is light: it wins over the dark theme. */
 function ThemeSync(): null {
   const { mode, setMode } = useColorScheme()
   const themeMode = useAppSelector(state => state.settings.themeMode)
+  const isHighContrast = useAppSelector(selectIsHighContrast)
+  const effectiveMode = isHighContrast ? 'light' : themeMode
 
   useEffect(() => {
-    if (mode !== themeMode) {
-      setMode(themeMode)
+    if (mode !== effectiveMode) {
+      setMode(effectiveMode)
     }
-  }, [mode, themeMode, setMode])
+  }, [mode, effectiveMode, setMode])
 
   return null
 }
@@ -73,6 +81,7 @@ export default function App(): React.JSX.Element {
   const appLoading = useAppSelector(state => state.loading.isLoading)
   const userLanguage = useAppSelector(state => state.user.coreConfig.language)
   const settingsLanguage = useAppSelector(state => state.settings.language)
+  const isHighContrast = useAppSelector(selectIsHighContrast)
   const savedLang = localStorage.getItem('lang')
   const defaultLang = window.LANG
 
@@ -84,7 +93,9 @@ export default function App(): React.JSX.Element {
   useInitializeApp()
 
   return (
-    <TwakeMuiThemeProvider>
+    <TwakeMuiThemeProvider
+      themeOptions={isHighContrast ? highContrastThemeOptions : undefined}
+    >
       <ThemeSync />
       <I18n
         dictRequire={(lang: keyof typeof locale) => locale[lang]}

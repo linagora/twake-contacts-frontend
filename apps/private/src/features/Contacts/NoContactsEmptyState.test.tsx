@@ -8,7 +8,9 @@ import en from '@common/locales/en.json'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 
 const renderEmptyState = (themeMode: ThemeMode): RenderResult => {
-  const store = setupStore({ settings: { language: 'en', themeMode } })
+  const store = setupStore({
+    settings: { language: 'en', themeMode, contrastMode: 'default' }
+  })
   return render(
     <Provider store={store}>
       <TwakeMuiThemeProvider>
