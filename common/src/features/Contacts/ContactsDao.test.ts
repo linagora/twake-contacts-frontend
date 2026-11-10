@@ -26,6 +26,7 @@ import {
   DavContactItem,
   DavContactsResponse,
   JCalCard,
+  JCalProperty,
   JCalValue
 } from './davTypes'
 import { AddressBook } from './contactsTypes'
@@ -431,6 +432,25 @@ describe('normalizeContact', () => {
         data: ['vcard', [['n', {}, 'text', [deep]]]]
       })
     ).not.toThrow()
+  })
+
+  it('keeps a numeric BDAY', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['bday', {}, 'date', 19850412]]]
+    })
+    expect(contact.birthday).toBe('19850412')
+    expect(contact.passthroughProps).toBeUndefined()
+  })
+
+  it('passes an unreadable BDAY through so that saving keeps it', () => {
+    const bday = ['bday', {}, 'date', { year: 1985 }] as unknown as JCalProperty
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [bday]]
+    })
+    expect(contact.birthday).toBeUndefined()
+    expect(denormalizeContact(contact)[1]).toContainEqual(bday)
   })
 })
 
