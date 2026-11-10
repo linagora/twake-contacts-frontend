@@ -203,9 +203,36 @@ describe('CreateContactPage', () => {
   it('gives the type selector room for long translated placeholders', () => {
     renderPage(['/contacts/new'])
 
-    const typeSelector = screen.getAllByRole('combobox', { name: 'Type' })[0]
+    const typeSelector = screen.getByRole('combobox', { name: 'Phone type' })
 
     expect(typeSelector.closest('.MuiGrid-grid-xs-3')).not.toBeNull()
+  })
+
+  it('names the type selectors after their entry kind', () => {
+    renderPage(['/contacts/new'])
+
+    expect(
+      screen.getByRole('combobox', { name: 'Phone type' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('combobox', { name: 'Address type' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('combobox', { name: 'Type' })
+    ).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['Add phone', 'Remove phone'],
+    ['Add email', 'Remove email'],
+    ['Add address', 'Remove address']
+  ])('names the remove button of a row added with %s', (add, remove) => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: add }))
+
+    expect(screen.getByRole('button', { name: remove })).toBeInTheDocument()
   })
 
   it('adds email entries', () => {
@@ -248,6 +275,26 @@ describe('CreateContactPage', () => {
     expect(
       listbox.getAllByRole('option').map(option => option.textContent)
     ).toEqual(['My contacts', 'Book 1', 'Book 2', 'Alpha SharedBob Owner'])
+  })
+
+  it('groups own and shared address books, each group labelled by its caption', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    const listbox = within(screen.getByRole('listbox'))
+
+    const ownGroup = listbox.getByRole('group', { name: 'My contacts' })
+    expect(
+      within(ownGroup)
+        .getAllByRole('option')
+        .map(option => option.textContent)
+    ).toEqual(['My contacts', 'Book 1', 'Book 2'])
+    const sharedGroup = listbox.getByRole('group', { name: 'Shared' })
+    expect(
+      within(sharedGroup)
+        .getAllByRole('option')
+        .map(option => option.textContent)
+    ).toEqual(['Alpha SharedBob Owner'])
   })
 
   it('exposes the shared caption as a presentation element, not an option', () => {

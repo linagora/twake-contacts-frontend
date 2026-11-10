@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import {
   Button,
   Dialog,
@@ -31,6 +32,7 @@ export const SubscribeAddressBookDialog: React.FC<Props> = ({
   onConfirm
 }) => {
   const { t } = useI18n()
+  const userLabelId = useId()
   const { user, selectUser, clearUser, books, emptyMessageKey, removeBook } =
     usePublicAddressBooks()
   return (
@@ -40,10 +42,14 @@ export const SubscribeAddressBookDialog: React.FC<Props> = ({
       </DialogTitle>
       <DialogCloseButton onClick={onClose} />
       <DialogContent>
-        <Typography className="u-mb-1">
+        <Typography className="u-mb-1" id={userLabelId}>
           {t('contacts.addressBook.userLabel')}
         </Typography>
-        <UserAutocomplete onSelect={selectUser} onType={clearUser} />
+        <UserAutocomplete
+          onSelect={selectUser}
+          onType={clearUser}
+          labelledBy={userLabelId}
+        />
         {user && (
           <SubscribableBooksList
             user={user}

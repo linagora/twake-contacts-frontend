@@ -21,7 +21,8 @@ const userLabel = (user: UserResult): string =>
 export const UserAutocomplete: React.FC<{
   onSelect: (user: UserResult) => void
   onType: () => void
-}> = ({ onSelect, onType }) => {
+  labelledBy?: string
+}> = ({ onSelect, onType, labelledBy }) => {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<UserResult | null>(null)
@@ -79,6 +80,10 @@ export const UserAutocomplete: React.FC<{
           helperText={selected ? primaryEmail(selected) : undefined}
           slotProps={{
             ...params.slotProps,
+            htmlInput: {
+              ...params.slotProps?.htmlInput,
+              'aria-labelledby': labelledBy
+            },
             input: {
               ...params.slotProps?.input,
               startAdornment: (

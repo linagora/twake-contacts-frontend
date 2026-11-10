@@ -56,9 +56,13 @@ export class ContactFormPage {
       exact: true
     })
     this.matrixId = this.main.getByRole('textbox', { name: 'Matrix id' })
-    this.typeSelectors = this.main.getByRole('combobox', { name: 'Type' })
+    this.typeSelectors = this.main.getByRole('combobox', {
+      name: /^(Phone|Address) type$/
+    })
     this.addButton = this.main.getByRole('button', { name: 'Add', exact: true })
-    this.removeButtons = this.main.getByRole('button', { name: 'Remove' })
+    this.removeButtons = this.main.getByRole('button', {
+      name: /^Remove (phone|email|address)$/
+    })
   }
 
   async expectLoaded(): Promise<void> {

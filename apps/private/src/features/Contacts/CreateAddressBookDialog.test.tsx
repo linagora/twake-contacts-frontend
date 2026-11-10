@@ -25,6 +25,23 @@ const nameField = (): HTMLElement =>
   screen.getByPlaceholderText(en.contacts.addressBook.namePlaceholder)
 
 describe('CreateAddressBookDialog', () => {
+  it('labels the name field with the visible sentence', () => {
+    renderDialog(vi.fn())
+
+    expect(
+      screen.getByRole('textbox', { name: 'Enter a new address book name' })
+    ).toBe(nameField())
+  })
+
+  it('focuses the name field when clicking its label', () => {
+    renderDialog(vi.fn())
+    nameField().blur()
+
+    userEvent.click(screen.getByText('Enter a new address book name'))
+
+    expect(nameField()).toHaveFocus()
+  })
+
   it('creates the address book when pressing Enter in the name field', () => {
     const onConfirm = vi.fn()
     renderDialog(onConfirm)

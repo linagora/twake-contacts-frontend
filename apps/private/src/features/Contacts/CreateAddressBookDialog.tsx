@@ -14,6 +14,9 @@ import {
 import { Cross, Icon, Peoples } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 
+const NAME_LABEL_ID = 'create-address-book-name-label'
+const NAME_FIELD_ID = 'create-address-book-name'
+
 interface CreateAddressBookDialogProps {
   isCreating?: boolean
   onClose: () => void
@@ -58,10 +61,16 @@ export const CreateAddressBookDialog: React.FC<
         </ListItem>
       </DialogTitle>
       <DialogContent>
-        <Typography className="u-mb-1">
+        <Typography
+          className="u-mb-1 u-db"
+          component="label"
+          id={NAME_LABEL_ID}
+          htmlFor={NAME_FIELD_ID}
+        >
           {t('contacts.addressBook.nameLabel')}
         </Typography>
         <TextField
+          id={NAME_FIELD_ID}
           fullWidth
           placeholder={t('contacts.addressBook.namePlaceholder')}
           value={name}

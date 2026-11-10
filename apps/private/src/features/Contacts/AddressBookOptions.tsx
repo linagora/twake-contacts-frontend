@@ -1,8 +1,12 @@
+import { Children, ReactElement, isValidElement, useId } from 'react'
 import {
+  List,
   ListItemText,
   ListSubheader,
   ListSubheaderProps,
-  MenuItem
+  MenuItem,
+  MenuList,
+  MenuListProps
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { useAppSelector } from '@common/app/hooks'
@@ -19,15 +23,60 @@ const GroupCaption: React.FC<ListSubheaderProps> = ({
   role: _role,
   'aria-selected': _ariaSelected,
   ...props
-}) => <ListSubheader {...props} role="presentation" />
+}) => <ListSubheader {...props} component="div" role="presentation" />
+
+interface OptionGroup {
+  caption: ReactElement<ListSubheaderProps>
+  options: React.ReactNode[]
+}
+
+const isCaption = (
+  child: React.ReactNode
+): child is ReactElement<ListSubheaderProps> =>
+  isValidElement(child) && child.type === GroupCaption
+
+// Select only reads its direct children: the options stay flat for it, and
+// each caption and the options following it are wrapped in a group labelled
+// by that caption once rendered in the list
+const toGroups = (children: React.ReactNode): OptionGroup[] =>
+  Children.toArray(children).reduce<OptionGroup[]>(
+    (groups, child) =>
+      isCaption(child)
+        ? [...groups, { caption: child, options: [] }]
+        : groups.map((group, index) =>
+            index === groups.length - 1
+              ? { ...group, options: [...group.options, child] }
+              : group
+          ),
+    []
+  )
+
+const GroupedMenuList: React.FC<MenuListProps> = ({ children, ...props }) => (
+  <MenuList {...props}>
+    {toGroups(children).map(({ caption, options }) => (
+      <li key={caption.key} role="presentation">
+        {caption}
+        <List disablePadding role="group" aria-labelledby={caption.props.id}>
+          {options}
+        </List>
+      </li>
+    ))}
+  </MenuList>
+)
+
+// Menu props of an address book select, rendering its options in groups
+export const addressBookMenuProps = { slots: { list: GroupedMenuList } }
 
 // Options of an address book select, with the same grouping as the sidebar:
 // own books, then the books shared with the user; the domain book is never
-// listed. Returned as a flat array since Select only reads its direct children
+// listed. Returned as a flat array since Select only reads its direct children:
+// render them with addressBookMenuProps to expose each set as a group
 export const useAddressBookOptions = (
   addressBooks: AddressBook[]
 ): React.ReactNode[] => {
   const { t } = useI18n()
+  const ownCaptionId = useId()
+  const sharedCaptionId = useId()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const sortedBooks = sortAddressBooks(addressBooks, t)
   const ownBooks = sortedBooks.filter(book =>
@@ -47,10 +96,17 @@ export const useAddressBookOptions = (
   )
 
   return [
+    <GroupCaption
+      key="own-caption"
+      id={ownCaptionId}
+      className="u-visuallyhidden"
+    >
+      {t('contacts.myContacts')}
+    </GroupCaption>,
     ...ownBooks.map(renderOption),
     ...(sharedBooks.length > 0
       ? [
-          <GroupCaption key="shared-caption">
+          <GroupCaption key="shared-caption" id={sharedCaptionId}>
             {t('contacts.shared')}
           </GroupCaption>
         ]

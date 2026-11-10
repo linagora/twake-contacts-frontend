@@ -197,6 +197,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.phones}
           types={PHONE_TYPES}
           label={t('contacts.form.phone')}
+          typeLabel={t('contacts.form.phoneType')}
+          removeLabel={t('contacts.form.removePhone')}
           onChange={updateEntry('phones')}
           onRemove={removeEntry('phones')}
         />
@@ -206,6 +208,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.emails}
           types={EMAIL_TYPES}
           label={t('contacts.form.email')}
+          removeLabel={t('contacts.form.removeEmail')}
           onChange={updateEntry('emails')}
           onRemove={removeEntry('emails')}
           onBlur={index => {
@@ -231,6 +234,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.addresses}
           types={ADDRESS_TYPES}
           label={t('contacts.form.address')}
+          typeLabel={t('contacts.form.addressType')}
+          removeLabel={t('contacts.form.removeAddress')}
           onChange={updateEntry('addresses')}
           onRemove={removeEntry('addresses')}
         />

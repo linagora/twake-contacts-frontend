@@ -19,6 +19,8 @@ export interface EntryListProps {
   entries: ContactFormEntry[]
   types: string[]
   label: string
+  typeLabel?: string
+  removeLabel: string
   onChange: (index: number, patch: Partial<ContactFormEntry>) => void
   onRemove: (index: number) => void
   onBlur?: (index: number) => void
@@ -33,6 +35,8 @@ export const EntryList: React.FC<EntryListProps> = ({
   entries,
   types,
   label,
+  typeLabel,
+  removeLabel,
   onChange,
   onRemove,
   onBlur,
@@ -100,7 +104,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                 variant="outlined"
                 value={entry.type || ''}
                 onChange={e => onChange(index, { type: e.target.value })}
-                aria-label={t('contacts.form.type')}
+                aria-label={typeLabel ?? t('contacts.form.type')}
                 displayEmpty
               >
                 <MenuItem value="">{t('contacts.form.typeLabel')}</MenuItem>
@@ -115,10 +119,10 @@ export const EntryList: React.FC<EntryListProps> = ({
           {shouldRenderRemoveGrid && (
             <Grid size={isMobile ? 2 : 1}>
               {index > 0 && (
-                <Tooltip disableInteractive title={t('contacts.form.remove')}>
+                <Tooltip disableInteractive title={removeLabel}>
                   <IconButton
                     onClick={() => onRemove(index)}
-                    aria-label={t('contacts.form.remove')}
+                    aria-label={removeLabel}
                   >
                     <Icon icon={Cross} />
                   </IconButton>
