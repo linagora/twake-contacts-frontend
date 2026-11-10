@@ -1,33 +1,32 @@
+import {
+  aDomainBook,
+  aSharedBook,
+  aSubscribedBook,
+  anAddressBook,
+  theCollectedBook,
+  theDefaultBook
+} from '@common/test/builders'
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
-import { AddressBook } from './contactsTypes'
 import {
   canShareAddressBook,
   getAddressBookDisplayName,
   isContactTransferDestination,
   sortAddressBooks
 } from './contactsUtils'
-
-const makeBook = (id: string, name: string): AddressBook => ({
-  id,
-  userId: 'u1',
-  name,
-  contactsCount: 0,
-  acl: [],
-  canWrite: true
-})
+import { AddressBookAccessLevel } from './davTypes'
 
 const t = (key: string): string => key
 
 describe('sortAddressBooks', () => {
   it('puts the default address book first then sorts by name in natural order', () => {
     const books = [
-      makeBook('qa-10', 'Book 10'),
-      makeBook('qa-2', 'Book 2'),
-      makeBook('qa-a', 'alpha'),
-      makeBook('qa-book', 'QA Book'),
-      makeBook('qa-rw', 'Team RW'),
-      makeBook('qa-z', 'Zeta'),
-      makeBook(DEFAULT_ADDRESS_BOOK_ID, 'Zzz contacts')
+      anAddressBook({ id: 'qa-10', name: 'Book 10' }),
+      anAddressBook({ id: 'qa-2', name: 'Book 2' }),
+      anAddressBook({ id: 'qa-a', name: 'alpha' }),
+      anAddressBook({ id: 'qa-book', name: 'QA Book' }),
+      anAddressBook({ id: 'qa-rw', name: 'Team RW' }),
+      anAddressBook({ id: 'qa-z', name: 'Zeta' }),
+      theDefaultBook({ name: 'Zzz contacts' })
     ]
 
     expect(sortAddressBooks(books, t).map(book => book.id)).toEqual([
@@ -42,7 +41,10 @@ describe('sortAddressBooks', () => {
   })
 
   it('does not mutate the input', () => {
-    const books = [makeBook('b', 'B'), makeBook('a', 'A')]
+    const books = [
+      anAddressBook({ id: 'b', name: 'B' }),
+      anAddressBook({ id: 'a', name: 'A' })
+    ]
 
     sortAddressBooks(books, t)
 
@@ -52,120 +54,126 @@ describe('sortAddressBooks', () => {
 
 describe('getAddressBookDisplayName', () => {
   it('returns the name of the book', () => {
-    expect(getAddressBookDisplayName(makeBook('qa', 'QA Book'), t)).toBe(
-      'QA Book'
-    )
+    expect(
+      getAddressBookDisplayName(anAddressBook({ id: 'qa', name: 'QA Book' }), t)
+    ).toBe('QA Book')
   })
 
   it('names the domain address book', () => {
-    expect(getAddressBookDisplayName(makeBook('dab', ''), t)).toBe(
+    expect(getAddressBookDisplayName(aDomainBook(), t)).toBe(
       'contacts.domainAddressBook'
     )
   })
 
   it('names an unnamed own default book "My contacts"', () => {
-    expect(
-      getAddressBookDisplayName(makeBook(DEFAULT_ADDRESS_BOOK_ID, ''), t)
-    ).toBe('contacts.myContacts')
+    // identified by its id alone, without the isDefault flag
+    const book = anAddressBook({ id: DEFAULT_ADDRESS_BOOK_ID, name: '' })
+
+    expect(getAddressBookDisplayName(book, t)).toBe('contacts.myContacts')
   })
 
   it('names an unnamed shared default book "My contacts"', () => {
-    const book = { ...makeBook('generated-id', ''), isDefault: true }
+    const book = aSharedBook({
+      id: 'generated-id',
+      name: '',
+      sourceBookId: DEFAULT_ADDRESS_BOOK_ID,
+      isDefault: true
+    })
 
     expect(getAddressBookDisplayName(book, t)).toBe('contacts.myContacts')
   })
 
   it('falls back to the id of an unnamed book', () => {
-    expect(getAddressBookDisplayName(makeBook('api-empty', ''), t)).toBe(
-      'api-empty'
-    )
+    expect(
+      getAddressBookDisplayName(anAddressBook({ id: 'api-empty', name: '' }), t)
+    ).toBe('api-empty')
   })
 
   it("falls back to the owner's book id of an unnamed shared book", () => {
-    const book = {
-      ...makeBook('db166579-73b1-4336-a378-354f808ee382', ''),
-      ownerId: 'alice',
+    const book = aSharedBook({
+      id: 'db166579-73b1-4336-a378-354f808ee382',
+      name: '',
       sourceBookId: 'qa-empty'
-    }
+    })
 
     expect(getAddressBookDisplayName(book, t)).toBe('qa-empty')
   })
 })
 
 describe('canShareAddressBook', () => {
-  const ownBook = makeBook('own', 'Own')
-  const sharedBook = (shareAccess?: number): AddressBook => ({
-    ...makeBook('copy', 'Bob book'),
-    ownerId: 'bob',
-    sourceBookId: 'source',
-    shareAccess
-  })
-
   it('lets the owner share the book', () => {
-    expect(canShareAddressBook(ownBook)).toBe(true)
+    expect(canShareAddressBook(anAddressBook())).toBe(true)
   })
 
   it('lets a sharee with administration rights share the book', () => {
-    expect(canShareAddressBook(sharedBook(5))).toBe(true)
+    expect(
+      canShareAddressBook(
+        aSharedBook({ access: AddressBookAccessLevel.Editor })
+      )
+    ).toBe(true)
   })
 
   it('does not let a read-write sharee share the book', () => {
-    expect(canShareAddressBook(sharedBook(3))).toBe(false)
+    expect(
+      canShareAddressBook(
+        aSharedBook({ access: AddressBookAccessLevel.ReadWrite })
+      )
+    ).toBe(false)
   })
 
   it('does not let a read-only sharee share the book', () => {
-    expect(canShareAddressBook(sharedBook(2))).toBe(false)
+    expect(
+      canShareAddressBook(
+        aSharedBook({ access: AddressBookAccessLevel.Viewer })
+      )
+    ).toBe(false)
   })
 
   it('does not let a subscriber of a public read-write book share it', () => {
-    expect(canShareAddressBook(sharedBook())).toBe(false)
+    expect(canShareAddressBook(aSubscribedBook({ canWrite: true }))).toBe(false)
   })
 
   it('does not share the domain address book', () => {
-    expect(canShareAddressBook(makeBook('dab', 'Domain'))).toBe(false)
+    expect(canShareAddressBook(aDomainBook({ name: 'Domain' }))).toBe(false)
   })
 })
 
 describe('isContactTransferDestination', () => {
   it('accepts another writable book', () => {
     expect(
-      isContactTransferDestination(makeBook('target', 'Target'), 'source')
+      isContactTransferDestination(anAddressBook({ id: 'target' }), 'source')
     ).toBe(true)
   })
 
   it('accepts the default book', () => {
-    expect(
-      isContactTransferDestination(
-        makeBook(DEFAULT_ADDRESS_BOOK_ID, ''),
-        'source'
-      )
-    ).toBe(true)
+    expect(isContactTransferDestination(theDefaultBook(), 'source')).toBe(true)
   })
 
   it('rejects the source book', () => {
     expect(
-      isContactTransferDestination(makeBook('source', 'Source'), 'source')
+      isContactTransferDestination(anAddressBook({ id: 'source' }), 'source')
     ).toBe(false)
   })
 
   it('rejects a read-only book', () => {
     expect(
       isContactTransferDestination(
-        { ...makeBook('readonly', 'Read only'), canWrite: false },
+        anAddressBook({ id: 'readonly', canWrite: false }),
         'source'
       )
     ).toBe(false)
   })
 
   it('rejects the domain address book', () => {
+    // the domain book is writable on the server, still not a destination
     expect(
-      isContactTransferDestination(makeBook('dab', 'Domain'), 'source')
+      isContactTransferDestination(aDomainBook({ canWrite: true }), 'source')
     ).toBe(false)
   })
 
   it('rejects the internal collected book', () => {
-    expect(
-      isContactTransferDestination(makeBook('collected', 'collected'), 'source')
-    ).toBe(false)
+    expect(isContactTransferDestination(theCollectedBook(), 'source')).toBe(
+      false
+    )
   })
 })

@@ -3,6 +3,13 @@
  */
 import { setupStore } from '@common/app/store'
 import {
+  aContact,
+  aListing,
+  aRef,
+  aStoreState,
+  anAddressBook
+} from '@common/test/builders'
+import {
   deleteContact as deleteContactDao,
   fetchAddressBooks,
   fetchContact as fetchContactDao,
@@ -36,55 +43,34 @@ import {
 
 vi.mock('./ContactsDao')
 
-const alice: Contact = { id: 'c1', displayName: 'Alice Roche', emails: [] }
-const bob: Contact = { id: 'c2', displayName: 'Bob Martin', emails: [] }
-const carl: Contact = { id: 'c3', displayName: 'Carl Dubois', emails: [] }
-const dora: Contact = { id: 'c4', displayName: 'Dora Lenz', emails: [] }
+const alice = aContact({ id: 'c1', displayName: 'Alice Roche' })
+const bob = aContact({ id: 'c2', displayName: 'Bob Martin' })
+const carl = aContact({ id: 'c3', displayName: 'Carl Dubois' })
+const dora = aContact({ id: 'c4', displayName: 'Dora Lenz' })
 
 const makeBook = (
   id: string,
   contacts: Contact[],
   contactsCount: number | null = contacts.length
-): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  name: id,
-  contactsCount,
-  acl: [],
-  canWrite: true,
-  contacts
-})
+): AddressBookWithContacts => anAddressBook({ id, contacts, contactsCount })
 
 // a listing of a single page, unless the starts of its pages are given
 const makeListing = (
   refs: [string, Contact][],
   next: string | null = null,
-  pages: ContactListing['pages'] = [{ after: null, refIndex: 0 }]
-): ContactListing => ({
-  refs: refs.map(([addressBookId, contact]) => ({
-    addressBookId,
-    contactId: contact.id
-  })),
-  pages,
-  next,
-  hasMore: next !== null,
-  loadingRequestId: null
-})
+  pages?: ContactListing['pages']
+): ContactListing =>
+  aListing(
+    refs.map(([addressBookId, contact]) => aRef(addressBookId, contact)),
+    { next, ...(pages && { pages }) }
+  )
 
 const makeStore = (
   addressBooks: Record<string, AddressBookWithContacts>,
   listings: Record<string, ContactListing> = {},
   sort: ContactSort = DEFAULT_CONTACT_SORT
 ): ReturnType<typeof setupStore> =>
-  setupStore({
-    contacts: {
-      addressBooks,
-      listings,
-      sort,
-      loading: false,
-      error: null
-    }
-  })
+  setupStore(aStoreState({ contacts: { addressBooks, listings, sort } }))
 
 const getListedIds = (state: ContactsState, listingKey: string): string[] =>
   state.listings[listingKey].refs.map(ref => ref.contactId)

@@ -1,20 +1,11 @@
-import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+import {
+  TEST_USER_ID,
+  aDomainBook,
+  aSharedBook,
+  anAddressBook,
+  byId
+} from '@common/test/builders'
 import { categorizeAddressBooks, getCreateContactLink } from './sidebarHelpers'
-
-const makeBook = (
-  id: string,
-  userId: string,
-  canWrite = true
-): AddressBookWithContacts => ({
-  id,
-  userId,
-  ownerId: userId,
-  name: `Book ${id}`,
-  contactsCount: 0,
-  acl: [],
-  canWrite,
-  contacts: []
-})
 
 describe('sidebarHelpers', () => {
   describe('getCreateContactLink', () => {
@@ -23,17 +14,17 @@ describe('sidebarHelpers', () => {
     })
 
     it('returns /contacts/new when the book cannot be written to', () => {
-      const book = makeBook('b1', 'u1', false)
+      const book = anAddressBook({ id: 'b1', canWrite: false })
       expect(getCreateContactLink('b1', book)).toBe('/contacts/new')
     })
 
     it('returns /contacts/new when addressBookId is dab', () => {
-      const book = makeBook('dab', 'u1', true)
+      const book = aDomainBook({ canWrite: true })
       expect(getCreateContactLink('dab', book)).toBe('/contacts/new')
     })
 
     it('returns /contacts/:id/new when writable book is selected', () => {
-      const book = makeBook('b1', 'u1', true)
+      const book = anAddressBook({ id: 'b1' })
       expect(getCreateContactLink('b1', book)).toBe('/contacts/b1/new')
     })
 
@@ -48,7 +39,7 @@ describe('sidebarHelpers', () => {
     })
 
     it('returns /contacts/new when a loaded book cannot be written to while loading', () => {
-      const book = makeBook('b1', 'u1', false)
+      const book = anAddressBook({ id: 'b1', canWrite: false })
       expect(getCreateContactLink('b1', book, true)).toBe('/contacts/new')
     })
 
@@ -59,13 +50,17 @@ describe('sidebarHelpers', () => {
 
   describe('categorizeAddressBooks', () => {
     it('categorizes books into personal, shared, and domain books', () => {
-      const books: Record<string, AddressBookWithContacts> = {
-        myBook: makeBook('b1', 'user-1'),
-        sharedBook: makeBook('b2', 'user-2'),
-        domainBook: makeBook('dab', 'admin')
-      }
+      const books = byId(
+        anAddressBook({ id: 'b1', ownerId: TEST_USER_ID }),
+        aSharedBook({ id: 'b2' }),
+        aDomainBook()
+      )
 
-      const categorized = categorizeAddressBooks(books, 'user-1', key => key)
+      const categorized = categorizeAddressBooks(
+        books,
+        TEST_USER_ID,
+        key => key
+      )
 
       expect(categorized.personalBooks.map(b => b.id)).toEqual(['b1'])
       expect(categorized.sharedBooks.map(b => b.id)).toEqual(['b2'])
