@@ -14,6 +14,7 @@ import {
 } from '@linagora/twake-mui'
 import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
+import { FOCUS_HEADING_STATE } from '../focusHeadingOnArrival'
 import { getAriaCurrent } from './sidebarHelpers'
 import { useAddressBookActions } from '../AddressBookActions/useAddressBookActions'
 
@@ -37,7 +38,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const { isMenuOpen, openMenu, menu, dialogs } = useAddressBookActions({
     book,
     onRemoved: () => {
-      if (selected) void navigate('/contacts')
+      if (selected) void navigate('/contacts', { state: FOCUS_HEADING_STATE })
     }
   })
 

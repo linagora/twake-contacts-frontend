@@ -12,6 +12,7 @@ import {
   makeContactFromForm
 } from './ContactForm'
 import { ContactFormSkeleton } from './ContactSkeletons'
+import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 
 export const CreateContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -52,7 +53,8 @@ export const CreateContactPage: React.FC = () => {
       void navigate(
         values.addressBookId && !isHiddenAddressBook(values.addressBookId)
           ? `/contacts/${values.addressBookId}`
-          : '/contacts'
+          : '/contacts',
+        { state: FOCUS_HEADING_STATE }
       )
     } catch {
       // error is surfaced by the contacts slice

@@ -10,6 +10,7 @@ import {
   Tooltip,
   useBreakpoints
 } from '@linagora/twake-mui'
+import { useEffect, useRef } from 'react'
 import { useI18n } from 'twake-i18n'
 import { translateContactType } from '@common/locales/dynamicKeys'
 import { FormRow } from './FormRow'
@@ -49,6 +50,23 @@ export const EntryList: React.FC<EntryListProps> = ({
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const removedIndex = useRef<number | null>(null)
+
+  // Once a row is removed, the focus goes to the value of the row taking its
+  // place, or of the row before it when the last one was removed: the X it
+  // was on is gone, and the focus would otherwise fall to the page body.
+  useEffect(() => {
+    if (removedIndex.current === null) return
+    const nextIndex = Math.min(removedIndex.current, entries.length - 1)
+    removedIndex.current = null
+    inputRefs.current[nextIndex]?.focus()
+  }, [entries.length])
+
+  const handleRemove = (index: number): void => {
+    removedIndex.current = index
+    onRemove(index)
+  }
 
   if (entries.length === 0) return null
 
@@ -89,6 +107,9 @@ export const EntryList: React.FC<EntryListProps> = ({
                 helperText={
                   getError(entry.value, index) ? validationMessage : ''
                 }
+                inputRef={(element: HTMLInputElement | null) => {
+                  inputRefs.current[index] = element
+                }}
                 slotProps={{
                   htmlInput: { 'aria-label': label },
                   input: {
@@ -126,7 +147,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                 {index > 0 && (
                   <Tooltip title={t('contacts.form.remove')}>
                     <IconButton
-                      onClick={() => onRemove(index)}
+                      onClick={() => handleRemove(index)}
                       aria-label={t('contacts.form.remove')}
                     >
                       <Icon icon={Cross} aria-hidden />

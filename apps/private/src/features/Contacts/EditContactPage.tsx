@@ -19,6 +19,7 @@ import {
 } from './ContactForm'
 import { contactPath } from './contactPath'
 import { ContactFormSkeleton } from './ContactSkeletons'
+import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
 
 export const EditContactPage: React.FC = () => {
@@ -94,9 +95,11 @@ export const EditContactPage: React.FC = () => {
             contact: updatedContact
           })
         ).unwrap()
-        void navigate(contactPath(values.addressBookId, contactId))
+        void navigate(contactPath(values.addressBookId, contactId), {
+          state: FOCUS_HEADING_STATE
+        })
       } else {
-        void navigate(backTo)
+        void navigate(backTo, { state: FOCUS_HEADING_STATE })
       }
     } catch {
       // error is surfaced by the contacts slice
@@ -116,7 +119,8 @@ export const EditContactPage: React.FC = () => {
       void navigate(
         isHiddenAddressBook(addressBookId)
           ? '/contacts'
-          : `/contacts/${addressBookId}`
+          : `/contacts/${addressBookId}`,
+        { state: FOCUS_HEADING_STATE }
       )
     } catch {
       // error is surfaced by the contacts slice

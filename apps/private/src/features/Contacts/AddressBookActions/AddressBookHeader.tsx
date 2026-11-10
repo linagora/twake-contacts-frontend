@@ -10,12 +10,15 @@ import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { AddressBookMoreActionsButton } from './AddressBookMoreActionsButton'
 import { AddressBookSharingStatus } from './AddressBookSharingStatus'
+import { FOCUS_HEADING_STATE } from '../focusHeadingOnArrival'
 import { useAddressBookActions } from './useAddressBookActions'
 
 export interface AddressBookHeaderProps {
   book: AddressBook
   // the actions of the page shown after the actions on the book
   children?: React.ReactNode
+  // the page focuses its title on arrival after an action, see focusHeadingOnArrival
+  headingRef?: React.Ref<HTMLHeadingElement>
 }
 
 // the members of a book of the user are only listed with its details: they
@@ -40,13 +43,14 @@ const useOwnBookMembers = (book: AddressBook): void => {
 /** The title of the page of a book, who can read it and its actions. */
 export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
   book,
-  children
+  children,
+  headingRef
 }) => {
   const { t } = useI18n()
   const navigate = useNavigate()
   const actions = useAddressBookActions({
     book,
-    onRemoved: () => void navigate('/contacts')
+    onRemoved: () => void navigate('/contacts', { state: FOCUS_HEADING_STATE })
   })
   const canShare = book.capabilities.share
   useOwnBookMembers(book)
@@ -58,7 +62,12 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
       className="u-flex-justify-between u-flex-items-center u-w-100"
     >
       <Stack spacing={0.5} className="u-flex-items-start u-ov-hidden">
-        <Typography variant="h4" className="u-ellipsis u-w-100">
+        <Typography
+          variant="h4"
+          className="u-ellipsis u-w-100"
+          ref={headingRef}
+          tabIndex={headingRef ? -1 : undefined}
+        >
           {getAddressBookDisplayName(book, t)}
         </Typography>
         <AddressBookSharingStatus
