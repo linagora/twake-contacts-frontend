@@ -20,7 +20,10 @@ import {
   AddressBookWithContacts,
   Contact
 } from '@common/features/Contacts/contactsTypes'
-import { isContactTransferDestination } from '@common/features/Contacts/contactsUtils'
+import {
+  getAddressBookDisplayName,
+  isContactTransferDestination
+} from '@common/features/Contacts/contactsUtils'
 import { useAddressBookOptions } from './AddressBookOptions'
 
 interface ContactTransferDialogProps {
@@ -113,6 +116,9 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
     transfer
   } = useContactTransfer({ contact, addressBookId, onClose, onSuccess, mode })
   const options = useAddressBookOptions(books)
+  const sourceBook = useAppSelector(
+    state => state.contacts.addressBooks[addressBookId]
+  )
 
   return (
     <Dialog
@@ -128,6 +134,12 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
+          <Typography variant="body2" color="text.secondary">
+            {t('contacts.transfer.currentlyIn', {
+              name: contact.displayName,
+              book: getAddressBookDisplayName(sourceBook, t)
+            })}
+          </Typography>
           {error && (
             <Alert severity="error">{t(`${translationKey}.error`)}</Alert>
           )}

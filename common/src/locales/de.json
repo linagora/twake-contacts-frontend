@@ -2,13 +2,17 @@
   "locale": "de-de",
   "contacts": {
     "moveContact": {
-      "success": "Kontakt erfolgreich verschoben",
+      "success": "„%{name}“ nach %{book} verschoben",
       "title": "Kontakt verschieben",
       "confirm": "Verschieben",
       "error": "Der Kontakt konnte nicht verschoben werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · derzeit in %{book}",
+      "open": "Öffnen"
+    },
     "copyContact": {
-      "success": "Kontakt erfolgreich kopiert",
+      "success": "„%{name}“ nach %{book} kopiert",
       "title": "Kontakt kopieren",
       "destination": "Zieladressbuch",
       "empty": "Keine beschreibbaren Adressbücher verfügbar.",

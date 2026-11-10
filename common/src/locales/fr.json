@@ -2,13 +2,17 @@
   "locale": "fr-fr",
   "contacts": {
     "moveContact": {
-      "success": "Contact déplacé avec succès",
+      "success": "« %{name} » déplacé vers %{book}",
       "title": "Déplacer le contact",
       "confirm": "Déplacer",
       "error": "Impossible de déplacer le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · actuellement dans %{book}",
+      "open": "Ouvrir"
+    },
     "copyContact": {
-      "success": "Contact copié avec succès",
+      "success": "« %{name} » copié vers %{book}",
       "title": "Copier le contact",
       "destination": "Carnet d’adresses de destination",
       "empty": "Aucun carnet d’adresses modifiable disponible.",

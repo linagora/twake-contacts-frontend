@@ -44,7 +44,13 @@ export const copyContactThunk = (create: ReducerCreators<ContactsState>) =>
     },
     {
       fulfilled: (state, { payload: { toAddressBookId, contact }, meta }) => {
-        state.transferSuccess = { operation: 'copy', requestId: meta.requestId }
+        state.transferSuccess = {
+          operation: 'copy',
+          requestId: meta.requestId,
+          contactId: contact.id,
+          contactName: contact.displayName,
+          destinationId: toAddressBookId
+        }
         const book = state.addressBooks[toAddressBookId]
         if (!book) return
         const index = book.contacts.findIndex(c => c.id === contact.id)

@@ -2,13 +2,17 @@
   "locale": "en-gb",
   "contacts": {
     "moveContact": {
-      "success": "Contact moved successfully",
+      "success": "“%{name}” moved to %{book}",
       "title": "Move contact",
       "confirm": "Move",
       "error": "Could not move the contact. It may already exist in the destination address book."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · currently in %{book}",
+      "open": "Open"
+    },
     "copyContact": {
-      "success": "Contact copied successfully",
+      "success": "“%{name}” copied to %{book}",
       "title": "Copy contact",
       "destination": "Destination address book",
       "empty": "No writable address books available.",

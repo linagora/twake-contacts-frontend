@@ -2,13 +2,17 @@
   "locale": "es-es",
   "contacts": {
     "moveContact": {
-      "success": "Contacto movido correctamente",
+      "success": "“%{name}” movido a %{book}",
       "title": "Mover contacto",
       "confirm": "Mover",
       "error": "No se pudo mover el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · actualmente en %{book}",
+      "open": "Abrir"
+    },
     "copyContact": {
-      "success": "Contacto copiado correctamente",
+      "success": "“%{name}” copiado a %{book}",
       "title": "Copiar contacto",
       "destination": "Libreta de direcciones de destino",
       "empty": "No hay libretas de direcciones disponibles con permiso de escritura.",

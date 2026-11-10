@@ -2,13 +2,17 @@
   "locale": "it-it",
   "contacts": {
     "moveContact": {
-      "success": "Contatto spostato con successo",
+      "success": "“%{name}” spostato in %{book}",
       "title": "Sposta contatto",
       "confirm": "Sposta",
       "error": "Impossibile spostare il contatto. Potrebbe già esistere nella rubrica di destinazione."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · attualmente in %{book}",
+      "open": "Apri"
+    },
     "copyContact": {
-      "success": "Contatto copiato con successo",
+      "success": "“%{name}” copiato in %{book}",
       "title": "Copia contatto",
       "destination": "Rubrica di destinazione",
       "empty": "Nessuna rubrica modificabile disponibile.",

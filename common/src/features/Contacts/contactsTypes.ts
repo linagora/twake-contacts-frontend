@@ -114,8 +114,17 @@ export interface ContactSort {
   order: 'asc' | 'desc'
 }
 
+/** What a copy or move produced: the contact as it is in its new book. */
+export interface ContactTransferSuccess {
+  operation: 'copy' | 'move'
+  requestId: string
+  contactId: string
+  contactName: string
+  destinationId: string
+}
+
 export interface ContactsState {
-  transferSuccess?: { operation: 'copy' | 'move'; requestId: string } | null
+  transferSuccess?: ContactTransferSuccess | null
   addressBookSuccess?: {
     operation: 'update' | 'delete' | 'remove'
     requestId: string
