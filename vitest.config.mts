@@ -29,8 +29,6 @@ export default defineConfig({
     alias: [
       { find: '@/common', replacement: fromRoot('common/src') },
       { find: '@common', replacement: fromRoot('common/src') },
-      { find: '@private', replacement: fromRoot('apps/private/src') },
-      { find: '@injected', replacement: fromRoot('apps/private/src') },
       { find: '@', replacement: fromRoot('apps/private/src') }
     ],
     dedupe: [

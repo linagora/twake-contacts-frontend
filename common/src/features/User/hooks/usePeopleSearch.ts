@@ -5,7 +5,8 @@ import { searchUsers } from '@common/features/Contacts/ContactsDao'
 
 const DEBOUNCE_MS = 300
 
-export function useUserSearch(query: string): {
+/** Debounced search of the other users of the platform, for `query`. */
+export function usePeopleSearch(query: string): {
   users: UserResult[]
   loading: boolean
 } {

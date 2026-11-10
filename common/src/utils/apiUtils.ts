@@ -30,14 +30,3 @@ export const api: KyInstance = ky.extend({
     ]
   }
 })
-
-export function isValidUrl(string?: string): URL | boolean {
-  let url
-
-  try {
-    url = new URL(string ?? '')
-  } catch {
-    return false
-  }
-  return url
-}

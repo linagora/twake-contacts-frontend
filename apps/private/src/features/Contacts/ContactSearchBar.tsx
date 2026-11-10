@@ -1,6 +1,6 @@
 import { useAppDispatch } from '@common/app/hooks'
 import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
-import { searchContacts } from '@common/features/Contacts/ContactsDao'
+import { useContactSearch } from '@common/features/Contacts/hooks/useContactSearch'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
@@ -14,7 +14,6 @@ import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactAvatar } from './ContactAvatar'
 import { contactPath } from './contactPath'
-import { useSearchAddressBookRefs } from './useSearchAddressBookRefs'
 
 interface SearchOption {
   contact: Contact
@@ -35,7 +34,7 @@ export const ContactSearchBar: React.FC = () => {
   const navigate = useNavigate()
   const { isMobile } = useBreakpoints()
   const dispatch = useAppDispatch()
-  const addressBookRefs = useSearchAddressBookRefs()
+  const searchContacts = useContactSearch()
 
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])
@@ -44,7 +43,7 @@ export const ContactSearchBar: React.FC = () => {
 
   const fetchSearchResults = useCallback(
     async (search: string) => {
-      if (addressBookRefs.length === 0 || !search.trim()) {
+      if (!search.trim()) {
         setOptions([])
         setLoading(false)
         return
@@ -52,7 +51,7 @@ export const ContactSearchBar: React.FC = () => {
 
       setLoading(true)
       try {
-        const entries = await searchContacts(addressBookRefs, search)
+        const entries = await searchContacts(search)
         setOptions(buildSearchOptions(entries))
       } catch {
         setOptions([])
@@ -60,7 +59,7 @@ export const ContactSearchBar: React.FC = () => {
         setLoading(false)
       }
     },
-    [addressBookRefs]
+    [searchContacts]
   )
 
   useEffect(() => {
@@ -73,15 +72,13 @@ export const ContactSearchBar: React.FC = () => {
 
   const handleChange = (_event: unknown, value: SearchOption | null): void => {
     if (value) {
-      const storeAddressBookId =
-        value.addressBookId === 'domain-members' ? 'dab' : value.addressBookId
       dispatch(
         addContactFromSearch({
-          addressBookId: storeAddressBookId,
+          addressBookId: value.addressBookId,
           contact: value.contact
         })
       )
-      void navigate(contactPath(storeAddressBookId, value.contact.id))
+      void navigate(contactPath(value.addressBookId, value.contact.id))
       setInputValue('')
       setOptions([])
     }

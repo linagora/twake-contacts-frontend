@@ -11,7 +11,7 @@ import { Icon, People } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { UserResult } from '@common/features/Contacts/contactsTypes'
 import { ContactAvatar } from './ContactAvatar'
-import { useUserSearch } from './useUserSearch'
+import { usePeopleSearch } from '@common/features/User/hooks/usePeopleSearch'
 
 const primaryEmail = (user: UserResult): string => user.emails[0]?.value ?? ''
 
@@ -26,7 +26,7 @@ export const UserAutocomplete: React.FC<{
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<UserResult | null>(null)
   // the picked user stays in the field: no need to search for its label
-  const { users, loading } = useUserSearch(selected ? '' : query)
+  const { users, loading } = usePeopleSearch(selected ? '' : query)
   const [open, setOpen] = useState(false)
 
   return (

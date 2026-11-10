@@ -1,0 +1,11 @@
+# Two owners for each knowledge-heavy area: the two most frequent authors of
+# the path over the last 6 months, or the author and the reviewer of their last
+# change when only one author exists. A change to the store shape, the listing
+# engine, the sync or the data access updates docs/ARCHITECTURE.md as well.
+
+/Jenkinsfile @chibenwa @zatteo
+/e2e/ @chibenwa @lethemanh
+/common/src/websocket/ @lethemanh @Eriikah
+/common/src/features/Contacts/contactListings.ts @zatteo @lethemanh
+/common/src/features/Contacts/services/ @chibenwa @Eriikah
+/docs/ @chibenwa @zatteo

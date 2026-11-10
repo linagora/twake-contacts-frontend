@@ -7,8 +7,7 @@
     "types": ["vitest/globals", "node", "@testing-library/jest-dom/vitest"],
     "paths": {
       "@/*": ["./src/*"],
-      "@common/*": ["../../common/src/*"],
-      "@injected/*": ["./src/*"]
+      "@common/*": ["../../common/src/*"]
     }
   },
   "include": ["src", "../../common/**/**.d.ts"],

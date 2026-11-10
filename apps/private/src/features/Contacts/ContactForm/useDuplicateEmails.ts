@@ -1,8 +1,8 @@
-import { searchContacts } from '@common/features/Contacts/ContactsDao'
+import { useAppSelector } from '@common/app/hooks'
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
+import { useContactSearch } from '@common/features/Contacts/hooks/useContactSearch'
 import { isValidEmail } from '@common/utils/validation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchAddressBookRefs } from '../useSearchAddressBookRefs'
 
 const DUPLICATE_CHECK_DELAY_MS = 300
 
@@ -19,14 +19,11 @@ const normalizeEmail = (email: string): string => email.trim().toLowerCase()
 const hasEmail = (entry: ContactEntry, email: string): boolean =>
   entry.contact.emails.some(({ value }) => normalizeEmail(value) === email)
 
-// The domain book is searched as domain-members, while it is stored as dab
-const toStoreEntry = (entry: ContactEntry): ContactEntry =>
-  entry.addressBookId === 'domain-members'
-    ? { ...entry, addressBookId: 'dab' }
-    : entry
-
 export const useDuplicateEmails = (enabled: boolean): DuplicateEmails => {
-  const addressBookRefs = useSearchAddressBookRefs()
+  const searchContacts = useContactSearch()
+  const hasAddressBooks = useAppSelector(
+    state => Object.keys(state.contacts.addressBooks).length > 0
+  )
   const [duplicates, setDuplicates] = useState<DuplicatesByEmail>({})
   const requestedEmails = useRef(new Set<string>())
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
@@ -40,22 +37,20 @@ export const useDuplicateEmails = (enabled: boolean): DuplicateEmails => {
     async (email: string): Promise<void> => {
       requestedEmails.current.add(email)
       try {
-        const entries = await searchContacts(addressBookRefs, email)
+        const entries = await searchContacts(email)
         setDuplicates(prev => ({
           ...prev,
-          [email]: entries
-            .filter(entry => hasEmail(entry, email))
-            .map(toStoreEntry)
+          [email]: entries.filter(entry => hasEmail(entry, email))
         }))
       } catch {
         // the warning is a help: a failed search shows nothing
         requestedEmails.current.delete(email)
       }
     },
-    [addressBookRefs]
+    [searchContacts]
   )
 
-  const canCheck = enabled && addressBookRefs.length > 0
+  const canCheck = enabled && hasAddressBooks
 
   const needsSearch = useCallback(
     (email: string): boolean =>

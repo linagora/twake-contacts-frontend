@@ -1,9 +1,6 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
-import {
-  getOpenPaasUserDataThunk,
-  updateUserConfigurationsThunk
-} from './services'
+import { getOpenPaasUserDataThunk } from './services'
 import { userData } from './userDataTypes'
 
 // Type for core config datetime
@@ -82,8 +79,7 @@ const UserSlice = createAppSlice({
       state.error = null
     }),
     // Thunks using create.asyncThunk
-    getOpenPaasUserData: getOpenPaasUserDataThunk(create),
-    updateUserConfigurations: updateUserConfigurationsThunk(create)
+    getOpenPaasUserData: getOpenPaasUserDataThunk(create)
   })
 })
 
@@ -95,8 +91,7 @@ export const {
   setUserError,
   clearError,
   // Thunks
-  getOpenPaasUserData,
-  updateUserConfigurations
+  getOpenPaasUserData
 } = UserSlice.actions
 
 export default UserSlice.reducer

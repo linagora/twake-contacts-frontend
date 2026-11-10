@@ -23,7 +23,7 @@ import {
   deleteAddressBook,
   updateAddressBook
 } from '@common/features/Contacts/ContactsSlice'
-import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
+import { useContactsExport } from '@common/features/Contacts/hooks/useContactsExport'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { ShareAddressBookDialog } from '../ShareAddressBook/ShareAddressBookDialog'
@@ -56,6 +56,7 @@ export const useAddressBookActions = ({
   onRemoved
 }: UseAddressBookActionsParams): AddressBookActions => {
   const { t } = useI18n()
+  const { exportAddressBook } = useContactsExport()
   const dispatch = useAppDispatch()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
