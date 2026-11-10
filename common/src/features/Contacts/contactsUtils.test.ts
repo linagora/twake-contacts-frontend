@@ -1,20 +1,29 @@
+import { classifyAddressBook } from './addressBookModel'
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
-import { AddressBook } from './contactsTypes'
+import { AddressBook, RawAddressBook } from './contactsTypes'
 import {
-  canShareAddressBook,
   getAddressBookDisplayName,
   isContactTransferDestination,
   sortAddressBooks
 } from './contactsUtils'
 
-const makeBook = (id: string, name: string): AddressBook => ({
-  id,
-  userId: 'u1',
-  name,
-  contactsCount: 0,
-  acl: [],
-  canWrite: true
-})
+const makeBook = (
+  id: string,
+  name: string,
+  fields: Partial<RawAddressBook> = {}
+): AddressBook =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      name,
+      contactsCount: 0,
+      acl: [],
+      canWrite: true,
+      ...fields
+    },
+    'u1'
+  )
 
 const t = (key: string): string => key
 
@@ -92,40 +101,6 @@ describe('getAddressBookDisplayName', () => {
   })
 })
 
-describe('canShareAddressBook', () => {
-  const ownBook = makeBook('own', 'Own')
-  const sharedBook = (shareAccess?: number): AddressBook => ({
-    ...makeBook('copy', 'Bob book'),
-    ownerId: 'bob',
-    sourceBookId: 'source',
-    shareAccess
-  })
-
-  it('lets the owner share the book', () => {
-    expect(canShareAddressBook(ownBook)).toBe(true)
-  })
-
-  it('lets a sharee with administration rights share the book', () => {
-    expect(canShareAddressBook(sharedBook(5))).toBe(true)
-  })
-
-  it('does not let a read-write sharee share the book', () => {
-    expect(canShareAddressBook(sharedBook(3))).toBe(false)
-  })
-
-  it('does not let a read-only sharee share the book', () => {
-    expect(canShareAddressBook(sharedBook(2))).toBe(false)
-  })
-
-  it('does not let a subscriber of a public read-write book share it', () => {
-    expect(canShareAddressBook(sharedBook())).toBe(false)
-  })
-
-  it('does not share the domain address book', () => {
-    expect(canShareAddressBook(makeBook('dab', 'Domain'))).toBe(false)
-  })
-})
-
 describe('isContactTransferDestination', () => {
   it('accepts another writable book', () => {
     expect(
@@ -151,7 +126,7 @@ describe('isContactTransferDestination', () => {
   it('rejects a read-only book', () => {
     expect(
       isContactTransferDestination(
-        { ...makeBook('readonly', 'Read only'), canWrite: false },
+        makeBook('readonly', 'Read only', { canWrite: false }),
         'source'
       )
     ).toBe(false)

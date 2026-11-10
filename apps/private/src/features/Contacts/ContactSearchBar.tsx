@@ -1,9 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
-import {
-  AddressBookRef,
-  searchContacts
-} from '@common/features/Contacts/ContactsDao'
+import { searchContacts } from '@common/features/Contacts/ContactsDao'
 import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Autocomplete,
@@ -44,15 +41,6 @@ export const ContactSearchBar: React.FC = () => {
     [addressBooksRecord]
   )
 
-  const addressBookRefs = useMemo<AddressBookRef[]>(
-    () =>
-      addressBooks.map(book => ({
-        userId: book.userId,
-        addressBookId: book.id === 'dab' ? 'domain-members' : book.id
-      })),
-    [addressBooks]
-  )
-
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -60,7 +48,7 @@ export const ContactSearchBar: React.FC = () => {
 
   const fetchSearchResults = useCallback(
     async (search: string) => {
-      if (addressBookRefs.length === 0 || !search.trim()) {
+      if (addressBooks.length === 0 || !search.trim()) {
         setOptions([])
         setLoading(false)
         return
@@ -68,7 +56,7 @@ export const ContactSearchBar: React.FC = () => {
 
       setLoading(true)
       try {
-        const entries = await searchContacts(addressBookRefs, search)
+        const entries = await searchContacts(addressBooks, search)
         setOptions(buildSearchOptions(entries))
       } catch {
         setOptions([])
@@ -76,7 +64,7 @@ export const ContactSearchBar: React.FC = () => {
         setLoading(false)
       }
     },
-    [addressBookRefs]
+    [addressBooks]
   )
 
   useEffect(() => {
@@ -89,15 +77,13 @@ export const ContactSearchBar: React.FC = () => {
 
   const handleChange = (_event: unknown, value: SearchOption | null): void => {
     if (value) {
-      const storeAddressBookId =
-        value.addressBookId === 'domain-members' ? 'dab' : value.addressBookId
       dispatch(
         addContactFromSearch({
-          addressBookId: storeAddressBookId,
+          addressBookId: value.addressBookId,
           contact: value.contact
         })
       )
-      void navigate(`/contacts/${storeAddressBookId}/${value.contact.id}`)
+      void navigate(`/contacts/${value.addressBookId}/${value.contact.id}`)
       setInputValue('')
       setOptions([])
     }

@@ -49,11 +49,11 @@ export const AddressBookPage: React.FC = () => {
   const scope = addressBookId ? undefined : selectedTab
 
   const entries = useAppSelector(state =>
-    selectContactEntries(state, addressBookId, scope, openpaasId)
+    selectContactEntries(state, addressBookId, scope)
   )
 
   const listingKeyToLoadMore = useAppSelector(state =>
-    selectListingKeyToLoadMore(state, addressBookId, scope, openpaasId)
+    selectListingKeyToLoadMore(state, addressBookId, scope)
   )
 
   const listingToLoadMore = useAppSelector(state =>
@@ -187,9 +187,9 @@ export const AddressBookPage: React.FC = () => {
             )}
           </Stack>
         )}
-        {!isMobile &&
-          (addressBookId !== 'dab' || book?.canWrite) &&
-          showTable && <ImportContactsButton addressBookId={addressBookId} />}
+        {!isMobile && showTable && (
+          <ImportContactsButton addressBookId={addressBookId} />
+        )}
       </Stack>
       {renderContent()}
     </Stack>

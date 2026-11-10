@@ -30,14 +30,13 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
   const [searchParams] = useSearchParams()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const scope = addressBookId
     ? undefined
     : searchParams.get('scope') === 'shared'
       ? 'shared'
       : 'mine'
   const entries = useAppSelector(state =>
-    selectContactEntries(state, addressBookId, scope, openpaasId)
+    selectContactEntries(state, addressBookId, scope)
   )
 
   if (!isMobile) return

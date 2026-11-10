@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
@@ -70,35 +71,38 @@ function renderSidebar(
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: addressBooks ?? {
-        contacts: {
-          id: DEFAULT_ADDRESS_BOOK_ID,
-          userId: 'u1',
-          name: 'My contacts',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
+      addressBooks: classifyAddressBooks(
+        addressBooks ?? {
+          contacts: {
+            id: DEFAULT_ADDRESS_BOOK_ID,
+            userId: 'u1',
+            name: 'My contacts',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book1: {
+            id: 'book1',
+            userId: 'u1',
+            name: 'Book 1',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book2: {
+            id: 'book2',
+            userId: 'u1',
+            name: 'Book 2',
+            contactsCount: 0,
+            acl: [],
+            canWrite: false,
+            contacts: []
+          }
         },
-        book1: {
-          id: 'book1',
-          userId: 'u1',
-          name: 'Book 1',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
-        },
-        book2: {
-          id: 'book2',
-          userId: 'u1',
-          name: 'Book 2',
-          contactsCount: 0,
-          acl: [],
-          canWrite: false,
-          contacts: []
-        }
-      },
+        'u1'
+      ),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

@@ -1,20 +1,27 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
 import { categorizeAddressBooks, getCreateContactLink } from './sidebarHelpers'
+
+const CURRENT_USER = 'user-1'
 
 const makeBook = (
   id: string,
   userId: string,
   canWrite = true
-): AddressBookWithContacts => ({
-  id,
-  userId,
-  ownerId: userId,
-  name: `Book ${id}`,
-  contactsCount: 0,
-  acl: [],
-  canWrite,
-  contacts: []
-})
+): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId,
+      ownerId: userId,
+      name: `Book ${id}`,
+      contactsCount: 0,
+      acl: [],
+      canWrite,
+      contacts: []
+    },
+    CURRENT_USER
+  )
 
 describe('sidebarHelpers', () => {
   describe('getCreateContactLink', () => {
@@ -60,16 +67,29 @@ describe('sidebarHelpers', () => {
   describe('categorizeAddressBooks', () => {
     it('categorizes books into personal, shared, and domain books', () => {
       const books: Record<string, AddressBookWithContacts> = {
-        myBook: makeBook('b1', 'user-1'),
+        myBook: makeBook('b1', CURRENT_USER),
         sharedBook: makeBook('b2', 'user-2'),
         domainBook: makeBook('dab', 'admin')
       }
 
-      const categorized = categorizeAddressBooks(books, 'user-1', key => key)
+      const categorized = categorizeAddressBooks(books, key => key)
 
       expect(categorized.personalBooks.map(b => b.id)).toEqual(['b1'])
       expect(categorized.sharedBooks.map(b => b.id)).toEqual(['b2'])
       expect(categorized.domainBooks.map(b => b.id)).toEqual(['dab'])
+    })
+
+    it('does not list the default and the collected books', () => {
+      const books: Record<string, AddressBookWithContacts> = {
+        contacts: makeBook('contacts', CURRENT_USER),
+        collected: makeBook('collected', CURRENT_USER),
+        own: makeBook('own', CURRENT_USER)
+      }
+
+      const categorized = categorizeAddressBooks(books, key => key)
+
+      expect(categorized.personalBooks.map(b => b.id)).toEqual(['own'])
+      expect(categorized.sharedBooks).toEqual([])
     })
   })
 })

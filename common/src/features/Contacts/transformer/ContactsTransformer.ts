@@ -2,14 +2,14 @@ import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
-  AddressBook,
   Contact,
   ContactAddress,
   ContactEmail,
   ContactName,
   ContactOrg,
   ContactPhone,
-  ContactSocialProfile
+  ContactSocialProfile,
+  RawAddressBook
 } from '../contactsTypes'
 import {
   DavAddressBookItem,
@@ -163,7 +163,7 @@ function normalizeAddressBookName(name: unknown): string {
     : ''
 }
 
-export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
+export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   const href = raw._links?.self?.href
   const id = extractId(href, '.json')
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id

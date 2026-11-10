@@ -45,7 +45,6 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const { addressBookId } = useParams()
   const navigate = useNavigate()
   const isOnMyContacts = useMatch('/contacts') !== null
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const { isMobile } = useBreakpoints()
 
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
@@ -54,7 +53,6 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const createLink = getCreateContactLink(addressBookId, currentBook, isLoading)
   const { personalBooks, sharedBooks, domainBooks } = categorizeAddressBooks(
     addressBooks,
-    openpaasId,
     t
   )
 

@@ -1,7 +1,9 @@
 import { JCalProperty } from './davTypes'
 import { userData } from '../User/userDataTypes'
+import { AddressBookCapabilities, AddressBookKind } from './addressBookModel'
 
-export interface AddressBook {
+/** An address book as read from the server, before it is classified. */
+export interface RawAddressBook {
   id: string
   userId: string
   ownerId?: string
@@ -19,6 +21,15 @@ export interface AddressBook {
   invitedMembers?: userData[]
   syncToken?: number
   isPublic?: boolean
+}
+
+/** A book shown by its name: one of the user's, or a book they may subscribe to. */
+export type DisplayedAddressBook = RawAddressBook & { kind?: AddressBookKind }
+
+/** An address book classified for the current user by describeAddressBook. */
+export interface AddressBook extends RawAddressBook {
+  kind: AddressBookKind
+  capabilities: AddressBookCapabilities
 }
 
 export interface ContactName {

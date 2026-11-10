@@ -25,7 +25,7 @@ export const DeleteAddressBookDialog: React.FC<
   DeleteAddressBookDialogProps
 > = ({ book, onClose, onConfirm }) => {
   const { t } = useI18n()
-  const isCopy = Boolean(book.ownerId)
+  const isCopy = book.capabilities.removeFromList
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">

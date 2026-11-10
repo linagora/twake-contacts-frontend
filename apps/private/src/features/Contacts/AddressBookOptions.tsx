@@ -5,8 +5,10 @@ import {
   MenuItem
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
-import { useAppSelector } from '@common/app/hooks'
-import { matchesScope } from '@common/features/Contacts/contactsSelectors'
+import {
+  isOwnAddressBook,
+  isSharedAddressBook
+} from '@common/features/Contacts/addressBookModel'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import {
   getAddressBookDisplayName,
@@ -28,14 +30,9 @@ export const useAddressBookOptions = (
   addressBooks: AddressBook[]
 ): React.ReactNode[] => {
   const { t } = useI18n()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const sortedBooks = sortAddressBooks(addressBooks, t)
-  const ownBooks = sortedBooks.filter(book =>
-    matchesScope(book, 'onlyMine', openpaasId)
-  )
-  const sharedBooks = sortedBooks.filter(book =>
-    matchesScope(book, 'shared', openpaasId)
-  )
+  const ownBooks = sortedBooks.filter(isOwnAddressBook)
+  const sharedBooks = sortedBooks.filter(isSharedAddressBook)
 
   const renderOption = (book: AddressBook): React.ReactNode => (
     <MenuItem key={book.id} value={book.id}>

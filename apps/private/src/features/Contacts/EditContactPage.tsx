@@ -6,6 +6,7 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { isDomainAddressBookId } from '@common/features/Contacts/addressBookModel'
 import { Icon, Left } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
@@ -33,10 +34,10 @@ export const EditContactPage: React.FC = () => {
     currentBook && !allWritableBooks.some(b => b.id === currentBook.id)
       ? [...allWritableBooks, currentBook]
       : allWritableBooks
-  const writableBooks = formBooks.filter(book => book.id !== 'dab')
+  const writableBooks = formBooks.filter(book => book.kind !== 'domain')
   const { contact, loading } = useContact(addressBookId, contactId)
 
-  if (addressBookId === 'dab') {
+  if (isDomainAddressBookId(addressBookId)) {
     return <Navigate to={`/contacts/${addressBookId}/${contactId}`} replace />
   }
 

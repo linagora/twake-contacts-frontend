@@ -7,8 +7,10 @@ import {
   Contact,
   ContactEntry,
   ContactSort,
+  RawAddressBook,
   UserResult
 } from './contactsTypes'
+import { classifyAddressBook } from './addressBookModel'
 import {
   AddressBookAccessLevel,
   DavAddressBookItem,
@@ -22,11 +24,17 @@ import {
   normalizeAddressBook,
   normalizeContact
 } from './transformer/ContactsTransformer'
-import { CONTACTS_PAGINATION_LIMIT, SEARCH_LIMIT } from './constants'
+import {
+  CONTACTS_PAGINATION_LIMIT,
+  DOMAIN_ADDRESS_BOOK_ID,
+  SEARCH_LIMIT
+} from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
 import { userData } from '../User/userDataTypes'
 
 const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
+// the server name of the contacts of the domain book, stored as DOMAIN_ADDRESS_BOOK_ID
+const DOMAIN_MEMBERS_BOOK_ID = 'domain-members'
 
 async function fetchAddressBookItems(
   userId: string
@@ -55,7 +63,7 @@ export async function fetchAddressBooks(
   )
 
   if (domains && domains.length > 0) {
-    const domainBooks = await fetchDomainAddressBooks(domains)
+    const domainBooks = await fetchDomainAddressBooks(domains, userId)
     return [...userBooks, ...domainBooks]
   }
 
@@ -71,14 +79,14 @@ async function enrichAddressBookOwner(
     rawBook['{http://open-paas.org/contacts}source'] ||
     rawBook['openpaas:source']
 
-  if (!source) return book
+  if (!source) return classifyAddressBook(book, userId)
 
   // e.g. /addressbooks/6498ffa1d48f620025cc9dc2/431ae469-dfee-4b0a-a976-e04a12661b34.json
   const parts = source.split('/')
-  if (parts.length < 3) return book
+  if (parts.length < 3) return classifyAddressBook(book, userId)
 
   const ownerId = parts[2]
-  if (!ownerId || ownerId === userId) return book
+  if (!ownerId || ownerId === userId) return classifyAddressBook(book, userId)
   book.ownerId = ownerId
   book.sourceBookId = parts[3]?.replace('.json', '')
 
@@ -87,7 +95,7 @@ async function enrichAddressBookOwner(
     book.ownerDisplayName = name
   }
 
-  return book
+  return classifyAddressBook(book, userId)
 }
 
 // The owner of a shared or subscribed book is named from the profile, so that
@@ -106,34 +114,40 @@ async function fetchOwnerDisplayName(
 }
 
 async function fetchDomainAddressBooks(
-  domains: DomainInfo[]
+  domains: DomainInfo[],
+  userId: string
 ): Promise<AddressBook[]> {
   const domainBooks: AddressBook[] = []
 
   await Promise.all(
     domains.map(async domain => {
       try {
-        const response = api(`dav/addressbooks/${domain.domainId}/dab.json`, {
-          method: 'PROPFIND',
-          json: {
-            properties: [
-              '{DAV:}displayname',
-              '{urn:ietf:params:xml:ns:carddav}addressbook-description',
-              '{DAV:}acl',
-              '{DAV:}invite',
-              '{DAV:}share-access',
-              '{DAV:}group',
-              `{${CONTACTS_NS}}subscription-type`,
-              `{${CONTACTS_NS}}source`,
-              `{${CONTACTS_NS}}type`,
-              `{${CONTACTS_NS}}state`,
-              `{${CONTACTS_NS}}numberOfContacts`,
-              'acl'
-            ]
+        const response = api(
+          `dav/addressbooks/${domain.domainId}/${DOMAIN_ADDRESS_BOOK_ID}.json`,
+          {
+            method: 'PROPFIND',
+            json: {
+              properties: [
+                '{DAV:}displayname',
+                '{urn:ietf:params:xml:ns:carddav}addressbook-description',
+                '{DAV:}acl',
+                '{DAV:}invite',
+                '{DAV:}share-access',
+                '{DAV:}group',
+                `{${CONTACTS_NS}}subscription-type`,
+                `{${CONTACTS_NS}}source`,
+                `{${CONTACTS_NS}}type`,
+                `{${CONTACTS_NS}}state`,
+                `{${CONTACTS_NS}}numberOfContacts`,
+                'acl'
+              ]
+            }
           }
-        })
+        )
         const data: DavAddressBookItem = await response.json()
-        domainBooks.push(normalizeDomainAddressBook(data, domain.domainId))
+        domainBooks.push(
+          normalizeDomainAddressBook(data, domain.domainId, userId)
+        )
       } catch {
         console.warn(
           `Failed to fetch domain addressbook for domain ${domain.domainId}:`
@@ -147,18 +161,27 @@ async function fetchDomainAddressBooks(
 
 function normalizeDomainAddressBook(
   raw: DavAddressBookItem,
-  domainId: string
+  domainId: string,
+  userId: string
 ): AddressBook {
   const acl = raw['{DAV:}acl'] ?? []
-  return {
-    id: 'dab',
-    userId: domainId,
-    name: raw['{DAV:}displayname'] ?? '',
-    contactsCount: raw[`{${CONTACTS_NS}}numberOfContacts`] ?? null,
-    acl,
-    canWrite: acl.some(p => p === '{DAV:}write-content' || p === '{DAV:}bind')
-  }
+  return classifyAddressBook(
+    {
+      id: DOMAIN_ADDRESS_BOOK_ID,
+      userId: domainId,
+      name: raw['{DAV:}displayname'] ?? '',
+      contactsCount: raw[`{${CONTACTS_NS}}numberOfContacts`] ?? null,
+      acl,
+      canWrite: acl.some(p => p === '{DAV:}write-content' || p === '{DAV:}bind')
+    },
+    userId
+  )
 }
+
+const toServerAddressBookId = (addressBookId: string): string =>
+  addressBookId === DOMAIN_ADDRESS_BOOK_ID
+    ? DOMAIN_MEMBERS_BOOK_ID
+    : addressBookId
 
 function getContactsPageUrl(
   userId: string,
@@ -171,15 +194,9 @@ function getContactsPageUrl(
       searchParams: { domainMember: String(withDomainMembers) }
     }
   }
-  if (book.id === 'dab') {
-    return {
-      url: `dav/addressbooks/${book.userId}/domain-members.json`,
-      searchParams: { userId }
-    }
-  }
   return {
-    url: `dav/addressbooks/${book.userId}/${book.id}.json`,
-    searchParams: {}
+    url: `${getBookPath(book)}.json`,
+    searchParams: book.id === DOMAIN_ADDRESS_BOOK_ID ? { userId } : {}
   }
 }
 
@@ -225,7 +242,9 @@ export async function fetchContactsPage(
 // The domain book is stored as dab, while its contacts are in domain-members
 function toStoreAddressBookId(href: string | undefined): string {
   const addressBookId = extractAddressBookIdFromHref(href)
-  return addressBookId === 'domain-members' ? 'dab' : addressBookId
+  return addressBookId === DOMAIN_MEMBERS_BOOK_ID
+    ? DOMAIN_ADDRESS_BOOK_ID
+    : addressBookId
 }
 
 export async function fetchContact(
@@ -245,10 +264,8 @@ export async function fetchContact(
   }
 }
 
-function getBookPath(book: AddressBook): string {
-  return book.id === 'dab'
-    ? `dav/addressbooks/${book.userId}/domain-members`
-    : `dav/addressbooks/${book.userId}/${book.id}`
+function getBookPath(book: RawAddressBook): string {
+  return `dav/addressbooks/${book.userId}/${toServerAddressBookId(book.id)}`
 }
 
 /** Every contact of the book as a single vCard file. */
@@ -377,12 +394,15 @@ function extractAddressBookIdFromHref(href: string | undefined): string {
 }
 
 export async function searchContacts(
-  addressBooks: AddressBookRef[],
+  addressBooks: AddressBook[],
   search: string
 ): Promise<ContactEntry[]> {
   const requestBody: MultiAddressBookSearchRequest = {
     query: search,
-    addressBooks
+    addressBooks: addressBooks.map(book => ({
+      userId: book.userId,
+      addressBookId: toServerAddressBookId(book.id)
+    }))
   }
 
   const response = api.post('contacts/api/contacts/search', {
@@ -396,7 +416,7 @@ export async function searchContacts(
 
   const items = data._embedded?.['dav:item'] ?? []
   return items.flatMap(item => {
-    const addressBookId = extractAddressBookIdFromHref(item._links?.self?.href)
+    const addressBookId = toStoreAddressBookId(item._links?.self?.href)
     return addressBookId
       ? [
           {
@@ -425,14 +445,17 @@ export async function createAddressBook(
     }
   })
 
-  return {
-    id,
-    userId,
-    name,
-    contactsCount: 0,
-    acl: ['dav:read', 'dav:write'],
-    canWrite: true
-  }
+  return classifyAddressBook(
+    {
+      id,
+      userId,
+      name,
+      contactsCount: 0,
+      acl: ['dav:read', 'dav:write'],
+      canWrite: true
+    },
+    userId
+  )
 }
 const MAILTO_PREFIX = 'mailto:'
 
@@ -566,9 +589,10 @@ export async function searchUsers(
   }))
 }
 
+// the owner's own books, which are not classified: they are not the user's
 export async function fetchSubscribableAddressBooks(
   ownerId: string
-): Promise<AddressBook[]> {
+): Promise<RawAddressBook[]> {
   const data: DavAddressBooksResponse = await api
     .get(`dav/addressbooks/${ownerId}.json`, {
       // ?personal lists the owner's books the user can read: the public ones and the ones
@@ -584,7 +608,7 @@ export async function fetchSubscribableAddressBooks(
 
 export async function subscribeToAddressBook(
   userId: string,
-  source: AddressBook,
+  source: RawAddressBook,
   ownerDisplayName?: string
 ): Promise<AddressBook> {
   const id = crypto.randomUUID()
@@ -614,18 +638,21 @@ export async function subscribeToAddressBook(
     }
   }
 
-  return {
-    id,
-    userId,
-    sourceBookId: source.id,
-    name: source.name,
-    contactsCount: source.contactsCount,
-    acl: ['dav:read'],
-    canWrite: false,
-    ownerId: source.userId,
-    ownerDisplayName:
-      (await fetchOwnerDisplayName(source.userId)) ?? ownerDisplayName
-  }
+  return classifyAddressBook(
+    {
+      id,
+      userId,
+      sourceBookId: source.id,
+      name: source.name,
+      contactsCount: source.contactsCount,
+      acl: ['dav:read'],
+      canWrite: false,
+      ownerId: source.userId,
+      ownerDisplayName:
+        (await fetchOwnerDisplayName(source.userId)) ?? ownerDisplayName
+    },
+    userId
+  )
 }
 
 // Subscribing to a book delegated to the user restores the delegation, with its role,

@@ -41,7 +41,6 @@ export const ContactCell: React.FC<ContactCellProps> = ({
     return column.skeleton ?? <Skeleton animation="wave" variant="text" />
   }
   const { contact, addressBookId } = row as unknown as ContactEntry
-  const readOnly = addressBookId === 'dab'
 
   switch (column.id) {
     case 'contact.displayName': {
@@ -121,11 +120,7 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       )
     case 'actions':
       return (
-        <ContactRowActions
-          contact={contact}
-          addressBookId={addressBookId}
-          readOnly={readOnly}
-        />
+        <ContactRowActions contact={contact} addressBookId={addressBookId} />
       )
     default: {
       const text = typeof cell === 'string' ? cell : '—'

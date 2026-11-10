@@ -1,13 +1,13 @@
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { subscribeToAddressBook } from '../ContactsDao'
-import { AddressBook, ContactsState } from '../contactsTypes'
+import { AddressBook, ContactsState, RawAddressBook } from '../contactsTypes'
 import { ALL_CONTACTS_LISTING } from '../constants'
 import { toContactsErrorKey } from '../contactsUtils'
 
 export interface SubscribeAddressBookArgs {
   userId: string
-  source: AddressBook
+  source: RawAddressBook
   ownerDisplayName?: string
 }
 

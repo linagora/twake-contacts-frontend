@@ -62,8 +62,7 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         const source = contacts.addressBooks[args.fromAddressBookId]
         const destination = contacts.addressBooks[args.toAddressBookId]
         if (
-          !source?.canWrite ||
-          source.id === 'dab' ||
+          !source?.capabilities.moveContactsOut ||
           !destination ||
           !isContactTransferDestination(destination, source.id)
         ) {

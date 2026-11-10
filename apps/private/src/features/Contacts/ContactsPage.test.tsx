@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
@@ -42,7 +43,7 @@ function renderPage(
   const store = setupStore({
     user: { userData: {} } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         [DEFAULT_ADDRESS_BOOK_ID]: {
           id: DEFAULT_ADDRESS_BOOK_ID,
           userId: 'u1',
@@ -62,7 +63,7 @@ function renderPage(
           contacts: [],
           ...book1Overrides
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,

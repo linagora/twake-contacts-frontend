@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import type { Mock } from 'vitest'
 import { useState } from 'react'
 import {
@@ -44,7 +45,7 @@ const renderDialog = (
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         source: {
           ...book('source', sourceCanWrite),
           contacts: [contact],
@@ -61,7 +62,7 @@ const renderDialog = (
           ownerId: 'u2',
           ownerDisplayName: 'Bob Owner'
         }
-      },
+      }),
       listings: {},
       loading: false,
       error: null

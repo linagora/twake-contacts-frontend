@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
-import {
-  canShareAddressBook,
-  getAddressBookDisplayName
-} from '@common/features/Contacts/contactsUtils'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import {
   Trash,
   Dots,
@@ -66,7 +63,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
   const [exportError, setExportError] = useState<string | null>(null)
 
   const dispatch = useAppDispatch()
-  const isCopy = Boolean(book.ownerId)
+  const isCopy = book.capabilities.removeFromList
 
   const removeBook = (): void => {
     void dispatch(
@@ -146,7 +143,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                 onClose={handleMenuClose}
                 onClick={e => e.stopPropagation()}
               >
-                {canShareAddressBook(book) && (
+                {book.capabilities.share && (
                   <ActionsMenuItem onClick={handleShare}>
                     <ListItemIcon>
                       <Icon icon={ShareExternal} />
@@ -154,7 +151,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
                     <ListItemText>{t('contacts.menu.share')}</ListItemText>
                   </ActionsMenuItem>
                 )}
-                {book.canWrite && !isCopy && (
+                {book.capabilities.rename && (
                   <ActionsMenuItem onClick={handleEdit}>
                     <ListItemIcon>
                       <Icon icon={Pen} />

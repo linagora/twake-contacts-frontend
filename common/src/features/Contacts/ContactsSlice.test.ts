@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 import { setupStore } from '@common/app/store'
+import { classifyAddressBook } from './addressBookModel'
 import {
   deleteContact as deleteContactDao,
   fetchAddressBooks,
@@ -45,15 +46,19 @@ const makeBook = (
   id: string,
   contacts: Contact[],
   contactsCount: number | null = contacts.length
-): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  name: id,
-  contactsCount,
-  acl: [],
-  canWrite: true,
-  contacts
-})
+): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      name: id,
+      contactsCount,
+      acl: [],
+      canWrite: true,
+      contacts
+    },
+    'u1'
+  )
 
 // a listing of a single page, unless the starts of its pages are given
 const makeListing = (

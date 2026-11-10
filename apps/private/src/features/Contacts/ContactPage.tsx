@@ -182,7 +182,6 @@ export const ContactPage: React.FC = () => {
             contact={contact}
             addressBookId={addressBookId ?? ''}
             onDeleted={handleDeleted}
-            readOnly={addressBookId === 'dab'}
           />
         )}
       </Stack>
