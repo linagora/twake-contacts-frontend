@@ -58,9 +58,21 @@ function handleBookUpdate({
   userId: string
   bookId: string
 }): void {
-  // A missing or non-numeric token would trigger an invalid refetch
-  const newSyncToken = Number.parseInt(String(push.syncToken), 10)
-  if (!Number.isFinite(newSyncToken)) return
+  // A missing or malformed token would trigger an invalid refetch
+  const newSyncToken = parseSyncToken(push.syncToken)
+  if (newSyncToken === undefined) return
 
   void dispatch(fetchUpdatedContacts({ userId, bookId, newSyncToken }))
+}
+
+const WHOLE_NUMBER = /^\d+$/
+
+// esn-sabre sync tokens are whole non-negative numbers
+function parseSyncToken(syncToken: unknown): number | undefined {
+  if (typeof syncToken !== 'number' && typeof syncToken !== 'string') {
+    return undefined
+  }
+  if (!WHOLE_NUMBER.test(String(syncToken))) return undefined
+  const token = Number(syncToken)
+  return Number.isSafeInteger(token) ? token : undefined
 }
