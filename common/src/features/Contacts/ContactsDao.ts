@@ -444,10 +444,11 @@ const MAILTO_PREFIX = 'mailto:'
  * lookup of its profile: identified by its principal, named by its email.
  */
 function toInviteMember(invite: DavInvite): userData {
-  const memberUserId =
-    (invite.principal || invite.href || '').split('/').pop() || undefined
-  const email = invite.href?.startsWith(MAILTO_PREFIX)
-    ? invite.href.slice(MAILTO_PREFIX.length)
+  const principal = asString(invite.principal)
+  const href = asString(invite.href)
+  const memberUserId = (principal || href).split('/').pop() || undefined
+  const email = href.startsWith(MAILTO_PREFIX)
+    ? href.slice(MAILTO_PREFIX.length)
     : ''
 
   return {
@@ -459,8 +460,25 @@ function toInviteMember(invite: DavInvite): userData {
     sub: memberUserId ?? '',
     openpaasId: memberUserId,
     role: invite.access,
-    href: invite.href
+    href: href || undefined
   }
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+/**
+ * The invites come untrusted from the JSON answer: an entry that is not an
+ * object, or that has neither a string principal nor a string href, cannot
+ * identify a member and is skipped.
+ */
+function isUsableInvite(invite: unknown): invite is DavInvite {
+  if (typeof invite !== 'object' || invite === null) return false
+  const { principal, href } = invite as Partial<
+    Record<keyof DavInvite, unknown>
+  >
+  return asString(principal) !== '' || asString(href) !== ''
 }
 
 /**
@@ -503,7 +521,9 @@ export async function fetchAddressBookDetails(
       entry => entry.principal === '{DAV:}authenticated'
     )
 
-    const members = (invites ?? []).map(toInviteMember)
+    const members = (Array.isArray(invites) ? invites : [])
+      .filter(isUsableInvite)
+      .map(toInviteMember)
 
     return { members, isPublic }
   } catch (error) {

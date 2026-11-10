@@ -12,6 +12,7 @@ import {
   exportAddressBook,
   exportContact,
   fetchAddressBooks,
+  fetchAddressBookDetails,
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
@@ -1073,6 +1074,52 @@ describe('fetchSubscribableAddressBooks', () => {
       searchParams: { personal: 'true', contactsCount: 'true' },
       headers: { Accept: 'application/vcard+json' }
     })
+  })
+})
+
+describe('fetchAddressBookDetails', () => {
+  it('keeps the valid invites when some are malformed', async () => {
+    vi.mocked(api).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          '{DAV:}invite': [
+            {
+              access: 2,
+              comment: null,
+              href: 'mailto:a@x.example',
+              inviteStatus: 2,
+              principal: 'principals/users/m1'
+            },
+            null,
+            'not an invite',
+            { access: 2, inviteStatus: 2, principal: 12 },
+            {
+              access: 2,
+              inviteStatus: 2,
+              href: 12,
+              principal: 'principals/users/m2'
+            }
+          ],
+          acl: []
+        })
+    } as never)
+
+    const { members } = await fetchAddressBookDetails('u1', 'b1')
+
+    expect(members.map(m => [m.openpaasId, m.email, m.href])).toEqual([
+      ['m1', 'a@x.example', 'mailto:a@x.example'],
+      ['m2', '', undefined]
+    ])
+  })
+
+  it('lists no member when the invites are not an array', async () => {
+    vi.mocked(api).mockReturnValue({
+      json: () => Promise.resolve({ '{DAV:}invite': { foo: 1 }, acl: [] })
+    } as never)
+
+    const { members } = await fetchAddressBookDetails('u1', 'b1')
+
+    expect(members).toEqual([])
   })
 })
 
