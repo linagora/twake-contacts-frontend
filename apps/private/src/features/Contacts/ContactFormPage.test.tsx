@@ -242,7 +242,7 @@ describe('CreateContactPage', () => {
   })
 
   it('shows a visible label on the address book field and no move hint', () => {
-    renderPage(['/contacts/book1/new'])
+    renderPage(['/contacts/new/book1'])
 
     const addressBookSelect = screen.getByRole('combobox', {
       name: 'Address book'
@@ -428,7 +428,7 @@ describe('CreateContactPage duplicate email warning', () => {
     ])
     vi.mocked(saveContact).mockReset()
     vi.mocked(saveContact).mockResolvedValue(undefined)
-    renderPage(['/contacts/book1/new'])
+    renderPage(['/contacts/new/book1'])
 
     typeEmail('camille.durand@example.com')
     await screen.findByRole('button', { name: 'Open contact' })
