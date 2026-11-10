@@ -67,6 +67,7 @@
       "cancel": "Cancelar",
       "save": "Guardar",
       "addressBook": "Libreta de direcciones",
+      "moveHint": "Al guardar, este contacto se moverá a %{book}.",
       "editTitle": "Editar contacto",
       "newContact": "Nuevo contacto",
       "invalidEmail": "Dirección de correo electrónico no válida"

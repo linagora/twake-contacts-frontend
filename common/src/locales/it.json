@@ -67,6 +67,7 @@
       "cancel": "Annulla",
       "save": "Salva",
       "addressBook": "Rubrica",
+      "moveHint": "Salvando, questo contatto verrà spostato in %{book}.",
       "editTitle": "Modifica contatto",
       "newContact": "Nuovo contatto",
       "invalidEmail": "Indirizzo email non valido"
