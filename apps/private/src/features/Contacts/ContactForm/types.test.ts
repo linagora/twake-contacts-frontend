@@ -227,7 +227,7 @@ describe('saving an unchanged contact', () => {
       ]
     }
     const values = makeFormValuesFromContact(withPhones, 'book')
-    values.phones[1] = { type: 'home', value: '7044' }
+    values.phones[1] = { ...values.phones[1], value: '7044' }
 
     const saved = makeContactFromForm(values, withPhones)
 
@@ -235,5 +235,48 @@ describe('saving an unchanged contact', () => {
       { type: 'work', value: '7042', source },
       { type: 'home', value: '7044' }
     ])
+  })
+
+  it('keeps each phone its own stored value when numbers read the same', () => {
+    const atWork = {
+      valueType: 'uri',
+      value: 'tel:7042;phone-context=work.com'
+    }
+    const atHome = {
+      valueType: 'uri',
+      value: 'tel:7042;phone-context=home.com'
+    }
+    const withPhones: Contact = {
+      ...contact,
+      phones: [
+        { type: 'work', value: '7042', source: atWork },
+        { type: 'home', value: '7042', source: atHome }
+      ]
+    }
+    const values = {
+      ...makeFormValuesFromContact(withPhones, 'book'),
+      familyName: 'Addr2'
+    }
+
+    const saved = makeContactFromForm(values, withPhones)
+
+    expect(saved.phones?.map(phone => phone.source)).toEqual([atWork, atHome])
+  })
+
+  it('does not hand a removed phone stored value to another row', () => {
+    const source = { valueType: 'uri', value: 'tel:7042;phone-context=a.com' }
+    const withPhones: Contact = {
+      ...contact,
+      phones: [
+        { type: 'work', value: '7042', source },
+        { type: 'home', value: '0600000000' }
+      ]
+    }
+    const values = makeFormValuesFromContact(withPhones, 'book')
+    values.phones = [{ ...values.phones[1], value: '7042' }]
+
+    const saved = makeContactFromForm(values, withPhones)
+
+    expect(saved.phones).toEqual([{ type: 'home', value: '7042' }])
   })
 })

@@ -1,13 +1,22 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
+  ContactPhoneSource,
   ContactSocialProfile
 } from '@common/features/Contacts/contactsTypes'
-import { formatAddress } from '@common/features/Contacts/contactsUtils'
+import {
+  formatAddress,
+  hasUnchangedSource
+} from '@common/features/Contacts/contactsUtils'
 
 export interface ContactFormEntry {
   type: string
   value: string
+}
+
+/** A phone row keeps its own stored TEL value, so it is never matched against another row. */
+export interface PhoneFormEntry extends ContactFormEntry {
+  source?: ContactPhoneSource
 }
 
 export interface ContactFormValues {
@@ -16,7 +25,7 @@ export interface ContactFormValues {
   familyName: string
   categories: string[]
   matrixId: string
-  phones: ContactFormEntry[]
+  phones: PhoneFormEntry[]
   emails: ContactFormEntry[]
   addresses: ContactFormEntry[]
 }
@@ -67,7 +76,13 @@ export function makeFormValuesFromContact(
     familyName: contact.name?.familyName ?? '',
     categories: contact.categories ?? [],
     matrixId: contact.socialProfiles?.find(isMatrix)?.value ?? '',
-    phones: orEmptyEntry((contact.phones ?? []).map(toEntry)),
+    phones: orEmptyEntry(
+      (contact.phones ?? []).map(phone =>
+        phone.source
+          ? { ...toEntry(phone), source: phone.source }
+          : toEntry(phone)
+      )
+    ),
     emails: orEmptyEntry(contact.emails.map(toEntry)),
     addresses: orEmptyEntry(
       (contact.addresses ?? []).map(address => ({
@@ -102,10 +117,13 @@ export function makeContactFromForm(
           country: ''
         }
   })
-  const phones = values.phones.filter(hasValue).map(entry => {
-    const original = base?.phones?.find(phone => phone.value === entry.value)
-    return original ? { ...original, type: entry.type } : entry
-  })
+  const phones = values.phones
+    .filter(hasValue)
+    .map(entry =>
+      hasUnchangedSource(entry)
+        ? entry
+        : { type: entry.type, value: entry.value }
+    )
   const otherProfiles = (base?.socialProfiles ?? []).filter(p => !isMatrix(p))
   return {
     ...base,

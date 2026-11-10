@@ -13,6 +13,7 @@ import {
   PhoneValueType,
   RawAddressBook
 } from '../contactsTypes'
+import { hasUnchangedSource } from '../contactsUtils'
 import {
   DavAddressBookItem,
   DavContactItem,
@@ -453,12 +454,9 @@ function makeBirthdayProperty(
 }
 
 /** Writes the stored TEL value back when the readable number was not changed. */
-function makePhoneProperty({
-  type,
-  value,
-  source
-}: ContactPhone): JCalProperty {
-  if (source && stripTel(source.value) === value) {
+function makePhoneProperty(phone: ContactPhone): JCalProperty {
+  const { type, value, source } = phone
+  if (source && hasUnchangedSource(phone)) {
     return ['tel', type ? { type } : {}, source.valueType, source.value]
   }
   return makeTypedProperty('tel', type, value)
