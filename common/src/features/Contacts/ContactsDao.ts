@@ -45,7 +45,10 @@ async function fetchAddressBookItems(
   })
   const data: DavAddressBooksResponse = await response.json()
 
-  return data._embedded?.['dav:addressbook'] ?? []
+  // an item without href can neither be opened nor written to
+  return (data._embedded?.['dav:addressbook'] ?? []).filter(
+    book => normalizeAddressBook(book).id !== ''
+  )
 }
 
 export async function fetchAddressBooks(

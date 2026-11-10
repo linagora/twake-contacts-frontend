@@ -90,6 +90,19 @@ describe('getAddressBookDisplayName', () => {
 
     expect(getAddressBookDisplayName(book, t)).toBe('qa-empty')
   })
+
+  it('falls back to the id of a book named with blanks', () => {
+    expect(getAddressBookDisplayName(makeBook('b1', '   '), t)).toBe('b1')
+  })
+
+  it.each([
+    { id: 'b1', name: '   ' },
+    { id: '', name: '' }
+  ])('never labels a book with a blank name: %p', partial => {
+    const book = { ...makeBook('', ''), canWrite: false, ...partial }
+
+    expect(getAddressBookDisplayName(book, t).trim()).not.toBe('')
+  })
 })
 
 describe('canShareAddressBook', () => {
