@@ -41,6 +41,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
         </Stack>
       }
       title={t('contacts.empty.title')}
+      componentsProps={{ title: { component: 'h2' } }}
     />
   )
 }

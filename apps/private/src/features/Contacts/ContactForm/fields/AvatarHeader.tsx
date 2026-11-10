@@ -19,7 +19,7 @@ export const AvatarHeader: React.FC<AvatarHeaderProps> = ({
     >
       <ContactAvatar size={94} initialsVariant="h2" displayName={displayName} />
       <Tooltip disableInteractive title={displayName || title || ''}>
-        <Typography variant="h4" noWrap>
+        <Typography variant="h4" component="h1" noWrap>
           {displayName || title || ''}
         </Typography>
       </Tooltip>

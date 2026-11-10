@@ -419,3 +419,28 @@ describe('AddressBookPage tabs', () => {
     )
   })
 })
+
+describe('AddressBookPage headings', () => {
+  it('names the address book in the only h1', () => {
+    renderPage(
+      '/contacts/book1',
+      { book1: makeBook('book1', [alice], 'u1') },
+      { book1: makeListing('book1', [alice], null) }
+    )
+
+    const headings = screen.getAllByRole('heading', { level: 1 })
+    expect(headings).toHaveLength(1)
+    expect(headings[0]).toHaveTextContent('book1')
+  })
+
+  it('makes the not found message the h1 of an unknown book', () => {
+    renderPage('/contacts/unknown', { book1: makeBook('book1', [], 'u1') })
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: en.contacts.addressBookNotFound
+      })
+    ).toBeInTheDocument()
+  })
+})

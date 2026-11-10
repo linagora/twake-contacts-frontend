@@ -104,7 +104,8 @@
     "nav": {
       "menu": "Menü",
       "settings": "Einstellungen",
-      "search": "Suchen"
+      "search": "Suchen",
+      "skipToContent": "Zum Hauptinhalt springen"
     },
     "errors": {
       "load": "Kontakte konnten nicht geladen werden",

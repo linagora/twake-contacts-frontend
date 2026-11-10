@@ -37,6 +37,14 @@ describe('NoContactsEmptyState', () => {
     expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
   })
 
+  it('titles the empty state with an h2, below the page h1', () => {
+    renderEmptyState('light')
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: en.contacts.empty.title })
+    ).toBeInTheDocument()
+  })
+
   it('uses the light illustration in light mode', () => {
     const { container } = renderEmptyState('light')
 

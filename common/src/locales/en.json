@@ -133,7 +133,8 @@
     "nav": {
       "menu": "Menu",
       "settings": "Settings",
-      "search": "Search"
+      "search": "Search",
+      "skipToContent": "Skip to main content"
     },
     "errors": {
       "load": "Failed to load contacts",

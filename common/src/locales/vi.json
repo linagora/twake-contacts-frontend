@@ -104,7 +104,8 @@
     "nav": {
       "menu": "Menu",
       "settings": "Cài đặt",
-      "search": "Tìm kiếm"
+      "search": "Tìm kiếm",
+      "skipToContent": "Chuyển đến nội dung chính"
     },
     "errors": {
       "load": "Không thể tải danh bạ",

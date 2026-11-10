@@ -187,7 +187,9 @@ export const ContactPage: React.FC = () => {
         )}
       </Stack>
       {!contact ? (
-        <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
+        <Typography component="h1" variant="body1" color="text.secondary">
+          {t('contacts.notFound')}
+        </Typography>
       ) : (
         <>
           <AvatarHeader displayName={contact.displayName} />

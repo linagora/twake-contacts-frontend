@@ -57,7 +57,11 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
           </IconButton>
         </Tooltip>
         {isAddressBookPage && (
-          <Typography variant="h6" className="u-fw-bold u-fz-medium">
+          <Typography
+            variant="h6"
+            component="h1"
+            className="u-fw-bold u-fz-medium"
+          >
             {title}
           </Typography>
         )}

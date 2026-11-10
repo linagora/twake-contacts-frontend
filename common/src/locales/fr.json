@@ -104,7 +104,8 @@
     "nav": {
       "menu": "Menu",
       "settings": "Paramètres",
-      "search": "Rechercher"
+      "search": "Rechercher",
+      "skipToContent": "Aller au contenu principal"
     },
     "errors": {
       "load": "Échec du chargement des contacts",

@@ -30,6 +30,9 @@ import { CreateAddressBookDialog } from './CreateAddressBookDialog'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 import { MobileTopBar } from './MobileTopBar'
 import { ThemeToggle } from '@common/components/ThemeToggle/ThemeToggle'
+import { SkipLink } from './SkipLink'
+
+const MAIN_CONTENT_ID = 'main-content'
 
 export const ContactsPage: React.FC = () => {
   const [isCreateBookOpen, setIsCreateBookOpen] = useState(false)
@@ -89,6 +92,7 @@ export const ContactsPage: React.FC = () => {
 
   return (
     <Layout withTopBar={false} className="u-h-100">
+      <SkipLink targetId={MAIN_CONTENT_ID} />
       <ContactsSidebar
         onOpenSubscribe={() => setIsSubscribeOpen(true)}
         open={isSidebarOpen}
@@ -98,8 +102,9 @@ export const ContactsPage: React.FC = () => {
           setIsCreateBookOpen(true)
         }}
       />
-      <Main>
-        <Content className="u-p-1">
+      <Main id={MAIN_CONTENT_ID} tabIndex={-1}>
+        {/* Content forces role="main": the <main> of Main is the only landmark */}
+        <Content className="u-p-1" role={undefined}>
           <MobileTopBar
             onOpenSidebar={() => setIsSidebarOpen(true)}
             onToggleSearch={() => setIsMobileSearchOpen(prev => !prev)}
@@ -109,6 +114,7 @@ export const ContactsPage: React.FC = () => {
           />
           {(!isMobile || isAddressBookPage || isMobileSearchOpen) && (
             <Stack
+              role="search"
               direction="row"
               className="u-flex-items-center u-flex-justify-between u-mb-1"
             >
