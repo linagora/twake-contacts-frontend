@@ -15,7 +15,10 @@
       "error": "Impossible de copier le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
     "title": "Contacts",
-    "tabs": { "mine": "Mes contacts", "shared": "Partagé avec moi" },
+    "tabs": {
+      "mine": "Mes contacts",
+      "shared": "Partagé avec moi"
+    },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
     "domainAddressBook": "Carnet d'adresses du domaine",
@@ -177,6 +180,12 @@
     "title": "Une erreur s'est produite",
     "unknown": "Une erreur inconnue s'est produite",
     "retry": "Réessayer"
+  },
+  "configError": {
+    "title": "L’application est mal configurée",
+    "hint": "L’administrateur doit corriger ces paramètres de .env.js :",
+    "missing": "%{name} est manquant",
+    "invalid": "%{name} est invalide"
   },
   "common": {
     "ok": "OK"

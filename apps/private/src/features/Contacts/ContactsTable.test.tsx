@@ -12,6 +12,12 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { ContactsTable } from './ContactsTable'
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+
 const mockUseBreakpoints = vi.hoisted(() =>
   vi.fn(() => ({
     isMobile: false,
@@ -86,7 +92,7 @@ const renderTable = (
 describe('ContactsTable', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    window.MAIL_SPA_URL = 'https://mail.example.com'
+    mockConfig.MAIL_SPA_URL = 'https://mail.example.com'
     mockUseBreakpoints.mockReturnValue({
       isMobile: false,
       isTablet: false,
@@ -97,7 +103,7 @@ describe('ContactsTable', () => {
 
   afterEach(() => {
     vi.useRealTimers()
-    delete window.MAIL_SPA_URL
+    delete mockConfig.MAIL_SPA_URL
   })
 
   const openNamePopover = (): void => {

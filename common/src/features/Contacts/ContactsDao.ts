@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import { api } from '@common/utils/apiUtils'
 import { encodeDavSegment } from '@linagora/twake-utils'
 import { fetchUserById } from '@common/features/User/UserDao'
@@ -26,7 +27,7 @@ import { CONTACTS_PAGINATION_LIMIT, SEARCH_LIMIT } from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
 import { userData } from '../User/userDataTypes'
 
-const CONTACTS_NS = window.CONTACTS_NS ?? 'http://open-paas.org/contacts'
+const CONTACTS_NS = config.CONTACTS_NS
 
 async function fetchAddressBookItems(
   userId: string

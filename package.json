@@ -41,6 +41,7 @@
     "lint:fmt": "rs fmt --check",
     "fmt": "rs fmt",
     "copy-from-common": "node scripts/copy-from-common.js",
+    "config:doc": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/print-config-doc.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

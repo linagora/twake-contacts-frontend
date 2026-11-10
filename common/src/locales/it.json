@@ -15,7 +15,10 @@
       "error": "Impossibile copiare il contatto. Potrebbe già esistere nella rubrica di destinazione."
     },
     "title": "Contatti",
-    "tabs": { "mine": "I miei contatti", "shared": "Condiviso con me" },
+    "tabs": {
+      "mine": "I miei contatti",
+      "shared": "Condiviso con me"
+    },
     "myContacts": "I miei contatti",
     "shared": "Condivisi",
     "domainAddressBook": "Rubrica del dominio",
@@ -176,6 +179,12 @@
     "title": "Si è verificato un problema",
     "unknown": "Si è verificato un errore sconosciuto",
     "retry": "Riprova"
+  },
+  "configError": {
+    "title": "L’applicazione non è configurata correttamente",
+    "hint": "L’amministratore deve correggere queste impostazioni di .env.js:",
+    "missing": "%{name} è mancante",
+    "invalid": "%{name} non è valido"
   },
   "common": {
     "ok": "OK"

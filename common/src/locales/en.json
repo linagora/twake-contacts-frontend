@@ -15,7 +15,10 @@
       "error": "Could not copy the contact. It may already exist in the destination address book."
     },
     "title": "Contacts",
-    "tabs": { "mine": "My contacts", "shared": "Shared with me" },
+    "tabs": {
+      "mine": "My contacts",
+      "shared": "Shared with me"
+    },
     "myContacts": "My contacts",
     "shared": "Shared",
     "domainAddressBook": "Domain Address Book",
@@ -177,6 +180,12 @@
     "title": "Something went wrong",
     "unknown": "An unknown error occurred",
     "retry": "Try Again"
+  },
+  "configError": {
+    "title": "The application is misconfigured",
+    "hint": "The administrator must fix these settings of .env.js:",
+    "missing": "%{name} is missing",
+    "invalid": "%{name} is invalid"
   },
   "common": {
     "ok": "Ok"

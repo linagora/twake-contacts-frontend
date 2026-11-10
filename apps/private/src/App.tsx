@@ -1,8 +1,8 @@
+import { config } from '@common/config'
 import { useAppSelector } from '@common/app/hooks'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { Loading } from '@common/components/Loading/Loading'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
-import { AVAILABLE_LANGUAGES } from '@common/features/Settings/constants'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
 import {
   Box,
@@ -15,46 +15,10 @@ import { Suspense, useEffect } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { BrowserRouter as Router } from 'react-router'
 
-import {
-  de as deLocale,
-  enGB,
-  es as esLocale,
-  fr as frLocale,
-  it as itLocale,
-  ru as ruLocale,
-  vi as viLocale
-} from 'date-fns/locale'
-
-import de from '@common/locales/de.json'
-import en from '@common/locales/en.json'
-import es from '@common/locales/es.json'
-import fr from '@common/locales/fr.json'
-import it from '@common/locales/it.json'
-import ru from '@common/locales/ru.json'
-import vi from '@common/locales/vi.json'
 import I18n from 'twake-i18n'
 import { WebSocketGate } from '@common/websocket/WebSocketGate'
 import { AppRoutes } from './AppRoutes'
-
-const locale = { en, fr, ru, vi, es, de, it }
-const dateLocales = {
-  en: enGB,
-  fr: frLocale,
-  ru: ruLocale,
-  vi: viLocale,
-  es: esLocale,
-  de: deLocale,
-  it: itLocale
-}
-
-const SUPPORTED_LANGUAGES = AVAILABLE_LANGUAGES.map(lang => lang.code)
-type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
-
-const isValidLanguage = (
-  lang: string | null | undefined
-): lang is SupportedLanguage => {
-  return !!lang && SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage)
-}
+import { dateLocales, isValidLanguage, locale } from './i18n'
 
 function ThemeSync(): null {
   const { mode, setMode } = useColorScheme()
@@ -74,7 +38,7 @@ export default function App(): React.JSX.Element {
   const userLanguage = useAppSelector(state => state.user.coreConfig.language)
   const settingsLanguage = useAppSelector(state => state.settings.language)
   const savedLang = localStorage.getItem('lang')
-  const defaultLang = window.LANG
+  const defaultLang = config.LANG
 
   const lang =
     [userLanguage, settingsLanguage, savedLang, defaultLang].find(

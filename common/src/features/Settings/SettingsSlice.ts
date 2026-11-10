@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
 
@@ -9,7 +10,7 @@ export interface SettingsState {
 }
 
 const savedLang = localStorage.getItem('lang')
-const defaultLang = savedLang ?? window.LANG ?? 'en'
+const defaultLang = savedLang ?? config.LANG
 const savedTheme = localStorage.getItem('theme') as ThemeMode | null
 const defaultTheme: ThemeMode = savedTheme ?? 'light'
 

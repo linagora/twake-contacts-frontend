@@ -7,9 +7,16 @@ var SSO_CODE_CHALLENGE_METHOD = 'S256'
 var SSO_POST_LOGOUT_REDIRECT = 'http://example.com?logout=1'
 var SIDE_SERVICE_BASE_URL = 'https://openpaas.example.com'
 var DAV_BASE_URL = 'https://dav.example.com'
+// Base URL of the side service websocket, for live updates (disabled when omitted).
+// https:// is converted to wss://
+var WEBSOCKET_URL = 'wss://openpaas.example.com'
 var CONTACTS_NS = 'http://open-paas.org/contacts'
 var DEBUG = false
 var LANG = 'en'
+
+// Sentry (optional): omit SENTRY_DSN to disable it
+var SENTRY_DSN = ''
+var SENTRY_ENVIRONMENT = 'production'
 
 // Base URL for the mail application composer.
 // Supports {localpart} and {workplaceFqdn} placeholders.

@@ -15,7 +15,10 @@
       "error": "No se pudo copiar el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
     "title": "Contactos",
-    "tabs": { "mine": "Mis contactos", "shared": "Compartido conmigo" },
+    "tabs": {
+      "mine": "Mis contactos",
+      "shared": "Compartido conmigo"
+    },
     "myContacts": "Mis contactos",
     "shared": "Compartidos",
     "domainAddressBook": "Libreta de direcciones del dominio",
@@ -177,6 +180,12 @@
     "title": "Se ha producido un error",
     "unknown": "Se ha producido un error desconocido",
     "retry": "Reintentar"
+  },
+  "configError": {
+    "title": "La aplicación está mal configurada",
+    "hint": "El administrador debe corregir estos parámetros de .env.js:",
+    "missing": "Falta %{name}",
+    "invalid": "%{name} no es válido"
   },
   "common": {
     "ok": "Aceptar"

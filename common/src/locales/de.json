@@ -15,7 +15,10 @@
       "error": "Der Kontakt konnte nicht kopiert werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
     "title": "Kontakte",
-    "tabs": { "mine": "Meine Kontakte", "shared": "Mir mitgeteilt" },
+    "tabs": {
+      "mine": "Meine Kontakte",
+      "shared": "Mir mitgeteilt"
+    },
     "myContacts": "Meine Kontakte",
     "shared": "Geteilt",
     "domainAddressBook": "Domain-Adressbuch",
@@ -177,6 +180,12 @@
     "title": "Etwas ist schiefgelaufen",
     "unknown": "Ein unbekannter Fehler ist aufgetreten",
     "retry": "Erneut versuchen"
+  },
+  "configError": {
+    "title": "Die Anwendung ist falsch konfiguriert",
+    "hint": "Der Administrator muss diese Einstellungen in .env.js korrigieren:",
+    "missing": "%{name} fehlt",
+    "invalid": "%{name} ist ungültig"
   },
   "common": {
     "ok": "OK"

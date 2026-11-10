@@ -8,6 +8,12 @@ import { ensureSdkSignedIn, getPlatformSdk } from '@common/utils/sdkSession'
 import I18n from 'twake-i18n'
 import en from '@common/locales/en.json'
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+
 vi.mock('@common/utils/sdkSession', () => ({
   ensureSdkSignedIn: vi.fn(() => Promise.resolve({})),
   getPlatformSdk: vi.fn(() => ({}))
@@ -67,9 +73,9 @@ const renderBar = (
 
 describe('TwakeBarHeader', () => {
   beforeEach(() => {
-    window.WORKPLACE_FQDN_FALLBACK = undefined
-    window.SUPPORT_URL = 'https://support.example.com'
-    window.appList = [{ name: 'Mail', link: '/mail', icon: '/mail.svg' }]
+    mockConfig.WORKPLACE_FQDN_FALLBACK = undefined
+    mockConfig.SUPPORT_URL = 'https://support.example.com'
+    mockConfig.appList = [{ name: 'Mail', link: '/mail', icon: '/mail.svg' }]
     mockBar.mockClear()
   })
 
@@ -125,7 +131,7 @@ describe('TwakeBarHeader', () => {
   })
 
   it('resolves the workplace fallback and tolerates a refused token exchange', async () => {
-    window.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
+    mockConfig.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
     vi.mocked(ensureSdkSignedIn).mockRejectedValueOnce(new Error('refused'))
     await act(async () => {
       renderBar({ token: 'id-token' })
@@ -138,7 +144,7 @@ describe('TwakeBarHeader', () => {
   })
 
   it('does not resolve the workplace fallback before the user is known', () => {
-    window.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
+    mockConfig.WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.app'
     renderBar({ signedIn: false, token: 'id-token' })
     expect(ensureSdkSignedIn).not.toHaveBeenCalledWith(
       'https://.twake.app',
@@ -149,8 +155,8 @@ describe('TwakeBarHeader', () => {
   })
 
   it('supplies the platform client even before a token is available', () => {
-    window.appList = undefined
-    window.SUPPORT_URL = undefined
+    mockConfig.appList = []
+    mockConfig.SUPPORT_URL = undefined
     renderBar({ workplace: 'alice.twake.app' })
     expect(ensureSdkSignedIn).not.toHaveBeenCalled()
     expect(getPlatformSdk).toHaveBeenCalledWith('https://alice.twake.app')

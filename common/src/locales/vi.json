@@ -15,7 +15,10 @@
       "error": "Không thể sao chép liên hệ. Liên hệ có thể đã tồn tại trong sổ địa chỉ đích."
     },
     "title": "Danh bạ",
-    "tabs": { "mine": "Danh bạ của tôi", "shared": "Đã chia sẻ với tôi" },
+    "tabs": {
+      "mine": "Danh bạ của tôi",
+      "shared": "Đã chia sẻ với tôi"
+    },
     "myContacts": "Danh bạ của tôi",
     "shared": "Được chia sẻ",
     "domainAddressBook": "Sổ địa chỉ miền",
@@ -177,6 +180,12 @@
     "title": "Đã xảy ra lỗi",
     "unknown": "Có lỗi không xác định",
     "retry": "Thử lại"
+  },
+  "configError": {
+    "title": "Ứng dụng được cấu hình sai",
+    "hint": "Quản trị viên cần sửa các thiết lập sau trong .env.js:",
+    "missing": "Thiếu %{name}",
+    "invalid": "%{name} không hợp lệ"
   },
   "common": {
     "ok": "OK"

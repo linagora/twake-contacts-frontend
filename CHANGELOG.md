@@ -15,4 +15,8 @@ and interacts with `esn-sabre` (CardDAV) and an OpenPaaS / ESN backend.
 - OIDC login flow and DAV JWT exchange
 - Address book and contact listing over CardDAV
 - Multi-language support
-- Runtime configuration via static JS files
+- Runtime configuration via static JS files, validated at startup: `SSO_BASE_URL`,
+  `SSO_CLIENT_ID`, `SSO_SCOPE`, `SSO_REDIRECT_URI` and `SIDE_SERVICE_BASE_URL` are
+  required, and a missing or malformed setting shows a page naming it
+- Bounded API retry policy: 15 s timeout per attempt, reads retried twice, writes
+  never replayed automatically
