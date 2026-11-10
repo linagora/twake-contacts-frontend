@@ -57,6 +57,30 @@ describe('UserAutocomplete', () => {
     vi.clearAllMocks()
   })
 
+  it('is labelled by the element given as labelledBy', () => {
+    const store = setupStore({
+      user: { userData: { openpaasId: 'u1' } } as UserState
+    })
+    render(
+      <Provider store={store}>
+        <TwakeMuiThemeProvider>
+          <I18n dictRequire={() => en} lang="en">
+            <p id="user-label">Pick someone</p>
+            <UserAutocomplete
+              onSelect={vi.fn()}
+              onType={vi.fn()}
+              labelledBy="user-label"
+            />
+          </I18n>
+        </TwakeMuiThemeProvider>
+      </Provider>
+    )
+
+    expect(
+      screen.getByRole('combobox', { name: 'Pick someone' })
+    ).toHaveAttribute('placeholder', 'Search for a user')
+  })
+
   it('labels the clear button in the user language', async () => {
     renderAutocomplete(vi.fn(), vi.fn(), { lang: 'fr', dict: fr })
 

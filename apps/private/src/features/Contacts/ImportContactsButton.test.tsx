@@ -1,11 +1,18 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import type { MockedFunction } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  RenderResult,
+  screen,
+  waitFor
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
-import { setupStore } from '@common/app/store'
+import { AppStore, RootState, setupStore } from '@common/app/store'
 import {
   importContacts,
   uploadImportFile
@@ -23,10 +30,10 @@ const mockImportContacts = importContacts as MockedFunction<
   typeof importContacts
 >
 
-const defaultPreloadedState = {
+const defaultPreloadedState: Partial<RootState> = {
   user: { userData: { openpaasId: 'u1' } } as UserState,
   contacts: {
-    addressBooks: {
+    addressBooks: classifyAddressBooks({
       contacts: {
         id: 'contacts',
         userId: 'u1',
@@ -45,7 +52,7 @@ const defaultPreloadedState = {
         canWrite: true,
         contacts: []
       }
-    },
+    }),
     listings: {},
     sort: DEFAULT_CONTACT_SORT,
     loading: false,
@@ -55,8 +62,8 @@ const defaultPreloadedState = {
 
 const renderWithProviders = (
   ui: React.ReactElement,
-  preloadedState = defaultPreloadedState
-) => {
+  preloadedState: Partial<RootState> = defaultPreloadedState
+): RenderResult & { store: AppStore } => {
   const store = setupStore(preloadedState)
   return {
     store,
@@ -72,7 +79,9 @@ const renderWithProviders = (
   }
 }
 
-const renderButton = (addressBookId?: string) =>
+const renderButton = (
+  addressBookId?: string
+): RenderResult & { store: AppStore } =>
   renderWithProviders(<ImportContactsButton addressBookId={addressBookId} />)
 
 const selectFile = (container: HTMLElement): void => {
@@ -103,11 +112,33 @@ describe('ImportContactsButton', () => {
     expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
   })
 
+  it('renders a real button with the file input outside of it', () => {
+    const { container } = renderButton('book1')
+    const button = screen.getByRole('button', { name: 'Import' })
+    const input = container.querySelector('input[type="file"]')
+
+    expect(button.tagName).toBe('BUTTON')
+    expect(input).not.toBeNull()
+    expect(button).not.toContainElement(input as HTMLElement)
+  })
+
+  it('opens the file chooser when clicking the button', () => {
+    const { container } = renderButton('book1')
+    const input = container.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement
+    const clickSpy = vi.spyOn(input, 'click')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import' }))
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+  })
+
   it('does not render when "contacts" address book is not available', () => {
     renderWithProviders(<ImportContactsButton />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           book1: {
             id: 'book1',
             userId: 'u1',
@@ -117,7 +148,7 @@ describe('ImportContactsButton', () => {
             canWrite: true,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,
@@ -227,7 +258,7 @@ describe('ImportContactsButton', () => {
     renderWithProviders(<ImportContactsButton addressBookId="readonlyBook" />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           readonlyBook: {
             id: 'readonlyBook',
             userId: 'u1',
@@ -237,7 +268,7 @@ describe('ImportContactsButton', () => {
             canWrite: false,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,
@@ -254,7 +285,7 @@ describe('ImportContactsButton', () => {
     renderWithProviders(<ImportContactsButton addressBookId="dab" />, {
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           dab: {
             id: 'dab',
             userId: 'domain1',
@@ -264,7 +295,7 @@ describe('ImportContactsButton', () => {
             canWrite: true,
             contacts: []
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,

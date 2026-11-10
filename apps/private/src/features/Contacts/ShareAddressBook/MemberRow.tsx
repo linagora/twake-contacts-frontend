@@ -58,7 +58,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             // read-only, not disabled: a disabled button would drop its focus
             readOnly={isUpdating}
           />
-          <Tooltip disableInteractive title={t('contacts.form.remove')}>
+          <Tooltip title={t('contacts.form.remove')}>
             <IconButton
               size="small"
               onClick={() =>

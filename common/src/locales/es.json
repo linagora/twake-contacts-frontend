@@ -1,23 +1,33 @@
 {
-  "locale": "es-es",
   "contacts": {
     "moveContact": {
-      "success": "Contacto movido correctamente",
+      "success": "“%{name}” movido a %{book}",
       "title": "Mover contacto",
       "confirm": "Mover",
       "error": "No se pudo mover el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · actualmente en %{book}",
+      "open": "Abrir"
+    },
     "copyContact": {
-      "success": "Contacto copiado correctamente",
+      "success": "“%{name}” copiado a %{book}",
       "title": "Copiar contacto",
       "destination": "Libreta de direcciones de destino",
       "empty": "No hay libretas de direcciones disponibles con permiso de escritura.",
       "error": "No se pudo copiar el contacto. Puede que ya exista en la libreta de direcciones de destino."
     },
     "title": "Contactos",
-    "tabs": { "mine": "Mis contactos", "shared": "Compartido conmigo" },
+    "tabs": {
+      "mine": "Mis contactos",
+      "shared": "Compartido conmigo"
+    },
     "myContacts": "Mis contactos",
     "shared": "Compartidos",
+    "sidebar": {
+      "collapse": "Contraer",
+      "expand": "Expandir"
+    },
     "domainAddressBook": "Libreta de direcciones del dominio",
     "create": "Crear",
     "name": "Nombre",
@@ -45,7 +55,6 @@
       "clear": "Borrar",
       "firstName": "Nombre",
       "lastName": "Apellidos",
-      "addTeam": "Añadir equipo",
       "matrixId": "ID de Matrix",
       "phone": "Teléfono",
       "addPhone": "Añadir teléfono",
@@ -56,18 +65,26 @@
       "addField": "Añadir",
       "remove": "Eliminar",
       "type": "Tipo",
+      "phoneType": "Tipo de teléfono",
+      "addressType": "Tipo de dirección",
+      "removePhone": "Quitar teléfono",
+      "removeEmail": "Quitar correo electrónico",
+      "removeAddress": "Quitar dirección",
       "typeLabel": "Etiqueta",
       "cancel": "Cancelar",
       "save": "Guardar",
-      "addressBook": "Libreta de direcciones",
       "editTitle": "Editar contacto",
-      "newContact": "Nuevo contacto",
-      "invalidEmail": "Dirección de correo electrónico no válida"
+      "addressBook": "Libreta de direcciones",
+      "moveHint": "Al guardar, este contacto se moverá a %{book}.",
+      "invalidEmail": "Dirección de correo no válida, p. ej. nombre@ejemplo.com",
+      "duplicateEmail": "%{name} ya tiene esta dirección de correo, en %{book}.",
+      "duplicateEmailMany": "%{smart_count} contacto ya tiene esta dirección de correo. |||| %{smart_count} contactos ya tienen esta dirección de correo.",
+      "openExisting": "Abrir contacto",
+      "nameRequired": "Introduce un nombre o un apellido"
     },
     "edit": {
-      "title": "Editar libreta de direcciones",
+      "title": "Cambiar nombre de la libreta de direcciones",
       "name": "Nombre",
-      "description": "Descripción",
       "cancel": "Cancelar",
       "save": "Guardar"
     },
@@ -83,10 +100,8 @@
       "openChat": "Abrir chat",
       "createEvent": "Crear evento",
       "edit": "Editar",
+      "rename": "Cambiar nombre",
       "delete": "Eliminar",
-      "chat": "Chat",
-      "mail": "Enviar correo",
-      "schedule": "Programar",
       "share": "Compartir",
       "remove": "Quitar de mi lista",
       "export": "Exportar"
@@ -99,12 +114,13 @@
     "search": {
       "placeholder": "Buscar contactos...",
       "loading": "Cargando...",
-      "noResults": "No se han encontrado contactos"
+      "noResults": "No se han encontrado contactos",
+      "resultsCount": "%{smart_count} contacto encontrado |||| %{smart_count} contactos encontrados"
     },
     "nav": {
       "menu": "Menú",
-      "settings": "Configuración",
-      "search": "Buscar"
+      "search": "Buscar",
+      "skipToContent": "Saltar al contenido principal"
     },
     "errors": {
       "load": "No se han podido cargar los contactos",
@@ -117,7 +133,6 @@
       "subscribe": "No se ha podido añadir la libreta de direcciones",
       "deleteAddressBook": "No se ha podido eliminar la libreta de direcciones",
       "removeAddressBook": "No se ha podido quitar la libreta de direcciones de tu lista",
-      "updateAddressBook": "No se ha podido actualizar la libreta de direcciones",
       "exportAddressBook": "No se pudo exportar la libreta de direcciones",
       "exportContact": "No se pudo exportar el contacto"
     },
@@ -147,13 +162,16 @@
       "removeDescription": "«%{name}» se quitará de su lista. Podrá volver a añadirla buscando a su propietario.",
       "removeTitle": "¿Quitar esta libreta de direcciones?",
       "removeConfirm": "Quitar",
-      "editTitle": "Editar libreta de direcciones",
-      "editSuccess": "Libreta de direcciones actualizada correctamente"
+      "sharedWith": "Compartida con %{smart_count} persona |||| Compartida con %{smart_count} personas",
+      "public": "Visible para su organización",
+      "sharedBy": "Compartida por %{owner} · %{role}"
     },
     "share": {
       "title": "Compartir %{name}",
+      "sentStatus": "Compartido con %{names}",
       "invitePeople": "Invitar personas",
       "addContacts": "Añadir contactos",
+      "removeInvitee": "Quitar a %{name}",
       "send": "Enviar",
       "owner": "Propietario",
       "emptyTitle": "Nadie ha sido añadido aún",
@@ -176,7 +194,15 @@
   "error": {
     "title": "Se ha producido un error",
     "unknown": "Se ha producido un error desconocido",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "version": "Versión %{version}",
+    "loadUser": "No se ha podido cargar su información de usuario"
+  },
+  "configError": {
+    "title": "La aplicación está mal configurada",
+    "hint": "El administrador debe corregir estos parámetros de .env.js:",
+    "missing": "Falta %{name}",
+    "invalid": "%{name} no es válido"
   },
   "common": {
     "ok": "Aceptar"
@@ -186,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Modo oscuro",
-    "lightMode": "Modo claro"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Versión móvil próximamente",
-      "subtitle": "Abra Twake Contacts en un ordenador para disfrutar de todas las funciones. Pronto estará disponible una versión móvil totalmente optimizada."
-    }
+    "lightMode": "Modo claro",
+    "highContrast": "Alto contraste"
   },
   "twakeBar": {
     "home": "Inicio",

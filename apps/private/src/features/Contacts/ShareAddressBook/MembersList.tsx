@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import {
   Stack,
   Typography,
+  List,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -39,7 +40,7 @@ export const MembersList: React.FC<MembersListProps> = ({
 
   if (loading) {
     return (
-      <Stack className="u-mt-1">
+      <List disablePadding className="u-mt-1">
         {[1, 2, 3].map(i => (
           <ListItem key={i} dense disableGutters>
             <ListItemAvatar>
@@ -51,24 +52,25 @@ export const MembersList: React.FC<MembersListProps> = ({
             />
           </ListItem>
         ))}
-      </Stack>
+      </List>
     )
   }
 
   return (
     <Stack className="u-mt-1">
-      <MemberRow member={me} isCurrentUser />
-
-      {others.length > 0 ? (
-        others.map((member, index) => (
+      <List disablePadding>
+        <MemberRow member={me} isCurrentUser />
+        {others.map((member, index) => (
           <MemberRow
             key={member.openpaasId || index}
             member={member}
             onUpdateMember={onUpdateMember}
             isUpdating={updatingMemberId === member.openpaasId}
           />
-        ))
-      ) : (
+        ))}
+      </List>
+
+      {others.length === 0 && (
         <div
           className="u-p-3 u-mt-1 u-bdrs-6 u-flex u-flex-column u-flex-items-center"
           style={{

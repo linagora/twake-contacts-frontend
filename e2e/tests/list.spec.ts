@@ -420,7 +420,9 @@ test.describe('LIST contact list', () => {
     await page.keyboard.press('Escape')
     await dialog.transferTo('Destination')
 
-    await expect(contacts.toast('Contact copied successfully')).toBeVisible()
+    await expect(
+      contacts.toast('“Cora Copy” copied to Destination')
+    ).toBeVisible()
     await expect(contacts.row('Cora Copy')).toBeVisible()
     await expect.poll(() => dav.contactNames('dst')).toEqual(['Cora Copy'])
     expect(await dav.contactNames('src')).toEqual(['Cora Copy'])
@@ -453,7 +455,7 @@ test.describe('LIST contact list', () => {
     await contacts
       .openTransferDialog('Cora Copy', 'Copy')
       .then(transfer => transfer.transferTo('Team RW'))
-    await expect(contacts.toast('Contact copied successfully')).toBeVisible()
+    await expect(contacts.toast('“Cora Copy” copied to Team RW')).toBeVisible()
     await expect
       .poll(() => davFor(alice).contactNames('qa-rw'))
       .toEqual(['Cora Copy'])
@@ -487,7 +489,9 @@ test.describe('LIST contact list', () => {
     await expect(dialog.root).toBeVisible()
     await dialog.transferTo('Destination')
 
-    await expect(contacts.toast('Contact moved successfully')).toBeVisible()
+    await expect(
+      contacts.toast('“Mona Move” moved to Destination')
+    ).toBeVisible()
     await expect(contacts.row('Mona Move')).toHaveCount(0)
     await expect(contacts.row('Stay Here')).toBeVisible()
     await expect.poll(() => dav.contactNames('dst')).toEqual(['Mona Move'])
@@ -512,7 +516,7 @@ test.describe('LIST contact list', () => {
     await contacts
       .openTransferDialog('Sean Shared', 'Move')
       .then(transfer => transfer.transferTo('Team RW'))
-    await expect(contacts.toast('Contact moved successfully')).toBeVisible()
+    await expect(contacts.toast('“Sean Shared” moved to Team RW')).toBeVisible()
     await expect
       .poll(() => davFor(alice).contactNames('qa-rw'))
       .toEqual(['Sean Shared'])

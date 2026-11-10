@@ -1,23 +1,33 @@
 {
-  "locale": "de-de",
   "contacts": {
     "moveContact": {
-      "success": "Kontakt erfolgreich verschoben",
+      "success": "„%{name}“ nach %{book} verschoben",
       "title": "Kontakt verschieben",
       "confirm": "Verschieben",
       "error": "Der Kontakt konnte nicht verschoben werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · derzeit in %{book}",
+      "open": "Öffnen"
+    },
     "copyContact": {
-      "success": "Kontakt erfolgreich kopiert",
+      "success": "„%{name}“ nach %{book} kopiert",
       "title": "Kontakt kopieren",
       "destination": "Zieladressbuch",
       "empty": "Keine beschreibbaren Adressbücher verfügbar.",
       "error": "Der Kontakt konnte nicht kopiert werden. Er ist möglicherweise bereits im Zieladressbuch vorhanden."
     },
     "title": "Kontakte",
-    "tabs": { "mine": "Meine Kontakte", "shared": "Mir mitgeteilt" },
+    "tabs": {
+      "mine": "Meine Kontakte",
+      "shared": "Mir mitgeteilt"
+    },
     "myContacts": "Meine Kontakte",
     "shared": "Geteilt",
+    "sidebar": {
+      "collapse": "Einklappen",
+      "expand": "Ausklappen"
+    },
     "domainAddressBook": "Domain-Adressbuch",
     "create": "Erstellen",
     "name": "Name",
@@ -45,7 +55,6 @@
       "clear": "Löschen",
       "firstName": "Vorname",
       "lastName": "Nachname",
-      "addTeam": "Team hinzufügen",
       "matrixId": "Matrix-ID",
       "phone": "Telefon",
       "addPhone": "Telefonnummer hinzufügen",
@@ -56,18 +65,26 @@
       "addField": "Hinzufügen",
       "remove": "Entfernen",
       "type": "Typ",
+      "phoneType": "Telefontyp",
+      "addressType": "Adresstyp",
+      "removePhone": "Telefonnummer entfernen",
+      "removeEmail": "E-Mail-Adresse entfernen",
+      "removeAddress": "Adresse entfernen",
       "typeLabel": "Label",
       "cancel": "Abbrechen",
       "save": "Speichern",
-      "addressBook": "Adressbuch",
       "editTitle": "Kontakt bearbeiten",
-      "newContact": "Neuer Kontakt",
-      "invalidEmail": "Ungültige E-Mail-Adresse"
+      "addressBook": "Adressbuch",
+      "moveHint": "Beim Speichern wird dieser Kontakt nach %{book} verschoben.",
+      "invalidEmail": "Ungültige E-Mail-Adresse, z. B. name@beispiel.de",
+      "duplicateEmail": "%{name} hat diese E-Mail-Adresse bereits, in %{book}.",
+      "duplicateEmailMany": "%{smart_count} Kontakt hat diese E-Mail-Adresse bereits. |||| %{smart_count} Kontakte haben diese E-Mail-Adresse bereits.",
+      "openExisting": "Kontakt öffnen",
+      "nameRequired": "Geben Sie einen Vor- oder Nachnamen ein"
     },
     "edit": {
-      "title": "Adressbuch bearbeiten",
+      "title": "Adressbuch umbenennen",
       "name": "Name",
-      "description": "Beschreibung",
       "cancel": "Abbrechen",
       "save": "Speichern"
     },
@@ -83,10 +100,8 @@
       "openChat": "Chat öffnen",
       "createEvent": "Termin erstellen",
       "edit": "Bearbeiten",
+      "rename": "Umbenennen",
       "delete": "Löschen",
-      "chat": "Chat",
-      "mail": "E-Mail senden",
-      "schedule": "Termin planen",
       "share": "Teilen",
       "remove": "Aus meiner Liste entfernen",
       "export": "Exportieren"
@@ -99,12 +114,13 @@
     "search": {
       "placeholder": "Kontakte suchen...",
       "loading": "Wird geladen...",
-      "noResults": "Keine Kontakte gefunden"
+      "noResults": "Keine Kontakte gefunden",
+      "resultsCount": "%{smart_count} Kontakt gefunden |||| %{smart_count} Kontakte gefunden"
     },
     "nav": {
       "menu": "Menü",
-      "settings": "Einstellungen",
-      "search": "Suchen"
+      "search": "Suchen",
+      "skipToContent": "Zum Hauptinhalt springen"
     },
     "errors": {
       "load": "Kontakte konnten nicht geladen werden",
@@ -117,7 +133,6 @@
       "subscribe": "Adressbuch konnte nicht hinzugefügt werden",
       "deleteAddressBook": "Adressbuch konnte nicht gelöscht werden",
       "removeAddressBook": "Adressbuch konnte nicht aus Ihrer Liste entfernt werden",
-      "updateAddressBook": "Adressbuch konnte nicht aktualisiert werden",
       "exportAddressBook": "Das Adressbuch konnte nicht exportiert werden",
       "exportContact": "Der Kontakt konnte nicht exportiert werden"
     },
@@ -147,13 +162,16 @@
       "removeDescription": "„%{name}“ wird aus Ihrer Liste entfernt. Sie können es wieder hinzufügen, indem Sie nach dem Eigentümer suchen.",
       "removeTitle": "Dieses Adressbuch entfernen?",
       "removeConfirm": "Entfernen",
-      "editTitle": "Adressbuch bearbeiten",
-      "editSuccess": "Adressbuch erfolgreich aktualisiert"
+      "sharedWith": "Mit %{smart_count} Person geteilt |||| Mit %{smart_count} Personen geteilt",
+      "public": "Für Ihre Organisation sichtbar",
+      "sharedBy": "Geteilt von %{owner} · %{role}"
     },
     "share": {
       "title": "%{name} teilen",
+      "sentStatus": "Geteilt mit %{names}",
       "invitePeople": "Personen einladen",
       "addContacts": "Kontakte hinzufügen",
+      "removeInvitee": "%{name} entfernen",
       "send": "Senden",
       "owner": "Eigentümer",
       "emptyTitle": "Noch niemand hinzugefügt",
@@ -176,7 +194,15 @@
   "error": {
     "title": "Etwas ist schiefgelaufen",
     "unknown": "Ein unbekannter Fehler ist aufgetreten",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "version": "Version %{version}",
+    "loadUser": "Ihre Benutzerinformationen konnten nicht geladen werden"
+  },
+  "configError": {
+    "title": "Die Anwendung ist falsch konfiguriert",
+    "hint": "Der Administrator muss diese Einstellungen in .env.js korrigieren:",
+    "missing": "%{name} fehlt",
+    "invalid": "%{name} ist ungültig"
   },
   "common": {
     "ok": "OK"
@@ -186,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Dunkelmodus",
-    "lightMode": "Hellmodus"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Mobile Version in Kürze verfügbar",
-      "subtitle": "Bitte öffnen Sie Twake Contacts auf einem Computer, um alle Funktionen nutzen zu können. Eine vollständig optimierte mobile Version ist bald verfügbar."
-    }
+    "lightMode": "Hellmodus",
+    "highContrast": "Hoher Kontrast"
   },
   "twakeBar": {
     "home": "Startseite",

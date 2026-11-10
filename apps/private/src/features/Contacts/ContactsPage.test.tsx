@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
@@ -42,7 +43,7 @@ function renderPage(
   const store = setupStore({
     user: { userData: {} } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         [DEFAULT_ADDRESS_BOOK_ID]: {
           id: DEFAULT_ADDRESS_BOOK_ID,
           userId: 'u1',
@@ -62,7 +63,7 @@ function renderPage(
           contacts: [],
           ...book1Overrides
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,
@@ -94,6 +95,16 @@ function renderPage(
   )
   return store
 }
+
+describe('ContactsPage high contrast toggle', () => {
+  it('is always rendered next to the search bar', () => {
+    renderPage()
+
+    expect(
+      screen.getByRole('button', { name: en.theme.highContrast })
+    ).toBeInTheDocument()
+  })
+})
 
 describe('ContactsPage error banner', () => {
   it('clears the error when navigating to another page', () => {
@@ -248,5 +259,50 @@ describe('ContactsPage address book success toast', () => {
 
     expect(store.getState().contacts.addressBookSuccess).toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+describe('ContactsPage landmarks', () => {
+  it('has a single main landmark and a search landmark', () => {
+    renderPage()
+
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('search')).toContainElement(
+      screen.getByPlaceholderText(en.contacts.search.placeholder)
+    )
+  })
+})
+
+describe('ContactsPage skip link', () => {
+  it('is the first link of the page, translated', () => {
+    renderPage({ lang: 'fr', dict: fr })
+
+    const [firstLink] = screen.getAllByRole('link')
+    expect(firstLink).toHaveTextContent(fr.contacts.nav.skipToContent)
+    expect(firstLink).toHaveAttribute('href', '#main-content')
+  })
+
+  it('stays visually hidden until it gets the focus', () => {
+    renderPage()
+    const skipLink = screen.getByRole('link', {
+      name: en.contacts.nav.skipToContent
+    })
+    expect(skipLink).toHaveClass('u-visuallyhidden')
+
+    act(() => skipLink.focus())
+    expect(skipLink).not.toHaveClass('u-visuallyhidden')
+
+    act(() => skipLink.blur())
+    expect(skipLink).toHaveClass('u-visuallyhidden')
+  })
+
+  it('moves the focus to the main area', () => {
+    renderPage()
+
+    fireEvent.click(
+      screen.getByRole('link', { name: en.contacts.nav.skipToContent })
+    )
+
+    expect(screen.getByRole('main')).toHaveFocus()
   })
 })

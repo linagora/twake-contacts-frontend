@@ -1,19 +1,25 @@
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { subscribeToAddressBook } from '../ContactsDao'
-import { AddressBook, ContactsState } from '../contactsTypes'
+import { AddressBook, ContactsState, RawAddressBook } from '../contactsTypes'
 import { ALL_CONTACTS_LISTING } from '../constants'
 import { toContactsErrorKey } from '../contactsUtils'
 
 export interface SubscribeAddressBookArgs {
   userId: string
-  source: AddressBook
+  source: RawAddressBook
   ownerDisplayName?: string
 }
 
 export const subscribeAddressBookThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    AddressBook,
+    SubscribeAddressBookArgs,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     AddressBook,
     SubscribeAddressBookArgs,
@@ -32,6 +38,7 @@ export const subscribeAddressBookThunk = (
         state.addressBooks[book.id] = { ...book, contacts: [] }
         // My contacts restarts from its first page to list the new contacts
         // at their place, as when the books are loaded again
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- listings are a dictionary keyed by listing id
         delete state.listings[ALL_CONTACTS_LISTING]
       },
       rejected: (state, action) => {

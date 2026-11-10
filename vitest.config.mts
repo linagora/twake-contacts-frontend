@@ -29,8 +29,6 @@ export default defineConfig({
     alias: [
       { find: '@/common', replacement: fromRoot('common/src') },
       { find: '@common', replacement: fromRoot('common/src') },
-      { find: '@private', replacement: fromRoot('apps/private/src') },
-      { find: '@injected', replacement: fromRoot('apps/private/src') },
       { find: '@', replacement: fromRoot('apps/private/src') }
     ],
     dedupe: [
@@ -73,7 +71,11 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['apps/**/*.test.ts', 'common/**/*.test.ts']
+          include: [
+            'apps/**/*.test.ts',
+            'common/**/*.test.ts',
+            'scripts/**/*.test.ts'
+          ]
         }
       }
     ]

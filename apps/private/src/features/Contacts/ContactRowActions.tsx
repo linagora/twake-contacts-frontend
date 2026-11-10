@@ -1,46 +1,44 @@
 import { IconButton, Stack, Tooltip, useBreakpoints } from '@linagora/twake-mui'
 import { Icon, Pen, Dots } from '@linagora/twake-icons'
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { deleteContact } from '@common/features/Contacts/ContactsSlice'
+import { useAppSelector } from '@common/app/hooks'
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { Contact } from '@common/features/Contacts/contactsTypes'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { exportContact } from '@common/features/Contacts/ContactsDao'
+import { useContactsExport } from '@common/features/Contacts/hooks/useContactsExport'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
+import { contactPath, editContactPath } from './contactPath'
 import { CopyContactDialog, MoveContactDialog } from './CopyContactDialog'
 import { DeleteContactDialog } from './DeleteContactDialog'
 import { ContactRowDropdownMenu } from './ContactRowDropdownMenu'
+import { useDeleteContact } from './useDeleteContact'
 
 interface ContactRowActionsProps {
   contact: Contact
   addressBookId: string
-  readOnly?: boolean
 }
 
 type OpenDialog = 'delete' | 'copy' | 'move' | null
 
 export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   contact,
-  addressBookId,
-  readOnly
+  addressBookId
 }) => {
   const { t } = useI18n()
+  const { exportContact } = useContactsExport()
   const { isMobile } = useBreakpoints()
-  const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const params = useParams()
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const deleteContact = useDeleteContact(addressBookId, contact)
   const [exportError, setExportError] = useState<string | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const isMenuOpen = Boolean(anchorEl)
-  const isReadOnly = readOnly || !book?.canWrite
+  const isReadOnly = !book?.capabilities.editContacts
 
   const handleCloseDialog = (): void => setOpenDialog(null)
   const handleOpenDeleteDialog = (): void => {
@@ -58,7 +56,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   const handleEdit = (): void => {
     setAnchorEl(null)
-    void navigate(`/contacts/${addressBookId}/${contact.id}/edit`)
+    void navigate(editContactPath(addressBookId, contact.id))
   }
 
   const handleExport = (): void => {
@@ -70,20 +68,8 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   }
 
   const handleDelete = async (): Promise<void> => {
-    if (!openpaasId) return
-    try {
-      await dispatch(
-        deleteContact({
-          userId: openpaasId,
-          addressBookId,
-          contactId: contact.id
-        })
-      ).unwrap()
-      setOpenDialog(null)
-    } catch (error: unknown) {
-      const err = error as { message?: string }
-      setDeleteError(err.message || t('error.unknown'))
-    }
+    await deleteContact()
+    setOpenDialog(null)
   }
 
   return (
@@ -97,9 +83,11 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
         {/* TEMPORARY: reveal on row hover through CSS until twake-mui ships a
             MuiTableRow rule for hover-only actions. VirtualizedTable owns the
             row, so the old isHovered state is no longer reachable from here.
-            The menu is portaled, so the row loses :hover while it is open. */}
+            The menu is portaled, so the row loses :hover while it is open.
+            The tooltips sit beside their button, not below: an interactive
+            tooltip below would cover the actions of the next row. */}
         {!isReadOnly && !isMobile && (
-          <Tooltip disableInteractive title={t('contacts.menu.edit')}>
+          <Tooltip placement="left" title={t('contacts.menu.edit')}>
             <IconButton
               size="medium"
               aria-label={t('contacts.menu.edit')}
@@ -113,7 +101,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip disableInteractive title={t('contacts.menu.more')}>
+        <Tooltip placement="right" title={t('contacts.menu.more')}>
           <IconButton
             size="medium"
             aria-label={t('contacts.menu.more')}
@@ -157,7 +145,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
               params.addressBookId === addressBookId &&
               params.contactId === contact.id
             ) {
-              void navigate(`/contacts/${destinationId}/${contact.id}`)
+              void navigate(contactPath(destinationId, contact.id))
             }
           }}
         />
@@ -169,7 +157,6 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
           onConfirm={() => void handleDelete()}
         />
       )}
-      <ErrorSnackbar error={deleteError} onClose={() => setDeleteError(null)} />
       <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
     </>
   )

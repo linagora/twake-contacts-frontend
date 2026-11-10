@@ -3,6 +3,7 @@ import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
@@ -12,6 +13,7 @@ import {
   makeContactFromForm
 } from './ContactForm'
 import { ContactFormSkeleton } from './ContactSkeletons'
+import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 
 export const CreateContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -21,6 +23,8 @@ export const CreateContactPage: React.FC = () => {
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const writableBooks = useAppSelector(selectWritableBooks)
   const loading = useAppSelector(state => state.contacts.loading)
+
+  useDocumentTitle(t('contacts.form.createTitle'))
 
   if (loading && writableBooks.length === 0) {
     return <ContactFormSkeleton />
@@ -52,7 +56,8 @@ export const CreateContactPage: React.FC = () => {
       void navigate(
         values.addressBookId && !isHiddenAddressBook(values.addressBookId)
           ? `/contacts/${values.addressBookId}`
-          : '/contacts'
+          : '/contacts',
+        { state: FOCUS_HEADING_STATE }
       )
     } catch {
       // error is surfaced by the contacts slice
@@ -66,6 +71,7 @@ export const CreateContactPage: React.FC = () => {
       initialValues={initialValues}
       backTo={backTo}
       onSubmit={handleSubmit}
+      checkDuplicateEmails
     />
   )
 }

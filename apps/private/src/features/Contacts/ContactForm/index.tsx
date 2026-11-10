@@ -24,7 +24,10 @@ import { NameFields } from './fields/NameFields'
 import { AddressBookField } from './fields/AddressBookField'
 import { MatrixIdField } from './fields/MatrixIdField'
 import { EntryList } from './EntryList'
+import { DuplicateEmailAlert } from './DuplicateEmailAlert'
+import { useDuplicateEmails } from './useDuplicateEmails'
 import { isValidEmail } from '@common/utils/validation'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import {
   ContactFormValues,
   ContactFormListKey,
@@ -53,6 +56,7 @@ interface ContactFormProps {
   onSubmit: (values: ContactFormValues) => void | Promise<void>
   contact?: Contact
   onDelete?: () => void
+  checkDuplicateEmails?: boolean
 }
 
 export const ContactForm: React.FC<ContactFormProps> = ({
@@ -63,7 +67,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   backTo,
   onSubmit,
   contact,
-  onDelete
+  onDelete,
+  checkDuplicateEmails = false
 }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
@@ -71,6 +76,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const submittingRef = useRef(false)
+  const { checkEmail, getDuplicates } = useDuplicateEmails(checkDuplicateEmails)
 
   const displayName = [values.givenName.trim(), values.familyName.trim()]
     .filter(Boolean)
@@ -132,6 +138,18 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     email => email.value && !isValidEmail(email.value)
   )
 
+  const isMovingContact =
+    Boolean(contact) && values.addressBookId !== initialValues.addressBookId
+
+  const moveHint = isMovingContact
+    ? t('contacts.form.moveHint', {
+        book: getAddressBookDisplayName(
+          addressBooks.find(book => book.id === values.addressBookId),
+          t
+        )
+      })
+    : undefined
+
   const canSubmit =
     Boolean(values.addressBookId) &&
     Boolean(values.givenName.trim() || values.familyName.trim()) &&
@@ -189,6 +207,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           addressBooks={addressBooks}
           value={values.addressBookId}
           disabled={addressBookDisabled}
+          helperText={moveHint}
           onChange={value => setField('addressBookId', value)}
         />
 
@@ -197,6 +216,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.phones}
           types={PHONE_TYPES}
           label={t('contacts.form.phone')}
+          typeLabel={t('contacts.form.phoneType')}
+          removeLabel={t('contacts.form.removePhone')}
           onChange={updateEntry('phones')}
           onRemove={removeEntry('phones')}
         />
@@ -206,6 +227,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.emails}
           types={EMAIL_TYPES}
           label={t('contacts.form.email')}
+          removeLabel={t('contacts.form.removeEmail')}
           onChange={updateEntry('emails')}
           onRemove={removeEntry('emails')}
           onBlur={index => {
@@ -214,11 +236,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               next[index] = true
               return next
             })
+            checkEmail(index, values.emails[index]?.value ?? '')
           }}
           showTypeSelector={false}
           validate={isValidEmail}
           validationMessage={t('contacts.form.invalidEmail')}
           touched={touchedEmails}
+          renderEntryFooter={entry => (
+            <DuplicateEmailAlert duplicates={getDuplicates(entry.value)} />
+          )}
         />
 
         <MatrixIdField
@@ -231,6 +257,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           entries={values.addresses}
           types={ADDRESS_TYPES}
           label={t('contacts.form.address')}
+          typeLabel={t('contacts.form.addressType')}
+          removeLabel={t('contacts.form.removeAddress')}
           onChange={updateEntry('addresses')}
           onRemove={removeEntry('addresses')}
         />

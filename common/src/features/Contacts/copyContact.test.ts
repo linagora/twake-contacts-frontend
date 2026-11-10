@@ -5,7 +5,6 @@ import { copyContact, moveContact } from './ContactsDao'
 vi.mock('@common/utils/apiUtils', () => ({ api: vi.fn() }))
 
 it('sends COPY through the proxy with a Sabre-relative destination', async () => {
-  window.SIDE_SERVICE_BASE_URL = 'https://contacts.example.com/services/'
   vi.mocked(api).mockResolvedValue({} as Response)
   const destinationContactId = await copyContact(
     { userId: 'source-user', addressBookId: 'source' },
@@ -29,7 +28,6 @@ it('sends COPY through the proxy with a Sabre-relative destination', async () =>
 })
 
 it('sends MOVE through the proxy with a Sabre-relative destination and original UID', async () => {
-  window.SIDE_SERVICE_BASE_URL = 'https://contacts.example.com/services/'
   vi.mocked(api)
     .mockClear()
     .mockResolvedValue({} as Response)

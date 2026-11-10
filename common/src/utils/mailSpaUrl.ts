@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import {
   generateMailComposerUrl,
   type UriTemplateContext
@@ -15,13 +16,13 @@ export function openMailComposer(
   recipients: string | string[],
   context: Omit<UriTemplateContext, 'target'> = {}
 ): boolean {
-  const template = window.MAIL_SPA_URL
+  const template = config.MAIL_SPA_URL
   if (!template) return false
 
   const recipientList = Array.isArray(recipients) ? recipients : [recipients]
   const url = generateMailComposerUrl(template, recipientList, {
     ...context,
-    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+    workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
   })
   if (!url) return false
 

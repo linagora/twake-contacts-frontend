@@ -1,23 +1,33 @@
 {
-  "locale": "it-it",
   "contacts": {
     "moveContact": {
-      "success": "Contatto spostato con successo",
+      "success": "“%{name}” spostato in %{book}",
       "title": "Sposta contatto",
       "confirm": "Sposta",
       "error": "Impossibile spostare il contatto. Potrebbe già esistere nella rubrica di destinazione."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · attualmente in %{book}",
+      "open": "Apri"
+    },
     "copyContact": {
-      "success": "Contatto copiato con successo",
+      "success": "“%{name}” copiato in %{book}",
       "title": "Copia contatto",
       "destination": "Rubrica di destinazione",
       "empty": "Nessuna rubrica modificabile disponibile.",
       "error": "Impossibile copiare il contatto. Potrebbe già esistere nella rubrica di destinazione."
     },
     "title": "Contatti",
-    "tabs": { "mine": "I miei contatti", "shared": "Condiviso con me" },
+    "tabs": {
+      "mine": "I miei contatti",
+      "shared": "Condiviso con me"
+    },
     "myContacts": "I miei contatti",
     "shared": "Condivisi",
+    "sidebar": {
+      "collapse": "Comprimi",
+      "expand": "Espandi"
+    },
     "domainAddressBook": "Rubrica del dominio",
     "create": "Crea",
     "name": "Nome",
@@ -45,7 +55,6 @@
       "clear": "Cancella",
       "firstName": "Nome",
       "lastName": "Cognome",
-      "addTeam": "Aggiungi team",
       "matrixId": "ID Matrix",
       "phone": "Telefono",
       "addPhone": "Aggiungi telefono",
@@ -56,18 +65,26 @@
       "addField": "Aggiungi",
       "remove": "Rimuovi",
       "type": "Tipo",
+      "phoneType": "Tipo di telefono",
+      "addressType": "Tipo di indirizzo",
+      "removePhone": "Rimuovi telefono",
+      "removeEmail": "Rimuovi email",
+      "removeAddress": "Rimuovi indirizzo",
       "typeLabel": "Etichetta",
       "cancel": "Annulla",
       "save": "Salva",
-      "addressBook": "Rubrica",
       "editTitle": "Modifica contatto",
-      "newContact": "Nuovo contatto",
-      "invalidEmail": "Indirizzo email non valido"
+      "addressBook": "Rubrica",
+      "moveHint": "Salvando, questo contatto verrà spostato in %{book}.",
+      "invalidEmail": "Indirizzo email non valido, ad es. nome@esempio.com",
+      "duplicateEmail": "%{name} ha già questo indirizzo email, in %{book}.",
+      "duplicateEmailMany": "%{smart_count} contatto ha già questo indirizzo email. |||| %{smart_count} contatti hanno già questo indirizzo email.",
+      "openExisting": "Apri contatto",
+      "nameRequired": "Inserisci un nome o un cognome"
     },
     "edit": {
-      "title": "Modifica rubrica",
+      "title": "Rinomina rubrica",
       "name": "Nome",
-      "description": "Descrizione",
       "cancel": "Annulla",
       "save": "Salva"
     },
@@ -83,10 +100,8 @@
       "openChat": "Apri chat",
       "createEvent": "Crea evento",
       "edit": "Modifica",
+      "rename": "Rinomina",
       "delete": "Elimina",
-      "chat": "Chat",
-      "mail": "Invia email",
-      "schedule": "Pianifica",
       "share": "Condividi",
       "remove": "Rimuovi dalla mia lista",
       "export": "Esporta"
@@ -99,12 +114,13 @@
     "search": {
       "placeholder": "Cerca contatti...",
       "loading": "Caricamento...",
-      "noResults": "Nessun contatto trovato"
+      "noResults": "Nessun contatto trovato",
+      "resultsCount": "%{smart_count} contatto trovato |||| %{smart_count} contatti trovati"
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Impostazioni",
-      "search": "Cerca"
+      "search": "Cerca",
+      "skipToContent": "Vai al contenuto principale"
     },
     "errors": {
       "load": "Impossibile caricare i contatti",
@@ -112,11 +128,11 @@
       "create": "Impossibile creare il contatto",
       "update": "Impossibile aggiornare il contatto",
       "delete": "Impossibile eliminare il contatto",
+      "forbidden": "Non hai l'autorizzazione per modificare questa rubrica",
       "share": "Impossibile condividere la rubrica",
       "subscribe": "Impossibile aggiungere la rubrica",
       "deleteAddressBook": "Impossibile eliminare la rubrica",
       "removeAddressBook": "Impossibile rimuovere la rubrica dal tuo elenco",
-      "updateAddressBook": "Impossibile aggiornare la rubrica",
       "exportAddressBook": "Impossibile esportare la rubrica",
       "exportContact": "Impossibile esportare il contatto"
     },
@@ -146,13 +162,16 @@
       "removeDescription": "“%{name}” verrà rimossa dalla tua lista. Potrai aggiungerla di nuovo cercando il suo proprietario.",
       "removeTitle": "Rimuovere questa rubrica?",
       "removeConfirm": "Rimuovi",
-      "editTitle": "Modifica rubrica",
-      "editSuccess": "Rubrica aggiornata con successo"
+      "sharedWith": "Condivisa con %{smart_count} persona |||| Condivisa con %{smart_count} persone",
+      "public": "Visibile alla tua organizzazione",
+      "sharedBy": "Condivisa da %{owner} · %{role}"
     },
     "share": {
       "title": "Condividi %{name}",
+      "sentStatus": "Condiviso con %{names}",
       "invitePeople": "Invita persone",
       "addContacts": "Aggiungi contatti",
+      "removeInvitee": "Rimuovi %{name}",
       "send": "Invia",
       "owner": "Proprietario",
       "emptyTitle": "Nessuno è stato ancora aggiunto",
@@ -175,7 +194,15 @@
   "error": {
     "title": "Si è verificato un problema",
     "unknown": "Si è verificato un errore sconosciuto",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "version": "Versione %{version}",
+    "loadUser": "Impossibile caricare le informazioni dell'utente"
+  },
+  "configError": {
+    "title": "L’applicazione non è configurata correttamente",
+    "hint": "L’amministratore deve correggere queste impostazioni di .env.js:",
+    "missing": "%{name} è mancante",
+    "invalid": "%{name} non è valido"
   },
   "common": {
     "ok": "OK"
@@ -185,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Modalità scura",
-    "lightMode": "Modalità chiara"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Versione mobile in arrivo",
-      "subtitle": "Apri Twake Contacts su un computer per usare tutte le funzionalità. Una versione mobile completamente ottimizzata sarà disponibile a breve."
-    }
+    "lightMode": "Modalità chiara",
+    "highContrast": "Contrasto elevato"
   },
   "twakeBar": {
     "home": "Home",

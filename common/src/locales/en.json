@@ -1,23 +1,33 @@
 {
-  "locale": "en-gb",
   "contacts": {
     "moveContact": {
-      "success": "Contact moved successfully",
+      "success": "“%{name}” moved to %{book}",
       "title": "Move contact",
       "confirm": "Move",
       "error": "Could not move the contact. It may already exist in the destination address book."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · currently in %{book}",
+      "open": "Open"
+    },
     "copyContact": {
-      "success": "Contact copied successfully",
+      "success": "“%{name}” copied to %{book}",
       "title": "Copy contact",
       "destination": "Destination address book",
       "empty": "No writable address books available.",
       "error": "Could not copy the contact. It may already exist in the destination address book."
     },
     "title": "Contacts",
-    "tabs": { "mine": "My contacts", "shared": "Shared with me" },
+    "tabs": {
+      "mine": "My contacts",
+      "shared": "Shared with me"
+    },
     "myContacts": "My contacts",
     "shared": "Shared",
+    "sidebar": {
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
     "domainAddressBook": "Domain Address Book",
     "create": "Create",
     "name": "Name",
@@ -45,7 +55,6 @@
       "clear": "Clear",
       "firstName": "First name",
       "lastName": "Last name",
-      "addTeam": "Add team",
       "matrixId": "Matrix id",
       "phone": "Phone",
       "addPhone": "Add phone",
@@ -56,13 +65,22 @@
       "addField": "Add",
       "remove": "Remove",
       "type": "Type",
+      "phoneType": "Phone type",
+      "addressType": "Address type",
+      "removePhone": "Remove phone",
+      "removeEmail": "Remove email",
+      "removeAddress": "Remove address",
       "typeLabel": "Label",
       "cancel": "Cancel",
       "save": "Save",
-      "addressBook": "Address book",
       "editTitle": "Edit contact",
-      "newContact": "New contact",
-      "invalidEmail": "Invalid email address"
+      "addressBook": "Address book",
+      "moveHint": "Saving will move this contact to %{book}.",
+      "invalidEmail": "Invalid email address, e.g. name@example.com",
+      "duplicateEmail": "%{name} already has this email address, in %{book}.",
+      "duplicateEmailMany": "%{smart_count} contact already has this email address. |||| %{smart_count} contacts already have this email address.",
+      "openExisting": "Open contact",
+      "nameRequired": "Enter a first name or a last name"
     },
     "addressBook": {
       "createTitle": "New address book",
@@ -90,13 +108,13 @@
       "removeDescription": "“%{name}” will be removed from your list. You can find it again by searching for its owner.",
       "removeTitle": "Remove this address book?",
       "removeConfirm": "Remove",
-      "editTitle": "Edit address book",
-      "editSuccess": "Address book updated successfully"
+      "sharedWith": "Shared with %{smart_count} person |||| Shared with %{smart_count} people",
+      "public": "Visible to your organization",
+      "sharedBy": "Shared by %{owner} · %{role}"
     },
     "edit": {
-      "title": "Edit address book",
+      "title": "Rename address book",
       "name": "Name",
-      "description": "Description",
       "cancel": "Cancel",
       "save": "Save"
     },
@@ -112,10 +130,8 @@
       "openChat": "Open chat",
       "createEvent": "Create event",
       "edit": "Edit",
+      "rename": "Rename",
       "delete": "Delete",
-      "chat": "Chat",
-      "mail": "Send email",
-      "schedule": "Schedule",
       "share": "Share",
       "remove": "Remove from my list",
       "export": "Export"
@@ -128,12 +144,13 @@
     "search": {
       "placeholder": "Search contacts...",
       "loading": "Loading...",
-      "noResults": "No contacts found"
+      "noResults": "No contacts found",
+      "resultsCount": "%{smart_count} contact found |||| %{smart_count} contacts found"
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Settings",
-      "search": "Search"
+      "search": "Search",
+      "skipToContent": "Skip to main content"
     },
     "errors": {
       "load": "Failed to load contacts",
@@ -146,14 +163,15 @@
       "subscribe": "Failed to add address book",
       "deleteAddressBook": "Failed to delete the address book",
       "removeAddressBook": "Failed to remove the address book from your list",
-      "updateAddressBook": "Failed to update address book",
       "exportAddressBook": "Failed to export the address book",
       "exportContact": "Failed to export the contact"
     },
     "share": {
       "title": "Share %{name}",
+      "sentStatus": "Shared with %{names}",
       "invitePeople": "Invite people",
       "addContacts": "Add contacts",
+      "removeInvitee": "Remove %{name}",
       "send": "Send",
       "owner": "Owner",
       "emptyTitle": "No one has been added yet",
@@ -176,7 +194,15 @@
   "error": {
     "title": "Something went wrong",
     "unknown": "An unknown error occurred",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "version": "Version %{version}",
+    "loadUser": "Failed to load your user information"
+  },
+  "configError": {
+    "title": "The application is misconfigured",
+    "hint": "The administrator must fix these settings of .env.js:",
+    "missing": "%{name} is missing",
+    "invalid": "%{name} is invalid"
   },
   "common": {
     "ok": "Ok"
@@ -186,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Mobile version coming soon",
-      "subtitle": "Please open Twake Contacts on a desktop to enjoy all features. A fully optimized mobile version is coming soon."
-    }
+    "lightMode": "Light mode",
+    "highContrast": "High contrast"
   },
   "twakeBar": {
     "home": "Home",

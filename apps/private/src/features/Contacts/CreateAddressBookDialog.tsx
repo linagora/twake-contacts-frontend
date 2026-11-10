@@ -3,16 +3,18 @@ import {
   Button,
   Dialog,
   DialogActions,
+  DialogCloseButton,
   DialogContent,
   DialogTitle,
-  IconButton,
   InputAdornment,
-  ListItem,
   TextField,
   Typography
 } from '@linagora/twake-mui'
-import { Cross, Icon, Peoples } from '@linagora/twake-icons'
+import { Icon, Peoples } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
+
+const NAME_LABEL_ID = 'create-address-book-name-label'
+const NAME_FIELD_ID = 'create-address-book-name'
 
 interface CreateAddressBookDialogProps {
   isCreating?: boolean
@@ -40,28 +42,21 @@ export const CreateAddressBookDialog: React.FC<
       maxWidth="sm"
       slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
     >
-      <DialogTitle>
-        <ListItem
-          disableGutters
-          disablePadding
-          secondaryAction={
-            <IconButton
-              edge="end"
-              aria-label={t('contacts.form.close')}
-              onClick={onClose}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          }
-        >
-          {t('contacts.addressBook.createTitle')}
-        </ListItem>
+      <DialogTitle className="dialogTitleWithClose">
+        {t('contacts.addressBook.createTitle')}
       </DialogTitle>
+      <DialogCloseButton onClick={onClose} />
       <DialogContent>
-        <Typography className="u-mb-1">
+        <Typography
+          className="u-mb-1 u-db"
+          component="label"
+          id={NAME_LABEL_ID}
+          htmlFor={NAME_FIELD_ID}
+        >
           {t('contacts.addressBook.nameLabel')}
         </Typography>
         <TextField
+          id={NAME_FIELD_ID}
           fullWidth
           placeholder={t('contacts.addressBook.namePlaceholder')}
           value={name}

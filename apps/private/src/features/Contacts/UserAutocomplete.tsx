@@ -11,7 +11,7 @@ import { Icon, People } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { UserResult } from '@common/features/Contacts/contactsTypes'
 import { ContactAvatar } from './ContactAvatar'
-import { useUserSearch } from './useUserSearch'
+import { usePeopleSearch } from '@common/features/User/hooks/usePeopleSearch'
 
 const primaryEmail = (user: UserResult): string => user.emails[0]?.value ?? ''
 
@@ -21,12 +21,13 @@ const userLabel = (user: UserResult): string =>
 export const UserAutocomplete: React.FC<{
   onSelect: (user: UserResult) => void
   onType: () => void
-}> = ({ onSelect, onType }) => {
+  labelledBy?: string
+}> = ({ onSelect, onType, labelledBy }) => {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<UserResult | null>(null)
   // the picked user stays in the field: no need to search for its label
-  const { users, loading } = useUserSearch(selected ? '' : query)
+  const { users, loading } = usePeopleSearch(selected ? '' : query)
   const [open, setOpen] = useState(false)
 
   return (
@@ -79,6 +80,10 @@ export const UserAutocomplete: React.FC<{
           helperText={selected ? primaryEmail(selected) : undefined}
           slotProps={{
             ...params.slotProps,
+            htmlInput: {
+              ...params.slotProps?.htmlInput,
+              'aria-labelledby': labelledBy
+            },
             input: {
               ...params.slotProps?.input,
               startAdornment: (

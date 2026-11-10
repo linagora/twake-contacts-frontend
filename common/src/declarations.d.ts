@@ -15,6 +15,15 @@ declare module 'twake-i18n' {
   }
   export const I18nContext: import('react').Context<unknown>
   export const DEFAULT_LANG: string
-  const I18n: import('react').ComponentType<unknown>
+  export interface I18nProps {
+    lang: string
+    // Method syntax keeps the parameter bivariant, so a dictionary loader typed on the
+    // supported locale keys is accepted
+    dictRequire(lang: string): unknown
+    locales?: Record<string, unknown>
+    defaultLang?: string
+    children?: import('react').ReactNode
+  }
+  const I18n: import('react').ComponentType<I18nProps>
   export default I18n
 }

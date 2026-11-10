@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useMemo, useCallback, useRef, useId } from 'react'
 import {
   Stack,
   Typography,
@@ -7,12 +7,15 @@ import {
   Box,
   InputAdornment,
   Chip,
-  Avatar
+  Avatar,
+  IconButton,
+  Tooltip
 } from '@linagora/twake-mui'
+import { CrossSmall, Icon } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { RoleSelector } from './RoleSelector'
-import { searchUsers } from '@common/features/User/UserDao'
+import { useUserDirectorySearch } from '@common/features/User/hooks/useUserDirectorySearch'
 import { ToUserData } from '@common/features/User/type/OpenPaasUserData'
 import { userData } from '@common/features/User/userDataTypes'
 import { UserSearch } from '@common/components/Common/UserSearch'
@@ -35,6 +38,8 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
   searchInputRef: externalSearchInputRef
 }) => {
   const { t } = useI18n()
+  const searchUsers = useUserDirectorySearch()
+  const invitePeopleLabelId = useId()
 
   // Selected users to invite (since Autocomplete is multiple)
   const [selectedUsers, setSelectedUsers] = useState<userData[]>([])
@@ -69,12 +74,12 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             !selectedIds.has(user.openpaasId as string)
         )
     },
-    [nonInvitableIds, selectedUsers]
+    [searchUsers, nonInvitableIds, selectedUsers]
   )
 
   return (
     <Stack spacing={1} className="u-mt-1">
-      <Typography variant="body2">
+      <Typography variant="body2" id={invitePeopleLabelId}>
         {t('contacts.share.invitePeople')}
       </Typography>
       <Stack direction="row" className="u-flex-items-center">
@@ -96,7 +101,10 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
             getOptionKey={option => option.openpaasId ?? ''}
             renderValue={(value: userData[], getItemProps): React.ReactNode =>
               value.map((option, index) => {
-                const { key, ...tagProps } = getItemProps({ index })
+                const { key, onDelete, ...tagProps } = getItemProps({ index })
+                const removeLabel = t('contacts.share.removeInvitee', {
+                  name: option.name || option.email
+                })
                 return (
                   <Chip
                     key={key}
@@ -105,7 +113,22 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                       <Avatar size="xs">{getInitials(option.name)}</Avatar>
                     }
                     label={option.name}
+                    deleteIcon={
+                      <Tooltip title={removeLabel}>
+                        <IconButton aria-label={removeLabel} size="small">
+                          <Icon icon={CrossSmall} aria-hidden />
+                        </IconButton>
+                      </Tooltip>
+                    }
                     {...tagProps}
+                    onDelete={
+                      onDelete &&
+                      ((event: React.SyntheticEvent): void => {
+                        onDelete(event)
+                        // the removed chip held the focus: hand it back
+                        searchInputRef.current?.focus()
+                      })
+                    }
                   />
                 )
               })
@@ -118,6 +141,10 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                 placeholder={t('contacts.share.addContacts')}
                 slotProps={{
                   ...params.slotProps,
+                  htmlInput: {
+                    ...params.slotProps?.htmlInput,
+                    'aria-labelledby': invitePeopleLabelId
+                  },
                   input: {
                     ...params.slotProps?.input,
                     endAdornment: (

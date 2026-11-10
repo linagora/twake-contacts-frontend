@@ -18,26 +18,28 @@ const stopPortaledClickPropagation = (event: React.MouseEvent): void => {
 
 // Closing the popover (Escape, backdrop click) removes its backdrop: the
 // browser then sends a new mouseenter to the name still under the pointer,
-// which would reopen the popover right away. Keep it disabled until the
-// pointer has moved out of the name.
-const useDisabledUntilPointerLeaves = (
+// which would reopen the popover right away. Keep the hover opening off until
+// the pointer has moved out of the name. The popover stays enabled: its
+// trigger, the name button, stays in the page, so the popover gives the
+// focus back to it after a keyboard opening.
+const useHoverOffUntilPointerLeaves = (
   triggerRef: React.RefObject<HTMLElement | null>
 ): [boolean, () => void] => {
-  const [disabled, setDisabled] = useState(false)
+  const [hoverOff, setHoverOff] = useState(false)
 
   useEffect(() => {
-    if (!disabled) return
+    if (!hoverOff) return
     const enableOncePointerIsOutside = (event: MouseEvent): void => {
       if (!triggerRef.current?.contains(event.target as Node)) {
-        setDisabled(false)
+        setHoverOff(false)
       }
     }
     document.addEventListener('mousemove', enableOncePointerIsOutside)
     return () =>
       document.removeEventListener('mousemove', enableOncePointerIsOutside)
-  }, [disabled, triggerRef])
+  }, [hoverOff, triggerRef])
 
-  return [disabled, () => setDisabled(true)]
+  return [hoverOff, () => setHoverOff(true)]
 }
 
 export const ContactNamePopover: React.FC<ContactNamePopoverProps> = ({
@@ -46,15 +48,15 @@ export const ContactNamePopover: React.FC<ContactNamePopoverProps> = ({
   children
 }) => {
   const triggerRef = useRef<HTMLDivElement>(null)
-  const [disabled, disable] = useDisabledUntilPointerLeaves(triggerRef)
+  const [hoverOff, turnHoverOff] = useHoverOffUntilPointerLeaves(triggerRef)
 
   return (
     <Box ref={triggerRef} onClick={stopPortaledClickPropagation}>
       <ContactPopover
         name={name}
         email={email}
-        onClose={disable}
-        disabled={disabled}
+        onClose={turnHoverOff}
+        openOnHover={!hoverOff}
       >
         {children}
       </ContactPopover>

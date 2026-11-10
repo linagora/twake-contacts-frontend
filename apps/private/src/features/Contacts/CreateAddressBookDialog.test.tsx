@@ -25,22 +25,57 @@ const nameField = (): HTMLElement =>
   screen.getByPlaceholderText(en.contacts.addressBook.namePlaceholder)
 
 describe('CreateAddressBookDialog', () => {
-  it('creates the address book when pressing Enter in the name field', () => {
+  it('names the dialog after its title only, with the close button outside the heading', () => {
+    renderDialog(vi.fn())
+
+    const heading = screen.getByRole('heading', {
+      name: en.contacts.addressBook.createTitle
+    })
+    const closeButton = screen.getByRole('button', { name: 'Close' })
+
+    expect(
+      screen.getByRole('dialog', { name: en.contacts.addressBook.createTitle })
+    ).toBeInTheDocument()
+    expect(heading).not.toContainElement(closeButton)
+    expect(heading.querySelector('li')).toBeNull()
+  })
+
+  it('labels the name field with the visible sentence', () => {
+    renderDialog(vi.fn())
+
+    expect(
+      screen.getByRole('textbox', { name: 'Enter a new address book name' })
+    ).toBe(nameField())
+  })
+
+  it('focuses the name field when clicking its label', async () => {
+    const user = userEvent.setup()
+    renderDialog(vi.fn())
+    nameField().blur()
+
+    await user.click(screen.getByText('Enter a new address book name'))
+
+    expect(nameField()).toHaveFocus()
+  })
+
+  it('creates the address book when pressing Enter in the name field', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), '  EnterTest {enter}')
+    await user.type(nameField(), '  EnterTest {Enter}')
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
     expect(onConfirm).toHaveBeenCalledWith('EnterTest')
   })
 
-  it('creates the address book when clicking Create', () => {
+  it('creates the address book when clicking Create', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), 'ClickTest')
-    userEvent.click(
+    await user.type(nameField(), 'ClickTest')
+    await user.click(
       screen.getByRole('button', { name: en.contacts.addressBook.save })
     )
 
@@ -48,20 +83,22 @@ describe('CreateAddressBookDialog', () => {
     expect(onConfirm).toHaveBeenCalledWith('ClickTest')
   })
 
-  it('does not create the address book when pressing Enter with a blank name', () => {
+  it('does not create the address book when pressing Enter with a blank name', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), '   {enter}')
+    await user.type(nameField(), '   {Enter}')
 
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it('does not create the address book again while it is being created', () => {
+  it('does not create the address book again while it is being created', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm, true)
 
-    userEvent.type(nameField(), 'Pending{enter}')
+    await user.type(nameField(), 'Pending{Enter}')
 
     expect(onConfirm).not.toHaveBeenCalled()
   })

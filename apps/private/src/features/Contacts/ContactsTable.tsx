@@ -15,6 +15,7 @@ import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactCell } from './ContactCell'
+import { contactPath } from './contactPath'
 
 interface ContactsTableProps {
   entries: ContactEntry[]
@@ -133,7 +134,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const handleClick = (row: VirtualizedTableRow): void => {
     if (row.loadingMore) return
     const { addressBookId, contact } = row as unknown as ContactEntry
-    void navigate(`/contacts/${addressBookId}/${contact.id}`, {
+    void navigate(contactPath(addressBookId, contact.id), {
       state: { from: location.pathname }
     })
   }

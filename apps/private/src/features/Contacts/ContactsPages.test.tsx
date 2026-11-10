@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import { fetchContact } from '@common/features/Contacts/ContactsDao'
 import {
@@ -8,7 +9,7 @@ import {
 import { ContactListing } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { TwakeMuiThemeProvider, VirtuosoMockContext } from '@linagora/twake-mui'
@@ -26,6 +27,13 @@ const mockUseBreakpoints = vi.hoisted(() =>
     isExtraLarge: false
   }))
 )
+
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+const originalConfig = { ...mockConfig }
 
 vi.mock('@linagora/twake-mui', async () => {
   const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
@@ -110,7 +118,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
         error: null
       },
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           collected: {
             id: 'collected',
             userId: 'u1',
@@ -176,7 +184,7 @@ const renderContacts = (path: string): ReturnType<typeof render> =>
               }
             ]
           }
-        },
+        }),
         listings: {
           [ALL_CONTACTS_LISTING]: makeListing([
             ['book2', 'c2'],
@@ -223,14 +231,6 @@ describe('AddressBookPage', () => {
 })
 
 describe('ContactPage', () => {
-  const originalMailSpaUrl = (window as Window & { MAIL_SPA_URL?: string })
-    .MAIL_SPA_URL
-  const originalChatSpaUrl = (window as Window & { CHAT_SPA_URL?: string })
-    .CHAT_SPA_URL
-  const originalCalendarSpaUrl = (
-    window as Window & { CALENDAR_SPA_URL?: string }
-  ).CALENDAR_SPA_URL
-
   beforeEach(() => {
     mockUseBreakpoints.mockReturnValue({
       isMobile: false,
@@ -238,33 +238,15 @@ describe('ContactPage', () => {
       isDesktop: true,
       isExtraLarge: false
     })
-    ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
-      'https://mail.example.com'
-    ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
-      'https://chat.example.com/#/chat/@{target}'
-    ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
-      'https://calendar.example.com'
+    Object.assign(mockConfig, {
+      MAIL_SPA_URL: 'https://mail.example.com',
+      CHAT_SPA_URL: 'https://chat.example.com/#/chat/@{target}',
+      CALENDAR_SPA_URL: 'https://calendar.example.com'
+    })
   })
 
   afterEach(() => {
-    if (originalMailSpaUrl !== undefined) {
-      ;(window as Window & { MAIL_SPA_URL: string }).MAIL_SPA_URL =
-        originalMailSpaUrl
-    } else {
-      delete (window as Window & { MAIL_SPA_URL?: string }).MAIL_SPA_URL
-    }
-    if (originalChatSpaUrl !== undefined) {
-      ;(window as Window & { CHAT_SPA_URL: string }).CHAT_SPA_URL =
-        originalChatSpaUrl
-    } else {
-      delete (window as Window & { CHAT_SPA_URL?: string }).CHAT_SPA_URL
-    }
-    if (originalCalendarSpaUrl !== undefined) {
-      ;(window as Window & { CALENDAR_SPA_URL: string }).CALENDAR_SPA_URL =
-        originalCalendarSpaUrl
-    } else {
-      delete (window as Window & { CALENDAR_SPA_URL?: string }).CALENDAR_SPA_URL
-    }
+    Object.assign(mockConfig, originalConfig)
   })
 
   it('renders the contact details', () => {
@@ -283,6 +265,32 @@ describe('ContactPage', () => {
     )
   })
 
+  it('names the kind of each contact value for screen readers', () => {
+    renderContacts('/contacts/book1/c1')
+
+    const items = screen.getAllByRole('listitem')
+    expect(items.map(item => item.textContent)).toEqual([
+      expect.stringMatching(/^TeamInformation/),
+      expect.stringMatching(/^Phone\+3365024491/),
+      expect.stringMatching(/^Emailmartinez@twake\.app/),
+      expect.stringMatching(/^Address23 Rue de Mogador, 75009 Paris/)
+    ])
+    items.forEach(item => {
+      expect(item.querySelector('.u-visuallyhidden')).toBeInTheDocument()
+    })
+  })
+
+  it('hides the decorative icons of the contact values', () => {
+    renderContacts('/contacts/book1/c1')
+
+    screen
+      .getAllByRole('listitem')
+      .flatMap(item => Array.from(item.querySelectorAll('svg')))
+      .forEach(svg => {
+        expect(svg.closest('[aria-hidden="true"]')).not.toBeNull()
+      })
+  })
+
   it('shows quick action buttons with labels on desktop', () => {
     renderContacts('/contacts/book1/c1')
 
@@ -294,8 +302,8 @@ describe('ContactPage', () => {
     expect(chatButton).toBeInTheDocument()
     expect(calendarButton).toBeInTheDocument()
     expect(mailButton).toHaveTextContent('Send email')
-    expect(chatButton).toHaveTextContent('Chat')
-    expect(calendarButton).toHaveTextContent('Schedule')
+    expect(chatButton).toHaveTextContent('Open chat')
+    expect(calendarButton).toHaveTextContent('Create event')
   })
 
   it('shows quick action buttons without labels on mobile', () => {
@@ -316,8 +324,8 @@ describe('ContactPage', () => {
     expect(chatButton).toBeInTheDocument()
     expect(calendarButton).toBeInTheDocument()
     expect(mailButton).not.toHaveTextContent('Send email')
-    expect(chatButton).not.toHaveTextContent('Chat')
-    expect(calendarButton).not.toHaveTextContent('Schedule')
+    expect(chatButton).not.toHaveTextContent('Open chat')
+    expect(calendarButton).not.toHaveTextContent('Create event')
   })
 
   it('disable quick action buttons when contact has no email', () => {
@@ -450,5 +458,37 @@ describe('before the address books are loaded', () => {
 
     expect(hasSkeleton(container)).toBe(true)
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
+  })
+})
+
+describe('document title', () => {
+  beforeEach(() => {
+    document.title = 'Twake Contacts'
+  })
+
+  it.each([
+    ['/contacts', 'My contacts – Twake Contacts'],
+    ['/contacts?scope=shared', 'Shared with me – Twake Contacts'],
+    ['/contacts/book2', 'Book 2 – Twake Contacts'],
+    ['/contacts/deleted-book', 'Address book not found – Twake Contacts'],
+    ['/contacts/book1/c1', 'Isabella Martinez – Twake Contacts'],
+    ['/contacts/new', 'Create contact – Twake Contacts'],
+    ['/contacts/book1/c1/edit', 'Edit contact – Twake Contacts']
+  ])('names the screen at %s', (path, title) => {
+    renderContacts(path)
+
+    expect(document.title).toBe(title)
+  })
+
+  it('names a missing contact', async () => {
+    vi.mocked(fetchContact).mockRejectedValue(new Error('Not found'))
+
+    renderContacts('/contacts/book1/unknown')
+
+    expect(await screen.findByText('Contact not found')).toBeInTheDocument()
+    // the title follows the rendered page in an effect
+    await waitFor(() =>
+      expect(document.title).toBe('Contact not found – Twake Contacts')
+    )
   })
 })

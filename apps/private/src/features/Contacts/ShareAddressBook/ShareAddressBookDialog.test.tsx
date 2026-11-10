@@ -1,3 +1,5 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock, MockedFunction } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -51,17 +53,21 @@ function renderDialog(onClose = vi.fn()): Mock {
     } as UserState,
     contacts: {
       addressBooks: {
-        book1: {
-          id: 'book1',
-          userId: 'alice',
-          name: 'Friends',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
-        }
+        book1: classifyAddressBook(
+          {
+            id: 'book1',
+            userId: 'alice',
+            name: 'Friends',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          'alice'
+        )
       },
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }
@@ -80,9 +86,21 @@ function renderDialog(onClose = vi.fn()): Mock {
 
 describe('ShareAddressBookDialog', () => {
   beforeEach(() => {
-    mockedResolveMember.mockImplementation(async m => m)
+    mockedResolveMember.mockImplementation(m => Promise.resolve(m))
   })
   afterEach(() => vi.resetAllMocks())
+
+  it('offers the high contrast toggle while the dialog is open', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    renderDialog()
+
+    const toggle = within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'High contrast'
+    })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  })
 
   it('lists a member whose profile lookup has not answered yet', async () => {
     const invitedBob = { ...bob, name: bob.email }
@@ -101,6 +119,24 @@ describe('ShareAddressBookDialog', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('groups the owner and the members in one list', async () => {
+    mockedFetchDetails.mockResolvedValue({ members: [bob], isPublic: false })
+    renderDialog()
+
+    const roleSelector = await screen.findByRole('button', {
+      name: 'Role of bob bob'
+    })
+    const membersList = roleSelector.closest('ul') as HTMLElement
+
+    expect(membersList).not.toBeNull()
+    expect(within(membersList).getAllByRole('listitem')).toHaveLength(2)
+    expect(
+      screen
+        .getAllByRole('listitem')
+        .every(item => item.parentElement?.tagName === 'UL')
+    ).toBe(true)
+  })
+
   it('reports in the dialog a failure to fetch the members', async () => {
     mockedFetchDetails.mockRejectedValue(new Error('Bad Request'))
     renderDialog()
@@ -114,6 +150,7 @@ describe('ShareAddressBookDialog', () => {
   })
 
   it('lists the members once they are fetched after a failure', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockRejectedValueOnce(new Error('Bad Request'))
       .mockResolvedValue({ members: [bob], isPublic: false })
@@ -131,10 +168,10 @@ describe('ShareAddressBookDialog', () => {
     expect(
       await screen.findByText('Failed to load the members of this address book')
     ).toBeInTheDocument()
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(await screen.findByText('bob bob')).toBeInTheDocument()
     expect(
@@ -142,7 +179,61 @@ describe('ShareAddressBookDialog', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('announces the people the book was shared with', async () => {
+    const user = userEvent.setup()
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    mockedUpdateShares.mockResolvedValue(undefined)
+    mockedSearchUsers.mockResolvedValue([
+      {
+        id: 'bob',
+        firstname: 'bob',
+        lastname: 'bob',
+        emails: ['bob@open-paas.org']
+      }
+    ])
+    renderDialog()
+
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+
+    expect(await screen.findByText('Shared with bob bob')).toHaveAttribute(
+      'role',
+      'status'
+    )
+  })
+
+  it('announces a failure to share', async () => {
+    const user = userEvent.setup()
+    mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
+    mockedUpdateShares.mockRejectedValue(new Error('Bad Request'))
+    mockedSearchUsers.mockResolvedValue([
+      {
+        id: 'bob',
+        firstname: 'bob',
+        lastname: 'bob',
+        emails: ['bob@open-paas.org']
+      }
+    ])
+    renderDialog()
+
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getAllByRole('status')
+          .some(region => region.textContent === en.contacts.errors.share)
+      ).toBe(true)
+    )
+  })
+
   it('lists a member shared again right after being removed', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockResolvedValueOnce({ members: [bob], isPublic: false })
       .mockResolvedValueOnce({ members: [], isPublic: false })
@@ -158,20 +249,21 @@ describe('ShareAddressBookDialog', () => {
     ])
     renderDialog()
 
-    userEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+    await user.click(await screen.findByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(mockedFetchDetails).toHaveBeenCalledTimes(2))
     expect(screen.queryByText('bob bob')).not.toBeInTheDocument()
 
-    userEvent.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
     await waitFor(() => expect(mockedSearchUsers).toHaveBeenCalled())
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(await screen.findByText('bob bob')).toBeInTheDocument()
     expect(mockedFetchDetails).toHaveBeenCalledTimes(3)
   })
 
   it('keeps the focus on the role selector after a role change', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails.mockResolvedValue({ members: [bob], isPublic: false })
     let resolveUpdate: () => void = () => undefined
     mockedUpdateShares.mockReturnValue(
@@ -184,8 +276,8 @@ describe('ShareAddressBookDialog', () => {
     const selector = await screen.findByRole('button', {
       name: 'Role of bob bob'
     })
-    userEvent.click(selector)
-    userEvent.click(
+    await user.click(selector)
+    await user.click(
       within(screen.getByRole('menu')).getByRole('menuitemradio', {
         name: 'Editor'
       })
@@ -201,11 +293,12 @@ describe('ShareAddressBookDialog', () => {
     expect(selector).toHaveAttribute('aria-disabled', 'false')
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
-    userEvent.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalled()
   })
 
   it('moves the focus to the "Add contacts" field after a removal', async () => {
+    const user = userEvent.setup()
     mockedFetchDetails
       .mockResolvedValueOnce({ members: [bob], isPublic: false })
       .mockResolvedValue({ members: [], isPublic: false })
@@ -214,13 +307,13 @@ describe('ShareAddressBookDialog', () => {
 
     const removeButton = await screen.findByRole('button', { name: 'Remove' })
     removeButton.focus()
-    userEvent.click(removeButton)
+    await user.click(removeButton)
 
     await waitFor(() => expect(mockedFetchDetails).toHaveBeenCalledTimes(2))
     expect(screen.queryByText('bob bob')).not.toBeInTheDocument()
     expect(screen.getByPlaceholderText('Add contacts')).toHaveFocus()
 
-    userEvent.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalled()
   })
 })

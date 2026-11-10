@@ -8,7 +8,9 @@ import en from '@common/locales/en.json'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 
 const renderEmptyState = (themeMode: ThemeMode): RenderResult => {
-  const store = setupStore({ settings: { language: 'en', themeMode } })
+  const store = setupStore({
+    settings: { language: 'en', themeMode, contrastMode: 'default' }
+  })
   return render(
     <Provider store={store}>
       <TwakeMuiThemeProvider>
@@ -35,6 +37,23 @@ describe('NoContactsEmptyState', () => {
     expect(screen.getByText(en.contacts.empty.title)).toBeInTheDocument()
     expect(screen.getByText(en.contacts.empty.subtitle)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
+  })
+
+  it('does not nest the subtitle or the action in another paragraph', () => {
+    const { container } = renderEmptyState('light')
+
+    expect(container.querySelector('p p, p div')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Import' }).closest('p')).toBe(
+      null
+    )
+  })
+
+  it('titles the empty state with an h2, below the page h1', () => {
+    renderEmptyState('light')
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: en.contacts.empty.title })
+    ).toBeInTheDocument()
   })
 
   it('uses the light illustration in light mode', () => {

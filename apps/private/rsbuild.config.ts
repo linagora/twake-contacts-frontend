@@ -4,12 +4,10 @@ import { pluginReact } from '@rsbuild/plugin-react'
 import { pluginStylus } from '@rsbuild/plugin-stylus'
 import { pluginSvgr } from '@rsbuild/plugin-svgr'
 
-import { getInjectedAliases } from '../../common/injectedAliases'
 import {
   isSentryConfigured,
   setupSentryPlugin
 } from '../../common/sentryBuildUtils'
-import { injectedAliases } from './injectedAliases'
 
 export default defineConfig({
   plugins: [pluginReact(), pluginStylus(), pluginSvgr()],
@@ -47,7 +45,6 @@ export default defineConfig({
   resolve: {
     aliasStrategy: 'prefer-alias',
     alias: {
-      ...getInjectedAliases(__dirname, injectedAliases),
       '@': path.resolve(__dirname, './src'),
       '@common': path.resolve(__dirname, '../../common/src'),
       react: require.resolve('react'),

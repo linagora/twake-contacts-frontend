@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 /** @vitest-environment jsdom */
 import { setupStore } from '@common/app/store'
 import { userData } from '@common/features/User/userDataTypes'
@@ -18,15 +19,18 @@ vi.mock('../ContactsDao')
 const arg = { userId: 'owner', addressBookId: 'book' }
 const initial: ContactsState = {
   addressBooks: {
-    book: {
-      id: 'book',
-      userId: 'owner',
-      name: 'Book',
-      contactsCount: 0,
-      acl: [],
-      canWrite: true,
-      contacts: []
-    }
+    book: classifyAddressBook(
+      {
+        id: 'book',
+        userId: 'owner',
+        name: 'Book',
+        contactsCount: 0,
+        acl: [],
+        canWrite: true,
+        contacts: []
+      },
+      'owner'
+    )
   },
   listings: {},
   sort: { by: 'fn', order: 'asc' },
@@ -167,7 +171,9 @@ describe('fetchAddressBookDetail', () => {
       members: [invitedBob],
       isPublic: false
     })
-    vi.mocked(resolveAddressBookMember).mockImplementation(async m => m)
+    vi.mocked(resolveAddressBookMember).mockImplementation(m =>
+      Promise.resolve(m)
+    )
     const store = setupStore({
       contacts: {
         ...initial,

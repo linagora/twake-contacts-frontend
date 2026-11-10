@@ -1,5 +1,5 @@
 import { ReducerCreators } from '@reduxjs/toolkit'
-import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
+import { toOperationError } from '@common/utils/errorUtils'
 import { moveContact } from '../ContactsDao'
 import {
   AddressBookWithContacts,
@@ -8,6 +8,11 @@ import {
 } from '../contactsTypes'
 import { isContactTransferDestination } from '../contactsUtils'
 import { placeContactInListings } from '../contactListings'
+import {
+  ContactsOperationError,
+  messageKeyFor,
+  operationMessageKey
+} from '../operationMessages'
 
 export interface MoveContactArgs {
   userId: string
@@ -50,11 +55,19 @@ function addOrReplaceContactInBook(
   }
 }
 
-export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
+export const moveContactThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    MoveContactArgs,
+    MoveContactArgs,
+    { rejectValue: ContactsOperationError }
+  >
+> =>
   create.asyncThunk<
     MoveContactArgs,
     MoveContactArgs,
-    { rejectValue: RejectedError }
+    { rejectValue: ContactsOperationError }
   >(
     async (args, { getState, rejectWithValue }) => {
       try {
@@ -62,8 +75,7 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         const source = contacts.addressBooks[args.fromAddressBookId]
         const destination = contacts.addressBooks[args.toAddressBookId]
         if (
-          !source?.canWrite ||
-          source.id === 'dab' ||
+          !source?.capabilities.moveContactsOut ||
           !destination ||
           !isContactTransferDestination(destination, source.id)
         ) {
@@ -82,16 +94,19 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         )
         return args
       } catch (err) {
-        return rejectWithValue(toRejectedError(err))
+        return rejectWithValue(toOperationError(err, 'move'))
       }
     },
     {
       fulfilled: (state, action) => {
+        const { fromAddressBookId, toAddressBookId, contact } = action.payload
         state.transferSuccess = {
           operation: 'move',
-          requestId: action.meta.requestId
+          requestId: action.meta.requestId,
+          contactId: contact.id,
+          contactName: contact.displayName,
+          destinationId: toAddressBookId
         }
-        const { fromAddressBookId, toAddressBookId, contact } = action.payload
         const fromBook = state.addressBooks[fromAddressBookId]
         if (fromBook) {
           state.addressBooks[fromAddressBookId] = removeContactFromBook(
@@ -115,7 +130,9 @@ export const moveContactThunk = (create: ReducerCreators<ContactsState>) =>
         )
       },
       rejected: (state, action) => {
-        state.error = action.payload?.message ?? 'Failed to move contact'
+        state.error = action.payload
+          ? messageKeyFor(action.payload)
+          : operationMessageKey('move')
       }
     }
   )

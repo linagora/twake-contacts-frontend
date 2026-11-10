@@ -45,7 +45,7 @@ export class ContactFormPage {
     this.backLink = this.main.getByRole('link', { name: 'Back' })
     this.saveButton = this.main.getByRole('button', { name: 'Save' })
     this.deleteButton = this.main.getByRole('button', { name: 'Delete' })
-    this.title = this.main.getByRole('heading', { level: 4 })
+    this.title = this.main.getByRole('heading', { level: 1 })
     this.firstName = this.main.getByRole('textbox', { name: 'First name' })
     this.lastName = this.main.getByRole('textbox', { name: 'Last name' })
     this.addressBook = this.main.getByRole('combobox', { name: 'Address book' })
@@ -56,9 +56,13 @@ export class ContactFormPage {
       exact: true
     })
     this.matrixId = this.main.getByRole('textbox', { name: 'Matrix id' })
-    this.typeSelectors = this.main.getByRole('combobox', { name: 'Type' })
+    this.typeSelectors = this.main.getByRole('combobox', {
+      name: /^(Phone|Address) type$/
+    })
     this.addButton = this.main.getByRole('button', { name: 'Add', exact: true })
-    this.removeButtons = this.main.getByRole('button', { name: 'Remove' })
+    this.removeButtons = this.main.getByRole('button', {
+      name: /^Remove (phone|email|address)$/
+    })
   }
 
   async expectLoaded(): Promise<void> {

@@ -7,13 +7,17 @@ import {
 import { Icon, People } from '@linagora/twake-icons'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { useI18n } from 'twake-i18n'
-import { useAddressBookOptions } from '../../AddressBookOptions'
+import {
+  addressBookMenuProps,
+  useAddressBookOptions
+} from '../../AddressBookOptions'
 import { FormRow } from '../FormRow'
 
 interface AddressBookFieldProps {
   addressBooks: AddressBook[]
   value: string
   disabled?: boolean
+  helperText?: string
   onChange: (value: string) => void
 }
 
@@ -21,6 +25,7 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
   addressBooks,
   value,
   disabled = false,
+  helperText,
   onChange
 }) => {
   const { t } = useI18n()
@@ -35,11 +40,13 @@ export const AddressBookField: React.FC<AddressBookFieldProps> = ({
           fullWidth
           size="small"
           variant="outlined"
+          label={t('contacts.form.addressBook')}
+          helperText={helperText}
           disabled={disabled}
           value={value}
           onChange={e => onChange(e.target.value)}
           slotProps={{
-            select: { 'aria-label': t('contacts.form.addressBook') },
+            select: { MenuProps: addressBookMenuProps },
             input: {
               startAdornment: (
                 <InputAdornment position="start">

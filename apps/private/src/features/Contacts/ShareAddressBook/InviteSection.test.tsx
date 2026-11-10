@@ -43,6 +43,14 @@ describe('InviteSection', () => {
     expect(screen.getByPlaceholderText('Add contacts')).toHaveFocus()
   })
 
+  it('labels the "Add contacts" field with the "Invite people" sentence', () => {
+    renderInviteSection()
+
+    expect(
+      screen.getByRole('combobox', { name: 'Invite people' })
+    ).toHaveAttribute('placeholder', 'Add contacts')
+  })
+
   it('names the role selector', () => {
     renderInviteSection()
 
@@ -52,17 +60,47 @@ describe('InviteSection', () => {
   })
 
   it('keeps the focus in the "Add contacts" field after Send', async () => {
+    const user = userEvent.setup()
     const onShare = renderInviteSection()
     const input = screen.getByPlaceholderText('Add contacts')
 
-    userEvent.type(input, 'bob')
-    userEvent.click(await screen.findByText('bob@open-paas.org'))
-    userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    await user.type(input, 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
 
     expect(onShare).toHaveBeenCalledWith(
       [expect.objectContaining({ openpaasId: 'bob' })],
       AddressBookAccessLevel.Viewer
     )
     expect(input).toHaveFocus()
+  })
+
+  it('names the remove button of a picked person', async () => {
+    const user = userEvent.setup()
+    renderInviteSection()
+
+    await user.type(screen.getByPlaceholderText('Add contacts'), 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
+
+    expect(
+      screen.getAllByRole('button', { name: 'Remove bob bob' })
+    ).toHaveLength(1)
+  })
+
+  it('removes the picked person and gives the focus back to the field', async () => {
+    const user = userEvent.setup()
+    const onShare = renderInviteSection()
+    const input = screen.getByPlaceholderText('Add contacts')
+
+    await user.type(input, 'bob')
+    await user.click(await screen.findByText('bob@open-paas.org'))
+    await user.click(screen.getByRole('button', { name: 'Remove bob bob' }))
+
+    expect(
+      screen.queryByRole('button', { name: 'Remove bob bob' })
+    ).not.toBeInTheDocument()
+    expect(input).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(onShare).not.toHaveBeenCalled()
   })
 })

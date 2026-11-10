@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import {
   Button,
   Dialog,
@@ -9,7 +10,7 @@ import {
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import {
-  AddressBook,
+  RawAddressBook,
   UserResult
 } from '@common/features/Contacts/contactsTypes'
 import { UserAutocomplete } from './UserAutocomplete'
@@ -21,7 +22,7 @@ interface Props {
   isSubscribing?: boolean
   error?: string | null
   onClose: () => void
-  onConfirm: (user: UserResult, books: AddressBook[]) => void
+  onConfirm: (user: UserResult, books: RawAddressBook[]) => void
 }
 
 export const SubscribeAddressBookDialog: React.FC<Props> = ({
@@ -31,6 +32,7 @@ export const SubscribeAddressBookDialog: React.FC<Props> = ({
   onConfirm
 }) => {
   const { t } = useI18n()
+  const userLabelId = useId()
   const { user, selectUser, clearUser, books, emptyMessageKey, removeBook } =
     usePublicAddressBooks()
   return (
@@ -40,10 +42,14 @@ export const SubscribeAddressBookDialog: React.FC<Props> = ({
       </DialogTitle>
       <DialogCloseButton onClick={onClose} />
       <DialogContent>
-        <Typography className="u-mb-1">
+        <Typography className="u-mb-1" id={userLabelId}>
           {t('contacts.addressBook.userLabel')}
         </Typography>
-        <UserAutocomplete onSelect={selectUser} onType={clearUser} />
+        <UserAutocomplete
+          onSelect={selectUser}
+          onType={clearUser}
+          labelledBy={userLabelId}
+        />
         {user && (
           <SubscribableBooksList
             user={user}

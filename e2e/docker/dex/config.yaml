@@ -33,6 +33,10 @@ staticClients:
     public: true
     redirectURIs:
       - 'http://localhost:8099/callback'
+    # Dex refuses a logout whose post_logout_redirect_uri is not listed here, compared as an
+    # exact string: keep it identical to SSO_POST_LOGOUT_REDIRECT of frontend/env.js
+    postLogoutRedirectURIs:
+      - 'http://localhost:8099?logout=1'
 
   # Confidential client the side service uses to introspect access tokens
   - id: tcalendar-side-service

@@ -1,5 +1,6 @@
+import { byId, theDefaultBook } from '@common/test/builders'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, RenderResult, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -27,17 +28,7 @@ vi.mock('@linagora/twake-mui', async () => {
 const defaultPreloadedState = {
   user: { userData: { openpaasId: 'u1' } } as UserState,
   contacts: {
-    addressBooks: {
-      contacts: {
-        id: 'contacts',
-        userId: 'u1',
-        name: 'My contacts',
-        contactsCount: 0,
-        acl: [],
-        canWrite: true,
-        contacts: []
-      }
-    },
+    addressBooks: byId(theDefaultBook({ name: 'My contacts' })),
     listings: {},
     sort: DEFAULT_CONTACT_SORT,
     loading: false,
@@ -48,7 +39,7 @@ const defaultPreloadedState = {
 const renderMobileTopBar = (
   props: Partial<MobileTopBarProps> = {},
   preloadedState = defaultPreloadedState
-) => {
+): RenderResult & { props: MobileTopBarProps } => {
   const store = setupStore(preloadedState)
   const defaultProps: MobileTopBarProps = {
     onOpenSidebar: vi.fn(),
@@ -76,6 +67,17 @@ const renderMobileTopBar = (
 }
 
 describe('MobileTopBar', () => {
+  it.each([true, false])(
+    'renders the high contrast toggle (address book page: %s)',
+    isAddressBookPage => {
+      renderMobileTopBar({ isAddressBookPage })
+
+      expect(
+        screen.getByRole('button', { name: en.theme.highContrast })
+      ).toHaveAttribute('aria-pressed', 'false')
+    }
+  )
+
   it('renders menu icon button and calls onOpenSidebar when clicked', () => {
     const onOpenSidebar = vi.fn()
     renderMobileTopBar({ onOpenSidebar })

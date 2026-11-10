@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import { useAppSelector } from '@common/app/hooks'
 import { selectPlatformURL } from '@common/app/selectors/selectPlatformURL'
 import type { userData } from '@common/features/User/userDataTypes'
@@ -14,8 +15,8 @@ import { useI18n } from 'twake-i18n'
 const handleLogOut = (): void => void logOut()
 
 const createBarFallback = (user: userData): TwakeBarFallback => ({
-  helpLink: window.SUPPORT_URL,
-  apps: (window.appList ?? []).map(app => ({
+  helpLink: config.SUPPORT_URL,
+  apps: config.appList.map(app => ({
     name: app.name,
     href: app.link,
     icon: app.icon

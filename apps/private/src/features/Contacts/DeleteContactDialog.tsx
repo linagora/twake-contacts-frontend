@@ -1,14 +1,12 @@
 import { Contact } from '@common/features/Contacts/contactsTypes'
-import { Cross, Icon } from '@linagora/twake-icons'
 import {
   Button,
   Dialog,
   DialogActions,
+  DialogCloseButton,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
-  ListItem,
   Stack
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
@@ -28,23 +26,10 @@ export const DeleteContactDialog: React.FC<DeleteContactDialogProps> = ({
   const { t } = useI18n()
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        <ListItem
-          disableGutters
-          disablePadding
-          secondaryAction={
-            <IconButton
-              edge="end"
-              aria-label={t('contacts.form.close')}
-              onClick={onClose}
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          }
-        >
-          {t('contacts.delete.title')}
-        </ListItem>
+      <DialogTitle className="dialogTitleWithClose">
+        {t('contacts.delete.title')}
       </DialogTitle>
+      <DialogCloseButton onClick={onClose} />
       <DialogContent>
         <Stack spacing={2}>
           <DialogContentText>

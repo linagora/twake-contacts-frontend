@@ -91,8 +91,11 @@ describe('ContactQuickActions', () => {
     expect(chatButton).toBeInTheDocument()
     expect(calendarButton).toBeInTheDocument()
     expect(mailButton).toHaveTextContent('Send email')
-    expect(chatButton).toHaveTextContent('Chat')
-    expect(calendarButton).toHaveTextContent('Schedule')
+    expect(chatButton).toHaveTextContent('Open chat')
+    expect(calendarButton).toHaveTextContent('Create event')
+    expect(mailButton).toHaveAccessibleName('Send email')
+    expect(chatButton).toHaveAccessibleName('Open chat')
+    expect(calendarButton).toHaveAccessibleName('Create event')
   })
 
   it('renders quick action buttons without labels on mobile', () => {
@@ -110,8 +113,11 @@ describe('ContactQuickActions', () => {
     const calendarButton = screen.getByTestId('contact-calendar-button')
 
     expect(mailButton).not.toHaveTextContent('Send email')
-    expect(chatButton).not.toHaveTextContent('Chat')
-    expect(calendarButton).not.toHaveTextContent('Schedule')
+    expect(chatButton).not.toHaveTextContent('Open chat')
+    expect(calendarButton).not.toHaveTextContent('Create event')
+    expect(mailButton).toHaveAccessibleName('Send email')
+    expect(chatButton).toHaveAccessibleName('Open chat')
+    expect(calendarButton).toHaveAccessibleName('Create event')
   })
 
   it('disables buttons when contact lacks email or chat target', () => {

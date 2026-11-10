@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import {
   Box,
   Button,
@@ -8,8 +9,8 @@ import {
 } from '@linagora/twake-mui'
 import { useEffect, useRef } from 'react'
 import { useAppSelector } from '@common/app/hooks'
-import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined'
-import ReplayIcon from '@mui/icons-material/Replay'
+import { Icon, Refresh, WarningCircle } from '@linagora/twake-icons'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { useI18n } from 'twake-i18n'
 
 interface ErrorProps {
@@ -25,15 +26,19 @@ export const Error: React.FC<ErrorProps> = ({
   const userError = useAppSelector(state => state.user.error)
   const initialError = useRef(userError)
 
+  useDocumentTitle(t('error.title'))
+
   useEffect(() => {
     if (!initialError.current && !isCrashFallback) {
       window.location.replace('/')
     }
   }, [isCrashFallback])
 
-  const errorMessage =
-    userError ||
-    (isCrashFallback ? errorBoundaryMessage?.message : t('error.unknown'))
+  const errorMessage = userError
+    ? t(userError)
+    : isCrashFallback
+      ? errorBoundaryMessage?.message
+      : t('error.unknown')
 
   return (
     <Fade in timeout={500}>
@@ -69,7 +74,7 @@ export const Error: React.FC<ErrorProps> = ({
                 justifyContent: 'center'
               }}
             >
-              <ErrorOutlinedIcon sx={{ fontSize: 40 }} />
+              <Icon icon={WarningCircle} size={40} />
             </Box>
 
             <Typography variant="h5">{t('error.title')}</Typography>
@@ -89,7 +94,7 @@ export const Error: React.FC<ErrorProps> = ({
             <Button
               variant="contained"
               color="error"
-              startIcon={<ReplayIcon />}
+              startIcon={<Icon icon={Refresh} />}
               onClick={() => (window.location.href = '/')}
               sx={{
                 textTransform: 'none',
@@ -102,6 +107,12 @@ export const Error: React.FC<ErrorProps> = ({
             >
               {t('error.retry')}
             </Button>
+
+            {config.APP_VERSION && (
+              <Typography variant="caption" color="text.secondary">
+                {t('error.version', { version: config.APP_VERSION })}
+              </Typography>
+            )}
           </Stack>
         </Paper>
       </Box>

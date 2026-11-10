@@ -1,23 +1,33 @@
 {
-  "locale": "fr-fr",
   "contacts": {
     "moveContact": {
-      "success": "Contact déplacé avec succès",
+      "success": "« %{name} » déplacé vers %{book}",
       "title": "Déplacer le contact",
       "confirm": "Déplacer",
       "error": "Impossible de déplacer le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · actuellement dans %{book}",
+      "open": "Ouvrir"
+    },
     "copyContact": {
-      "success": "Contact copié avec succès",
+      "success": "« %{name} » copié vers %{book}",
       "title": "Copier le contact",
       "destination": "Carnet d’adresses de destination",
       "empty": "Aucun carnet d’adresses modifiable disponible.",
       "error": "Impossible de copier le contact. Il existe peut-être déjà dans le carnet d’adresses de destination."
     },
     "title": "Contacts",
-    "tabs": { "mine": "Mes contacts", "shared": "Partagé avec moi" },
+    "tabs": {
+      "mine": "Mes contacts",
+      "shared": "Partagé avec moi"
+    },
     "myContacts": "Mes contacts",
     "shared": "Partagés",
+    "sidebar": {
+      "collapse": "Réduire",
+      "expand": "Développer"
+    },
     "domainAddressBook": "Carnet d'adresses du domaine",
     "create": "Créer",
     "name": "Nom",
@@ -45,7 +55,6 @@
       "clear": "Effacer",
       "firstName": "Prénom",
       "lastName": "Nom",
-      "addTeam": "Ajouter une équipe",
       "matrixId": "Identifiant Matrix",
       "phone": "Téléphone",
       "addPhone": "Ajouter un téléphone",
@@ -56,18 +65,26 @@
       "addField": "Ajouter",
       "remove": "Supprimer",
       "type": "Type",
+      "phoneType": "Type de téléphone",
+      "addressType": "Type d'adresse",
+      "removePhone": "Supprimer le téléphone",
+      "removeEmail": "Supprimer l'e-mail",
+      "removeAddress": "Supprimer l'adresse",
       "typeLabel": "Label",
       "cancel": "Annuler",
       "save": "Enregistrer",
-      "addressBook": "Carnet d'adresses",
       "editTitle": "Modifier le contact",
-      "newContact": "Nouveau contact",
-      "invalidEmail": "Adresse email invalide"
+      "addressBook": "Carnet d'adresses",
+      "moveHint": "L’enregistrement déplacera ce contact vers %{book}.",
+      "invalidEmail": "Adresse e-mail invalide, par ex. nom@exemple.com",
+      "duplicateEmail": "%{name} a déjà cette adresse e-mail, dans %{book}.",
+      "duplicateEmailMany": "%{smart_count} contact a déjà cette adresse e-mail. |||| %{smart_count} contacts ont déjà cette adresse e-mail.",
+      "openExisting": "Ouvrir le contact",
+      "nameRequired": "Saisissez un prénom ou un nom"
     },
     "edit": {
-      "title": "Modifier le carnet d'adresses",
+      "title": "Renommer le carnet d’adresses",
       "name": "Nom",
-      "description": "Description",
       "cancel": "Annuler",
       "save": "Enregistrer"
     },
@@ -83,10 +100,8 @@
       "openChat": "Ouvrir le chat",
       "createEvent": "Créer un événement",
       "edit": "Modifier",
+      "rename": "Renommer",
       "delete": "Supprimer",
-      "chat": "Discuter",
-      "mail": "Envoyer un e-mail",
-      "schedule": "Planifier",
       "share": "Partager",
       "remove": "Retirer de ma liste",
       "export": "Exporter"
@@ -99,12 +114,13 @@
     "search": {
       "placeholder": "Rechercher des contacts...",
       "loading": "Chargement...",
-      "noResults": "Aucun contact trouvé"
+      "noResults": "Aucun contact trouvé",
+      "resultsCount": "%{smart_count} contact trouvé |||| %{smart_count} contacts trouvés"
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Paramètres",
-      "search": "Rechercher"
+      "search": "Rechercher",
+      "skipToContent": "Aller au contenu principal"
     },
     "errors": {
       "load": "Échec du chargement des contacts",
@@ -117,7 +133,6 @@
       "subscribe": "Impossible d'ajouter le carnet d'adresses",
       "deleteAddressBook": "Impossible de supprimer le carnet d'adresses",
       "removeAddressBook": "Impossible de retirer le carnet d'adresses de votre liste",
-      "updateAddressBook": "Impossible de modifier le carnet d'adresses",
       "exportAddressBook": "Échec de l'export du carnet d'adresses",
       "exportContact": "Échec de l'export du contact"
     },
@@ -147,13 +162,16 @@
       "removeDescription": "« %{name} » sera retiré de votre liste. Vous pourrez le retrouver en recherchant son propriétaire.",
       "removeTitle": "Retirer ce carnet d'adresses ?",
       "removeConfirm": "Retirer",
-      "editTitle": "Modifier le carnet d'adresses",
-      "editSuccess": "Carnet d'adresses modifié avec succès"
+      "sharedWith": "Partagé avec %{smart_count} personne |||| Partagé avec %{smart_count} personnes",
+      "public": "Visible par votre organisation",
+      "sharedBy": "Partagé par %{owner} · %{role}"
     },
     "share": {
       "title": "Partager %{name}",
+      "sentStatus": "Partagé avec %{names}",
       "invitePeople": "Inviter des personnes",
       "addContacts": "Ajouter des contacts",
+      "removeInvitee": "Retirer %{name}",
       "send": "Envoyer",
       "owner": "Propriétaire",
       "emptyTitle": "Personne n'a encore été ajouté",
@@ -176,7 +194,15 @@
   "error": {
     "title": "Une erreur s'est produite",
     "unknown": "Une erreur inconnue s'est produite",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "version": "Version %{version}",
+    "loadUser": "Impossible de charger vos informations utilisateur"
+  },
+  "configError": {
+    "title": "L’application est mal configurée",
+    "hint": "L’administrateur doit corriger ces paramètres de .env.js :",
+    "missing": "%{name} est manquant",
+    "invalid": "%{name} est invalide"
   },
   "common": {
     "ok": "OK"
@@ -186,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Mode sombre",
-    "lightMode": "Mode clair"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Version mobile bientôt disponible",
-      "subtitle": "Veuillez ouvrir Twake Contacts sur un ordinateur pour profiter de toutes les fonctionnalités. Une version mobile entièrement optimisée sera bientôt disponible."
-    }
+    "lightMode": "Mode clair",
+    "highContrast": "Contraste élevé"
   },
   "twakeBar": {
     "home": "Accueil",

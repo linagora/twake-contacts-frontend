@@ -2,18 +2,20 @@ import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
-  AddressBook,
   Contact,
   ContactAddress,
   ContactEmail,
   ContactName,
   ContactOrg,
   ContactPhone,
-  ContactSocialProfile
+  ContactSocialProfile,
+  PhoneValueType,
+  RawAddressBook
 } from '../contactsTypes'
 import {
   DavAddressBookItem,
   DavContactItem,
+  DavLinks,
   JCalCard,
   JCalParams,
   JCalProperty,
@@ -52,6 +54,28 @@ function componentText(value: unknown): string {
   return value.map(scalarText).filter(Boolean).join(' ')
 }
 
+function getTextValues(prop: JCalProperty): string[] {
+  return prop
+    .slice(3)
+    .flatMap(value =>
+      typeof value === 'string' ||
+      (typeof value === 'number' && Number.isFinite(value))
+        ? [String(value)]
+        : []
+    )
+}
+
+function parseUriValues(
+  prop: JCalProperty,
+  scheme: RegExp
+): { type: string | null; value: string }[] {
+  const type = getTypeParam(prop[1])
+  return getTextValues(prop)
+    .map(raw => raw.replace(scheme, ''))
+    .filter(Boolean)
+    .map(value => ({ type, value }))
+}
+
 function getTypeParam(params: JCalParams): string | null {
   const type = params.type
   if (typeof type === 'string') return type
@@ -64,7 +88,9 @@ function parseName(card: JCalCard): ContactName | null {
   if (!prop) return null
   const values = prop[3]
   if (!Array.isArray(values)) return null
-  const [familyName, givenName] = values.map(componentText)
+  const [familyName, givenName] = Array.from({ length: 2 }, (_, i) =>
+    componentText(values[i])
+  )
   return {
     familyName,
     givenName
@@ -72,25 +98,26 @@ function parseName(card: JCalCard): ContactName | null {
 }
 
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return getCardProperties(card, 'email')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^mailto:/, '')
-      const type = getTypeParam(prop[1])
-      return { type, value }
-    })
-    .filter(e => e.value)
+  return getCardProperties(card, 'email').flatMap(prop =>
+    parseUriValues(prop, /^mailto:/)
+  )
 }
 
+const TEL_SCHEME = /^tel:/i
+const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
+
 function parsePhones(card: JCalCard): ContactPhone[] {
-  return getCardProperties(card, 'tel')
-    .map(prop => {
-      const raw = getStringValue(prop) ?? ''
-      const value = raw.replace(/^tel:/, '')
-      const type = getTypeParam(prop[1])
-      return { type, value }
+  return getCardProperties(card, 'tel').flatMap(prop => {
+    const type = getTypeParam(prop[1])
+    return getTextValues(prop).flatMap((raw): ContactPhone[] => {
+      // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
+      const value = raw.replace(TEL_SCHEME, '')
+      if (!value) return []
+      return TEL_SCHEME.test(raw)
+        ? [{ type, value, valueType: TEL_URI_VALUE_TYPE }]
+        : [{ type, value }]
     })
-    .filter(p => p.value)
+  })
 }
 
 const STREET_INDEX = 2
@@ -98,7 +125,7 @@ const STREET_INDEX = 2
 // RFC 7095 3.3.1.3 mandates an array, but some writers emit a plain string:
 // keep it as the street rather than hiding it from the user.
 function toAddressComponents(rawValue: unknown): unknown[] | null {
-  if (Array.isArray(rawValue)) return rawValue
+  if (Array.isArray(rawValue)) return rawValue as unknown[]
   if (typeof rawValue === 'string' && rawValue.trim()) {
     const components: unknown[] = []
     components[STREET_INDEX] = rawValue
@@ -107,13 +134,30 @@ function toAddressComponents(rawValue: unknown): unknown[] | null {
   return null
 }
 
+function makePhoneProperty(phone: ContactPhone): JCalProperty {
+  return phone.valueType === TEL_URI_VALUE_TYPE
+    ? [
+        'tel',
+        phone.type ? { type: phone.type } : {},
+        'uri',
+        `tel:${phone.value}`
+      ]
+    : makeTypedProperty('tel', phone.type, phone.value)
+}
+
+// RFC 6350 §6.3.1 defines seven ADR components, RFC 9554 appends more after them
+const RFC6350_ADR_COMPONENTS = 7
+
 function parseAddresses(card: JCalCard): ContactAddress[] {
   return getCardProperties(card, 'adr')
     .map((prop): ContactAddress | null => {
       const values = toAddressComponents(prop[3])
       if (!values) return null
       const [poBox, extended, street, locality, region, postalCode, country] =
-        Array.from({ length: 7 }, (_, i) => componentText(values[i]))
+        Array.from({ length: RFC6350_ADR_COMPONENTS }, (_, i) =>
+          componentText(values[i])
+        )
+      const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
       const type = getTypeParam(prop[1])
       return {
         type,
@@ -123,7 +167,8 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         locality,
         region,
         postalCode,
-        country
+        country,
+        ...(extra.length > 0 && { extra })
       }
     })
     .filter((a): a is ContactAddress => a !== null)
@@ -164,6 +209,14 @@ function parseOrg(card: JCalCard): ContactOrg | null {
   return { name: values[0], units: values.slice(1) }
 }
 
+// RFC 7095 sends a date as a string, non-conformant writers may store a number
+function parseBirthday(card: JCalCard): string | null {
+  const value = getCardProperties(card, 'bday')[0]?.[3]
+  return typeof value === 'string' || typeof value === 'number'
+    ? String(value)
+    : null
+}
+
 // text-list properties (RFC 6350 NICKNAME, CATEGORIES) carry every value after the type
 function parseTextList(card: JCalCard, name: string): string[] {
   const prop = getCardProperties(card, name)[0]
@@ -171,14 +224,39 @@ function parseTextList(card: JCalCard, name: string): string[] {
   return getStringValues(prop)
 }
 
-function extractId(href: string | undefined, extension: string): string {
-  return href?.split('/').pop()?.replace(extension, '') ?? ''
+// hrefs come as-is from the JSON payload, anything but a string is a missing one
+export function readHref(href: unknown): string | undefined {
+  return typeof href === 'string' ? href : undefined
 }
 
-// a sharee's copy of a book points to the original through its source
-function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
+function extractId(href: unknown, extension: string): string {
+  return readHref(href)?.split('/').pop()?.replace(extension, '') ?? ''
+}
+
+// The href carries the card file name percent-encoded: the contact id is the
+// decoded name, as given back by the route params and encoded again in DAV requests
+function decodeId(id: string): string {
+  try {
+    return decodeURIComponent(id)
+  } catch {
+    return id
+  }
+}
+
+// a sharee's copy of a book points to the original through its source:
+// a book path, or the HAL object subscribeToAddressBook posts
+export function readAddressBookSource(
+  raw: DavAddressBookItem
+): string | undefined {
   const source =
     raw['{http://open-paas.org/contacts}source'] || raw['openpaas:source']
+  if (typeof source === 'string') return source
+  const links = (source as { _links?: DavLinks } | null | undefined)?._links
+  return readHref(links?.self?.href)
+}
+
+function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
+  const source = readAddressBookSource(raw)
   const bookId = source ? extractId(source, '.json') : id
   return bookId === DEFAULT_ADDRESS_BOOK_ID
 }
@@ -198,14 +276,38 @@ export function normalizeContactsCount(count: unknown): number | null {
     : null
 }
 
-export function normalizeAddressBook(raw: DavAddressBookItem): AddressBook {
-  const href = raw._links?.self?.href
+// dav:share-access is a JSON number from esn-sabre, but may come as a numeric
+// string or a single-element array; anything else is treated as absent
+function normalizeShareAccess(value: unknown): number | undefined {
+  const scalar: unknown =
+    Array.isArray(value) && value.length === 1 ? (value[0] as unknown) : value
+  if (typeof scalar === 'number') {
+    return Number.isInteger(scalar) ? scalar : undefined
+  }
+  if (typeof scalar === 'string' && scalar.trim() !== '') {
+    const parsed = Number(scalar)
+    return Number.isInteger(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
+// dav:acl comes as-is from the JSON payload, a malformed answer may not be a string array
+function normalizeAcl(acl: unknown): string[] {
+  return Array.isArray(acl)
+    ? acl.filter(
+        (privilege): privilege is string => typeof privilege === 'string'
+      )
+    : []
+}
+
+export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
+  const href = readHref(raw._links?.self?.href)
   const id = extractId(href, '.json')
   // href is /addressbooks/<userId>/<bookId>.json, shared books carry the owner id
   const userId = href?.split('/').at(-2) ?? ''
-  const acl = raw['dav:acl'] ?? []
+  const acl = normalizeAcl(raw['dav:acl'])
   // dav:acl is the book's own ACL; for a delegated book the sharee's rights are in dav:share-access
-  const shareAccess = raw['dav:share-access'] ?? undefined
+  const shareAccess = normalizeShareAccess(raw['dav:share-access'])
   const isReadOnlyShare = READ_ONLY_SHARE_ACCESSES.some(
     access => access === shareAccess
   )
@@ -253,7 +355,7 @@ const KNOWN_PROPERTIES = new Set([
 ])
 
 export function normalizeContact(item: DavContactItem): Contact {
-  const id = extractId(item._links?.self?.href, '.vcf')
+  const id = decodeId(extractId(item._links?.self?.href, '.vcf'))
   const card = item.data
 
   const contact: Contact = {
@@ -262,14 +364,20 @@ export function normalizeContact(item: DavContactItem): Contact {
     emails: parseEmails(card)
   }
 
+  const uidProperty = getCardProperties(card, 'uid')[0]
+  if (uidProperty) contact.uidProperty = uidProperty
+
   const name = parseName(card)
   if (name) contact.name = name
 
   const nicknames = parseTextList(card, 'nickname')
   if (nicknames.some(Boolean)) contact.nicknames = nicknames
 
-  const birthday = getCardProperty(card, 'bday')
-  if (birthday) contact.birthday = birthday
+  const birthday = parseBirthday(card)
+  if (birthday) {
+    contact.birthday = birthday
+    contact.birthdayProp = getCardProperties(card, 'bday')[0]
+  }
 
   const phones = parsePhones(card)
   if (phones.length > 0) contact.phones = phones
@@ -298,8 +406,11 @@ export function normalizeContact(item: DavContactItem): Contact {
   const note = getCardProperty(card, 'note')
   if (note) contact.note = note
 
+  // an unreadable bday is kept as-is so that saving does not lose it
   const passthroughProps = card[1].filter(
-    prop => !KNOWN_PROPERTIES.has(prop[0])
+    prop =>
+      !KNOWN_PROPERTIES.has(prop[0]) ||
+      (prop[0] === 'bday' && !contact.birthday)
   )
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 
@@ -314,11 +425,31 @@ function makeTypedProperty(
   return [name, type ? { type } : {}, 'text', value]
 }
 
+// RFC 6350 §4.3.4 date-and-or-time, in the extended form jCard uses (RFC 7095 §3.5.3)
+const DATE_AND_OR_TIME =
+  /^(\d{4}(-\d{2}(-\d{2})?)?|--\d{2}(-\d{2})?|---\d{2})(T[\d:.+\-Z]*)?$|^T[\d:.+\-Z]+$/
+
+// RFC 6350 §6.2.5: BDAY is date-and-or-time by default, text only for a free-form value
+function birthdayValueType(value: string): string {
+  return DATE_AND_OR_TIME.test(value) ? 'date-and-or-time' : 'text'
+}
+
+// an unchanged BDAY is written back as read, keeping its value type and parameters
+function makeBirthdayProperty(
+  birthday: string,
+  original: JCalProperty | undefined
+): JCalProperty {
+  // a numeric BDAY from a non-conformant writer is shown as text: unchanged, it is kept as is
+  if (original && String(original[3]) === birthday) return original
+  return ['bday', {}, birthdayValueType(birthday), birthday]
+}
+
 /** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */
 export function denormalizeContact(contact: Contact): JCalCard {
   const properties: JCalProperty[] = [
     ['version', {}, 'text', '4.0'],
-    ['uid', {}, 'text', contact.id],
+    // the file name only decides the URL: a card from another client keeps its own UID
+    contact.uidProperty ?? ['uid', {}, 'text', contact.id],
     ['fn', {}, 'text', contact.displayName]
   ]
   if (contact.name) {
@@ -339,7 +470,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     properties.push(makeTypedProperty('email', email.type, email.value))
   })
   contact.phones?.forEach(phone => {
-    properties.push(makeTypedProperty('tel', phone.type, phone.value))
+    properties.push(makePhoneProperty(phone))
   })
   contact.addresses?.forEach(address => {
     properties.push(
@@ -350,7 +481,8 @@ export function denormalizeContact(contact: Contact): JCalCard {
         address.locality,
         address.region,
         address.postalCode,
-        address.country
+        address.country,
+        ...(address.extra ?? [])
       ])
     )
   })
@@ -371,8 +503,6 @@ export function denormalizeContact(contact: Contact): JCalCard {
     ])
   }
   const singles: [string, string | undefined][] = [
-    ['photo', contact.photo],
-    ['bday', contact.birthday],
     ['title', contact.title],
     ['role', contact.role],
     ['note', contact.note]
@@ -380,6 +510,11 @@ export function denormalizeContact(contact: Contact): JCalCard {
   singles.forEach(([name, value]) => {
     if (value) properties.push([name, {}, 'text', value])
   })
+  if (contact.birthday) {
+    properties.push(
+      makeBirthdayProperty(contact.birthday, contact.birthdayProp)
+    )
+  }
   properties.push(...(contact.passthroughProps ?? []))
   return ['vcard', properties]
 }

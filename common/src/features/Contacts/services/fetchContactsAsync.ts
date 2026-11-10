@@ -11,7 +11,15 @@ export interface FetchContactsPayload {
   domains?: DomainInfo[]
 }
 
-export const fetchContactsThunk = (create: ReducerCreators<ContactsState>) =>
+export const fetchContactsThunk = (
+  create: ReducerCreators<ContactsState>
+): ReturnType<
+  typeof create.asyncThunk<
+    AddressBook[],
+    FetchContactsPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     AddressBook[],
     FetchContactsPayload,

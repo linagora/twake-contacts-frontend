@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import {
   generateCalendarEventUrl,
   type UriTemplateContext
@@ -15,13 +16,13 @@ export function openCalendarEvent(
   attendees: string | string[],
   context: Omit<UriTemplateContext, 'target'> = {}
 ): boolean {
-  const template = window.CALENDAR_SPA_URL
+  const template = config.CALENDAR_SPA_URL
   if (!template) return false
 
   const attendeeList = Array.isArray(attendees) ? attendees : [attendees]
   const url = generateCalendarEventUrl(template, attendeeList, {
     ...context,
-    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+    workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
   })
   if (!url) return false
 

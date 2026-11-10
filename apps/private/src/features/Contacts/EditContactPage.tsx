@@ -6,6 +6,8 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
+import { isDomainAddressBookId } from '@common/features/Contacts/addressBookModel'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
@@ -16,14 +18,16 @@ import {
   makeContactFromForm,
   makeFormValuesFromContact
 } from './ContactForm'
+import { contactPath } from './contactPath'
 import { ContactFormSkeleton } from './ContactSkeletons'
+import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
 
 export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { addressBookId = '', contactId } = useParams()
+  const { addressBookId = '', contactId = '' } = useParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const allWritableBooks = useAppSelector(selectWritableBooks)
   const currentBook = useAppSelector(
@@ -33,11 +37,15 @@ export const EditContactPage: React.FC = () => {
     currentBook && !allWritableBooks.some(b => b.id === currentBook.id)
       ? [...allWritableBooks, currentBook]
       : allWritableBooks
-  const writableBooks = formBooks.filter(book => book.id !== 'dab')
+  const writableBooks = formBooks.filter(book => book.kind !== 'domain')
   const { contact, loading } = useContact(addressBookId, contactId)
 
-  if (addressBookId === 'dab') {
-    return <Navigate to={`/contacts/${addressBookId}/${contactId}`} replace />
+  useDocumentTitle(
+    !contact && !loading ? t('contacts.notFound') : t('contacts.form.editTitle')
+  )
+
+  if (isDomainAddressBookId(addressBookId)) {
+    return <Navigate to={contactPath(addressBookId, contactId)} replace />
   }
 
   if (loading && !contact) {
@@ -59,7 +67,9 @@ export const EditContactPage: React.FC = () => {
         >
           {t('contacts.back')}
         </Button>
-        <Typography color="text.secondary">{t('contacts.notFound')}</Typography>
+        <Typography component="h1" variant="body1" color="text.secondary">
+          {t('contacts.notFound')}
+        </Typography>
       </Stack>
     )
   }
@@ -69,7 +79,7 @@ export const EditContactPage: React.FC = () => {
     addressBookId
   }
 
-  const backTo = `/contacts/${addressBookId}/${contactId}`
+  const backTo = contactPath(addressBookId, contactId)
 
   const handleSubmit = async (values: ContactFormValues): Promise<void> => {
     if (!openpaasId) return
@@ -92,9 +102,11 @@ export const EditContactPage: React.FC = () => {
             contact: updatedContact
           })
         ).unwrap()
-        void navigate(`/contacts/${values.addressBookId}/${contactId}`)
+        void navigate(contactPath(values.addressBookId, contactId), {
+          state: FOCUS_HEADING_STATE
+        })
       } else {
-        void navigate(backTo)
+        void navigate(backTo, { state: FOCUS_HEADING_STATE })
       }
     } catch {
       // error is surfaced by the contacts slice
@@ -102,7 +114,7 @@ export const EditContactPage: React.FC = () => {
   }
 
   const handleDelete = async (): Promise<void> => {
-    if (!openpaasId) return
+    if (!openpaasId || !contactId) return
     try {
       await dispatch(
         deleteContact({
@@ -114,7 +126,8 @@ export const EditContactPage: React.FC = () => {
       void navigate(
         isHiddenAddressBook(addressBookId)
           ? '/contacts'
-          : `/contacts/${addressBookId}`
+          : `/contacts/${addressBookId}`,
+        { state: FOCUS_HEADING_STATE }
       )
     } catch {
       // error is surfaced by the contacts slice
@@ -128,7 +141,7 @@ export const EditContactPage: React.FC = () => {
       backTo={backTo}
       onSubmit={handleSubmit}
       contact={contact}
-      onDelete={handleDelete}
+      onDelete={() => void handleDelete()}
     />
   )
 }

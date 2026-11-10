@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { useAppSelector } from '@common/app/hooks'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { Company, Icon, Plus } from '@linagora/twake-icons'
@@ -11,21 +11,20 @@ import {
   NavText,
   Sidebar,
   Button,
-  NavDesktopDropdown,
-  Stack,
   useBreakpoints,
   Skeleton
 } from '@linagora/twake-mui'
-import { Link, useMatch, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { AddressBookNavItem } from './ContactsSidebar/AddressBookNavItem'
 import { MyContactsNavItem } from './ContactsSidebar/MyContactsNavItem'
+import { NestedNavList } from './ContactsSidebar/NestedNavList'
+import { SharedSectionHeader } from './ContactsSidebar/SharedSectionHeader'
 import {
   categorizeAddressBooks,
   getAriaCurrent,
   getCreateContactLink
 } from './ContactsSidebar/sidebarHelpers'
-import { CreateAddressBookButton } from './ContactsSidebar/CreateAddressBookButton'
 
 export interface ContactsSidebarProps {
   onOpenCreateBook: () => void
@@ -41,11 +40,12 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   onClose
 }) => {
   const [isMyContactsExpanded, setIsMyContactsExpanded] = useState(true)
+  const [isSharedExpanded, setIsSharedExpanded] = useState(true)
+  const myBooksListId = useId()
+  const sharedBooksListId = useId()
   const { t } = useI18n()
   const { addressBookId } = useParams()
   const navigate = useNavigate()
-  const isOnMyContacts = useMatch('/contacts') !== null
-  const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const { isMobile } = useBreakpoints()
 
   const addressBooks = useAppSelector(state => state.contacts.addressBooks)
@@ -54,9 +54,10 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const createLink = getCreateContactLink(addressBookId, currentBook, isLoading)
   const { personalBooks, sharedBooks, domainBooks } = categorizeAddressBooks(
     addressBooks,
-    openpaasId,
     t
   )
+  const hasPersonalBooks = isLoading || personalBooks.length > 0
+  const hasSharedBooks = isLoading || sharedBooks.length > 0
 
   const handleItemClick = (path: string): void => {
     void navigate(path)
@@ -64,6 +65,17 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
       onClose?.()
     }
   }
+
+  const renderSkeletons = (
+    variant: 'primary' | 'secondary',
+    width: number,
+    height: number
+  ): React.ReactNode =>
+    Array.from({ length: 3 }, (_, index) => (
+      <NavItem key={index} variant={variant}>
+        <Skeleton variant="text" width={width} height={height} />
+      </NavItem>
+    ))
 
   return (
     <Sidebar anchor="left" open={open} onClose={onClose}>
@@ -84,19 +96,14 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
       <Box className="u-flex-auto u-ov-auto u-mt-1-half">
         <Nav className="u-mv-0">
           <MyContactsNavItem
-            hasBooks={isLoading || personalBooks.length > 0}
+            hasBooks={hasPersonalBooks}
             isExpanded={isMyContactsExpanded}
             isSelected={addressBookId === undefined}
+            booksListId={myBooksListId}
             onToggle={() => setIsMyContactsExpanded(!isMyContactsExpanded)}
             onNavigate={() => {
-              // NavDropdown has a single click target: toggle when already
-              // on /contacts, otherwise navigate there with books shown
-              if (isOnMyContacts) {
-                setIsMyContactsExpanded(!isMyContactsExpanded)
-              } else {
-                setIsMyContactsExpanded(true)
-                void navigate('/contacts')
-              }
+              setIsMyContactsExpanded(true)
+              void navigate('/contacts')
             }}
             onOpenCreateBook={() => {
               onOpenCreateBook()
@@ -106,25 +113,22 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
             }}
           />
 
-          {isMyContactsExpanded &&
-            isLoading &&
-            Array.from({ length: 3 }, (_, index) => (
-              <NavItem key={index} variant="secondary">
-                <Skeleton variant="text" width={170} height={40} />
-              </NavItem>
-            ))}
-
-          {isMyContactsExpanded &&
-            !isLoading &&
-            personalBooks.map(book => (
-              <AddressBookNavItem
-                key={book.id}
-                book={book}
-                variant="secondary"
-                selected={addressBookId === book.id}
-                onNavigate={handleItemClick}
-              />
-            ))}
+          {hasPersonalBooks && (
+            <NestedNavList id={myBooksListId}>
+              {isMyContactsExpanded &&
+                (isLoading
+                  ? renderSkeletons('secondary', 170, 40)
+                  : personalBooks.map(book => (
+                      <AddressBookNavItem
+                        key={book.id}
+                        book={book}
+                        variant="secondary"
+                        selected={addressBookId === book.id}
+                        onNavigate={handleItemClick}
+                      />
+                    )))}
+            </NestedNavList>
+          )}
 
           {domainBooks.map(book => (
             <NavItem key={book.id}>
@@ -142,37 +146,31 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
               </NavLink>
             </NavItem>
           ))}
-          <NavDesktopDropdown
-            label={
-              <Stack
-                direction="row"
-                className="u-flex-justify-between u-flex-items-center"
-              >
-                <span>{t('contacts.shared')}</span>
-                <CreateAddressBookButton
-                  onClick={onOpenSubscribe}
-                  label={t('contacts.addressBook.subscribeTitle')}
-                />
-              </Stack>
-            }
-            limit={0}
-          >
-            {isLoading
-              ? Array.from({ length: 3 }, (_, index) => (
-                  <NavItem key={index} variant="primary">
-                    <Skeleton variant="text" width={200} height={45} />
-                  </NavItem>
-                ))
-              : sharedBooks.map(book => (
-                  <AddressBookNavItem
-                    key={book.id}
-                    book={book}
-                    variant="primary"
-                    selected={addressBookId === book.id}
-                    onNavigate={handleItemClick}
-                  />
-                ))}
-          </NavDesktopDropdown>
+
+          <SharedSectionHeader
+            isFoldable={hasSharedBooks}
+            isExpanded={isSharedExpanded}
+            booksListId={sharedBooksListId}
+            onToggle={() => setIsSharedExpanded(!isSharedExpanded)}
+            onOpenSubscribe={onOpenSubscribe}
+          />
+
+          {hasSharedBooks && (
+            <NestedNavList id={sharedBooksListId}>
+              {isSharedExpanded &&
+                (isLoading
+                  ? renderSkeletons('primary', 200, 45)
+                  : sharedBooks.map(book => (
+                      <AddressBookNavItem
+                        key={book.id}
+                        book={book}
+                        variant="primary"
+                        selected={addressBookId === book.id}
+                        onNavigate={handleItemClick}
+                      />
+                    )))}
+            </NestedNavList>
+          )}
         </Nav>
       </Box>
     </Sidebar>

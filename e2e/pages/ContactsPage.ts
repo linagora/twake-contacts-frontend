@@ -35,8 +35,11 @@ export class ContactsPage {
   readonly main: Locator
   /** "Create" link at the top of the sidebar */
   readonly createLink: Locator
-  /** "My contacts" entry; with nested books, a button with a "Collapse"/"Expand" chevron */
+  /** The sidebar entries, without the items that only wrap a nested list of books */
+  readonly entries: Locator
+  /** "My contacts" entry */
   readonly myContacts: Locator
+  /** "Collapse"/"Expand" chevron next to "My contacts", when it has nested books */
   readonly myContactsChevron: Locator
   /** "+" right of "My contacts" */
   readonly newAddressBookButton: Locator
@@ -67,11 +70,13 @@ export class ContactsPage {
     this.nav = page.getByRole('navigation')
     this.main = page.getByRole('main').last()
     this.createLink = this.sidebar.getByRole('link', { name: 'Create' })
-    this.myContacts = this.nav
+    this.entries = this.nav
       .getByRole('listitem')
+      .filter({ hasNot: page.getByRole('list') })
+    this.myContacts = this.entries
       .first()
       .getByRole('button', { name: startsWith('My contacts') })
-    this.myContactsChevron = this.myContacts.getByRole('button', {
+    this.myContactsChevron = this.entries.first().getByRole('button', {
       name: /^(Collapse|Expand)$/
     })
     this.newAddressBookButton = this.nav.getByRole('button', {
@@ -86,7 +91,7 @@ export class ContactsPage {
     this.themeToggle = page.getByRole('button', {
       name: /^(Dark mode|Light mode)$/
     })
-    this.heading = this.main.getByRole('heading', { level: 4 })
+    this.heading = this.main.getByRole('heading', { level: 1 })
     this.mineTab = this.main.getByRole('tab', { name: 'My contacts' })
     this.sharedTab = this.main.getByRole('tab', { name: 'Shared with me' })
     this.importButton = this.main.getByRole('button', { name: 'Import' })
@@ -136,9 +141,9 @@ export class ContactsPage {
 
   /** The sidebar entry of an address book (own, shared or added), by its name */
   bookEntry(name: string): Locator {
-    return this.nav
-      .getByRole('listitem')
-      .filter({ has: this.page.getByText(name, { exact: true }) })
+    return this.entries.filter({
+      has: this.page.getByText(name, { exact: true })
+    })
   }
 
   /** The clickable part of a sidebar entry; its name ends with the owner of a shared book */
@@ -198,7 +203,7 @@ export class ContactsPage {
 
   async openEditBookDialog(name: string): Promise<EditAddressBookDialog> {
     const menu = await this.openBookMenu(name)
-    await menu.getByRole('menuitem', { name: 'Edit' }).click()
+    await menu.getByRole('menuitem', { name: 'Rename' }).click()
     const dialog = new EditAddressBookDialog(this.page)
     await expect(dialog.root).toBeVisible()
     return dialog
@@ -325,16 +330,17 @@ export class ContactsPage {
     await expect(dialog.root).toBeHidden()
   }
 
-  /** Picks a file for the Import button, as the native file chooser would */
+  /** Picks a file in the native file chooser the Import button opens */
   async importFile(name: string, content: string): Promise<void> {
-    await this.importButton
-      .first()
-      .locator('input[type=file]')
-      .setInputFiles({
-        name,
-        mimeType: 'text/vcard',
-        buffer: Buffer.from(content)
-      })
+    const [chooser] = await Promise.all([
+      this.page.waitForEvent('filechooser'),
+      this.importButton.first().click()
+    ])
+    await chooser.setFiles({
+      name,
+      mimeType: 'text/vcard',
+      buffer: Buffer.from(content)
+    })
   }
 
   // ------------------------------------------------------------------- search

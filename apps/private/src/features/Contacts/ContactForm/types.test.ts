@@ -1,4 +1,8 @@
 import { Contact } from '@common/features/Contacts/contactsTypes'
+import {
+  denormalizeContact,
+  normalizeContact
+} from '@common/features/Contacts/transformer/ContactsTransformer'
 import { makeContactFromForm, makeFormValuesFromContact } from './types'
 
 const untypedAddress = {
@@ -49,6 +53,32 @@ describe('makeContactFromForm', () => {
     const saved = makeContactFromForm(values, contact)
 
     expect(saved.addresses?.map(address => address.type)).toEqual(['', 'work'])
+  })
+
+  it('keeps the components after the seventh of an untouched address', () => {
+    const withExtra: Contact = {
+      ...contact,
+      addresses: [{ ...untypedAddress, extra: ['BP 12'] }]
+    }
+
+    const saved = makeContactFromForm(
+      makeFormValuesFromContact(withExtra, 'book'),
+      withExtra
+    )
+
+    expect(saved.addresses?.[0].extra).toEqual(['BP 12'])
+  })
+
+  it('keeps the later addresses untouched after a cleared row', () => {
+    const values = makeFormValuesFromContact(contact, 'book')
+    const cleared = {
+      ...values,
+      addresses: [{ type: '', value: '' }, values.addresses[1]]
+    }
+
+    const saved = makeContactFromForm(cleared, contact)
+
+    expect(saved.addresses).toEqual([{ ...untypedAddress, type: 'work' }])
   })
 
   it('trims the emails', () => {
@@ -126,5 +156,57 @@ describe('makeContactFromForm', () => {
         { type: 'matrix', value: '@new:matrix.example' }
       ])
     })
+  })
+
+  const uriPhoneContact: Contact = {
+    ...contact,
+    phones: [{ type: 'work', value: '+49-30-1234', valueType: 'uri' }]
+  }
+
+  it('keeps the value type of an unchanged phone', () => {
+    const values = makeFormValuesFromContact(uriPhoneContact, 'book')
+
+    const saved = makeContactFromForm(values, uriPhoneContact)
+
+    expect(saved.phones).toEqual([
+      { type: 'work', value: '+49-30-1234', valueType: 'uri' }
+    ])
+  })
+
+  it('does not keep the value type of an edited phone', () => {
+    const values = {
+      ...makeFormValuesFromContact(uriPhoneContact, 'book'),
+      phones: [{ type: 'work', value: '+49 30 9999' }]
+    }
+
+    const saved = makeContactFromForm(values, uriPhoneContact)
+
+    expect(saved.phones).toEqual([{ type: 'work', value: '+49 30 9999' }])
+  })
+})
+
+describe('saving an unchanged contact', () => {
+  it('keeps the UID of the card', () => {
+    const uid = 'urn:uuid:6f9e1d20-1c55-4b7a-8e42-77c1f3a0d9e4'
+    const read = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/0f8b7a6c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['uid', {}, 'uri', uid],
+          ['fn', {}, 'text', 'Jane Doe'],
+          ['n', {}, 'text', ['Doe', 'Jane', '', '', '']]
+        ]
+      ]
+    })
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(read, 'contacts'), read)
+    )
+
+    expect(saved[1].filter(prop => prop[0] === 'uid')).toEqual([
+      ['uid', {}, 'uri', uid]
+    ])
   })
 })

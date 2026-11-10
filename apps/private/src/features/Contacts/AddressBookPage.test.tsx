@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import {
@@ -38,16 +39,20 @@ const makeBook = (
   id: string,
   contacts: Contact[],
   ownerId?: string
-): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  ownerId,
-  name: id,
-  contactsCount: null,
-  acl: [],
-  canWrite: true,
-  contacts
-})
+): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      ownerId,
+      name: id,
+      contactsCount: null,
+      acl: [],
+      canWrite: true,
+      contacts
+    },
+    'u1'
+  )
 
 const makeListing = (
   addressBookId: string,
@@ -417,5 +422,30 @@ describe('AddressBookPage tabs', () => {
       'aria-selected',
       'true'
     )
+  })
+})
+
+describe('AddressBookPage headings', () => {
+  it('names the address book in the only h1', () => {
+    renderPage(
+      '/contacts/book1',
+      { book1: makeBook('book1', [alice], 'u1') },
+      { book1: makeListing('book1', [alice], null) }
+    )
+
+    const headings = screen.getAllByRole('heading', { level: 1 })
+    expect(headings).toHaveLength(1)
+    expect(headings[0]).toHaveTextContent('book1')
+  })
+
+  it('makes the not found message the h1 of an unknown book', () => {
+    renderPage('/contacts/unknown', { book1: makeBook('book1', [], 'u1') })
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: en.contacts.addressBookNotFound
+      })
+    ).toBeInTheDocument()
   })
 })

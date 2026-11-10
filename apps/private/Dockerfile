@@ -2,7 +2,7 @@ FROM nginx:alpine
 RUN apk add --no-cache gzip
 COPY nginx.conf security_headers.conf /etc/nginx/
 COPY apps/private/dist /usr/share/nginx/html
-ARG BUILD_VERSION=2.0
+ARG BUILD_VERSION=dev
 RUN echo "var APP_VERSION = \"${BUILD_VERSION}\";" > /usr/share/nginx/html/version.js
 
 # Initialize cache_env.conf with defaults so Nginx configuration checks pass during build

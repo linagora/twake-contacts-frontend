@@ -1,3 +1,8 @@
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import type { Mock } from 'vitest'
 import { useState } from 'react'
 import {
@@ -8,6 +13,7 @@ import {
   within
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
@@ -25,15 +31,22 @@ import { ContactTransferDialog } from './CopyContactDialog'
 vi.mock('@common/features/Contacts/ContactsDao')
 
 const contact = { id: 'c1', displayName: 'Alice', emails: [] }
-const book = (id: string, canWrite = true): AddressBookWithContacts => ({
-  id,
-  userId: `owner-${id}`,
-  name: id,
-  canWrite,
-  acl: [],
-  contactsCount: 0,
-  contacts: []
-})
+const book = (id: string, canWrite = true): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: `owner-${id}`,
+      name: id,
+      canWrite,
+      acl: [],
+      contactsCount: 0,
+      contacts: []
+    },
+    `owner-${id}`
+  )
+const LocationDisplay = (): React.ReactElement => (
+  <div data-testid="location">{useLocation().pathname}</div>
+)
 const renderDialog = (
   mode: 'copy' | 'move' = 'copy',
   sourceCanWrite = true
@@ -44,7 +57,7 @@ const renderDialog = (
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         source: {
           ...book('source', sourceCanWrite),
           contacts: [contact],
@@ -61,8 +74,9 @@ const renderDialog = (
           ownerId: 'u2',
           ownerDisplayName: 'Bob Owner'
         }
-      },
+      }),
       listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }
@@ -91,7 +105,12 @@ const renderDialog = (
     <Provider store={store}>
       <TwakeMuiThemeProvider>
         <I18n dictRequire={() => en} lang="en">
-          <DialogHarness />
+          <MemoryRouter initialEntries={['/contacts']}>
+            <Routes>
+              <Route path="*" element={<DialogHarness />} />
+            </Routes>
+            <LocationDisplay />
+          </MemoryRouter>
         </I18n>
       </TwakeMuiThemeProvider>
     </Provider>
@@ -169,7 +188,9 @@ it.each(transferCases)(
     selectDestination()
     fireEvent.click(screen.getByRole('button', { name: label }))
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(screen.getByRole('alert')).toHaveTextContent(messages.success)
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      messages.success.replace('%{name}', 'Alice').replace('%{book}', 'target')
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(store.getState().contacts.transferSuccess).toBeNull()
     expect(dao).toHaveBeenCalledWith(
@@ -207,6 +228,43 @@ it.each(transferCases)(
     expect(onClose).not.toHaveBeenCalled()
   }
 )
+
+it('reports a failed move with the translated message, never the raw HTTP text', async () => {
+  vi.clearAllMocks()
+  const rawMessage = 'Request failed with status code 500 Internal Server Error'
+  vi.mocked(moveContact).mockRejectedValue(
+    Object.assign(new Error(rawMessage), {
+      name: 'HTTPError',
+      response: { status: 500 }
+    })
+  )
+  const { store } = renderDialog('move')
+  selectDestination()
+  fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    en.contacts.moveContact.error
+  )
+  expect(store.getState().contacts.error).toBe('contacts.moveContact.error')
+  expect(screen.queryByText(rawMessage)).not.toBeInTheDocument()
+})
+
+it('reports a forbidden move with the permission message', async () => {
+  vi.clearAllMocks()
+  vi.mocked(moveContact).mockRejectedValue(
+    Object.assign(new Error('Forbidden'), {
+      name: 'HTTPError',
+      response: { status: 403 }
+    })
+  )
+  const { store } = renderDialog('move')
+  selectDestination()
+  fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+
+  await waitFor(() =>
+    expect(store.getState().contacts.error).toBe('contacts.errors.forbidden')
+  )
+})
 
 it.each(transferCases)(
   'allows $mode into My contacts',
@@ -253,5 +311,35 @@ it.each(['copy', 'move'] as const)(
         listbox.getByRole('option', { name: /Alpha Shared/ })
       ) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  }
+)
+
+it.each(['copy', 'move'] as const)(
+  'names the contact and its current book in the %s dialog',
+  mode => {
+    renderDialog(mode)
+    expect(screen.getByText('Alice · currently in source')).toBeInTheDocument()
+  }
+)
+
+it.each(transferCases)(
+  'opens the $mode result from the toast and closes it',
+  async ({ mode, label }) => {
+    vi.clearAllMocks()
+    vi.mocked(copyContact).mockResolvedValue('new-card-id')
+    vi.mocked(moveContact).mockResolvedValue()
+    const { store, onClose } = renderDialog(mode)
+    selectDestination('My contacts')
+    fireEvent.click(screen.getByRole('button', { name: label }))
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `“Alice” ${mode === 'copy' ? 'copied' : 'moved'} to My contacts`
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      `/contacts/contacts/${mode === 'copy' ? 'new-card-id' : 'c1'}`
+    )
+    expect(store.getState().contacts.transferSuccess).toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   }
 )

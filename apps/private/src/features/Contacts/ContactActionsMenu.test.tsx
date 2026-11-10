@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import {
   fireEvent,
@@ -50,7 +51,7 @@ describe('ContactActionsMenu', () => {
     const store = setupStore({
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           book1: {
             id: 'book1',
             userId: 'u1',
@@ -60,7 +61,7 @@ describe('ContactActionsMenu', () => {
             canWrite: true,
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
-        },
+        }),
         listings: {},
         sort: DEFAULT_CONTACT_SORT,
         loading: false,
@@ -99,7 +100,7 @@ describe('ContactActionsMenu', () => {
     const store = setupStore({
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           book1: {
             id: 'book1',
             userId: 'u1',
@@ -109,7 +110,9 @@ describe('ContactActionsMenu', () => {
             canWrite: true,
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
-        },
+        }),
+        listings: {},
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }
@@ -145,7 +148,7 @@ describe('ContactActionsMenu', () => {
     const store = setupStore({
       user: { userData: { openpaasId: 'u1' } } as UserState,
       contacts: {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           book1: {
             id: 'book1',
             userId: 'u1',
@@ -155,7 +158,9 @@ describe('ContactActionsMenu', () => {
             canWrite: true,
             contacts: [{ id: 'c1', displayName: 'Alice Roche', emails: [] }]
           }
-        },
+        }),
+        listings: {},
+        sort: DEFAULT_CONTACT_SORT,
         loading: false,
         error: null
       }

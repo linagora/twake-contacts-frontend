@@ -1,3 +1,4 @@
+import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
@@ -6,8 +7,10 @@ import {
 import {
   fetchContact,
   moveContact as moveContactDao,
-  saveContact
+  saveContact,
+  searchContacts
 } from '@common/features/Contacts/ContactsDao'
+import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -30,7 +33,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         contacts: {
           id: DEFAULT_ADDRESS_BOOK_ID,
           userId: 'u1',
@@ -101,7 +104,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
           canWrite: true,
           contacts: []
         }
-      },
+      }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,
@@ -160,6 +163,41 @@ describe('CreateContactPage', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 
+  it('says that a first or last name is required', () => {
+    renderPage(['/contacts/new'])
+
+    const hint = screen.getByText('Enter a first name or a last name')
+    const firstName = screen.getByLabelText('First name')
+    const lastName = screen.getByLabelText('Last name')
+
+    expect(firstName).toHaveAttribute('aria-required', 'true')
+    expect(lastName).toHaveAttribute('aria-required', 'true')
+    expect(firstName).toHaveAttribute('aria-describedby', hint.id)
+    expect(lastName).toHaveAttribute('aria-describedby', hint.id)
+    expect(firstName).toHaveAccessibleDescription(
+      'Enter a first name or a last name'
+    )
+    expect(lastName).toHaveAccessibleDescription(
+      'Enter a first name or a last name'
+    )
+  })
+
+  it('removes aria-required once a last name is entered', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: 'Roche' }
+    })
+
+    expect(screen.getByLabelText('First name')).not.toHaveAttribute(
+      'aria-required'
+    )
+    expect(screen.getByLabelText('Last name')).not.toHaveAttribute(
+      'aria-required'
+    )
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
   it('keeps the title when names contain only spaces', () => {
     renderPage(['/contacts/new'])
 
@@ -203,9 +241,36 @@ describe('CreateContactPage', () => {
   it('gives the type selector room for long translated placeholders', () => {
     renderPage(['/contacts/new'])
 
-    const typeSelector = screen.getAllByRole('combobox', { name: 'Type' })[0]
+    const typeSelector = screen.getByRole('combobox', { name: 'Phone type' })
 
     expect(typeSelector.closest('.MuiGrid-grid-xs-3')).not.toBeNull()
+  })
+
+  it('names the type selectors after their entry kind', () => {
+    renderPage(['/contacts/new'])
+
+    expect(
+      screen.getByRole('combobox', { name: 'Phone type' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('combobox', { name: 'Address type' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('combobox', { name: 'Type' })
+    ).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['Add phone', 'Remove phone'],
+    ['Add email', 'Remove email'],
+    ['Add address', 'Remove address']
+  ])('names the remove button of a row added with %s', (add, remove) => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: add }))
+
+    expect(screen.getByRole('button', { name: remove })).toBeInTheDocument()
   })
 
   it('adds email entries', () => {
@@ -239,6 +304,21 @@ describe('CreateContactPage', () => {
     expect(addressBookSelect).toHaveTextContent('Book 1')
   })
 
+  it('shows a visible label on the address book field and no move hint', () => {
+    renderPage(['/contacts/new/book1'])
+
+    const addressBookSelect = screen.getByRole('combobox', {
+      name: 'Address book'
+    })
+    const labelId = addressBookSelect.getAttribute('aria-labelledby') ?? ''
+    expect(document.getElementById(labelId)).toHaveTextContent('Address book')
+
+    fireEvent.mouseDown(addressBookSelect)
+    fireEvent.click(screen.getByRole('option', { name: 'Book 2' }))
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
+  })
+
   it('lists own, then writable shared address books, without the domain book', () => {
     renderPage(['/contacts/new'])
 
@@ -248,6 +328,26 @@ describe('CreateContactPage', () => {
     expect(
       listbox.getAllByRole('option').map(option => option.textContent)
     ).toEqual(['My contacts', 'Book 1', 'Book 2', 'Alpha SharedBob Owner'])
+  })
+
+  it('groups own and shared address books, each group labelled by its caption', () => {
+    renderPage(['/contacts/new'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    const listbox = within(screen.getByRole('listbox'))
+
+    const ownGroup = listbox.getByRole('group', { name: 'My contacts' })
+    expect(
+      within(ownGroup)
+        .getAllByRole('option')
+        .map(option => option.textContent)
+    ).toEqual(['My contacts', 'Book 1', 'Book 2'])
+    const sharedGroup = listbox.getByRole('group', { name: 'Shared' })
+    expect(
+      within(sharedGroup)
+        .getAllByRole('option')
+        .map(option => option.textContent)
+    ).toEqual(['Alpha SharedBob Owner'])
   })
 
   it('exposes the shared caption as a presentation element, not an option', () => {
@@ -307,6 +407,144 @@ describe('CreateContactPage', () => {
       'href',
       '/contacts'
     )
+  })
+})
+
+describe('CreateContactPage duplicate email warning', () => {
+  const camille = (id: string, email: string): ContactEntry => ({
+    addressBookId: 'alphaShared',
+    contact: {
+      id,
+      displayName: `Camille Durand ${id}`,
+      emails: [{ type: 'work', value: email }]
+    }
+  })
+
+  const typeEmail = (value: string): void => {
+    fireEvent.change(screen.getByLabelText('First name'), {
+      target: { value: 'Camille' }
+    })
+    const emailField = screen.getByLabelText('Email')
+    fireEvent.change(emailField, { target: { value } })
+    fireEvent.blur(emailField)
+  }
+
+  beforeEach(() => {
+    vi.mocked(searchContacts).mockReset()
+  })
+
+  it('names the contact and its book when the typed email is already used', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    expect(
+      await screen.findByText(
+        'Camille Durand c9 already has this email address, in Alpha Shared (Bob Owner).'
+      )
+    ).toBeInTheDocument()
+    expect(searchContacts).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(searchContacts).mock.calls[0][1]).toBe(
+      'camille.durand@example.com'
+    )
+  })
+
+  it('opens the existing contact', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+    fireEvent.click(await screen.findByRole('button', { name: 'Open contact' }))
+
+    expect(screen.getByText('Contact')).toBeInTheDocument()
+  })
+
+  it('matches the address whatever its case', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('Camille.Durand@Example.com')
+
+    expect(
+      await screen.findByRole('button', { name: 'Open contact' })
+    ).toBeInTheDocument()
+  })
+
+  it('ignores contacts whose address only shares a prefix', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.d@example.com')
+
+    await waitFor(() => expect(searchContacts).toHaveBeenCalledTimes(1))
+    expect(
+      screen.queryByRole('button', { name: 'Open contact' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('counts the contacts when several have the address', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com'),
+      camille('c10', 'CAMILLE.DURAND@example.com')
+    ])
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    expect(
+      await screen.findByText('2 contacts already have this email address.')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps Save enabled and creates the contact', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'camille.durand@example.com')
+    ])
+    vi.mocked(saveContact).mockReset()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
+    renderPage(['/contacts/new/book1'])
+
+    typeEmail('camille.durand@example.com')
+    await screen.findByRole('button', { name: 'Open contact' })
+    const saveButton = screen.getByRole('button', { name: 'Save' })
+    expect(saveButton).toBeEnabled()
+    fireEvent.click(saveButton)
+
+    expect(await screen.findByText('Book')).toBeInTheDocument()
+    expect(saveContact).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows nothing when the search fails', async () => {
+    vi.mocked(searchContacts).mockRejectedValue(new Error('Server error'))
+    renderPage(['/contacts/new'])
+
+    typeEmail('camille.durand@example.com')
+
+    await waitFor(() => expect(searchContacts).toHaveBeenCalledTimes(1))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
+  it('does not check the email in the edit form', async () => {
+    vi.mocked(searchContacts).mockResolvedValue([
+      camille('c9', 'alice@example.com')
+    ])
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.blur(screen.getByLabelText('Email'))
+
+    await new Promise(resolve => setTimeout(resolve, 400))
+    expect(searchContacts).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
 
@@ -383,6 +621,28 @@ describe('EditContactPage', () => {
 
     const addressBookSelect = screen.getByLabelText('Address book')
     expect(addressBookSelect).not.toBeDisabled()
+  })
+
+  it('shows no move hint while the address book is unchanged', () => {
+    renderPage(['/contacts/book1/c1/edit'])
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
+  })
+
+  it('warns that saving moves the contact when another book is picked', () => {
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    fireEvent.click(screen.getByRole('option', { name: 'Book 2' }))
+
+    expect(
+      screen.getByText('Saving will move this contact to Book 2.')
+    ).toBeInTheDocument()
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Address book' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Book 1' }))
+
+    expect(screen.queryByText(/Saving will move this contact/)).toBeNull()
   })
 
   it('updates the contact and moves it to a different address book', async () => {

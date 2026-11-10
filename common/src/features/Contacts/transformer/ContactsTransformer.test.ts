@@ -1,9 +1,11 @@
 import {
   AddressBookAccessLevel,
   DavAddressBookItem,
-  DavContactItem
+  DavContactItem,
+  JCalProperty
 } from '../davTypes'
 import { userData } from '../../User/userDataTypes'
+import { Contact } from '../contactsTypes'
 import {
   buildFullShareesList,
   denormalizeContact,
@@ -11,9 +13,79 @@ import {
   normalizeContact
 } from './ContactsTransformer'
 
+describe('TEL value type round trip', () => {
+  const cardWithTel = (tel: JCalProperty): DavContactItem =>
+    ({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jürgen Müller'],
+          tel
+        ]
+      ]
+    }) as unknown as DavContactItem
+
+  const savedTels = (tel: JCalProperty): JCalProperty[] =>
+    denormalizeContact(normalizeContact(cardWithTel(tel)))[1].filter(
+      p => p[0] === 'tel'
+    )
+
+  it('keeps a uri TEL as a tel: uri on save', () => {
+    expect(
+      savedTels(['tel', { type: 'work' }, 'uri', 'tel:+49-30-1234;ext=5'])
+    ).toEqual([['tel', { type: 'work' }, 'uri', 'tel:+49-30-1234;ext=5']])
+  })
+
+  it('shows a uri TEL without its scheme', () => {
+    const contact = normalizeContact(
+      cardWithTel(['tel', {}, 'uri', 'tel:+49-30-1234'])
+    )
+    expect(contact.phones).toEqual([
+      { type: null, value: '+49-30-1234', valueType: 'uri' }
+    ])
+  })
+
+  it('keeps a text TEL as text on save', () => {
+    expect(savedTels(['tel', { type: 'home' }, 'text', '+33 1 23'])).toEqual([
+      ['tel', { type: 'home' }, 'text', '+33 1 23']
+    ])
+  })
+
+  it('writes a new phone as text', () => {
+    const card = denormalizeContact({
+      id: 'c1',
+      displayName: 'New',
+      emails: [],
+      phones: [{ type: 'cell', value: '0612' }]
+    })
+    expect(card[1].filter(p => p[0] === 'tel')).toEqual([
+      ['tel', { type: 'cell' }, 'text', '0612']
+    ])
+  })
+})
+
+describe('normalizeContact', () => {
+  const contactAt = (href: string): Contact =>
+    normalizeContact({
+      _links: { self: { href } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo']]]
+    })
+
+  it('holds the decoded card file name as id', () => {
+    expect(contactAt('/addressbooks/bob/book1/a%2Fb.vcf').id).toBe('a/b')
+  })
+
+  it('keeps a file name that is not valid percent-encoding as is', () => {
+    expect(contactAt('/addressbooks/bob/book1/100%.vcf').id).toBe('100%')
+  })
+})
+
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
   _links: { self: { href: '/addressbooks/owner/book.json' } },
   'dav:name': 'QA Book',
+  'dav:syncToken': 0,
   'dav:acl': ['dav:read', 'dav:write'],
   'dav:share-access': shareAccess
 })
@@ -60,6 +132,29 @@ describe('normalizeAddressBook', () => {
     }
   )
 
+  it.each(['2', ' 4', [2]])('treats a share access %p as read-only', access => {
+    const book = {
+      ...sharedBook(),
+      'dav:share-access': access
+    } as unknown as DavAddressBookItem
+    const normalized = normalizeAddressBook(book)
+    expect(normalized.canWrite).toBe(false)
+    expect(typeof normalized.shareAccess).toBe('number')
+  })
+
+  it.each(['', 'abc', { a: 2 }, [], [2, 3], 2.5])(
+    'ignores a non-numeric share access %p',
+    access => {
+      const book = {
+        ...sharedBook(),
+        'dav:share-access': access
+      } as unknown as DavAddressBookItem
+      const normalized = normalizeAddressBook(book)
+      expect(normalized.shareAccess).toBeUndefined()
+      expect(normalized.canWrite).toBe(true)
+    }
+  )
+
   it('converts a numeric name to a string', () => {
     const book = { ...sharedBook(), 'dav:name': 12345 }
     expect(normalizeAddressBook(book).name).toBe('12345')
@@ -91,12 +186,60 @@ describe('normalizeAddressBook', () => {
     expect(normalizeAddressBook(book).isDefault).toBe(true)
   })
 
+  it.each([{ 0: 'dav:write' }, 'dav:write', [12, null], null])(
+    'normalizes a book whose acl is %p as a non-writable book',
+    acl => {
+      const raw = {
+        ...sharedBook(),
+        'dav:acl': acl
+      } as unknown as DavAddressBookItem
+      const book = normalizeAddressBook(raw)
+      expect(book.acl).toEqual([])
+      expect(book.canWrite).toBe(false)
+    }
+  )
+
+  it('ignores non-string entries of the acl', () => {
+    const raw = {
+      ...sharedBook(),
+      'dav:acl': [12, 'dav:write', null]
+    } as unknown as DavAddressBookItem
+    const book = normalizeAddressBook(raw)
+    expect(book.acl).toEqual(['dav:write'])
+    expect(book.canWrite).toBe(true)
+  })
+
   it('does not flag a shared copy of another book', () => {
     const book = {
       ...sharedBook(2),
       'openpaas:source': '/addressbooks/owner/book.json'
     }
     expect(normalizeAddressBook(book).isDefault).toBe(false)
+  })
+
+  it('reads the source of a shared copy given as a HAL object', () => {
+    const book = {
+      ...sharedBook(2),
+      'openpaas:source': {
+        _links: { self: { href: '/addressbooks/owner/contacts.json' } }
+      }
+    }
+    expect(normalizeAddressBook(book).isDefault).toBe(true)
+  })
+
+  it.each([[['/addressbooks/owner/contacts.json']], [12], [{ foo: 'bar' }]])(
+    'ignores a source that is not a path nor a HAL object: %j',
+    source => {
+      const book = { ...sharedBook(2), 'openpaas:source': source }
+      expect(normalizeAddressBook(book).isDefault).toBe(false)
+    }
+  )
+
+  it('treats an href that is not a string as a missing one', () => {
+    const book = { ...sharedBook(), _links: { self: { href: 12 } } }
+    expect(normalizeAddressBook(book)).toEqual(
+      expect.objectContaining({ id: '', userId: '', name: 'QA Book' })
+    )
   })
 })
 
@@ -195,5 +338,61 @@ describe('denormalizeContact', () => {
     const urls = denormalizeContact(contact)[1].filter(p => p[0] === 'url')
 
     expect(urls).toEqual([['url', {}, 'uri', 'https://mei.example/']])
+  })
+})
+
+describe('BDAY round trip', () => {
+  const cardWith = (bday: JCalProperty): DavContactItem =>
+    ({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [['version', {}, 'text', '4.0'], ['fn', {}, 'text', 'Jane Doe'], bday]
+      ]
+    }) as unknown as DavContactItem
+
+  const savedBday = (contact: Contact): JCalProperty[] =>
+    denormalizeContact(contact)[1].filter(p => p[0] === 'bday')
+
+  it.each(['date', 'date-and-or-time', 'text'])(
+    'keeps a %s BDAY value type on an unchanged save',
+    type => {
+      const contact = normalizeContact(
+        cardWith(['bday', {}, type, '1980-02-03'])
+      )
+      expect(savedBday(contact)).toEqual([['bday', {}, type, '1980-02-03']])
+    }
+  )
+
+  it('keeps the BDAY parameters on an unchanged save', () => {
+    const bday: JCalProperty = [
+      'bday',
+      { 'x-apple-omit-year': '1604' },
+      'date',
+      '1604-04-12'
+    ]
+    expect(savedBday(normalizeContact(cardWith(bday)))).toEqual([bday])
+  })
+
+  it.each(['1985-07-14', '--07-14', '1985-07-14T10:00:00Z'])(
+    'writes a changed date birthday %s as date-and-or-time',
+    value => {
+      const contact = normalizeContact(
+        cardWith(['bday', {}, 'date', '1980-02-03'])
+      )
+      expect(savedBday({ ...contact, birthday: value })).toEqual([
+        ['bday', {}, 'date-and-or-time', value]
+      ])
+    }
+  )
+
+  it('writes a free-form birthday as text', () => {
+    const contact: Contact = {
+      id: 'c1',
+      displayName: 'Jane Doe',
+      emails: [],
+      birthday: 'circa 1800'
+    }
+    expect(savedBday(contact)).toEqual([['bday', {}, 'text', 'circa 1800']])
   })
 })

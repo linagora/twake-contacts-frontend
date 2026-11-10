@@ -1,3 +1,5 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
+import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -16,19 +18,22 @@ function renderSection(isPublic?: boolean): void {
   const store = setupStore({
     contacts: {
       addressBooks: {
-        book: {
-          id: 'book',
-          userId: 'owner',
-          name: 'Book',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: [],
-          offset: 0,
-          hasMore: false,
-          isPublic
-        }
+        book: classifyAddressBook(
+          {
+            id: 'book',
+            userId: 'owner',
+            name: 'Book',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: [],
+            isPublic
+          },
+          'owner'
+        )
       },
+      listings: {},
+      sort: DEFAULT_CONTACT_SORT,
       loading: false,
       error: null
     }

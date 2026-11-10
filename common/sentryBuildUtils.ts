@@ -16,7 +16,7 @@ export function isSentryConfigured(): boolean {
  * @param outputDir The directory where build outputs are placed (defaults to 'dist')
  */
 export function setupSentryPlugin(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the Rspack plugin type is not exported by Rsbuild
   appendPlugins: (plugin: any) => void,
   outputDir: string = 'dist'
 ): void {
@@ -38,6 +38,8 @@ export function setupSentryPlugin(
       project,
       authToken,
       telemetry: false,
+      // Same value as window.APP_VERSION, so that events match their source maps
+      release: { name: process.env.SENTRY_RELEASE },
       sourcemaps: {
         filesToDeleteAfterUpload: `${cleanOutputDir}/**/*.map`
       }

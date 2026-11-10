@@ -1,3 +1,4 @@
+import { classifyAddressBook } from '@common/features/Contacts/addressBookModel'
 import { render, RenderResult, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -6,14 +7,17 @@ import en from '@common/locales/en.json'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { EditAddressBookDialog } from './EditAddressBookDialog'
 
-const book: AddressBook = {
-  id: 'team',
-  userId: 'alice',
-  name: 'Team',
-  contactsCount: 0,
-  acl: [],
-  canWrite: true
-}
+const book: AddressBook = classifyAddressBook(
+  {
+    id: 'team',
+    userId: 'alice',
+    name: 'Team',
+    contactsCount: 0,
+    acl: [],
+    canWrite: true
+  },
+  'alice'
+)
 
 const renderDialog = (
   onConfirm: (values: { name: string }) => void,
@@ -35,44 +39,50 @@ const nameField = (): HTMLElement =>
   screen.getByRole('textbox', { name: en.contacts.edit.name })
 
 describe('EditAddressBookDialog', () => {
-  it('saves the address book when pressing Enter in the name field', () => {
+  it('saves the address book when pressing Enter in the name field', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.clear(nameField())
-    userEvent.type(nameField(), '  Team QA {enter}')
+    await user.clear(nameField())
+    await user.type(nameField(), '  Team QA {Enter}')
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
     expect(onConfirm).toHaveBeenCalledWith({ name: 'Team QA' })
   })
 
-  it('saves the address book when clicking Save', () => {
+  it('saves the address book when clicking Save', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.type(nameField(), ' QA')
-    userEvent.click(screen.getByRole('button', { name: en.contacts.edit.save }))
+    await user.type(nameField(), ' QA')
+    await user.click(
+      screen.getByRole('button', { name: en.contacts.edit.save })
+    )
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
     expect(onConfirm).toHaveBeenCalledWith({ name: 'Team QA' })
   })
 
-  it('does not save the address book when pressing Enter with a blank name', () => {
+  it('does not save the address book when pressing Enter with a blank name', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     renderDialog(onConfirm)
 
-    userEvent.clear(nameField())
-    userEvent.type(nameField(), '   {enter}')
+    await user.clear(nameField())
+    await user.type(nameField(), '   {Enter}')
 
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it('closes the dialog from the close button of the title bar', () => {
+  it('closes the dialog from the close button of the title bar', async () => {
+    const user = userEvent.setup()
     const onConfirm = vi.fn()
     const onClose = vi.fn()
     renderDialog(onConfirm, onClose)
 
-    userEvent.click(
+    await user.click(
       screen.getByRole('button', { name: en.contacts.form.close })
     )
 

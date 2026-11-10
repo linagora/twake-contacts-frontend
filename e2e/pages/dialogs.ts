@@ -83,7 +83,7 @@ export class DeleteAddressBookDialog {
   }
 }
 
-/** "Edit address book", sidebar "⋮" > Edit of an own book */
+/** "Rename address book", sidebar "⋮" > Rename of an own book */
 export class EditAddressBookDialog {
   readonly root: Locator
   readonly nameInput: Locator
@@ -93,7 +93,7 @@ export class EditAddressBookDialog {
   constructor(page: Page) {
     this.root = page
       .getByRole('dialog')
-      .filter({ hasText: 'Edit address book' })
+      .filter({ hasText: 'Rename address book' })
     this.nameInput = this.root.getByRole('textbox', { name: 'Name' })
     this.saveButton = this.root.getByRole('button', { name: 'Save' })
     this.cancelButton = this.root.getByRole('button', { name: 'Cancel' })

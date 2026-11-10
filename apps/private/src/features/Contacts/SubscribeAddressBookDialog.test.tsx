@@ -7,7 +7,13 @@ import en from '@common/locales/en.json'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 
 vi.mock('./UserAutocomplete', () => ({
-  UserAutocomplete: () => null
+  UserAutocomplete: ({
+    labelledBy
+  }: {
+    labelledBy?: string
+  }): React.ReactElement => (
+    <input role="combobox" aria-labelledby={labelledBy} />
+  )
 }))
 
 vi.mock('./usePublicAddressBooks', () => ({
@@ -44,6 +50,16 @@ describe('SubscribeAddressBookDialog', () => {
     ).toBeInTheDocument()
   })
 
+  it('labels the user field with the visible sentence', () => {
+    renderDialog()
+
+    expect(
+      screen.getByRole('combobox', {
+        name: 'Search for a user to see their address books'
+      })
+    ).toBeInTheDocument()
+  })
+
   it('does not render the title as a list item', () => {
     renderDialog()
 
@@ -64,9 +80,10 @@ describe('SubscribeAddressBookDialog', () => {
   })
 
   it('closes from the close button', async () => {
+    const user = userEvent.setup()
     const onClose = renderDialog()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await user.click(screen.getByRole('button', { name: 'Close' }))
 
     expect(onClose).toHaveBeenCalledTimes(1)
   })

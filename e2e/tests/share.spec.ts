@@ -178,7 +178,7 @@ test.describe('SHARE shared address books', () => {
     const menu = await contacts.openBookMenu('Friends')
     await expect(menu.getByRole('menuitem')).toHaveText([
       'Share',
-      'Edit',
+      'Rename',
       'Export',
       'Delete'
     ])

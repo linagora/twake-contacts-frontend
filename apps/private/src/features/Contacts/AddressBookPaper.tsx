@@ -1,5 +1,5 @@
 import { useI18n } from 'twake-i18n'
-import { AddressBook } from '@common/features/Contacts/contactsTypes'
+import { DisplayedAddressBook } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { EntryPaper } from './EntryPaper'
 import { Icon, Peoples } from '@linagora/twake-icons'
@@ -9,7 +9,7 @@ export function AddressBookPaper({
   ownerName,
   onRemove
 }: {
-  book: AddressBook
+  book: DisplayedAddressBook
   ownerName?: string
   onRemove?: () => void
 }): React.JSX.Element {

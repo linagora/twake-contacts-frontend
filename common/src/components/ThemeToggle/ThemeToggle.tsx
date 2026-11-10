@@ -3,9 +3,8 @@ import {
   setThemeMode,
   type ThemeMode
 } from '@common/features/Settings/SettingsSlice'
+import { Contrast, Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip, useColorScheme } from '@linagora/twake-mui'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import LightModeIcon from '@mui/icons-material/LightMode'
 import { useI18n } from 'twake-i18n'
 
 export const ThemeToggle: React.FC = () => {
@@ -24,9 +23,9 @@ export const ThemeToggle: React.FC = () => {
   const label = isDark ? t('theme.lightMode') : t('theme.darkMode')
 
   return (
-    <Tooltip disableInteractive title={label}>
+    <Tooltip title={label}>
       <IconButton onClick={handleToggle} aria-label={label}>
-        {isDark ? <LightModeIcon /> : <DarkModeIcon />}
+        <Icon icon={Contrast} />
       </IconButton>
     </Tooltip>
   )

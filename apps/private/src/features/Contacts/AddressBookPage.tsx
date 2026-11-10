@@ -12,6 +12,7 @@ import {
   selectListingKeyToLoadMore
 } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import {
   Button,
@@ -27,8 +28,10 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsLoadErrorState } from './ContactsLoadErrorState'
 import { ContactsTable } from './ContactsTable'
+import { useFocusHeadingOnArrival } from './focusHeadingOnArrival'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 import { ImportContactsButton } from './ImportContactsButton'
+import { AddressBookHeader } from './AddressBookActions/AddressBookHeader'
 
 export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
@@ -39,6 +42,7 @@ export const AddressBookPage: React.FC = () => {
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)
   const sort = useAppSelector(state => state.contacts.sort)
+  const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedTab: BookScope =
@@ -49,11 +53,11 @@ export const AddressBookPage: React.FC = () => {
   const scope = addressBookId ? undefined : selectedTab
 
   const entries = useAppSelector(state =>
-    selectContactEntries(state, addressBookId, scope, openpaasId)
+    selectContactEntries(state, addressBookId, scope)
   )
 
   const listingKeyToLoadMore = useAppSelector(state =>
-    selectListingKeyToLoadMore(state, addressBookId, scope, openpaasId)
+    selectListingKeyToLoadMore(state, addressBookId, scope)
   )
 
   const listingToLoadMore = useAppSelector(state =>
@@ -73,6 +77,16 @@ export const AddressBookPage: React.FC = () => {
   const title = addressBookId
     ? getAddressBookDisplayName(book, t)
     : t('contacts.myContacts')
+
+  const bookNotFound = !!addressBookId && !book && !loading
+
+  const pageTitle = (): string => {
+    if (bookNotFound) return t('contacts.addressBookNotFound')
+    if (scope === 'shared') return t('contacts.tabs.shared')
+    return title
+  }
+
+  useDocumentTitle(pageTitle())
 
   const loadMore = useCallback(() => {
     // pages are read once the books are known, to place their contacts
@@ -103,7 +117,7 @@ export const AddressBookPage: React.FC = () => {
     if (!listingToLoadMore || entries.length === 0) loadMore()
   }, [listingToLoadMore, entries.length, loadMore])
 
-  if (addressBookId && !book && !loading) {
+  if (bookNotFound) {
     return (
       <Stack spacing={3}>
         <Button
@@ -114,7 +128,12 @@ export const AddressBookPage: React.FC = () => {
         >
           {t('contacts.back')}
         </Button>
-        <Typography color="text.secondary">
+        <Typography
+          // on phones, the top bar title is already the page h1
+          component={isMobile ? 'p' : 'h1'}
+          variant="body1"
+          color="text.secondary"
+        >
           {t('contacts.addressBookNotFound')}
         </Typography>
       </Stack>
@@ -152,6 +171,21 @@ export const AddressBookPage: React.FC = () => {
     )
   }
 
+  const importButton = !isMobile && showTable && (
+    <ImportContactsButton addressBookId={addressBookId} />
+  )
+
+  if (book && addressBookId && !isMobile && !loading) {
+    return (
+      <Stack spacing={2} className="u-flex-auto u-ov-hidden">
+        <AddressBookHeader book={book} headingRef={headingRef}>
+          {importButton}
+        </AddressBookHeader>
+        {renderContent()}
+      </Stack>
+    )
+  }
+
   return (
     <Stack spacing={2} className="u-flex-auto u-ov-hidden">
       <Stack
@@ -166,7 +200,16 @@ export const AddressBookPage: React.FC = () => {
             className="u-flex-items-center u-w-100"
             spacing={2}
           >
-            {!isMobile && <Typography variant="h4">{title}</Typography>}
+            {!isMobile && (
+              <Typography
+                variant="h4"
+                component="h1"
+                ref={headingRef}
+                tabIndex={-1}
+              >
+                {title}
+              </Typography>
+            )}
             {!addressBookId && (
               <Tabs
                 className={isMobile ? 'u-w-100' : ''}
@@ -187,9 +230,7 @@ export const AddressBookPage: React.FC = () => {
             )}
           </Stack>
         )}
-        {!isMobile &&
-          (addressBookId !== 'dab' || book?.canWrite) &&
-          showTable && <ImportContactsButton addressBookId={addressBookId} />}
+        {importButton}
       </Stack>
       {renderContent()}
     </Stack>

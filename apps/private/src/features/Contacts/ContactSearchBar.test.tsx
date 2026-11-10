@@ -1,3 +1,7 @@
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
 import type { Mock } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react'
@@ -56,11 +60,18 @@ async function typeSearchQuery(value: string): Promise<void> {
   fireEvent.focus(input)
   fireEvent.input(input, { target: { value } })
 
-  await act(async () => {
-    vi.advanceTimersByTime(300)
-  })
+  await act(() => vi.advanceTimersByTimeAsync(300))
   // Debounce has completed; Testing Library can now poll using real timers.
   vi.useRealTimers()
+}
+
+// MUI renders its own status region in the suggestions popup
+function resultsStatus(): HTMLElement {
+  const region = screen
+    .getAllByRole('status')
+    .find(element => element.classList.contains('u-visuallyhidden'))
+  if (!region) throw new Error('No results status region')
+  return region
 }
 
 describe('ContactSearchBar', () => {
@@ -77,7 +88,7 @@ describe('ContactSearchBar', () => {
     mockedSearchContacts.mockResolvedValue([])
 
     renderSearchBar({
-      addressBooks: {
+      addressBooks: classifyAddressBooks({
         contacts: {
           id: 'contacts',
           userId: 'u1',
@@ -105,7 +116,7 @@ describe('ContactSearchBar', () => {
           canWrite: false,
           contacts: []
         }
-      }
+      })
     })
 
     await typeSearchQuery('alice')
@@ -113,9 +124,9 @@ describe('ContactSearchBar', () => {
     await waitFor(() => {
       expect(mockedSearchContacts).toHaveBeenCalledWith(
         [
-          { userId: 'u1', addressBookId: 'contacts' },
-          { userId: 'u1', addressBookId: 'collected' },
-          { userId: 'd1', addressBookId: 'domain-members' }
+          expect.objectContaining({ userId: 'u1', id: 'contacts' }),
+          expect.objectContaining({ userId: 'u1', id: 'collected' }),
+          expect.objectContaining({ userId: 'd1', id: 'dab' })
         ],
         'alice'
       )
@@ -132,7 +143,7 @@ describe('ContactSearchBar', () => {
 
     renderSearchBar(
       {
-        addressBooks: {
+        addressBooks: classifyAddressBooks({
           collected: {
             id: 'collected',
             userId: 'u1',
@@ -142,7 +153,7 @@ describe('ContactSearchBar', () => {
             canWrite: false,
             contacts: []
           }
-        }
+        })
       },
       true
     )
@@ -163,6 +174,87 @@ describe('ContactSearchBar', () => {
     })
 
     expect(screen.getByPlaceholderText('Search contacts...')).toHaveValue('')
+  })
+
+  describe('results announcement', () => {
+    const collectedBook = {
+      addressBooks: {
+        collected: classifyAddressBook(
+          {
+            id: 'collected',
+            userId: 'u1',
+            name: 'Collected',
+            contactsCount: 1,
+            acl: [],
+            canWrite: false,
+            contacts: []
+          },
+          'u1'
+        )
+      }
+    }
+
+    // Debounce, then delay before announcing the results
+    async function searchAndWaitForAnnouncement(value: string): Promise<void> {
+      const input = screen.getByPlaceholderText('Search contacts...')
+      fireEvent.focus(input)
+      fireEvent.input(input, { target: { value } })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300)
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500)
+      })
+    }
+
+    it('announces the number of contacts found', async () => {
+      mockedSearchContacts.mockResolvedValue([
+        {
+          addressBookId: 'collected',
+          contact: { id: 'c1', displayName: 'Bruno', emails: [] }
+        }
+      ])
+      renderSearchBar(collectedBook)
+
+      await searchAndWaitForAnnouncement('Bruno')
+
+      expect(mockedSearchContacts).toHaveBeenCalled()
+      expect(resultsStatus()).toHaveTextContent('1 contact found')
+    })
+
+    it('announces that no contact matches', async () => {
+      mockedSearchContacts.mockResolvedValue([])
+      renderSearchBar(collectedBook)
+
+      await searchAndWaitForAnnouncement('Nobody')
+
+      expect(resultsStatus()).toHaveTextContent('No contacts found')
+    })
+
+    it('does not announce before the delay elapsed', async () => {
+      mockedSearchContacts.mockResolvedValue([])
+      renderSearchBar(collectedBook)
+
+      const input = screen.getByPlaceholderText('Search contacts...')
+      fireEvent.focus(input)
+      fireEvent.input(input, { target: { value: 'Nobody' } })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300)
+      })
+
+      expect(mockedSearchContacts).toHaveBeenCalled()
+      expect(resultsStatus()).toBeEmptyDOMElement()
+    })
+
+    it('announces nothing once the field is cleared', async () => {
+      mockedSearchContacts.mockResolvedValue([])
+      renderSearchBar(collectedBook)
+
+      await searchAndWaitForAnnouncement('Nobody')
+      await searchAndWaitForAnnouncement('')
+
+      expect(resultsStatus()).toBeEmptyDOMElement()
+    })
   })
 
   it('does not search when no address books are loaded', async () => {

@@ -23,7 +23,9 @@ vi.mock('./features/Contacts/ContactsPage', async () => {
     await vi.importActual<typeof import('react-router')>('react-router')
   return {
     ContactsPage: () => {
-      useEffect(() => mockMount(), [])
+      useEffect(() => {
+        mockMount()
+      }, [])
       return <Outlet />
     }
   }
@@ -54,7 +56,10 @@ const setMobile = (isMobile: boolean): void => {
   >)
 }
 
-const appRoutesTree = (store = setupStore(), path = '/contacts/new') => (
+const appRoutesTree = (
+  store = setupStore(),
+  path = '/contacts/new'
+): React.ReactElement => (
   <Provider store={store}>
     <TwakeMuiThemeProvider>
       <I18n dictRequire={() => en} lang="en">
@@ -79,9 +84,6 @@ describe('AppRoutes', () => {
     expect(
       screen.getByRole('textbox', { name: 'First name' })
     ).toBeInTheDocument()
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
   })
 
   it('opens the contact page of a card named new', () => {
@@ -113,16 +115,10 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('textbox', { name: 'First name' })).toHaveValue(
       'Resize'
     )
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
 
     setMobile(false)
     rerender(appRoutesTree(store))
 
-    expect(
-      screen.queryByText(en.mobile.comingSoon.title)
-    ).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'First name' })).toHaveValue(
       'Resize'
     )

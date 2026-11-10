@@ -2,7 +2,7 @@ import { ReducerCreators } from '@reduxjs/toolkit'
 import { RejectedError, toRejectedError } from '@common/utils/errorUtils'
 import { fetchContactsPage } from '../ContactsDao'
 import { ContactEntry, ContactsState } from '../contactsTypes'
-import { ALL_CONTACTS_LISTING } from '../constants'
+import { ALL_CONTACTS_LISTING, DOMAIN_ADDRESS_BOOK_ID } from '../constants'
 import { appendListingPage } from '../contactListings'
 import { toContactsErrorKey } from '../contactsUtils'
 
@@ -27,7 +27,7 @@ export async function fetchListingPage(
     addressBooks[listingKey] ?? null,
     { after, sort },
     // without the domain book, its members could not be listed
-    addressBooks.dab !== undefined
+    addressBooks[DOMAIN_ADDRESS_BOOK_ID] !== undefined
   )
   return {
     entries: entries.filter(({ addressBookId }) => {
@@ -41,7 +41,13 @@ export async function fetchListingPage(
 
 export const fetchMoreContactsThunk = (
   create: ReducerCreators<ContactsState>
-) =>
+): ReturnType<
+  typeof create.asyncThunk<
+    { entries: ContactEntry[]; next: string | null; after: string | null },
+    FetchMoreContactsPayload,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { entries: ContactEntry[]; next: string | null; after: string | null },
     FetchMoreContactsPayload,

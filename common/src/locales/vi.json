@@ -1,23 +1,33 @@
 {
-  "locale": "vi",
   "contacts": {
     "moveContact": {
-      "success": "Đã di chuyển liên hệ thành công",
+      "success": "Đã chuyển “%{name}” sang %{book}",
       "title": "Di chuyển liên hệ",
       "confirm": "Di chuyển",
       "error": "Không thể di chuyển liên hệ. Liên hệ có thể đã tồn tại trong sổ địa chỉ đích."
     },
+    "transfer": {
+      "currentlyIn": "%{name} · hiện ở %{book}",
+      "open": "Mở"
+    },
     "copyContact": {
-      "success": "Đã sao chép liên hệ thành công",
+      "success": "Đã sao chép “%{name}” vào %{book}",
       "title": "Sao chép liên hệ",
       "destination": "Sổ địa chỉ đích",
       "empty": "Không có sổ địa chỉ nào có thể chỉnh sửa.",
       "error": "Không thể sao chép liên hệ. Liên hệ có thể đã tồn tại trong sổ địa chỉ đích."
     },
     "title": "Danh bạ",
-    "tabs": { "mine": "Danh bạ của tôi", "shared": "Đã chia sẻ với tôi" },
+    "tabs": {
+      "mine": "Danh bạ của tôi",
+      "shared": "Đã chia sẻ với tôi"
+    },
     "myContacts": "Danh bạ của tôi",
     "shared": "Được chia sẻ",
+    "sidebar": {
+      "collapse": "Thu gọn",
+      "expand": "Mở rộng"
+    },
     "domainAddressBook": "Sổ địa chỉ miền",
     "create": "Tạo",
     "name": "Tên",
@@ -45,7 +55,6 @@
       "clear": "Xóa",
       "firstName": "Tên",
       "lastName": "Họ",
-      "addTeam": "Thêm nhóm",
       "matrixId": "ID Matrix",
       "phone": "Điện thoại",
       "addPhone": "Thêm số điện thoại",
@@ -56,18 +65,26 @@
       "addField": "Thêm",
       "remove": "Xóa",
       "type": "Loại",
+      "phoneType": "Loại điện thoại",
+      "addressType": "Loại địa chỉ",
+      "removePhone": "Xóa số điện thoại",
+      "removeEmail": "Xóa email",
+      "removeAddress": "Xóa địa chỉ",
       "typeLabel": "Nhãn",
       "cancel": "Hủy",
       "save": "Lưu",
-      "addressBook": "Sổ địa chỉ",
       "editTitle": "Chỉnh sửa liên hệ",
-      "newContact": "Liên hệ mới",
-      "invalidEmail": "Địa chỉ email không hợp lệ"
+      "addressBook": "Sổ địa chỉ",
+      "moveHint": "Khi lưu, liên hệ này sẽ được chuyển sang %{book}.",
+      "invalidEmail": "Địa chỉ email không hợp lệ, ví dụ: ten@example.com",
+      "duplicateEmail": "%{name} đã có địa chỉ email này, trong %{book}.",
+      "duplicateEmailMany": "%{smart_count} liên hệ đã có địa chỉ email này.",
+      "openExisting": "Mở liên hệ",
+      "nameRequired": "Nhập tên hoặc họ"
     },
     "edit": {
-      "title": "Chỉnh sửa sổ địa chỉ",
+      "title": "Đổi tên sổ địa chỉ",
       "name": "Tên",
-      "description": "Mô tả",
       "cancel": "Hủy",
       "save": "Lưu"
     },
@@ -83,10 +100,8 @@
       "openChat": "Mở trò chuyện",
       "createEvent": "Tạo sự kiện",
       "edit": "Chỉnh sửa",
+      "rename": "Đổi tên",
       "delete": "Xóa",
-      "chat": "Trò chuyện",
-      "mail": "Gửi email",
-      "schedule": "Lên lịch",
       "share": "Chia sẻ",
       "remove": "Gỡ khỏi danh sách của tôi",
       "export": "Xuất"
@@ -99,12 +114,13 @@
     "search": {
       "placeholder": "Tìm kiếm liên hệ...",
       "loading": "Đang tải...",
-      "noResults": "Không tìm thấy liên hệ"
+      "noResults": "Không tìm thấy liên hệ",
+      "resultsCount": "Tìm thấy %{smart_count} liên hệ"
     },
     "nav": {
       "menu": "Menu",
-      "settings": "Cài đặt",
-      "search": "Tìm kiếm"
+      "search": "Tìm kiếm",
+      "skipToContent": "Chuyển đến nội dung chính"
     },
     "errors": {
       "load": "Không thể tải danh bạ",
@@ -117,7 +133,6 @@
       "subscribe": "Không thể thêm sổ địa chỉ",
       "deleteAddressBook": "Không thể xóa sổ địa chỉ",
       "removeAddressBook": "Không thể gỡ sổ địa chỉ khỏi danh sách của bạn",
-      "updateAddressBook": "Không thể cập nhật sổ địa chỉ",
       "exportAddressBook": "Không thể xuất sổ địa chỉ",
       "exportContact": "Không thể xuất liên hệ"
     },
@@ -147,13 +162,16 @@
       "removeDescription": "“%{name}” sẽ bị gỡ khỏi danh sách của bạn. Bạn có thể thêm lại bằng cách tìm chủ sở hữu.",
       "removeTitle": "Gỡ sổ địa chỉ này?",
       "removeConfirm": "Gỡ",
-      "editTitle": "Chỉnh sửa sổ địa chỉ",
-      "editSuccess": "Đã cập nhật sổ địa chỉ thành công"
+      "sharedWith": "Đã chia sẻ với %{smart_count} người",
+      "public": "Hiển thị với tổ chức của bạn",
+      "sharedBy": "Được %{owner} chia sẻ · %{role}"
     },
     "share": {
       "title": "Chia sẻ %{name}",
+      "sentStatus": "Đã chia sẻ với %{names}",
       "invitePeople": "Mời người khác",
       "addContacts": "Thêm liên hệ",
+      "removeInvitee": "Bỏ %{name}",
       "send": "Gửi",
       "owner": "Chủ sở hữu",
       "emptyTitle": "Chưa có ai được thêm",
@@ -176,7 +194,15 @@
   "error": {
     "title": "Đã xảy ra lỗi",
     "unknown": "Có lỗi không xác định",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "version": "Phiên bản %{version}",
+    "loadUser": "Không thể tải thông tin người dùng"
+  },
+  "configError": {
+    "title": "Ứng dụng được cấu hình sai",
+    "hint": "Quản trị viên cần sửa các thiết lập sau trong .env.js:",
+    "missing": "Thiếu %{name}",
+    "invalid": "%{name} không hợp lệ"
   },
   "common": {
     "ok": "OK"
@@ -186,13 +212,8 @@
   },
   "theme": {
     "darkMode": "Chế độ tối",
-    "lightMode": "Chế độ sáng"
-  },
-  "mobile": {
-    "comingSoon": {
-      "title": "Phiên bản di động sắp ra mắt",
-      "subtitle": "Vui lòng mở Twake Contacts trên máy tính để trải nghiệm tất cả tính năng. Phiên bản di động tối ưu sẽ sớm ra mắt."
-    }
+    "lightMode": "Chế độ sáng",
+    "highContrast": "Độ tương phản cao"
   },
   "twakeBar": {
     "home": "Trang chủ",

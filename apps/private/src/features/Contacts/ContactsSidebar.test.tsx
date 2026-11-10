@@ -1,9 +1,17 @@
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
 import { setupStore } from '@common/app/store'
 import {
   DEFAULT_ADDRESS_BOOK_ID,
   DEFAULT_CONTACT_SORT
 } from '@common/features/Contacts/constants'
-import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+import {
+  AddressBookWithContacts,
+  Contact,
+  RawAddressBook
+} from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -47,15 +55,19 @@ vi.mock('@linagora/twake-mui', async () => {
   }
 })
 
-const makeBook = (id: string, name: string): AddressBookWithContacts => ({
-  id,
-  userId: 'u1',
-  name,
-  contactsCount: 0,
-  acl: [],
-  canWrite: true,
-  contacts: []
-})
+const makeBook = (id: string, name: string): AddressBookWithContacts =>
+  classifyAddressBook(
+    {
+      id,
+      userId: 'u1',
+      name,
+      contactsCount: 0,
+      acl: [],
+      canWrite: true,
+      contacts: []
+    },
+    'u1'
+  )
 
 function LocationDisplay(): React.ReactElement {
   const location = useLocation()
@@ -64,41 +76,44 @@ function LocationDisplay(): React.ReactElement {
 
 function renderSidebar(
   path: string,
-  addressBooks?: Record<string, AddressBookWithContacts>,
+  addressBooks?: Record<string, RawAddressBook & { contacts: Contact[] }>,
   onClose?: () => void
 ): ReturnType<typeof render> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
-      addressBooks: addressBooks ?? {
-        contacts: {
-          id: DEFAULT_ADDRESS_BOOK_ID,
-          userId: 'u1',
-          name: 'My contacts',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
+      addressBooks: classifyAddressBooks(
+        addressBooks ?? {
+          contacts: {
+            id: DEFAULT_ADDRESS_BOOK_ID,
+            userId: 'u1',
+            name: 'My contacts',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book1: {
+            id: 'book1',
+            userId: 'u1',
+            name: 'Book 1',
+            contactsCount: 0,
+            acl: [],
+            canWrite: true,
+            contacts: []
+          },
+          book2: {
+            id: 'book2',
+            userId: 'u1',
+            name: 'Book 2',
+            contactsCount: 0,
+            acl: [],
+            canWrite: false,
+            contacts: []
+          }
         },
-        book1: {
-          id: 'book1',
-          userId: 'u1',
-          name: 'Book 1',
-          contactsCount: 0,
-          acl: [],
-          canWrite: true,
-          contacts: []
-        },
-        book2: {
-          id: 'book2',
-          userId: 'u1',
-          name: 'Book 2',
-          contactsCount: 0,
-          acl: [],
-          canWrite: false,
-          contacts: []
-        }
-      },
+        'u1'
+      ),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
       loading: false,
@@ -215,14 +230,27 @@ describe('ContactsSidebar', () => {
     expect(label.closest('.u-midellipsis')).toBeNull()
   })
 
-  it('does not let the address book name tooltip capture clicks meant for the next entry', async () => {
+  it('opens the address book name tooltip beside the entry, not over the next one', async () => {
     renderSidebar('/contacts')
 
     fireEvent.mouseOver(screen.getByText('Book 1'))
 
     const tooltip = await screen.findByRole('tooltip')
     expect(tooltip).toHaveTextContent('Book 1')
-    expect(tooltip).not.toHaveClass('MuiTooltip-popperInteractive')
+    expect(tooltip).toHaveAttribute('data-popper-placement', 'right')
+  })
+
+  it('keeps the address book name tooltip open while the pointer moves onto it', async () => {
+    renderSidebar('/contacts')
+
+    const label = screen.getByText('Book 1')
+    fireEvent.mouseOver(label)
+    const tooltip = await screen.findByRole('tooltip')
+    fireEvent.mouseLeave(label)
+    fireEvent.mouseOver(tooltip)
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Book 1')
   })
 
   it('hides create button on mobile', () => {
@@ -441,6 +469,24 @@ describe('ContactsSidebar', () => {
   describe('My contacts dropdown', () => {
     const getMyContacts = (): HTMLElement =>
       screen.getByRole('button', { name: en.contacts.myContacts })
+    const getToggle = (name: string): HTMLElement =>
+      screen.getByRole('button', { name })
+
+    it('separates the My contacts entry from its Collapse toggle', () => {
+      renderSidebar('/contacts')
+
+      const myContacts = getMyContacts()
+      const toggle = getToggle(en.contacts.sidebar.collapse)
+
+      expect(myContacts).toHaveAttribute('aria-current', 'page')
+      expect(myContacts).not.toHaveAttribute('aria-expanded')
+      expect(myContacts).not.toContainElement(toggle)
+      expect(toggle).not.toContainElement(myContacts)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      expect(
+        document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+      ).toContainElement(screen.getByText('Book 1'))
+    })
 
     it('navigates to /contacts and keeps books shown when on another book', () => {
       renderSidebar('/contacts/book1')
@@ -448,23 +494,131 @@ describe('ContactsSidebar', () => {
       fireEvent.click(getMyContacts())
 
       expect(screen.getByTestId('location')).toHaveTextContent(/^\/contacts$/)
-      expect(getMyContacts()).toHaveAttribute('aria-expanded', 'true')
+      expect(getToggle(en.contacts.sidebar.collapse)).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      )
       expect(screen.getByText('Book 1')).toBeInTheDocument()
     })
 
-    it('toggles nested books without navigating when already on /contacts', () => {
+    it('does not fold nested books when clicking My contacts on /contacts', () => {
       renderSidebar('/contacts')
 
       fireEvent.click(getMyContacts())
 
-      expect(screen.getByTestId('location')).toHaveTextContent(/^\/contacts$/)
-      expect(getMyContacts()).toHaveAttribute('aria-expanded', 'false')
-      expect(screen.queryByText('Book 1')).not.toBeInTheDocument()
-
-      fireEvent.click(getMyContacts())
-
-      expect(getMyContacts()).toHaveAttribute('aria-expanded', 'true')
       expect(screen.getByText('Book 1')).toBeInTheDocument()
     })
+
+    it('toggles nested books with the chevron without navigating', () => {
+      renderSidebar('/contacts/book1')
+
+      fireEvent.click(getToggle(en.contacts.sidebar.collapse))
+
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        '/contacts/book1'
+      )
+      expect(getToggle(en.contacts.sidebar.expand)).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      )
+      expect(screen.queryByText('Book 1')).not.toBeInTheDocument()
+
+      fireEvent.click(getToggle(en.contacts.sidebar.expand))
+
+      expect(getToggle(en.contacts.sidebar.collapse)).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      )
+      expect(screen.getByText('Book 1')).toBeInTheDocument()
+    })
+
+    it('has no chevron without own books', () => {
+      renderSidebar(
+        '/contacts',
+        Object.fromEntries(
+          [makeBook(DEFAULT_ADDRESS_BOOK_ID, 'My contacts')].map(book => [
+            book.id,
+            book
+          ])
+        )
+      )
+
+      expect(
+        screen.queryByRole('button', { name: en.contacts.sidebar.collapse })
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Shared section', () => {
+    const books = Object.fromEntries(
+      [
+        makeBook(DEFAULT_ADDRESS_BOOK_ID, 'My contacts'),
+        makeBook('own', 'Own book'),
+        { ...makeBook('shared', 'Shared book'), ownerId: 'bob' }
+      ].map(book => [book.id, book])
+    )
+
+    const getShared = (): HTMLElement =>
+      screen.getByRole('button', { name: en.contacts.shared })
+
+    it('folds the shared books with a Shared button', () => {
+      renderSidebar('/contacts', books)
+
+      const shared = getShared()
+      expect(shared).toHaveAttribute('tabindex', '0')
+      expect(shared).toHaveAttribute('aria-expanded', 'true')
+      expect(
+        document.getElementById(shared.getAttribute('aria-controls') ?? '')
+      ).toContainElement(screen.getByText('Shared book'))
+
+      fireEvent.click(shared)
+
+      expect(getShared()).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.queryByText('Shared book')).not.toBeInTheDocument()
+
+      fireEvent.click(getShared())
+
+      expect(getShared()).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByText('Shared book')).toBeInTheDocument()
+    })
+
+    it('keeps the add button outside of the Shared button', () => {
+      renderSidebar('/contacts', books)
+
+      expect(getShared()).not.toContainElement(
+        screen.getByRole('button', {
+          name: en.contacts.addressBook.subscribeTitle
+        })
+      )
+    })
+
+    it('shows a plain caption without shared books', () => {
+      renderSidebar('/contacts')
+
+      expect(screen.getByText(en.contacts.shared)).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: en.contacts.shared })
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('only nests list items in the sidebar lists', () => {
+    renderSidebar('/contacts', {
+      [DEFAULT_ADDRESS_BOOK_ID]: makeBook(
+        DEFAULT_ADDRESS_BOOK_ID,
+        'My contacts'
+      ),
+      own: makeBook('own', 'Own book'),
+      shared: { ...makeBook('shared', 'Shared book'), ownerId: 'bob' }
+    })
+
+    const lists = screen.getByRole('navigation').querySelectorAll('ul')
+
+    expect(lists.length).toBeGreaterThan(1)
+    lists.forEach(list =>
+      Array.from(list.children).forEach(child =>
+        expect(child.tagName).toBe('LI')
+      )
+    )
   })
 })

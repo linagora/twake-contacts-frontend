@@ -1,7 +1,9 @@
 import { JCalProperty } from './davTypes'
 import { userData } from '../User/userDataTypes'
+import { AddressBookCapabilities, AddressBookKind } from './addressBookModel'
 
-export interface AddressBook {
+/** An address book as read from the server, before it is classified. */
+export interface RawAddressBook {
   id: string
   userId: string
   ownerId?: string
@@ -21,6 +23,15 @@ export interface AddressBook {
   isPublic?: boolean
 }
 
+/** A book shown by its name: one of the user's, or a book they may subscribe to. */
+export type DisplayedAddressBook = RawAddressBook & { kind?: AddressBookKind }
+
+/** An address book classified for the current user by describeAddressBook. */
+export interface AddressBook extends RawAddressBook {
+  kind: AddressBookKind
+  capabilities: AddressBookCapabilities
+}
+
 export interface ContactName {
   familyName: string
   givenName: string
@@ -36,11 +47,19 @@ export interface ContactAddress {
   region: string
   postalCode: string
   country: string
+  /** Components after the seventh (e.g. RFC 9554 additions), kept for display and round-trip. */
+  extra?: string[]
 }
+
+/** vCard 4 TEL value type (RFC 6350 6.4.1): a `tel:` URI or a free text number. */
+export type PhoneValueType = 'uri' | 'text'
 
 export interface ContactPhone {
   type: string | null
+  /** Number without the `tel:` scheme. */
   value: string
+  /** 'uri' when read as a `tel:` URI; absent (written as text) otherwise or for a new phone. */
+  valueType?: PhoneValueType
 }
 
 export interface ContactEmail {
@@ -64,6 +83,8 @@ export interface Contact {
   name?: ContactName
   nicknames?: string[]
   birthday?: string
+  // BDAY as read, kept to write back its value type and parameters unchanged
+  birthdayProp?: JCalProperty
   emails: ContactEmail[]
   phones?: ContactPhone[]
   addresses?: ContactAddress[]
@@ -74,6 +95,8 @@ export interface Contact {
   role?: string
   categories?: string[]
   note?: string
+  /** The card's own UID property, written back as read: it may differ from the file name `id`. */
+  uidProperty?: JCalProperty
   passthroughProps?: JCalProperty[]
 }
 
@@ -114,8 +137,17 @@ export interface ContactSort {
   order: 'asc' | 'desc'
 }
 
+/** What a copy or move produced: the contact as it is in its new book. */
+export interface ContactTransferSuccess {
+  operation: 'copy' | 'move'
+  requestId: string
+  contactId: string
+  contactName: string
+  destinationId: string
+}
+
 export interface ContactsState {
-  transferSuccess?: { operation: 'copy' | 'move'; requestId: string } | null
+  transferSuccess?: ContactTransferSuccess | null
   addressBookSuccess?: {
     operation: 'update' | 'delete' | 'remove'
     requestId: string

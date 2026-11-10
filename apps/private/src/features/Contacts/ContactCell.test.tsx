@@ -17,6 +17,12 @@ import ruLocale from '@common/locales/ru.json'
 import viLocale from '@common/locales/vi.json'
 import { ContactCell } from './ContactCell'
 
+const mockConfig = vi.hoisted((): Record<string, unknown> => ({}))
+vi.mock('@common/config', async importOriginal => {
+  const actual = await importOriginal<typeof import('@common/config')>()
+  return { ...actual, config: Object.assign(mockConfig, actual.config) }
+})
+
 const locales = {
   de: deLocale,
   en: enLocale,
@@ -55,11 +61,11 @@ const renderCell = (lang: keyof typeof locales): void => {
 
 describe('ContactCell', () => {
   beforeEach(() => {
-    window.MAIL_SPA_URL = 'https://mail.example.com'
+    mockConfig.MAIL_SPA_URL = 'https://mail.example.com'
   })
 
   afterEach(() => {
-    delete window.MAIL_SPA_URL
+    delete mockConfig.MAIL_SPA_URL
   })
 
   it.each(Object.keys(locales) as (keyof typeof locales)[])(
@@ -74,6 +80,76 @@ describe('ContactCell', () => {
       ).toBeInTheDocument()
     }
   )
+
+  describe('calendar and chat actions', () => {
+    const rowWithChat = {
+      addressBookId: 'ab1',
+      contact: {
+        id: 'c1',
+        displayName: 'Anna Default',
+        emails: [{ type: null, value: 'anna@example.com' }],
+        socialProfiles: [{ type: 'matrix', value: 'anna' }]
+      }
+    } as unknown as VirtualizedTableRow
+
+    const renderChatCell = (lang: keyof typeof locales): void => {
+      const store = setupStore({
+        user: { userData: { openpaasId: 'u1' } } as UserState
+      })
+      render(
+        <Provider store={store}>
+          <TwakeMuiThemeProvider>
+            <I18n dictRequire={() => locales[lang]} lang={lang}>
+              <ContactCell row={rowWithChat} column={column} />
+            </I18n>
+          </TwakeMuiThemeProvider>
+        </Provider>
+      )
+    }
+
+    beforeEach(() => {
+      mockConfig.CALENDAR_SPA_URL = 'https://calendar.example.com'
+      mockConfig.CHAT_SPA_URL = 'https://chat.example.com'
+    })
+
+    afterEach(() => {
+      delete mockConfig.CALENDAR_SPA_URL
+      delete mockConfig.CHAT_SPA_URL
+    })
+
+    it.each(Object.keys(locales) as (keyof typeof locales)[])(
+      'labels the popover calendar and chat actions like the row menu in %s',
+      lang => {
+        renderChatCell(lang)
+
+        fireEvent.click(screen.getByText('Anna Default'))
+
+        expect(
+          screen.getByRole('link', {
+            name: locales[lang].contacts.menu.createEvent
+          })
+        ).toBeInTheDocument()
+        expect(
+          screen.getByRole('link', {
+            name: locales[lang].contacts.menu.openChat
+          })
+        ).toBeInTheDocument()
+      }
+    )
+
+    it.each([
+      ['calendar', enLocale.contacts.menu.createEvent],
+      ['chat', enLocale.contacts.menu.openChat]
+    ])('shows a single tooltip on the %s action', async (_, label) => {
+      renderChatCell('en')
+      fireEvent.click(screen.getByText('Anna Default'))
+
+      fireEvent.mouseOver(screen.getByRole('link', { name: label }))
+
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(label)
+      expect(screen.getAllByRole('tooltip')).toHaveLength(1)
+    })
+  })
 
   describe('name popover', () => {
     const sendMailLink = (): HTMLElement | null =>
@@ -132,6 +208,50 @@ describe('ContactCell', () => {
       hoverName()
 
       expect(sendMailLink()).not.toBeInTheDocument()
+    })
+
+    const nameButton = (): HTMLElement =>
+      screen.getByRole('button', { name: /Anna Default/ })
+
+    const openWithKeyboard = (): void => {
+      nameButton().focus()
+      fireEvent.keyDown(nameButton(), { key: 'Enter' })
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+    }
+
+    it('gives the focus back to the name after Escape', () => {
+      renderCell('en')
+      openWithKeyboard()
+      expect(sendMailLink()).toBeInTheDocument()
+
+      pressEscape()
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+      expect(nameButton()).toHaveFocus()
+    })
+
+    it('gives the focus back to the name after its close button', () => {
+      renderCell('en')
+      openWithKeyboard()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      expect(sendMailLink()).not.toBeInTheDocument()
+      expect(nameButton()).toHaveFocus()
+    })
+
+    it('does not move the focus to the name after a hover opening', () => {
+      renderCell('en')
+      hoverName()
+
+      pressEscape()
+
+      expect(nameButton()).not.toHaveFocus()
     })
   })
 })

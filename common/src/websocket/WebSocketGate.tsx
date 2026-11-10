@@ -1,3 +1,4 @@
+import { config } from '@common/config'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { api } from '@common/utils/apiUtils'
 import { useCallback, useRef } from 'react'
@@ -26,7 +27,7 @@ export function WebSocketGate(): React.JSX.Element | null {
 
   const connection = useWebSocketConnection({
     enabled: isAuthenticated,
-    url: window.WEBSOCKET_URL ?? '',
+    url: config.WEBSOCKET_URL ?? '',
     api,
     onMessage: onMessage,
     onDisconnect: dispose,

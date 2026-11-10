@@ -1,10 +1,10 @@
+import { config } from '@common/config'
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import {
   Chip,
   ContactPopover,
   Skeleton,
   Stack,
-  Tooltip,
   Typography,
   VirtualizedTableColumn,
   VirtualizedTableRow
@@ -41,7 +41,6 @@ export const ContactCell: React.FC<ContactCellProps> = ({
     return column.skeleton ?? <Skeleton animation="wave" variant="text" />
   }
   const { contact, addressBookId } = row as unknown as ContactEntry
-  const readOnly = addressBookId === 'dab'
 
   switch (column.id) {
     case 'contact.displayName': {
@@ -52,25 +51,25 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       const chatTarget = matrixProfile?.value
 
       const mailUrl =
-        firstEmail && window.MAIL_SPA_URL
-          ? generateMailComposerUrl(window.MAIL_SPA_URL, [firstEmail], {
+        firstEmail && config.MAIL_SPA_URL
+          ? generateMailComposerUrl(config.MAIL_SPA_URL, [firstEmail], {
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
       const calendarUrl =
-        firstEmail && window.CALENDAR_SPA_URL
-          ? generateCalendarEventUrl(window.CALENDAR_SPA_URL, [firstEmail], {
+        firstEmail && config.CALENDAR_SPA_URL
+          ? generateCalendarEventUrl(config.CALENDAR_SPA_URL, [firstEmail], {
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
       const chatUrl =
-        chatTarget && window.CHAT_SPA_URL
-          ? resolveChatSpaUrl(window.CHAT_SPA_URL, {
+        chatTarget && config.CHAT_SPA_URL
+          ? resolveChatSpaUrl(config.CHAT_SPA_URL, {
               target: chatTarget,
               workplaceFqdn,
-              workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
+              workplaceFqdnFallback: config.WORKPLACE_FQDN_FALLBACK
             })
           : null
 
@@ -93,20 +92,20 @@ export const ContactCell: React.FC<ContactCellProps> = ({
         <ContactNamePopover name={contact.displayName} email={firstEmail ?? ''}>
           {nameElement}
           <ContactPopover.Actions>
-            <ContactPopover.EmailAction url={mailUrl} disabled={!mailUrl} />
-            <Tooltip disableInteractive title={t('contacts.menu.createEvent')}>
-              <span>
-                <ContactPopover.CalendarAction
-                  url={calendarUrl}
-                  disabled={!calendarUrl}
-                />
-              </span>
-            </Tooltip>
-            <Tooltip disableInteractive title={t('contacts.menu.openChat')}>
-              <span>
-                <ContactPopover.ChatAction url={chatUrl} disabled={!chatUrl} />
-              </span>
-            </Tooltip>
+            <ContactPopover.EmailAction
+              url={mailUrl ?? undefined}
+              disabled={!mailUrl}
+            />
+            <ContactPopover.CalendarAction
+              url={calendarUrl ?? undefined}
+              disabled={!calendarUrl}
+              label={t('contacts.menu.createEvent')}
+            />
+            <ContactPopover.ChatAction
+              url={chatUrl ?? undefined}
+              disabled={!chatUrl}
+              label={t('contacts.menu.openChat')}
+            />
           </ContactPopover.Actions>
         </ContactNamePopover>
       )
@@ -121,11 +120,7 @@ export const ContactCell: React.FC<ContactCellProps> = ({
       )
     case 'actions':
       return (
-        <ContactRowActions
-          contact={contact}
-          addressBookId={addressBookId}
-          readOnly={readOnly}
-        />
+        <ContactRowActions contact={contact} addressBookId={addressBookId} />
       )
     default: {
       const text = typeof cell === 'string' ? cell : '—'

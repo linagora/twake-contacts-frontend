@@ -1,9 +1,7 @@
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
-import {
-  getOpenPaasUserDataThunk,
-  updateUserConfigurationsThunk
-} from './services'
+import type { TokenSet } from '@linagora/twake-oidc'
+import { getOpenPaasUserDataThunk } from './services'
 import { userData } from './userDataTypes'
 
 // Type for core config datetime
@@ -19,14 +17,9 @@ interface CoreConfig {
   [key: string]: unknown
 }
 
-export interface RejectedError {
-  message: string
-  status?: number
-}
-
 export interface UserState {
   userData: userData
-  tokens: Record<string, string> | null
+  tokens: TokenSet | null
   coreConfig: CoreConfig
   loading: boolean
   error: string | null
@@ -53,11 +46,9 @@ const UserSlice = createAppSlice({
       state.userData = action.payload
       state.loading = false
     }),
-    setTokens: create.reducer(
-      (state, action: PayloadAction<Record<string, string>>) => {
-        state.tokens = action.payload
-      }
-    ),
+    setTokens: create.reducer((state, action: PayloadAction<TokenSet>) => {
+      state.tokens = action.payload
+    }),
     setLanguage: create.reducer((state, action: PayloadAction<string>) => {
       state.coreConfig.language = action.payload
       if (state.userData) {
@@ -82,8 +73,7 @@ const UserSlice = createAppSlice({
       state.error = null
     }),
     // Thunks using create.asyncThunk
-    getOpenPaasUserData: getOpenPaasUserDataThunk(create),
-    updateUserConfigurations: updateUserConfigurationsThunk(create)
+    getOpenPaasUserData: getOpenPaasUserDataThunk(create)
   })
 })
 
@@ -95,8 +85,7 @@ export const {
   setUserError,
   clearError,
   // Thunks
-  getOpenPaasUserData,
-  updateUserConfigurations
+  getOpenPaasUserData
 } = UserSlice.actions
 
 export default UserSlice.reducer
