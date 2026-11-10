@@ -1,4 +1,7 @@
-import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
+import {
+  classifyAddressBook,
+  classifyAddressBooks
+} from '@common/features/Contacts/addressBookModel'
 import type { Mock } from 'vitest'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react'
@@ -176,15 +179,18 @@ describe('ContactSearchBar', () => {
   describe('results announcement', () => {
     const collectedBook = {
       addressBooks: {
-        collected: {
-          id: 'collected',
-          userId: 'u1',
-          name: 'Collected',
-          contactsCount: 1,
-          acl: [],
-          canWrite: false,
-          contacts: []
-        }
+        collected: classifyAddressBook(
+          {
+            id: 'collected',
+            userId: 'u1',
+            name: 'Collected',
+            contactsCount: 1,
+            acl: [],
+            canWrite: false,
+            contacts: []
+          },
+          'u1'
+        )
       }
     }
 
