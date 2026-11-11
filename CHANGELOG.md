@@ -52,6 +52,8 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 
 ### Changed
 
+- Upgrade the jsdom test environment from 26.1.0 to 31.0.0; development and tests now require Node.js
+  24.15.0 or later in the 24.x series ([#521](https://github.com/linagora/twake-contacts-frontend/pull/521))
 - The application talks to `twake-calendar-side-service` (`SIDE_SERVICE_BASE_URL`) instead of an OpenPaaS
   backend and the DAV server directly
 
