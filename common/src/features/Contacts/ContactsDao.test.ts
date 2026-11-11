@@ -150,7 +150,7 @@ describe('normalizeContact', () => {
     })
     expect(contact.name).toEqual({ familyName: '', givenName: '' })
   })
-  
+
   it.each([
     ['TEL:+1-201-555-0123', '+1-201-555-0123'],
     ['tel:+49-30-1234', '+49-30-1234'],

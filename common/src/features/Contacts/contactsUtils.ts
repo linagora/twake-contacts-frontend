@@ -6,10 +6,7 @@ import {
   DisplayedAddressBook
 } from './contactsTypes'
 import { stripTel } from '@common/utils/normalizeIdentity'
-import {
-  DEFAULT_ADDRESS_BOOK_ID,
-  HIDDEN_ADDRESS_BOOK_IDS
-} from './constants'
+import { DEFAULT_ADDRESS_BOOK_ID, HIDDEN_ADDRESS_BOOK_IDS } from './constants'
 
 // trims the parts and drops the blank ones, so that a whitespace-only
 // component leaves no stray separator behind

@@ -160,7 +160,13 @@ describe('makeContactFromForm', () => {
 
   const uriPhoneContact: Contact = {
     ...contact,
-    phones: [{ type: 'work', value: '+49-30-1234', valueType: 'uri' }]
+    phones: [
+      {
+        type: 'work',
+        value: '+49-30-1234',
+        source: { valueType: 'uri', value: 'tel:+49-30-1234' }
+      }
+    ]
   }
 
   it('keeps the value type of an unchanged phone', () => {
@@ -169,7 +175,11 @@ describe('makeContactFromForm', () => {
     const saved = makeContactFromForm(values, uriPhoneContact)
 
     expect(saved.phones).toEqual([
-      { type: 'work', value: '+49-30-1234', valueType: 'uri' }
+      {
+        type: 'work',
+        value: '+49-30-1234',
+        source: { valueType: 'uri', value: 'tel:+49-30-1234' }
+      }
     ])
   })
 

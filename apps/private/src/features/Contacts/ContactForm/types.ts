@@ -124,7 +124,6 @@ export function makeContactFromForm(
         ? entry
         : { type: entry.type, value: entry.value }
     )
-  const otherProfiles = (base?.socialProfiles ?? []).filter(p => !isMatrix(p))
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),

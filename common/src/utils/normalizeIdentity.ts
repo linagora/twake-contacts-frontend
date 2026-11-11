@@ -1,4 +1,3 @@
-import { PhoneValueType } from "@common/features/Contacts/contactsTypes"
 import { safeDecodeURIComponent } from './safeDecodeURIComponent'
 
 export function stripMailto(email?: string): string {
@@ -6,7 +5,6 @@ export function stripMailto(email?: string): string {
 }
 
 export const TEL_SCHEME = /^tel:/i
-export const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
 const PHONE_CONTEXT_PARAM = /;phone-context=[^;]*/gi
 
 /**
