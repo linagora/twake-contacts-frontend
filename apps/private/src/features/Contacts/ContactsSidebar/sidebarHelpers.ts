@@ -1,3 +1,4 @@
+import { createContactPath } from '../contactPath'
 import {
   AddressBook,
   AddressBookWithContacts
@@ -26,7 +27,7 @@ export const getCreateContactLink = (
     ? currentBook.capabilities.addContacts
     : loading && !!addressBookId && !isDomainAddressBookId(addressBookId)
   return addressBookId && mayAddToCurrentBook
-    ? `/contacts/new/${addressBookId}`
+    ? createContactPath(addressBookId)
     : '/contacts/new'
 }
 

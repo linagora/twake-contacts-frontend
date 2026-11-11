@@ -149,6 +149,21 @@ function renderSidebar(
 }
 
 describe('ContactsSidebar', () => {
+  it('encodes book IDs when navigating from the sidebar', async () => {
+    const id = 'Team/#100%'
+    renderSidebar('/contacts', { [id]: makeBook(id, 'Reserved book') })
+    fireEvent.click(screen.getByText('Reserved book'))
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        '/contacts/Team%2F%23100%25'
+      )
+    )
+    expect(screen.getByText('Create').closest('a')).toHaveAttribute(
+      'href',
+      '/contacts/new/Team%2F%23100%25'
+    )
+  })
+
   it('links create button to /contacts/new when no address book is selected', () => {
     renderSidebar('/contacts')
 

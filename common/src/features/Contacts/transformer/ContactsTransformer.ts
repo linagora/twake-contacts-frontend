@@ -245,6 +245,7 @@ export function readAddressBookSource(
   return readHref(links?.self?.href)
 }
 
+/** Identifies the default book through its source when this is a shared copy. */
 function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
   const source = readAddressBookSource(raw)
   const bookId = source ? extractBookId(source) : id
@@ -307,6 +308,7 @@ function normalizeAcl(acl: unknown): string[] {
     : []
 }
 
+/** Converts DAV metadata into a book with decoded IDs and normalized access rights. */
 export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   const href = readHref(raw._links?.self?.href)
   const id = extractBookId(href)
@@ -361,6 +363,7 @@ const KNOWN_PROPERTIES = new Set([
   'rev'
 ])
 
+/** Converts a DAV card into a contact, decoding its file ID and parsing known fields. */
 export function normalizeContact(item: DavContactItem): Contact {
   const id = decodeDavSegment(extractId(item._links?.self?.href, '.vcf'))
   const card = item.data

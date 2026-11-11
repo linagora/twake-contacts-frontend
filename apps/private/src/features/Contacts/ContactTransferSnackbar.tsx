@@ -1,3 +1,4 @@
+import { contactPath } from './contactPath'
 import { Cross, Icon } from '@linagora/twake-icons'
 import { Alert, Button, IconButton, Snackbar } from '@linagora/twake-mui'
 import { useNavigate } from 'react-router'
@@ -22,7 +23,7 @@ export const ContactTransferSnackbar: React.FC = () => {
 
   const handleOpen = (): void => {
     handleClose()
-    void navigate(`/contacts/${success.destinationId}/${success.contactId}`)
+    void navigate(contactPath(success.destinationId, success.contactId))
   }
 
   return (

@@ -1,3 +1,4 @@
+import { createContactPath } from './contactPath'
 import { config } from '@common/config'
 import {
   Content,
@@ -72,7 +73,7 @@ export const ContactsPage: React.FC = () => {
 
   const createLink =
     addressBookId && canWriteCurrentBook
-      ? `/contacts/new/${addressBookId}`
+      ? createContactPath(addressBookId)
       : '/contacts/new'
 
   useEffect(() => {

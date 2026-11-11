@@ -1,3 +1,4 @@
+import { contactPath } from '../contactPath'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { addContactFromSearch } from '@common/features/Contacts/ContactsSlice'
 import {
@@ -37,7 +38,7 @@ export const DuplicateEmailAlert: React.FC<DuplicateEmailAlertProps> = ({
 
   const openExisting = (): void => {
     dispatch(addContactFromSearch(first))
-    void navigate(`/contacts/${first.addressBookId}/${first.contact.id}`)
+    void navigate(contactPath(first.addressBookId, first.contact.id))
   }
 
   const message =

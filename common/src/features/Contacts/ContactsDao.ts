@@ -46,7 +46,6 @@ import {
 } from './constants'
 import { ToUserData } from '../User/type/OpenPaasUserData'
 import { userData } from '../User/userDataTypes'
-import { encodeDavSegment } from '@linagora/twake-utils'
 
 const CONTACTS_NS = config.CONTACTS_NS
 
@@ -87,6 +86,7 @@ export async function fetchAddressBooks(
   return userBooks
 }
 
+/** Resolves decoded source IDs and the owner's display name before classifying a book. */
 async function enrichAddressBookOwner(
   rawBook: DavAddressBookItem,
   userId: string
@@ -395,6 +395,7 @@ export interface MultiAddressBookSearchRequest {
   addressBooks: AddressBookRef[]
 }
 
+/** Reads the decoded collection ID from a card href, or an empty ID if absent. */
 function extractAddressBookIdFromHref(href: unknown): string {
   return decodeDavSegment(readHref(href)?.split('/').at(-2) ?? '')
 }

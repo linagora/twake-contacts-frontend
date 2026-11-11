@@ -1569,16 +1569,17 @@ describe('nickname text-list', () => {
 })
 
 describe('DAV paths of a book whose ids need encoding', () => {
-  const book: AddressBook = {
-    id: 'my book',
-    userId: 'c#1',
-    name: 'Team',
-    contactsCount: 1,
-    acl: [],
-    canWrite: true,
-    kind: 'default',
-    capabilities: undefined
-  }
+  const book = classifyAddressBook(
+    {
+      id: 'my book',
+      userId: 'c#1',
+      name: 'Team',
+      contactsCount: 1,
+      acl: [],
+      canWrite: true
+    },
+    'c#1'
+  )
   const ref = { userId: book.userId, addressBookId: book.id }
   const cardPath = 'dav/addressbooks/c%231/my%20book/c1.vcf'
 

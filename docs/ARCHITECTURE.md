@@ -93,6 +93,14 @@ the fields set in [`ContactsDao.ts`](../common/src/features/Contacts/ContactsDao
 | Subscription to a public book | `ownerId` set, created by `subscribeToAddressBook` | Read, or write when the source grants it |
 | Domain book `dab` | `id === 'dab'`, `userId` the domain id | Read only from the UI, never shared nor a write target |
 
+## IDs in URLs
+
+User, address-book and contact IDs are stored decoded. DAV href normalization
+uses `decodeDavSegment`, preserving malformed percent encodings. DAV requests
+use the segment-encoding helpers in `common/src/api/davPaths.ts`. UI links use
+`apps/private/src/features/Contacts/contactPath.ts` to encode each route segment
+once; React Router returns decoded IDs to the pages.
+
 ## Backend endpoints
 
 Every call goes through `api`, prefixed by `SIDE_SERVICE_BASE_URL`, which points

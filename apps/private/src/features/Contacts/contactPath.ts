@@ -1,7 +1,15 @@
-// A contact id is a card file name that may hold reserved characters (a/b):
-// it is encoded in the path, React Router gives it back decoded in the params
+// IDs are stored decoded. Encode each route segment once; React Router
+// returns the decoded IDs in useParams.
+export const addressBookPath = (addressBookId: string): string =>
+  `/contacts/${encodeURIComponent(addressBookId)}`
+
+export const createContactPath = (addressBookId?: string): string =>
+  addressBookId
+    ? `/contacts/new/${encodeURIComponent(addressBookId)}`
+    : '/contacts/new'
+
 export const contactPath = (addressBookId: string, contactId: string): string =>
-  `/contacts/${addressBookId}/${encodeURIComponent(contactId)}`
+  `${addressBookPath(addressBookId)}/${encodeURIComponent(contactId)}`
 
 export const editContactPath = (
   addressBookId: string,

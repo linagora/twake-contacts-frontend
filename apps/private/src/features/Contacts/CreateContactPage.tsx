@@ -1,3 +1,4 @@
+import { addressBookPath } from './contactPath'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
@@ -40,7 +41,7 @@ export const CreateContactPage: React.FC = () => {
   const backTo =
     initialValues.addressBookId &&
     !isHiddenAddressBook(initialValues.addressBookId)
-      ? `/contacts/${initialValues.addressBookId}`
+      ? addressBookPath(initialValues.addressBookId)
       : '/contacts'
 
   const handleSubmit = async (values: ContactFormValues): Promise<void> => {
@@ -55,7 +56,7 @@ export const CreateContactPage: React.FC = () => {
       ).unwrap()
       void navigate(
         values.addressBookId && !isHiddenAddressBook(values.addressBookId)
-          ? `/contacts/${values.addressBookId}`
+          ? addressBookPath(values.addressBookId)
           : '/contacts',
         { state: FOCUS_HEADING_STATE }
       )
