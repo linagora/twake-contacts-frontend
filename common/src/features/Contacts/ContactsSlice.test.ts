@@ -19,7 +19,8 @@ import {
   saveContact,
   subscribeToAddressBook
 } from './ContactsDao'
-import {
+import reducer, {
+  addContactFromSearch,
   clearListingFailures,
   createContact,
   deleteContact,
@@ -177,6 +178,67 @@ describe('fetchContacts', () => {
       expect(Object.keys(state.contacts.addressBooks)).toEqual([id])
     }
   )
+})
+
+describe('address book ids', () => {
+  const protoBook = makeBook('__proto__', [], 0)
+
+  it('stores a book whose id is __proto__ as an own entry', () => {
+    const books = [makeBook('b1', [], 0), protoBook]
+    const state = reducer(
+      undefined,
+      fetchContacts.fulfilled(books, 'r0', { userId: 'u1' })
+    )
+    expect(Object.keys(state.addressBooks)).toStrictEqual(['b1', '__proto__'])
+    expect(Object.keys(state.listings)).toStrictEqual(['b1', '__proto__'])
+    expect(Object.hasOwn(state.addressBooks, '__proto__')).toBe(true)
+
+    const next = reducer(
+      state,
+      addContactFromSearch({ addressBookId: 'b1', contact: alice })
+    )
+
+    // the previous state is unchanged
+    expect(state.addressBooks.b1.contacts).toStrictEqual([])
+    expect(next.addressBooks.b1.contacts).toStrictEqual([alice])
+  })
+
+  it('does not see an Object.prototype property as a book', () => {
+    const state = reducer(
+      undefined,
+      fetchContacts.fulfilled([makeBook('b1', [], 0)], 'r0', { userId: 'u1' })
+    )
+
+    expect(state.addressBooks.constructor).toBe(undefined)
+    expect('toString' in state.listings).toBe(false)
+  })
+
+  it('lists the contacts of a book whose id is __proto__', async () => {
+    vi.mocked(fetchAddressBooks).mockResolvedValue([
+      makeBook('b1', [], null),
+      makeBook('__proto__', [], null)
+    ])
+    vi.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [
+        { addressBookId: 'b1', contact: alice },
+        { addressBookId: '__proto__', contact: bob }
+      ],
+      next: null
+    })
+    const store = setupStore()
+    await store.dispatch(fetchContacts({ userId: 'u1' }))
+
+    await store.dispatch(
+      fetchMoreContacts({ userId: 'u1', listingKey: ALL_CONTACTS_LISTING })
+    )
+
+    const { addressBooks, listings } = store.getState().contacts
+    expect(addressBooks['__proto__'].contacts).toStrictEqual([bob])
+    expect(listings[ALL_CONTACTS_LISTING].refs).toStrictEqual([
+      { addressBookId: 'b1', contactId: 'c1' },
+      { addressBookId: '__proto__', contactId: 'c2' }
+    ])
+  })
 })
 
 describe('fetchContact', () => {

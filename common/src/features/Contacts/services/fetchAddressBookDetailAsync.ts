@@ -5,6 +5,7 @@ import {
   resolveAddressBookMember
 } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
+import { createDictionary } from '@common/utils/dictionary'
 import { userData } from '@common/features/User/userDataTypes'
 
 export interface FetchAddressBookDetailPayload {
@@ -129,7 +130,7 @@ export const fetchAddressBookDetailThunk = (
     },
     {
       pending: (state, action) => {
-        state.detailRequestIds ??= {}
+        state.detailRequestIds ??= createDictionary()
         state.detailRequestIds[action.meta.arg.addressBookId] =
           action.meta.requestId
         if (!action.meta.arg.silent) {
