@@ -57,6 +57,8 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 
 ### Fixed
 
+- Address books whose ids match built-in object properties, such as `__proto__`, are stored and listed
+  correctly without mutating previous application state
 - Accessibility of the sidebar, the share dialog and the "Add a shared address book" dialog: accessible
   names, focus kept inside dialogs, keyboard submission
 - Store kept up to date after creating, editing, moving or deleting a contact
