@@ -52,6 +52,7 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 
 ### Changed
 
+- Added AI agent instructions requiring changelog updates with every change
 - The application talks to `twake-calendar-side-service` (`SIDE_SERVICE_BASE_URL`) instead of an OpenPaaS
   backend and the DAV server directly
 
