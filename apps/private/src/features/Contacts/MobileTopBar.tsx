@@ -33,7 +33,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
   addressBookId
 }) => {
   const { t } = useI18n()
-  const { isMobile } = useBreakpoints()
+  const { isDesktop, isExtraLarge } = useBreakpoints()
   const [searchParams] = useSearchParams()
   const scope = addressBookId
     ? undefined
@@ -45,7 +45,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
   )
   const book = useAppSelector(state => selectBook(state, addressBookId))
 
-  if (!isMobile) return
+  if (isDesktop || isExtraLarge) return
 
   return (
     <Stack
