@@ -84,6 +84,16 @@ describe('normalizeContact', () => {
   it('keeps a file name that is not valid percent-encoding as is', () => {
     expect(contactAt('/addressbooks/bob/book1/100%.vcf').id).toBe('100%')
   })
+
+  it('strips the extension only at the end of the file name', () => {
+    expect(contactAt('/addressbooks/bob/book1/x.vcfy.vcf').id).toBe('x.vcfy')
+  })
+
+  it('keeps an encoded ".vcf" inside the file name', () => {
+    expect(contactAt('/addressbooks/bob/book1/a%2Evcf%2Fb.vcf').id).toBe(
+      'a.vcf/b'
+    )
+  })
 })
 
 describe('preferred values (#451)', () => {

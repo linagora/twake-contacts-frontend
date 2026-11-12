@@ -1669,6 +1669,19 @@ describe('export', () => {
       { headers: { Accept: 'text/vcard' } }
     )
   })
+
+  it('exports a listed card whose file name is percent-encoded in its href', async () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/bob/book1/a%2Fb.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo']]]
+    })
+    await exportContact(book, contact.id)
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/bob/book1/a%2Fb.vcf',
+      { headers: { Accept: 'text/vcard' } }
+    )
+  })
 })
 
 describe('nickname text-list', () => {
