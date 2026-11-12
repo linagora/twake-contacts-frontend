@@ -426,6 +426,66 @@ describe('normalizeContact', () => {
     expect(formatAddress(address)).toContain('BP 12')
   })
 
+  it('shows the label of an ADR without components', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          [
+            'adr',
+            { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+            'text',
+            ['', '', '', '', '', '', '']
+          ]
+        ]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(address.label).toBe('1 Infinite Loop\nCupertino')
+    expect(formatAddress(address)).toBe('1 Infinite Loop, Cupertino')
+  })
+
+  it('shows the components of an ADR rather than its label', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [['adr', { label: 'Label text' }, 'text', ['', '', '1 rue', 'Lyon']]]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(formatAddress(address)).toBe('1 rue, Lyon')
+  })
+
+  it('ignores an ADR holding neither components nor label', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['adr', { type: 'HOME', label: ' ' }, 'text', ['', '', '', '']],
+          ['adr', {}, 'text', ['', '', '1 rue', 'Lyon']]
+        ]
+      ]
+    })
+    expect(contact.addresses?.map(formatAddress)).toEqual(['1 rue, Lyon'])
+  })
+
+  it('writes the label of an ADR back', () => {
+    const adr: JCalProperty = [
+      'adr',
+      { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+      'text',
+      ['', '', '', '', '', '', '']
+    ]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [adr]]
+    })
+    expect(denormalizeContact(contact)[1]).toContainEqual(adr)
+  })
+
   it('shows an address whose only content is after the seventh component', () => {
     const contact = normalizeContact({
       _links: { self: { href: '/addressbooks/u/b/c.vcf' } },

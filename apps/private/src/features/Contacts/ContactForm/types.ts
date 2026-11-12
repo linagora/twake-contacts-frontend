@@ -107,7 +107,10 @@ export function makeContactFromForm(
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
-  const addresses = values.addresses.filter(hasValue).map((entry, index) => {
+  // the original is found by the row index before the blank rows are dropped,
+  // as makeFormValuesFromContact lists one row per address of the base contact
+  const addresses = values.addresses.flatMap((entry, index) => {
+    if (!hasValue(entry)) return []
     const original = base?.addresses?.[index]
     const untouched = original && formatAddress(original) === entry.value
     // the row, not the index, tells which parameters the address has

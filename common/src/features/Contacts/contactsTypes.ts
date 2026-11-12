@@ -64,6 +64,8 @@ export interface ContactAddress extends WithParams {
   country: string
   /** Components after the seventh (e.g. RFC 9554 additions), kept for display and round-trip. */
   extra?: string[]
+  /** LABEL parameter (RFC 6350 §6.3.1): the delivery address text, shown when no component is filled. */
+  label?: string
   /** Components as read, kept only when one holds several values (RFC 6350 §3.3), to write it back unchanged. */
   components?: JCalValue[]
 }
