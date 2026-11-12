@@ -122,13 +122,7 @@ function parseUriValues(prop: JCalProperty, scheme: RegExp): ContactEmail[] {
     .map(value => withParams({ type, value }, params))
 }
 
-function getTypeParam(params: JCalParams | undefined): string | null {
-  const type = params?.type
-  if (typeof type === 'string') return type
-  if (Array.isArray(type) && type.length > 0) return type[0]
-  return null
-}
-
+// RFC 7095 §3.5: a parameter value is a string or an array of strings
 function typeTokens(type: unknown): string[] {
   if (typeof type === 'string') return [type]
   if (Array.isArray(type)) {
@@ -137,20 +131,42 @@ function typeTokens(type: unknown): string[] {
   return []
 }
 
-// the TYPE values the form chooses from: the only ones a change replaces
+// the TYPE values the form chooses from and the UI has a label for
+// (contacts.types.* in the locales): the only ones a change replaces
 const FORM_TYPES = new Set(['home', 'work', 'cell', 'other'])
+
+/**
+ * The first TYPE a person understands, in its original case: INTERNET, VOICE
+ * or pref carry no label and are skipped, e.g. ["INTERNET", "HOME"] gives HOME.
+ */
+function getTypeParam(params: JCalParams | null | undefined): string | null {
+  return (
+    typeTokens(params?.type).find(t => FORM_TYPES.has(t.toLowerCase())) ?? null
+  )
+}
+
+type TypeReader = (params: JCalParams | null | undefined) => string | null
+
+// a social profile TYPE names its service (twitter, matrix...), not a label
+function getServiceTypeParam(
+  params: JCalParams | null | undefined
+): string | null {
+  return typeTokens(params?.type)[0] ?? null
+}
 
 /**
  * Parameters to write for a typed property (RFC 6350 §5.6). An unchanged type
  * keeps the TYPE list as read; a changed one replaces only its home, work,
  * cell or other value, keeping the others (INTERNET, VOICE, FAX, pref…).
+ * `readTypeOf` reads the type shown to the user, as the parser does.
  */
 export function mergeTypeParam(
   params: JCalParams | undefined,
-  type: string | null
+  type: string | null,
+  readTypeOf: TypeReader = getTypeParam
 ): JCalParams {
   const read = params ?? {}
-  const readType = getTypeParam(read)?.toLowerCase() ?? ''
+  const readType = readTypeOf(read)?.toLowerCase() ?? ''
   if (readType === (type ?? '').toLowerCase()) return read
   const { type: readTokens, ...others } = read
   const kept = typeTokens(readTokens).filter(
@@ -220,17 +236,14 @@ function readPrefParam(value: unknown): number | null {
     : null
 }
 
-function hasPrefType(params: JCalParams): boolean {
-  const types: unknown[] = ([] as unknown[]).concat(params.type ?? [])
-  return types.some(
-    type => typeof type === 'string' && type.toLowerCase() === 'pref'
-  )
+function hasPrefType(params: JCalParams | null | undefined): boolean {
+  return typeTokens(params?.type).some(type => type.toLowerCase() === 'pref')
 }
 
 function preferenceRank(prop: JCalProperty): number {
-  const params = prop[1]
+  const params = readParams(prop)
   return (
-    readPrefParam(params.pref) ??
+    readPrefParam(params?.pref) ??
     (hasPrefType(params) ? TYPE_PREF_RANK : UNMARKED_RANK)
   )
 }
@@ -327,7 +340,7 @@ function parseSocialProfiles(card: JCalCard): ContactSocialProfile[] {
   return getCardProperties(card, 'socialprofile')
     .map(prop => {
       const value = getStringValue(prop) ?? ''
-      const type = getTypeParam(prop[1])
+      const type = getServiceTypeParam(prop[1])
       return withParams({ type, value }, readParams(prop))
     })
     .filter(s => s.value)
@@ -610,9 +623,15 @@ export function normalizeContact(item: DavContactItem): Contact {
 function makeTypedProperty(
   name: string,
   entry: { type: string | null } & WithParams,
-  value: JCalValue
+  value: JCalValue,
+  readTypeOf: TypeReader = getTypeParam
 ): JCalProperty {
-  return [name, mergeTypeParam(entry.params, entry.type), 'text', value]
+  return [
+    name,
+    mergeTypeParam(entry.params, entry.type, readTypeOf),
+    'text',
+    value
+  ]
 }
 
 // RFC 6350 §4.3.4 date-and-or-time, in the extended form jCard uses (RFC 7095 §3.5.3)
@@ -737,7 +756,14 @@ export function denormalizeContact(contact: Contact): JCalCard {
     )
   })
   contact.socialProfiles?.forEach(profile => {
-    properties.push(makeTypedProperty('socialprofile', profile, profile.value))
+    properties.push(
+      makeTypedProperty(
+        'socialprofile',
+        profile,
+        profile.value,
+        getServiceTypeParam
+      )
+    )
   })
   contact.urls?.forEach(url => {
     properties.push(['url', url.params ?? {}, 'uri', url.value])

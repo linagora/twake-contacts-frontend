@@ -177,6 +177,96 @@ describe('preferred values (#451)', () => {
   })
 })
 
+describe('normalizeContact TYPE lists', () => {
+  const contactWith = (property: JCalProperty): Contact =>
+    normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [property]]
+    })
+
+  it.each([
+    ['email', ['INTERNET', 'HOME', 'pref'], 'HOME'],
+    ['email', ['INTERNET'], null],
+    ['email', 'work', 'work'],
+    ['tel', 'VOICE', null],
+    ['tel', ['VOICE', 'CELL'], 'CELL'],
+    ['tel', ['pref', 'WORK'], 'WORK'],
+    ['tel', [12], null]
+  ])('%s %j gives %s', (name, type, expected) => {
+    const contact = contactWith([
+      name,
+      { type } as never,
+      'text',
+      'x@x.example'
+    ])
+    const entry = name === 'email' ? contact.emails[0] : contact.phones?.[0]
+    expect(entry?.type ?? null).toBe(expected)
+  })
+
+  it('labels an address with the first known TYPE', () => {
+    const contact = contactWith([
+      'adr',
+      { type: ['pref', 'HOME'] },
+      'text',
+      ['', '', '1 rue', 'Paris', '', '', '']
+    ])
+    expect(contact.addresses?.[0].type).toBe('HOME')
+  })
+
+  it.each([[['home']], [12], [{}]])(
+    'ignores a non-string TYPE element %p',
+    first => {
+      const contact = normalizeContact({
+        _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+        data: [
+          'vcard',
+          [
+            ['email', { type: [first] } as never, 'text', 'jane@home.example'],
+            ['tel', { type: [first] } as never, 'text', '+33 1 23 45 67 89'],
+            ['socialprofile', { type: [first] } as never, 'text', 'jane']
+          ]
+        ]
+      })
+      expect(contact.emails[0].type).toBeNull()
+      expect(contact.phones?.[0].type).toBeNull()
+      expect(contact.socialProfiles?.[0].type).toBeNull()
+    }
+  )
+
+  it('reads a property whose parameters are null', () => {
+    const contact = contactWith([
+      'tel',
+      null as never,
+      'text',
+      '+33 1 23 45 67 89'
+    ])
+    expect(contact.phones?.[0]).toEqual({
+      type: null,
+      value: '+33 1 23 45 67 89'
+    })
+  })
+
+  it('keeps the service of a social profile', () => {
+    const contact = contactWith([
+      'socialprofile',
+      { type: ['Matrix', 'pref'] },
+      'text',
+      '@jane:example.org'
+    ])
+    expect(contact.socialProfiles?.[0].type).toBe('Matrix')
+  })
+
+  it.each<[string, unknown]>([
+    ['socialprofile', ['Matrix', 'pref']],
+    ['email', ['INTERNET', 'HOME', 'pref']],
+    ['tel', ['VOICE', 'CELL']]
+  ])('writes an unchanged %s TYPE %j back as read', (name, type) => {
+    const property: JCalProperty = [name, { type } as never, 'text', 'x']
+    const saved = denormalizeContact(contactWith(property))[1]
+    expect(saved.find(prop => prop[0] === name)?.[1]).toEqual({ type })
+  })
+})
+
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({
   _links: { self: { href: '/addressbooks/owner/book.json' } },
   'dav:name': 'QA Book',
