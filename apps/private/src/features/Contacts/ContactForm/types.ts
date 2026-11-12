@@ -145,6 +145,7 @@ export function makeContactFromForm(
     ...base,
     id: base?.id ?? crypto.randomUUID(),
     displayName: [givenName, familyName].filter(Boolean).join(' '),
+    // N components the form does not edit are kept from the base contact
     name,
     ...withNameParams(base, name !== base?.name),
     categories: values.categories,
