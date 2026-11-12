@@ -49,7 +49,8 @@ const LocationDisplay = (): React.ReactElement => (
 )
 const renderDialog = (
   mode: 'copy' | 'move' = 'copy',
-  sourceCanWrite = true
+  sourceCanWrite = true,
+  sourceContact = contact
 ): {
   store: ReturnType<typeof setupStore>
   onClose: Mock
@@ -60,7 +61,7 @@ const renderDialog = (
       addressBooks: classifyAddressBooks({
         source: {
           ...book('source', sourceCanWrite),
-          contacts: [contact],
+          contacts: [sourceContact],
           contactsCount: 1
         },
         target: book('target'),
@@ -89,7 +90,7 @@ const renderDialog = (
         {open && (
           <ContactTransferDialog
             mode={mode}
-            contact={contact}
+            contact={sourceContact}
             addressBookId="source"
             onClose={() => {
               onClose()
@@ -341,5 +342,23 @@ it.each(transferCases)(
     )
     expect(store.getState().contacts.transferSuccess).toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  }
+)
+
+it.each([
+  { id: 'a/b', path: '/contacts/contacts/a%2Fb' },
+  { id: 'c#1', path: '/contacts/contacts/c%231' },
+  { id: '100%', path: '/contacts/contacts/100%25' }
+])(
+  'opens a moved card whose file name is "$id" from the toast',
+  async ({ id, path }) => {
+    vi.clearAllMocks()
+    vi.mocked(moveContact).mockResolvedValue()
+    const { onClose } = renderDialog('move', true, { ...contact, id })
+    selectDestination('My contacts')
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    expect(screen.getByTestId('location')).toHaveTextContent(path)
   }
 )

@@ -22,12 +22,22 @@ import {
   within
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useParams } from 'react-router'
 import I18n from 'twake-i18n'
 import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
 
 vi.mock('@common/features/Contacts/ContactsDao')
+
+const ContactRoute = (): React.ReactElement => {
+  const { addressBookId, contactId } = useParams()
+  return (
+    <>
+      <div>Contact</div>
+      <div data-testid="contact-route">{`${addressBookId}|${contactId}`}</div>
+    </>
+  )
+}
 
 function renderPage(initialEntries: string[]): ReturnType<typeof render> {
   const store = setupStore({
@@ -133,7 +143,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
               />
               <Route
                 path="/contacts/:addressBookId/:contactId"
-                element={<div>Contact</div>}
+                element={<ContactRoute />}
               />
             </Routes>
           </MemoryRouter>
@@ -463,6 +473,25 @@ describe('CreateContactPage duplicate email warning', () => {
 
     expect(screen.getByText('Contact')).toBeInTheDocument()
   })
+
+  it.each(['a/b', 'c#1', '100%'])(
+    'opens the existing contact whose file name is "%s"',
+    async id => {
+      vi.mocked(searchContacts).mockResolvedValue([
+        camille(id, 'camille.durand@example.com')
+      ])
+      renderPage(['/contacts/new'])
+
+      typeEmail('camille.durand@example.com')
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Open contact' })
+      )
+
+      expect(screen.getByTestId('contact-route')).toHaveTextContent(
+        `alphaShared|${id}`
+      )
+    }
+  )
 
   it('matches the address whatever its case', async () => {
     vi.mocked(searchContacts).mockResolvedValue([
