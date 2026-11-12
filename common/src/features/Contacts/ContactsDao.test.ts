@@ -512,7 +512,7 @@ describe('normalizeContact', () => {
     } as unknown as DavContactItem)
     expect(contact.addresses?.[0].street).toBe('Line 1 Line 2')
     expect(contact.addresses?.[0].locality).toBe('')
-    expect(contact.org).toEqual({ name: 'Acme', units: ['A B'] })
+    expect(contact.org).toMatchObject({ name: 'Acme', units: ['A B'] })
   })
 
   it('ignores an object org component', () => {
@@ -539,7 +539,7 @@ describe('normalizeContact', () => {
         [['n', {}, 'text', [['van der', 'Berg'], 'Jan', '', '', '']]]
       ]
     })
-    expect(contact.name).toEqual({
+    expect(contact.name).toMatchObject({
       familyName: 'van der Berg',
       givenName: 'Jan'
     })

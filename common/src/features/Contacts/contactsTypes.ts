@@ -1,4 +1,4 @@
-import { JCalProperty } from './davTypes'
+import { JCalProperty, JCalValue } from './davTypes'
 import { userData } from '../User/userDataTypes'
 import { AddressBookCapabilities, AddressBookKind } from './addressBookModel'
 
@@ -35,6 +35,8 @@ export interface AddressBook extends RawAddressBook {
 export interface ContactName {
   familyName: string
   givenName: string
+  /** Components as read, kept only when one holds several values (RFC 6350 §3.3), to write it back unchanged. */
+  components?: JCalValue[]
 }
 
 /** Components of a vCard ADR property (RFC 6350 §6.3.1). */
@@ -49,6 +51,8 @@ export interface ContactAddress {
   country: string
   /** Components after the seventh (e.g. RFC 9554 additions), kept for display and round-trip. */
   extra?: string[]
+  /** Components as read, kept only when one holds several values (RFC 6350 §3.3), to write it back unchanged. */
+  components?: JCalValue[]
 }
 
 /** vCard 4 TEL value type (RFC 6350 6.4.1): a `tel:` URI or a free text number. */
@@ -80,6 +84,8 @@ export interface ContactSocialProfile {
 export interface ContactOrg {
   name: string
   units: string[]
+  /** Components as read, kept only when one holds several values (RFC 6350 §3.3), to write it back unchanged. */
+  components?: JCalValue[]
 }
 
 export interface Contact {

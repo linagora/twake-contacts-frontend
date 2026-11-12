@@ -1,9 +1,14 @@
 import { Contact } from '@common/features/Contacts/contactsTypes'
+import { JCalProperty, JCalValue } from '@common/features/Contacts/davTypes'
 import {
   denormalizeContact,
   normalizeContact
 } from '@common/features/Contacts/transformer/ContactsTransformer'
-import { makeContactFromForm, makeFormValuesFromContact } from './types'
+import {
+  ContactFormValues,
+  makeContactFromForm,
+  makeFormValuesFromContact
+} from './types'
 
 const untypedAddress = {
   type: null,
@@ -288,5 +293,71 @@ describe('saving an unchanged contact', () => {
     const saved = makeContactFromForm(values, withPhones)
 
     expect(saved.phones).toEqual([{ type: 'home', value: '7042' }])
+  })
+})
+
+describe('saving multi-valued structured components', () => {
+  const adr = ['', '', ['123 Main St', 'Apt 4'], 'Paris', '', '75002', 'France']
+  const org = [['Acme', 'Acme SAS'], 'Sales']
+  const n = [['García', 'López'], ['Jean', 'Paul'], '', '', '']
+  const read = normalizeContact({
+    _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+    data: [
+      'vcard',
+      [
+        ['uid', {}, 'text', 'c1'],
+        ['fn', {}, 'text', 'Jean Paul García López'],
+        ['n', {}, 'text', n],
+        ['adr', { type: 'work' }, 'text', adr],
+        ['org', {}, 'text', org]
+      ]
+    ]
+  })
+  const save = (values: ContactFormValues): JCalProperty[] =>
+    denormalizeContact(makeContactFromForm(values, read))[1]
+  const valueOf = (
+    saved: JCalProperty[],
+    name: string
+  ): JCalValue | undefined => saved.find(prop => prop[0] === name)?.[3]
+
+  it('keeps multi-valued ADR, ORG and N components on an unchanged save', () => {
+    const saved = save(makeFormValuesFromContact(read, 'contacts'))
+
+    expect(valueOf(saved, 'adr')).toEqual(adr)
+    expect(valueOf(saved, 'org')).toEqual(org)
+    expect(valueOf(saved, 'n')).toEqual(n)
+  })
+
+  it('writes an edited name component as typed, keeping the unchanged one', () => {
+    const values = makeFormValuesFromContact(read, 'contacts')
+
+    const saved = save({ ...values, givenName: 'Jean-Paul' })
+
+    expect(valueOf(saved, 'n')).toEqual([
+      ['García', 'López'],
+      'Jean-Paul',
+      '',
+      '',
+      ''
+    ])
+  })
+
+  it('writes an edited address as free text', () => {
+    const values = makeFormValuesFromContact(read, 'contacts')
+
+    const saved = save({
+      ...values,
+      addresses: [{ type: 'work', value: '1 rue de la Paix' }]
+    })
+
+    expect(valueOf(saved, 'adr')).toEqual([
+      '',
+      '',
+      '1 rue de la Paix',
+      '',
+      '',
+      '',
+      ''
+    ])
   })
 })

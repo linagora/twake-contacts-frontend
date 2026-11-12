@@ -343,6 +343,53 @@ describe('denormalizeContact', () => {
 
     expect(urls).toEqual([['url', {}, 'uri', 'https://mei.example/']])
   })
+
+  it('shows a multi-valued ORG component as text and writes it back as read', () => {
+    const org: JCalProperty = [
+      'org',
+      {},
+      'text',
+      [['Acme', 'Acme SAS'], 'Sales']
+    ]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', 'Mei Lin'], org]]
+    })
+
+    const saved = denormalizeContact(contact)[1].filter(p => p[0] === 'org')
+
+    expect(contact.org?.name).toBe('Acme Acme SAS')
+    expect(saved).toEqual([org])
+  })
+
+  it('writes an edited multi-valued component as its new text', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'Mei Lin'],
+          [
+            'org',
+            {},
+            'text',
+            [
+              ['Acme', 'Acme SAS'],
+              ['Sales', 'EMEA']
+            ]
+          ]
+        ]
+      ]
+    })
+    const org = { name: 'Globex', units: ['Sales EMEA'] }
+
+    const saved = denormalizeContact({
+      ...contact,
+      org: { ...contact.org, ...org }
+    })[1].filter(p => p[0] === 'org')
+
+    expect(saved).toEqual([['org', {}, 'text', ['Globex', ['Sales', 'EMEA']]]])
+  })
 })
 
 describe('BDAY round trip', () => {

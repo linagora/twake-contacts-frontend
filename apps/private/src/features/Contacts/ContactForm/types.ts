@@ -128,7 +128,8 @@ export function makeContactFromForm(
     ...base,
     id: base?.id ?? crypto.randomUUID(),
     displayName: [givenName, familyName].filter(Boolean).join(' '),
-    name: { givenName, familyName },
+    // the components as read are kept, so that an unchanged name is written back as read
+    name: { ...base?.name, givenName, familyName },
     categories: values.categories,
     emails: values.emails
       .filter(hasValue)

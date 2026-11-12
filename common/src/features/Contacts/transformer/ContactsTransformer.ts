@@ -56,6 +56,33 @@ function componentText(value: unknown): string {
   return value.map(scalarText).filter(Boolean).join(' ')
 }
 
+/**
+ * The components as read, when one of them holds several values: what is
+ * needed to write them back unchanged (see restoreComponents).
+ */
+function multiValuedComponents(
+  values: readonly unknown[]
+): { components: JCalValue[] } | Record<string, never> {
+  return values.some(Array.isArray) ? { components: values as JCalValue[] } : {}
+}
+
+/**
+ * Writes back as read every multi-valued component whose text was not changed,
+ * so that saving does not join its values into one.
+ */
+function restoreComponents(
+  texts: JCalValue[],
+  components: JCalValue[] | undefined
+): JCalValue[] {
+  if (!components) return texts
+  return texts.map((text, i) => {
+    const source = components[i]
+    return Array.isArray(source) && componentText(source) === text
+      ? source
+      : text
+  })
+}
+
 function getTextValues(prop: JCalProperty): string[] {
   return prop
     .slice(3)
@@ -95,7 +122,8 @@ function parseName(card: JCalCard): ContactName | null {
   )
   return {
     familyName,
-    givenName
+    givenName,
+    ...multiValuedComponents(values)
   }
 }
 
@@ -156,7 +184,8 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         region,
         postalCode,
         country,
-        ...(extra.length > 0 && { extra })
+        ...(extra.length > 0 && { extra }),
+        ...multiValuedComponents(values)
       }
     })
     .filter((a): a is ContactAddress => a !== null)
@@ -183,8 +212,10 @@ function parseOrg(card: JCalCard): ContactOrg | null {
   if (!prop) return null
   const rawValue = prop[3]
   let values: string[]
+  let source = {}
   if (Array.isArray(rawValue)) {
     values = rawValue.map(componentText)
+    source = multiValuedComponents(rawValue)
   } else if (typeof rawValue === 'string') {
     values = [
       rawValue,
@@ -194,7 +225,7 @@ function parseOrg(card: JCalCard): ContactOrg | null {
     return null
   }
   if (values.length === 0) return null
-  return { name: values[0], units: values.slice(1) }
+  return { name: values[0], units: values.slice(1), ...source }
 }
 
 // RFC 7095 sends a date as a string, non-conformant writers may store a number
@@ -460,7 +491,10 @@ export function denormalizeContact(contact: Contact): JCalCard {
       'n',
       {},
       'text',
-      [contact.name.familyName, contact.name.givenName, '', '', '']
+      restoreComponents(
+        [contact.name.familyName, contact.name.givenName, '', '', ''],
+        contact.name.components
+      )
     ])
   }
   if (contact.nicknames?.length) {
@@ -477,16 +511,23 @@ export function denormalizeContact(contact: Contact): JCalCard {
   })
   contact.addresses?.forEach(address => {
     properties.push(
-      makeTypedProperty('adr', address.type, [
-        address.poBox,
-        address.extended,
-        address.street,
-        address.locality,
-        address.region,
-        address.postalCode,
-        address.country,
-        ...(address.extra ?? [])
-      ])
+      makeTypedProperty(
+        'adr',
+        address.type,
+        restoreComponents(
+          [
+            address.poBox,
+            address.extended,
+            address.street,
+            address.locality,
+            address.region,
+            address.postalCode,
+            address.country,
+            ...(address.extra ?? [])
+          ],
+          address.components
+        )
+      )
     )
   })
   contact.socialProfiles?.forEach(profile => {
@@ -502,7 +543,10 @@ export function denormalizeContact(contact: Contact): JCalCard {
       'org',
       {},
       'text',
-      [contact.org.name, ...contact.org.units]
+      restoreComponents(
+        [contact.org.name, ...contact.org.units],
+        contact.org.components
+      )
     ])
   }
   const singles: [string, string | undefined][] = [
