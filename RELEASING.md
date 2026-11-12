@@ -40,16 +40,17 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
 
 1. Pick the level: `patch` for fixes only, `minor` for new features, `major` for a breaking change,
    including a raised backend minimum that existing deployments do not meet.
-2. On an up to date `main`, bump the version of the root and of every workspace:
+2. Merge the open pull request of twake-changelog, if any, so that `## [Unreleased]` holds every change
+   merged so far; then update your checkout of `main`, and on it bump the version of the root and of every
+   workspace:
 
    ```bash
    npm version <patch|minor|major> --workspaces --include-workspace-root --no-git-tag-version
    ```
 
-3. Merge the open pull request of twake-changelog, if any, then in `CHANGELOG.md` rename `## [Unreleased]`
-   to `## [X.Y.Z] - YYYY-MM-DD`, check its `Compatibility` line against `package.json`, and add a new empty
-   `## [Unreleased]` section above it. (A version tagged without this step gets its section from
-   twake-changelog at its next pass.)
+3. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, check its `Compatibility`
+   line against `package.json`, and add a new empty `## [Unreleased]` section above it. (A version tagged
+   without this step gets its section from twake-changelog at its next pass.)
 4. Commit, get the pull request merged, then tag the merge commit on `main` and push the tag:
 
    ```bash
@@ -58,4 +59,6 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
    ```
 
 5. Jenkins builds the tag (`buildingTag()`) and publishes `linagora/twake-contacts-web:X.Y.Z`.
-6. Create the GitHub release of the tag with the `CHANGELOG.md` section as notes.
+6. Create the GitHub release of the tag with the `CHANGELOG.md` section as notes. If the tag was pushed
+   before that section reached `main`, create the release once the next pull request of twake-changelog,
+   which writes it, is merged.
