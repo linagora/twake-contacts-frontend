@@ -138,14 +138,25 @@ export function placeContactInListings(
     )
   }
 
+  // a move also removes ref: the destination may list a stale card with the
+  // same id, and the table needs unique keys
+  const refsToRemove = isSameContactRef(ref, previousRef)
+    ? [ref]
+    : [previousRef, ref]
+
   for (const [key, listing] of Object.entries(state.listings)) {
-    const index = listing.refs.findIndex(r => isSameContactRef(r, previousRef))
-    if (index !== -1) {
-      listing.refs.splice(index, 1)
-      shiftPages(listing, index + 1, -1)
-    }
+    const removed = refsToRemove.map(r => removeContactRef(listing, r))
     if (contact && isListingOfBook(key, ref.addressBookId)) {
-      insertContactRef(listing, ref, isBefore, index !== -1)
+      insertContactRef(listing, ref, isBefore, removed.includes(true))
     }
   }
+}
+
+// Removes ref from the listing, returning whether it was listed
+function removeContactRef(listing: ContactListing, ref: ContactRef): boolean {
+  const index = listing.refs.findIndex(r => isSameContactRef(r, ref))
+  if (index === -1) return false
+  listing.refs.splice(index, 1)
+  shiftPages(listing, index + 1, -1)
+  return true
 }

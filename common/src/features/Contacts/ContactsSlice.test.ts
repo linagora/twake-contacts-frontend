@@ -807,6 +807,34 @@ describe('moveContact', () => {
     })
   })
 
+  it('lists the moved contact once when the destination listed a card with its id', () => {
+    const stale = { ...alice, displayName: 'Old Alice' }
+    const store = makeStore(
+      { book1: makeBook('book1', [alice]), book2: makeBook('book2', [stale]) },
+      {
+        book2: makeListing([['book2', stale]]),
+        [ALL_CONTACTS_LISTING]: makeListing([
+          ['book1', alice],
+          ['book2', stale]
+        ])
+      }
+    )
+    const args = {
+      userId: 'u1',
+      fromAddressBookId: 'book1',
+      toAddressBookId: 'book2',
+      contact: alice
+    }
+
+    store.dispatch(moveContact.fulfilled(args, 'r1', args))
+
+    const state = store.getState().contacts
+    expect(getListedIds(state, 'book2')).toStrictEqual(['c1'])
+    expect(state.listings[ALL_CONTACTS_LISTING].refs).toStrictEqual([
+      aRef('book2', alice)
+    ])
+  })
+
   it('replaces the contact if it already exists in the target book', async () => {
     const store = makeStore({
       book1: makeBook('book1', [alice]),
