@@ -4,11 +4,14 @@
 import {
   denormalizeContact,
   getCardProperty,
+  normalizeAddressBook,
   normalizeContact
 } from './transformer/ContactsTransformer'
 import { api } from '@common/utils/apiUtils'
 import { fetchUserById } from '@common/features/User/UserDao'
 import {
+  copyContact,
+  deleteContact,
   exportAddressBook,
   exportContact,
   fetchAddressBooks,
@@ -16,8 +19,10 @@ import {
   fetchContact,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
+  moveContact,
   resolveAddressBookMember,
   searchContacts,
+  saveContact,
   subscribeToAddressBook
 } from './ContactsDao'
 import { classifyAddressBook } from './addressBookModel'
@@ -36,7 +41,12 @@ import { DEFAULT_CONTACT_SORT } from './constants'
 import { matchPath } from 'react-router'
 
 vi.mock('@common/utils/apiUtils', () => ({
-  api: Object.assign(vi.fn(), { get: vi.fn(), post: vi.fn() })
+  api: Object.assign(vi.fn(), {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn()
+  })
 }))
 vi.mock('@common/features/User/UserDao', () => ({ fetchUserById: vi.fn() }))
 
@@ -1555,5 +1565,88 @@ describe('nickname text-list', () => {
     expect(denormalizeContact(contact)[1].some(p => p[0] === 'nickname')).toBe(
       false
     )
+  })
+})
+
+describe('DAV paths of a book whose ids need encoding', () => {
+  const book = classifyAddressBook(
+    {
+      id: 'my book',
+      userId: 'c#1',
+      name: 'Team',
+      contactsCount: 1,
+      acl: [],
+      canWrite: true
+    },
+    'c#1'
+  )
+  const ref = { userId: book.userId, addressBookId: book.id }
+  const cardPath = 'dav/addressbooks/c%231/my%20book/c1.vcf'
+
+  beforeEach(() => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.get).mockReturnValue({
+      blob: () => Promise.resolve(new Blob()),
+      json: () => Promise.resolve(['vcard', []])
+    } as unknown as ReturnType<typeof api.get>)
+    vi.mocked(api.put).mockReset()
+    vi.mocked(api.delete).mockReset()
+  })
+
+  it('encodes the user and book ids like copyContact does', async () => {
+    await exportContact(book, 'c1')
+
+    expect(api.get).toHaveBeenCalledWith(cardPath, {
+      headers: { Accept: 'text/vcard' }
+    })
+  })
+
+  it('addresses the same card from every call', async () => {
+    await fetchContact(book, 'c1')
+    await saveContact(book.userId, book.id, {
+      ...normalizeContact(namedItem),
+      id: 'c1'
+    })
+    await deleteContact(book.userId, book.id, 'c1')
+    await moveContact(ref, ref, 'c1')
+    await copyContact(ref, ref, 'c1')
+
+    expect(vi.mocked(api.get).mock.calls[0][0]).toBe(cardPath)
+    expect(vi.mocked(api.put).mock.calls[0][0]).toBe(cardPath)
+    expect(vi.mocked(api.delete).mock.calls[0][0]).toBe(cardPath)
+    expect(vi.mocked(api).mock.calls.map(([url]) => url)).toEqual([
+      cardPath,
+      cardPath
+    ])
+  })
+
+  it('encodes the ids of the book collection', async () => {
+    await exportAddressBook(book)
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/c%231/my%20book.json',
+      expect.anything()
+    )
+  })
+})
+
+describe('normalizeAddressBook', () => {
+  it('decodes the user and book ids of its href, to encode them once', () => {
+    const book = normalizeAddressBook({
+      _links: { self: { href: '/addressbooks/c%231/My%20Book.json' } },
+      'dav:syncToken': 0
+    })
+
+    expect(book).toMatchObject({ id: 'My Book', userId: 'c#1' })
+  })
+
+  it('keeps a segment that is not a valid encoding as it is', () => {
+    const book = normalizeAddressBook({
+      _links: { self: { href: '/addressbooks/u1/100%.json' } },
+      'dav:syncToken': 0
+    })
+
+    expect(book.id).toBe('100%')
   })
 })

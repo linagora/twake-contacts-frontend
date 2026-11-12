@@ -1,3 +1,4 @@
+import { addressBookPath } from './contactPath'
 import { translateContactType } from '@common/locales/dynamicKeys'
 import {
   formatAddress,
@@ -168,7 +169,7 @@ export const ContactPage: React.FC = () => {
     (location.state as ContactPageLocationState | null)?.from ??
     (isHiddenAddressBook(addressBookId)
       ? '/contacts'
-      : `/contacts/${addressBookId}`)
+      : addressBookPath(addressBookId))
   const handleDeleted = (): void =>
     void navigate(backTo, { state: FOCUS_HEADING_STATE })
   const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()

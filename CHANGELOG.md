@@ -74,6 +74,9 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
   seventh and every value of a multi-valued EMAIL or TEL; malformed server answers (hrefs, ACLs, share
   access, invites, N components) no longer break a listing
 - Contact ids are the decoded card file names, so cards with reserved characters open and save
+- User and address book ids are decoded from DAV hrefs and encoded once in requests, and address book
+  ids are encoded in navigation links, so ids containing spaces or reserved URL characters work
+  consistently ([#514](https://github.com/linagora/twake-contacts-frontend/pull/514))
 - Accessibility: labelled fields and value kinds, decorative icons hidden, hoverable tooltips, keyboard
   operable sidebar sections, focus kept in place after closing a popover, removing a row or saving, share
   and search results announced to screen readers

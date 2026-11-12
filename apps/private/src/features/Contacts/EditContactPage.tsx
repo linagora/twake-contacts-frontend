@@ -18,7 +18,7 @@ import {
   makeContactFromForm,
   makeFormValuesFromContact
 } from './ContactForm'
-import { contactPath } from './contactPath'
+import { addressBookPath, contactPath } from './contactPath'
 import { ContactFormSkeleton } from './ContactSkeletons'
 import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
@@ -60,7 +60,7 @@ export const EditContactPage: React.FC = () => {
           to={
             isHiddenAddressBook(addressBookId)
               ? '/contacts'
-              : `/contacts/${addressBookId}`
+              : addressBookPath(addressBookId)
           }
           variant="text"
           startIcon={<Icon icon={Left} />}
@@ -126,7 +126,7 @@ export const EditContactPage: React.FC = () => {
       void navigate(
         isHiddenAddressBook(addressBookId)
           ? '/contacts'
-          : `/contacts/${addressBookId}`,
+          : addressBookPath(addressBookId),
         { state: FOCUS_HEADING_STATE }
       )
     } catch {

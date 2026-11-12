@@ -1,3 +1,4 @@
+import { addressBookPath } from './contactPath'
 import React, { useId, useState } from 'react'
 import { useAppSelector } from '@common/app/hooks'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
@@ -133,7 +134,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
           {domainBooks.map(book => (
             <NavItem key={book.id}>
               <NavLink
-                onClick={() => handleItemClick(`/contacts/${book.id}`)}
+                onClick={() => handleItemClick(addressBookPath(book.id))}
                 selected={addressBookId === book.id}
                 aria-current={getAriaCurrent(addressBookId === book.id)}
               >

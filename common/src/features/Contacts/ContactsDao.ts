@@ -31,6 +31,7 @@ import {
   DavInvite
 } from './davTypes'
 import {
+  decodeDavSegment,
   denormalizeContact,
   normalizeAddressBook,
   normalizeContact,
@@ -85,6 +86,7 @@ export async function fetchAddressBooks(
   return userBooks
 }
 
+/** Resolves decoded source IDs and the owner's display name before classifying a book. */
 async function enrichAddressBookOwner(
   rawBook: DavAddressBookItem,
   userId: string
@@ -98,10 +100,10 @@ async function enrichAddressBookOwner(
   const parts = source.split('/')
   if (parts.length < 3) return classifyAddressBook(book, userId)
 
-  const ownerId = parts[2]
+  const ownerId = decodeDavSegment(parts[2] ?? '')
   if (!ownerId || ownerId === userId) return classifyAddressBook(book, userId)
   book.ownerId = ownerId
-  book.sourceBookId = parts[3]?.replace('.json', '')
+  book.sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
 
   const name = await fetchOwnerDisplayName(ownerId)
   if (name) {
@@ -393,8 +395,9 @@ export interface MultiAddressBookSearchRequest {
   addressBooks: AddressBookRef[]
 }
 
+/** Reads the decoded collection ID from a card href, or an empty ID if absent. */
 function extractAddressBookIdFromHref(href: unknown): string {
-  return readHref(href)?.split('/').at(-2) ?? ''
+  return decodeDavSegment(readHref(href)?.split('/').at(-2) ?? '')
 }
 
 export async function searchContacts(

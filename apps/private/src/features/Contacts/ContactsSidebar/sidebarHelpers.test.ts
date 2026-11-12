@@ -30,6 +30,16 @@ describe('sidebarHelpers', () => {
       expect(getCreateContactLink('b1', book)).toBe('/contacts/new/b1')
     })
 
+    it('encodes a writable book ID while loaded or loading', () => {
+      const id = 'Team/#100%'
+      expect(getCreateContactLink(id, anAddressBook({ id }))).toBe(
+        '/contacts/new/Team%2F%23100%25'
+      )
+      expect(getCreateContactLink(id, undefined, true)).toBe(
+        '/contacts/new/Team%2F%23100%25'
+      )
+    })
+
     it('keeps the book of the URL while the books are loading', () => {
       expect(getCreateContactLink('b1', undefined, true)).toBe(
         '/contacts/new/b1'

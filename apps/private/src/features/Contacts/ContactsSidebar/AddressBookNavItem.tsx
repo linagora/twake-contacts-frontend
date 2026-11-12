@@ -1,3 +1,4 @@
+import { addressBookPath } from '../contactPath'
 import React, { useState } from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
@@ -69,7 +70,7 @@ export const AddressBookNavItem: React.FC<AddressBookNavItemProps> = ({
         }
       >
         <NavLink
-          onClick={() => onNavigate(`/contacts/${book.id}`)}
+          onClick={() => onNavigate(addressBookPath(book.id))}
           selected={selected}
           aria-current={getAriaCurrent(selected)}
         >
