@@ -45,7 +45,8 @@ export const deleteContactThunk = (
         book.contacts = book.contacts.filter(
           contact => contact.id !== contactId
         )
-        if (book.contactsCount !== null) book.contactsCount -= 1
+        if (book.contactsCount !== null)
+          book.contactsCount = Math.max(0, book.contactsCount - 1)
         placeContactInListings(state, { addressBookId, contactId })
       },
       rejected: (state, action) => {

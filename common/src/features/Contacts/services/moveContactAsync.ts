@@ -30,7 +30,7 @@ function removeContactFromBook(
     contacts: book.contacts.filter(contact => contact.id !== contactId),
     contactsCount:
       typeof book.contactsCount === 'number'
-        ? book.contactsCount - 1
+        ? Math.max(0, book.contactsCount - 1)
         : book.contactsCount
   }
 }
