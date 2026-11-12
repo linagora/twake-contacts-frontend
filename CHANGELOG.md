@@ -83,3 +83,5 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - Each contact action has one name everywhere, and address books are renamed with "Rename"
 - Copy and move feedback names the contact and its destination
 - Backend error messages are no longer shown to users
+- Opening the sign-in callback page without a pending sign-in, by a reload, the Back button or a bookmark,
+  signs in again instead of leaving a blank page ([#422](https://github.com/linagora/twake-contacts-frontend/pull/422))
