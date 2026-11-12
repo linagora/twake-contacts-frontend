@@ -95,3 +95,11 @@ export function sortAddressBooks<T extends DisplayedAddressBook>(
       )
   )
 }
+
+/**
+ * The count of a book once one of its contacts is gone: never below zero, as
+ * the count read from the server misses the cards other clients pushed since.
+ */
+export function decrementContactsCount(count: number | null): number | null {
+  return count === null ? null : Math.max(0, count - 1)
+}

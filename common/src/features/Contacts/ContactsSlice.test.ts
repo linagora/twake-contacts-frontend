@@ -766,6 +766,26 @@ describe('deleteContact', () => {
     expect(getListedIds(state, ALL_CONTACTS_LISTING)).toStrictEqual(['c2'])
     expect(getListedIds(state, 'book1')).toStrictEqual(['c2'])
   })
+
+  it('never takes contactsCount below zero', () => {
+    const store = makeStore({ book1: makeBook('book1', [], 0) })
+    const args = { userId: 'u1', addressBookId: 'book1', contactId: 'c1' }
+
+    store.dispatch(deleteContact.fulfilled(args, 'r1', args))
+
+    expect(store.getState().contacts.addressBooks.book1.contactsCount).toBe(0)
+  })
+
+  it('leaves an unknown contactsCount unknown', () => {
+    const store = makeStore({ book1: makeBook('book1', [alice], null) })
+    const args = { userId: 'u1', addressBookId: 'book1', contactId: 'c1' }
+
+    store.dispatch(deleteContact.fulfilled(args, 'r1', args))
+
+    expect(
+      store.getState().contacts.addressBooks.book1.contactsCount
+    ).toBeNull()
+  })
 })
 
 describe('moveContact', () => {
@@ -854,6 +874,25 @@ describe('moveContact', () => {
     expect(addressBooks.book1.contacts).toHaveLength(0)
     expect(addressBooks.book2.contacts[0].displayName).toBe('Alice Updated')
     expect(addressBooks.book2.contactsCount).toBe(1)
+  })
+
+  it('never takes the source contactsCount below zero', () => {
+    const store = makeStore({
+      book1: makeBook('book1', [], 0),
+      book2: makeBook('book2', [bob])
+    })
+    const args = {
+      userId: 'u1',
+      fromAddressBookId: 'book1',
+      toAddressBookId: 'book2',
+      contact: alice
+    }
+
+    store.dispatch(moveContact.fulfilled(args, 'r1', args))
+
+    const { addressBooks } = store.getState().contacts
+    expect(addressBooks.book1.contactsCount).toBe(0)
+    expect(addressBooks.book2.contactsCount).toBe(2)
   })
 
   it('does not change contactsCount when it is null', async () => {

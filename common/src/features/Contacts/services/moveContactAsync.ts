@@ -6,7 +6,10 @@ import {
   Contact,
   ContactsState
 } from '../contactsTypes'
-import { isContactTransferDestination } from '../contactsUtils'
+import {
+  decrementContactsCount,
+  isContactTransferDestination
+} from '../contactsUtils'
 import { placeContactInListings } from '../contactListings'
 import {
   ContactsOperationError,
@@ -28,10 +31,7 @@ function removeContactFromBook(
   return {
     ...book,
     contacts: book.contacts.filter(contact => contact.id !== contactId),
-    contactsCount:
-      typeof book.contactsCount === 'number'
-        ? book.contactsCount - 1
-        : book.contactsCount
+    contactsCount: decrementContactsCount(book.contactsCount)
   }
 }
 

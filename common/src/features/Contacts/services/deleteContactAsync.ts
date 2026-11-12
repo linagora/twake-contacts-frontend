@@ -3,6 +3,7 @@ import { toOperationError } from '@common/utils/errorUtils'
 import { deleteContact } from '../ContactsDao'
 import { ContactsState } from '../contactsTypes'
 import { placeContactInListings } from '../contactListings'
+import { decrementContactsCount } from '../contactsUtils'
 import {
   ContactsOperationError,
   messageKeyFor,
@@ -45,7 +46,7 @@ export const deleteContactThunk = (
         book.contacts = book.contacts.filter(
           contact => contact.id !== contactId
         )
-        if (book.contactsCount !== null) book.contactsCount -= 1
+        book.contactsCount = decrementContactsCount(book.contactsCount)
         placeContactInListings(state, { addressBookId, contactId })
       },
       rejected: (state, action) => {
