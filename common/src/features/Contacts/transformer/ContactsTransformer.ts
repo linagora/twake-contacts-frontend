@@ -248,8 +248,15 @@ export function readHref(href: unknown): string | undefined {
   return typeof href === 'string' ? href : undefined
 }
 
+// only a trailing extension is the one of the file: "x.vcfy.vcf" is "x.vcfy"
+function stripExtension(segment: string, extension: string): string {
+  return segment.endsWith(extension)
+    ? segment.slice(0, -extension.length)
+    : segment
+}
+
 function extractId(href: unknown, extension: string): string {
-  return readHref(href)?.split('/').pop()?.replace(extension, '') ?? ''
+  return stripExtension(readHref(href)?.split('/').pop() ?? '', extension)
 }
 
 // a sharee's copy of a book points to the original through its source:
