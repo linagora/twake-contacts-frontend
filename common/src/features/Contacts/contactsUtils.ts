@@ -1,10 +1,12 @@
 import { RejectedError } from '@common/utils/errorUtils'
-import { DEFAULT_ADDRESS_BOOK_ID, HIDDEN_ADDRESS_BOOK_IDS } from './constants'
 import {
   AddressBook,
   ContactAddress,
+  ContactPhone,
   DisplayedAddressBook
 } from './contactsTypes'
+import { stripTel } from '@common/utils/normalizeIdentity'
+import { DEFAULT_ADDRESS_BOOK_ID, HIDDEN_ADDRESS_BOOK_IDS } from './constants'
 
 // trims the parts and drops the blank ones, so that a whitespace-only
 // component leaves no stray separator behind
@@ -29,6 +31,11 @@ export function formatAddress(address: ContactAddress): string {
     ],
     ', '
   )
+}
+
+/** Whether the stored TEL value still matches the readable number, so it can be written back as is. */
+export function hasUnchangedSource({ value, source }: ContactPhone): boolean {
+  return !!source && stripTel(source.value) === value
 }
 
 export function isHiddenAddressBook(id: string): boolean {

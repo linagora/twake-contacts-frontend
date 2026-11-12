@@ -43,7 +43,11 @@ describe('TEL value type round trip', () => {
       cardWithTel(['tel', {}, 'uri', 'tel:+49-30-1234'])
     )
     expect(contact.phones).toEqual([
-      { type: null, value: '+49-30-1234', valueType: 'uri' }
+      {
+        type: null,
+        value: '+49-30-1234',
+        source: { valueType: 'uri', value: 'tel:+49-30-1234' }
+      }
     ])
   })
 

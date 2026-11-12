@@ -1,5 +1,7 @@
 import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
+import { stripTel } from '@common/utils/normalizeIdentity'
+import { safeDecodeURIComponent } from '@common/utils/safeDecodeURIComponent'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
   Contact,
@@ -9,9 +11,9 @@ import {
   ContactOrg,
   ContactPhone,
   ContactSocialProfile,
-  PhoneValueType,
   RawAddressBook
 } from '../contactsTypes'
+import { hasUnchangedSource } from '../contactsUtils'
 import {
   DavAddressBookItem,
   DavContactItem,
@@ -103,19 +105,16 @@ function parseEmails(card: JCalCard): ContactEmail[] {
   )
 }
 
-const TEL_SCHEME = /^tel:/i
-const TEL_URI_VALUE_TYPE: PhoneValueType = 'uri'
-
 function parsePhones(card: JCalCard): ContactPhone[] {
   return getCardProperties(card, 'tel').flatMap(prop => {
     const type = getTypeParam(prop[1])
     return getTextValues(prop).flatMap((raw): ContactPhone[] => {
       // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
-      const value = raw.replace(TEL_SCHEME, '')
+      const value = stripTel(raw)
       if (!value) return []
-      return TEL_SCHEME.test(raw)
-        ? [{ type, value, valueType: TEL_URI_VALUE_TYPE }]
-        : [{ type, value }]
+      const phone: ContactPhone = { type, value }
+      if (raw !== value) phone.source = { valueType: prop[2], value: raw }
+      return [phone]
     })
   })
 }
@@ -132,17 +131,6 @@ function toAddressComponents(rawValue: unknown): unknown[] | null {
     return components
   }
   return null
-}
-
-function makePhoneProperty(phone: ContactPhone): JCalProperty {
-  return phone.valueType === TEL_URI_VALUE_TYPE
-    ? [
-        'tel',
-        phone.type ? { type: phone.type } : {},
-        'uri',
-        `tel:${phone.value}`
-      ]
-    : makeTypedProperty('tel', phone.type, phone.value)
 }
 
 // RFC 6350 §6.3.1 defines seven ADR components, RFC 9554 appends more after them
@@ -258,11 +246,7 @@ function isDefaultAddressBook(raw: DavAddressBookItem, id: string): boolean {
  * that is not a valid encoding is kept as it is.
  */
 export function decodeDavSegment(segment: string): string {
-  try {
-    return decodeURIComponent(segment)
-  } catch {
-    return segment
-  }
+  return safeDecodeURIComponent(segment)
 }
 
 function extractBookId(href: string | undefined): string {
@@ -452,6 +436,15 @@ function makeBirthdayProperty(
   // a numeric BDAY from a non-conformant writer is shown as text: unchanged, it is kept as is
   if (original && String(original[3]) === birthday) return original
   return ['bday', {}, birthdayValueType(birthday), birthday]
+}
+
+/** Writes the stored TEL value back when the readable number was not changed. */
+function makePhoneProperty(phone: ContactPhone): JCalProperty {
+  const { type, value, source } = phone
+  if (source && hasUnchangedSource(phone)) {
+    return ['tel', type ? { type } : {}, source.valueType, source.value]
+  }
+  return makeTypedProperty('tel', type, value)
 }
 
 /** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */

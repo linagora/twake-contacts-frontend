@@ -1,13 +1,22 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
+  ContactPhoneSource,
   ContactSocialProfile
 } from '@common/features/Contacts/contactsTypes'
-import { formatAddress } from '@common/features/Contacts/contactsUtils'
+import {
+  formatAddress,
+  hasUnchangedSource
+} from '@common/features/Contacts/contactsUtils'
 
 export interface ContactFormEntry {
   type: string
   value: string
+}
+
+/** A phone row keeps its own stored TEL value, so it is never matched against another row. */
+export interface PhoneFormEntry extends ContactFormEntry {
+  source?: ContactPhoneSource
 }
 
 export interface ContactFormValues {
@@ -16,7 +25,7 @@ export interface ContactFormValues {
   familyName: string
   categories: string[]
   matrixId: string
-  phones: ContactFormEntry[]
+  phones: PhoneFormEntry[]
   emails: ContactFormEntry[]
   addresses: ContactFormEntry[]
 }
@@ -67,7 +76,13 @@ export function makeFormValuesFromContact(
     familyName: contact.name?.familyName ?? '',
     categories: contact.categories ?? [],
     matrixId: contact.socialProfiles?.find(isMatrix)?.value ?? '',
-    phones: orEmptyEntry((contact.phones ?? []).map(toEntry)),
+    phones: orEmptyEntry(
+      (contact.phones ?? []).map(phone =>
+        phone.source
+          ? { ...toEntry(phone), source: phone.source }
+          : toEntry(phone)
+      )
+    ),
     emails: orEmptyEntry(contact.emails.map(toEntry)),
     addresses: orEmptyEntry(
       (contact.addresses ?? []).map(address => ({
@@ -86,25 +101,29 @@ export function makeContactFromForm(
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
-  // rows are paired with the base addresses before the blank ones are dropped
-  const addresses = values.addresses
-    .map((entry, index) => ({ entry, original: base?.addresses?.[index] }))
-    .filter(({ entry }) => hasValue(entry))
-    .map(({ entry, original }) => {
-      const untouched = original && formatAddress(original) === entry.value
-      return untouched
-        ? { ...original, type: entry.type }
-        : {
-            type: entry.type,
-            poBox: '',
-            extended: '',
-            street: entry.value.trim(),
-            locality: '',
-            region: '',
-            postalCode: '',
-            country: ''
-          }
-    })
+  const addresses = values.addresses.filter(hasValue).map((entry, index) => {
+    const original = base?.addresses?.[index]
+    const untouched = original && formatAddress(original) === entry.value
+    return untouched
+      ? { ...original, type: entry.type }
+      : {
+          type: entry.type,
+          poBox: '',
+          extended: '',
+          street: entry.value.trim(),
+          locality: '',
+          region: '',
+          postalCode: '',
+          country: ''
+        }
+  })
+  const phones = values.phones
+    .filter(hasValue)
+    .map(entry =>
+      hasUnchangedSource(entry)
+        ? entry
+        : { type: entry.type, value: entry.value }
+    )
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
@@ -114,13 +133,7 @@ export function makeContactFromForm(
     emails: values.emails
       .filter(hasValue)
       .map(entry => ({ ...entry, value: entry.value.trim() })),
-    phones: values.phones.filter(hasValue).map(entry => {
-      // an unchanged number keeps the value type it was read with, an edited one is text
-      const valueType = base?.phones?.find(
-        phone => phone.value === entry.value
-      )?.valueType
-      return valueType ? { ...entry, valueType } : entry
-    }),
+    phones,
     addresses,
     socialProfiles: updateMatrixProfile(base?.socialProfiles ?? [], matrixId)
   }
