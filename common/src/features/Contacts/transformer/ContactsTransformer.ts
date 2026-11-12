@@ -352,6 +352,8 @@ export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   }
 }
 
+// properties read into the contact and written back by denormalizeContact:
+// any other property goes through passthroughProps, so that saving keeps it
 const KNOWN_PROPERTIES = new Set([
   'version',
   'uid',
@@ -359,23 +361,16 @@ const KNOWN_PROPERTIES = new Set([
   'n',
   'nickname',
   'bday',
-  'anniversary',
-  'gender',
   'email',
   'tel',
   'adr',
-  'impp',
   'socialprofile',
   'url',
   'org',
   'title',
   'role',
   'categories',
-  'note',
-  'lang',
-  'tz',
-  'geo',
-  'rev'
+  'note'
 ])
 
 /** Converts a DAV card into a contact, decoding its file ID and parsing known fields. */
