@@ -24,13 +24,27 @@ import {
   JCalValue
 } from '../davTypes'
 
+// RFC 7095 §3.3: a property is [name, params, valueType, ...values]
+function isCardProperty(property: unknown): property is JCalProperty {
+  return Array.isArray(property) && typeof property[0] === 'string'
+}
+
+/**
+ * The properties of a card as they come from the server, unchecked: a missing
+ * or malformed card has none, an entry that is not a property is dropped.
+ */
+function readCardProperties(card: unknown): JCalProperty[] {
+  const properties: unknown = Array.isArray(card) ? card[1] : undefined
+  return Array.isArray(properties) ? properties.filter(isCardProperty) : []
+}
+
 export function getCardProperty(card: JCalCard, name: string): string | null {
-  const value = card[1].find(property => property[0] === name)?.[3]
+  const value = getCardProperties(card, name)[0]?.[3]
   return typeof value === 'string' ? value : null
 }
 
 function getCardProperties(card: JCalCard, name: string): JCalProperty[] {
-  return card[1].filter(property => property[0] === name)
+  return readCardProperties(card).filter(property => property[0] === name)
 }
 
 function getStringValue(prop: JCalProperty): string | null {
@@ -380,8 +394,8 @@ const KNOWN_PROPERTIES = new Set([
 
 /** Converts a DAV card into a contact, decoding its file ID and parsing known fields. */
 export function normalizeContact(item: DavContactItem): Contact {
-  const id = decodeDavSegment(extractId(item._links?.self?.href, '.vcf'))
-  const card = item.data
+  const id = decodeDavSegment(extractId(item?._links?.self?.href, '.vcf'))
+  const card: JCalCard = ['vcard', readCardProperties(item?.data)]
 
   const contact: Contact = {
     id,
