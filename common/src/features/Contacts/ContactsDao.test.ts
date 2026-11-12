@@ -118,6 +118,29 @@ describe('normalizeContact', () => {
     )
   })
 
+  it.each([
+    ['MAILTO:c@x.example', 'c@x.example'],
+    ['Mailto:e@x.example', 'e@x.example'],
+    [' d@x.example ', 'd@x.example'],
+    ['mailto:g@x.example?subject=Hi', 'g@x.example'],
+    ['mailto:h%40x.example', 'h@x.example'],
+    ['mailto:alice@twake.example', 'alice@twake.example']
+  ])('reads the address of %j', (raw, expected) => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['email', {}, 'text', raw]]]
+    })
+    expect(contact.emails[0].value).toBe(expected)
+  })
+
+  it('writes back an upper-case MAILTO: email without its scheme', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['email', {}, 'text', 'MAILTO:c@x.example']]]
+    })
+    expect(JSON.stringify(denormalizeContact(contact))).not.toMatch(/mailto/i)
+  })
+
   it('normalizes a contact whose href is not a string', () => {
     const item: DavContactItem = {
       _links: { self: { href: 12 } },

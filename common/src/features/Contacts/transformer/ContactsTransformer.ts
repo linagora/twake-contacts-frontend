@@ -1,6 +1,6 @@
 import { DEFAULT_ADDRESS_BOOK_ID, READ_ONLY_SHARE_ACCESSES } from '../constants'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
-import { stripTel } from '@common/utils/normalizeIdentity'
+import { stripMailto, stripTel } from '@common/utils/normalizeIdentity'
 import { safeDecodeURIComponent } from '@common/utils/safeDecodeURIComponent'
 import { AddressBookAccessLevel } from '../davTypes'
 import {
@@ -113,11 +113,14 @@ function withParams<T extends object>(
   return params ? { ...entry, params } : entry
 }
 
-function parseUriValues(prop: JCalProperty, scheme: RegExp): ContactEmail[] {
+function parseUriValues(
+  prop: JCalProperty,
+  stripScheme: (raw: string) => string
+): ContactEmail[] {
   const type = getTypeParam(prop[1])
   const params = readParams(prop)
   return getTextValues(prop)
-    .map(raw => raw.replace(scheme, ''))
+    .map(stripScheme)
     .filter(Boolean)
     .map(value => withParams({ type, value }, params))
 }
@@ -248,7 +251,7 @@ function byPreference(properties: JCalProperty[]): JCalProperty[] {
 
 function parseEmails(card: JCalCard): ContactEmail[] {
   return byPreference(getCardProperties(card, 'email')).flatMap(prop =>
-    parseUriValues(prop, /^mailto:/)
+    parseUriValues(prop, stripMailto)
   )
 }
 
