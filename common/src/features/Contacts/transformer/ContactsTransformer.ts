@@ -127,14 +127,59 @@ function parseName(card: JCalCard): ContactName | null {
   }
 }
 
+// RFC 6350 §5.3: PREF is an integer between 1 (most preferred) and 100
+const MIN_PREF = 1
+const MAX_PREF = 100
+// vCard 3 marks the preferred value with a pref token in TYPE, ranked after
+// any PREF value, and a value marked neither way after both
+const TYPE_PREF_RANK = MAX_PREF + 1
+const UNMARKED_RANK = MAX_PREF + 2
+
+function readPrefParam(value: unknown): number | null {
+  const scalar: unknown = Array.isArray(value) ? value[0] : value
+  const pref =
+    typeof scalar === 'string' && scalar.trim() !== '' ? Number(scalar) : scalar
+  return Number.isInteger(pref) &&
+    (pref as number) >= MIN_PREF &&
+    (pref as number) <= MAX_PREF
+    ? (pref as number)
+    : null
+}
+
+function hasPrefType(params: JCalParams): boolean {
+  const types: unknown[] = ([] as unknown[]).concat(params.type ?? [])
+  return types.some(
+    type => typeof type === 'string' && type.toLowerCase() === 'pref'
+  )
+}
+
+function preferenceRank(prop: JCalProperty): number {
+  const params = prop[1]
+  return (
+    readPrefParam(params.pref) ??
+    (hasPrefType(params) ? TYPE_PREF_RANK : UNMARKED_RANK)
+  )
+}
+
+/**
+ * Lists the properties from the most preferred to the least, keeping the card
+ * order between equals, so that the first value is the one the card prefers.
+ */
+function byPreference(properties: JCalProperty[]): JCalProperty[] {
+  return properties
+    .map(prop => ({ prop, rank: preferenceRank(prop) }))
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ prop }) => prop)
+}
+
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return getCardProperties(card, 'email').flatMap(prop =>
+  return byPreference(getCardProperties(card, 'email')).flatMap(prop =>
     parseUriValues(prop, /^mailto:/)
   )
 }
 
 function parsePhones(card: JCalCard): ContactPhone[] {
-  return getCardProperties(card, 'tel').flatMap(prop => {
+  return byPreference(getCardProperties(card, 'tel')).flatMap(prop => {
     const type = getTypeParam(prop[1])
     return getTextValues(prop).flatMap((raw): ContactPhone[] => {
       // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
