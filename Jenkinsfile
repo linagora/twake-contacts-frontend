@@ -26,17 +26,6 @@ pipeline {
             sh 'npm audit --omit=dev --audit-level=high'
           }
       }
-      stage('Check Changelog') {
-        // A PR changing the app must update CHANGELOG.md, unless one of its commit messages
-        // contains [no changelog]
-        when {
-          changeRequest()
-        }
-        steps {
-          sh 'git fetch --no-tags origin "+refs/heads/$CHANGE_TARGET:refs/remotes/origin/$CHANGE_TARGET"'
-          sh 'sh scripts/check-changelog.sh "origin/$CHANGE_TARGET"'
-        }
-      }
       // cheap checks first, so that they fail before the tests run
       stage('Check Lint') {
         steps {

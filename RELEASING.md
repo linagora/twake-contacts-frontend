@@ -19,9 +19,14 @@ The running application exposes its version in `window.APP_VERSION` (from `/vers
 
 ## Changelog
 
-Every pull request changing `apps/`, `common/` or `public/` adds a line under `## [Unreleased]` in
-`CHANGELOG.md`, grouped by `Added`, `Changed` and `Fixed`. The Jenkins build of the pull request fails
-otherwise, unless one of its commit messages contains `[no changelog]` (refactoring, tests, ...).
+`CHANGELOG.md` is kept by twake-changelog, the changelog automation of the Twake software factory: it
+reviews the commits merged on `main` since its last pass and opens a pull request writing them under
+`## [Unreleased]` (and a `## [X.Y.Z] - YYYY-MM-DD` section for a version tagged since), grouped by `Added`,
+`Changed` and `Fixed`, in the style of the file. A pull request changing the app does not edit
+`CHANGELOG.md`: its commits give what the automation needs, a subject a user can read (conventional
+commits: `feat:`, `fix:`, `feat!:` for a breaking change), its issue or pull request number, and the steps
+of an upgrade under `BREAKING CHANGE:` or an `Upgrade` section of the commit message. Review and merge the
+pull requests of twake-changelog, fixing their wording there.
 
 ## Backend compatibility
 
@@ -35,14 +40,18 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
 
 1. Pick the level: `patch` for fixes only, `minor` for new features, `major` for a breaking change,
    including a raised backend minimum that existing deployments do not meet.
-2. On an up to date `main`, bump the version of the root and of every workspace:
+2. Bring the changelog up to date with every commit merged so far: run twake-changelog on this repository
+   (Changelog proposals, in Other automations of the software factory dashboard) and merge the pull request
+   it opens, or check it found nothing to propose. Then update your checkout of `main`, and on it bump the
+   version of the root and of every workspace:
 
    ```bash
    npm version <patch|minor|major> --workspaces --include-workspace-root --no-git-tag-version
    ```
 
 3. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, check its `Compatibility`
-   line against `package.json`, and add a new empty `## [Unreleased]` section above it.
+   line against `package.json`, and add a new empty `## [Unreleased]` section above it. (A version tagged
+   without this step gets its section from twake-changelog at its next pass.)
 4. Commit, get the pull request merged, then tag the merge commit on `main` and push the tag:
 
    ```bash
@@ -51,4 +60,6 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
    ```
 
 5. Jenkins builds the tag (`buildingTag()`) and publishes `linagora/twake-contacts-web:X.Y.Z`.
-6. Create the GitHub release of the tag with the `CHANGELOG.md` section as notes.
+6. Create the GitHub release of the tag with the `CHANGELOG.md` section as notes. If the tag was pushed
+   before that section reached `main`, create the release once the next pull request of twake-changelog,
+   which writes it, is merged.
