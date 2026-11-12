@@ -1498,6 +1498,70 @@ describe('fetchAddressBookDetails', () => {
 
     expect(members).toEqual([])
   })
+
+  it('tells whether the book is published from its own ACL', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          acl: [{ privilege: '{DAV:}read', principal: '{DAV:}authenticated' }]
+        })
+    } as never)
+
+    const { isPublic } = await fetchAddressBookDetails('u1', 'b1')
+
+    expect(isPublic).toBe(true)
+    expect(api).toHaveBeenCalledTimes(1)
+  })
+
+  it('tells whether a delegated copy is published from the ACL of its source book', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockImplementation(((url: string) => ({
+      json: () =>
+        Promise.resolve(
+          url === 'dav/addressbooks/alice/source.json'
+            ? {
+                acl: [
+                  { privilege: '{DAV:}read', principal: '{DAV:}authenticated' }
+                ]
+              }
+            : {
+                '{DAV:}invite': [],
+                acl: [
+                  {
+                    privilege: '{DAV:}share',
+                    principal: 'principals/users/bob'
+                  }
+                ]
+              }
+        )
+    })) as never)
+
+    const { isPublic } = await fetchAddressBookDetails('bob', 'copy', {
+      userId: 'alice',
+      bookId: 'source'
+    })
+
+    expect(isPublic).toBe(true)
+    expect(api).toHaveBeenCalledWith('dav/addressbooks/alice/source.json', {
+      method: 'PROPFIND',
+      json: { properties: ['acl'] }
+    })
+  })
+
+  it('tells a delegated copy is private when its source book is not published', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockReturnValue({
+      json: () => Promise.resolve({ '{DAV:}invite': [], acl: [] })
+    } as never)
+
+    const { isPublic } = await fetchAddressBookDetails('bob', 'copy', {
+      userId: 'alice',
+      bookId: 'source'
+    })
+
+    expect(isPublic).toBe(false)
+  })
 })
 
 describe('resolveAddressBookMember', () => {
