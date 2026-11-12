@@ -190,6 +190,41 @@ describe('fetchAddressBookDetail', () => {
     ])
   })
 
+  it('reads the public state of a delegated copy from the book of its owner', async () => {
+    vi.mocked(fetchAddressBookDetails).mockResolvedValue({
+      members: [],
+      isPublic: true
+    })
+    const delegated = classifyAddressBook(
+      {
+        id: 'copy',
+        userId: 'bob',
+        name: 'Book',
+        contactsCount: 0,
+        acl: [],
+        canWrite: true,
+        ownerId: 'owner',
+        sourceBookId: 'book',
+        shareAccess: AddressBookAccessLevel.Editor,
+        contacts: []
+      },
+      'bob'
+    )
+    const store = setupStore({
+      contacts: { ...initial, addressBooks: { copy: delegated } }
+    })
+
+    await store.dispatch(
+      fetchAddressBookDetail({ userId: 'bob', addressBookId: 'copy' })
+    )
+
+    expect(fetchAddressBookDetails).toHaveBeenCalledWith('bob', 'copy', {
+      userId: 'owner',
+      bookId: 'book'
+    })
+    expect(store.getState().contacts.addressBooks.copy.isPublic).toBe(true)
+  })
+
   it('leaves the contact list error alone when the details cannot be fetched', async () => {
     vi.mocked(fetchAddressBookDetails).mockRejectedValue(
       new Error('Bad Request')

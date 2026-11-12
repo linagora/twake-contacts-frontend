@@ -131,7 +131,11 @@ describe('AddressBookHeader', () => {
       screen.getByRole('button', { name: 'More actions' })
     ).toBeInTheDocument()
     await vi.waitFor(() =>
-      expect(fetchAddressBookDetails).toHaveBeenCalledWith('alice', 'book1')
+      expect(fetchAddressBookDetails).toHaveBeenCalledWith(
+        'alice',
+        'book1',
+        undefined
+      )
     )
     expect(screen.queryByText(/Shared/)).not.toBeInTheDocument()
   })

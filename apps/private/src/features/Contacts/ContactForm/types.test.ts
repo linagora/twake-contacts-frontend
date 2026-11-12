@@ -1,5 +1,9 @@
 import { Contact } from '@common/features/Contacts/contactsTypes'
-import { JCalProperty, JCalValue } from '@common/features/Contacts/davTypes'
+import {
+  JCalParams,
+  JCalProperty,
+  JCalValue
+} from '@common/features/Contacts/davTypes'
 import {
   denormalizeContact,
   normalizeContact
@@ -294,6 +298,153 @@ describe('saving an unchanged contact', () => {
 
     expect(saved.phones).toEqual([{ type: 'home', value: '7042' }])
   })
+
+  describe('parameters', () => {
+    const readCard = (properties: JCalProperty[]): Contact =>
+      normalizeContact({
+        _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+        data: ['vcard', [['uid', {}, 'text', 'c1'], ...properties]]
+      })
+
+    const save = (
+      read: Contact,
+      edit: (
+        values: ReturnType<typeof makeFormValuesFromContact>
+      ) => void = () => undefined
+    ): JCalProperty[] => {
+      const values = makeFormValuesFromContact(read, 'contacts')
+      edit(values)
+      return denormalizeContact(makeContactFromForm(values, read))[1]
+    }
+
+    const paramsOf = (
+      saved: JCalProperty[],
+      name: string
+    ): JCalParams | undefined => saved.find(prop => prop[0] === name)?.[1]
+
+    it('keeps the parameters of FN and N', () => {
+      const fn: JCalProperty = [
+        'fn',
+        { language: 'nl' },
+        'text',
+        'Anna van der Berg'
+      ]
+      const n: JCalProperty = [
+        'n',
+        { 'sort-as': 'Berg,Anna' },
+        'text',
+        ['van der Berg', 'Anna', '', '', '']
+      ]
+
+      const saved = save(readCard([fn, n]))
+
+      expect(saved).toContainEqual(fn)
+      expect(saved).toContainEqual(n)
+    })
+
+    it('keeps PREF, the TYPE list, the group and the LABEL', () => {
+      const saved = save(
+        readCard([
+          [
+            'email',
+            { group: 'item1', type: ['INTERNET', 'WORK'], pref: '1' },
+            'text',
+            'jane@acme.example'
+          ],
+          ['x-ablabel', { group: 'item1' }, 'unknown', '_$!<Other>!$_'],
+          ['tel', { type: ['CELL', 'VOICE'] }, 'text', '+33 6 12 34 56 78'],
+          [
+            'adr',
+            { type: 'WORK', label: '1 Way\nRedmond' },
+            'text',
+            ['', '', '1 Way', 'Redmond', '', '98052', 'USA']
+          ],
+          ['bday', { 'x-apple-omit-year': '1604' }, 'date', '1604-04-12'],
+          ['url', { type: 'work' }, 'uri', 'https://contoso.example/'],
+          ['org', { 'sort-as': 'Initech' }, 'text', ['Initech', 'IT']],
+          ['title', { language: 'en' }, 'text', 'Engineer'],
+          ['note', { 'x-custom': 'a' }, 'text', 'Met at FOSDEM']
+        ])
+      )
+
+      expect(paramsOf(saved, 'email')).toEqual({
+        group: 'item1',
+        type: ['INTERNET', 'WORK'],
+        pref: '1'
+      })
+      expect(paramsOf(saved, 'x-ablabel')).toEqual({ group: 'item1' })
+      expect(paramsOf(saved, 'tel')?.type).toEqual(['CELL', 'VOICE'])
+      expect(paramsOf(saved, 'adr')?.label).toBe('1 Way\nRedmond')
+      expect(paramsOf(saved, 'bday')?.['x-apple-omit-year']).toBe('1604')
+      expect(paramsOf(saved, 'url')?.type).toBe('work')
+      expect(paramsOf(saved, 'org')).toEqual({ 'sort-as': 'Initech' })
+      expect(paramsOf(saved, 'title')).toEqual({ language: 'en' })
+      expect(paramsOf(saved, 'note')).toEqual({ 'x-custom': 'a' })
+    })
+
+    it('replaces only the home, work, cell or other TYPE of a changed type', () => {
+      const saved = save(
+        readCard([
+          [
+            'email',
+            { type: ['WORK', 'INTERNET', 'pref'], pref: '1' },
+            'text',
+            'jane@acme.example'
+          ]
+        ]),
+        values => {
+          values.emails[0] = { ...values.emails[0], type: 'home' }
+        }
+      )
+
+      expect(paramsOf(saved, 'email')).toEqual({
+        type: ['home', 'INTERNET', 'pref'],
+        pref: '1'
+      })
+    })
+
+    it('drops the SORT-AS of a renamed contact and the LABEL of an edited address', () => {
+      const saved = save(
+        readCard([
+          ['fn', { language: 'nl' }, 'text', 'Anna van der Berg'],
+          [
+            'n',
+            { 'sort-as': 'Berg,Anna', language: 'nl' },
+            'text',
+            ['van der Berg', 'Anna', '', '', '']
+          ],
+          [
+            'adr',
+            { type: 'WORK', label: '1 Way\nRedmond', pref: '1' },
+            'text',
+            ['', '', '1 Way', 'Redmond', '', '98052', 'USA']
+          ]
+        ]),
+        values => {
+          values.familyName = 'de Vries'
+          values.addresses[0] = { ...values.addresses[0], value: '2 Way' }
+        }
+      )
+
+      expect(paramsOf(saved, 'n')).toEqual({ language: 'nl' })
+      expect(paramsOf(saved, 'adr')).toEqual({ type: 'WORK', pref: '1' })
+    })
+
+    it('drops the label of a deleted grouped property', () => {
+      const saved = save(
+        readCard([
+          ['email', { type: 'WORK' }, 'text', 'jane@acme.example'],
+          ['email', { group: 'item1' }, 'text', 'jane@other.example'],
+          ['x-ablabel', { group: 'item1' }, 'unknown', '_$!<Other>!$_']
+        ]),
+        values => {
+          values.emails = values.emails.slice(0, 1)
+        }
+      )
+
+      expect(saved.map(prop => prop[0])).not.toContain('x-ablabel')
+    })
+  })
 })
 
 describe('saving multi-valued structured components', () => {
@@ -328,6 +479,25 @@ describe('saving multi-valued structured components', () => {
     expect(valueOf(saved, 'n')).toEqual(n)
   })
 
+  it('keeps both the parameters and the multi-valued components of an unchanged ADR', () => {
+    const labelled: JCalProperty = [
+      'adr',
+      { type: ['WORK', 'pref'], label: '123 Main St\nApt 4' },
+      'text',
+      adr
+    ]
+    const card = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: ['vcard', [['uid', {}, 'text', 'c1'], labelled]]
+    })
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(card, 'contacts'), card)
+    )[1]
+
+    expect(saved).toContainEqual(labelled)
+  })
+
   it('writes an edited name component as typed, keeping the unchanged one', () => {
     const values = makeFormValuesFromContact(read, 'contacts')
 
@@ -359,5 +529,84 @@ describe('saving multi-valued structured components', () => {
       '',
       ''
     ])
+  })
+})
+
+describe('saving an address known by its label only', () => {
+  const labelOnly: JCalProperty = [
+    'adr',
+    { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+    'text',
+    ['', '', '', '', '', '', '']
+  ]
+  const stored = normalizeContact({
+    _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+    data: [
+      'vcard',
+      [
+        ['version', {}, 'text', '4.0'],
+        ['fn', {}, 'text', 'Jane Doe'],
+        labelOnly,
+        ['adr', { type: 'WORK' }, 'text', ['', '', '1 rue', 'Lyon', '', '', '']]
+      ]
+    ]
+  } as never)
+
+  it('shows the label in the form and writes it back unchanged', () => {
+    const values = makeFormValuesFromContact(stored, 'b')
+    expect(values.addresses[0].value).toBe('1 Infinite Loop, Cupertino')
+
+    const saved = denormalizeContact(makeContactFromForm(values, stored))
+
+    expect(saved[1]).toContainEqual([
+      'adr',
+      { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+      'text',
+      ['', '', '', '', '', '', '']
+    ])
+  })
+
+  it('keeps the next address as read when the labelled one is cleared', () => {
+    const values = makeFormValuesFromContact(stored, 'b')
+
+    const saved = makeContactFromForm(
+      { ...values, addresses: [{ type: '', value: '' }, values.addresses[1]] },
+      stored
+    )
+
+    expect(saved.addresses).toEqual([
+      { ...stored.addresses?.[1], type: 'work' }
+    ])
+  })
+})
+
+describe('saving a contact with properties the form does not model', () => {
+  it('keeps the properties it does not edit', () => {
+    const others = [
+      ['anniversary', {}, 'date-and-or-time', '2010-06-12'],
+      ['impp', { pref: '1' }, 'uri', 'xmpp:jm@tb.example'],
+      ['gender', {}, 'text', ['F', 'she']],
+      ['geo', {}, 'uri', 'geo:48.85,2.35'],
+      ['tz', {}, 'text', 'Europe/Paris'],
+      ['lang', { pref: '1' }, 'language-tag', 'fr'],
+      ['rev', {}, 'timestamp', '2024-03-02T10:11:12Z']
+    ]
+    const stored = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jane Doe'],
+          ...others
+        ]
+      ]
+    } as never)
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(stored, 'b'), stored)
+    )
+
+    others.forEach(prop => expect(saved[1]).toContainEqual(prop))
   })
 })

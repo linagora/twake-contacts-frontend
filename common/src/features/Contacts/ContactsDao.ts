@@ -542,27 +542,46 @@ export async function resolveAddressBookMember(
   }
 }
 
+function propfindAddressBook(
+  book: DavBookRef,
+  properties: string[]
+): Promise<DavAddressBookItem> {
+  return api(bookJsonPath(book), {
+    method: 'PROPFIND',
+    json: { properties }
+  }).json<DavAddressBookItem>()
+}
+
+const isPublishedAcl = (book: DavAddressBookItem): boolean =>
+  (book.acl ?? []).some(entry => entry.principal === '{DAV:}authenticated')
+
+/**
+ * The ACL of a delegated copy only carries the sharee's own rights: whether
+ * the book is published is read from the ACL of its source book.
+ */
+async function isSourceBookPublished(source: DavBookRef): Promise<boolean> {
+  return isPublishedAcl(await propfindAddressBook(source, ['acl']))
+}
+
+/**
+ * @param source the book of the owner when the book is a delegated copy of it
+ */
 export async function fetchAddressBookDetails(
   userId: string,
-  addressBookId: string
+  addressBookId: string,
+  source?: DavBookRef
 ): Promise<{ members: userData[]; isPublic: boolean }> {
   try {
-    const response = await api(
-      bookJsonPath({ userId, bookId: addressBookId }),
-      {
-        method: 'PROPFIND',
-        json: {
-          properties: ['{DAV:}invite', 'acl']
-        }
-      }
-    ).json<DavAddressBookItem>()
+    const [response, sourceIsPublic] = await Promise.all([
+      propfindAddressBook({ userId, bookId: addressBookId }, [
+        '{DAV:}invite',
+        'acl'
+      ]),
+      source ? isSourceBookPublished(source) : undefined
+    ])
 
     const invites = response['{DAV:}invite']
-    const acl = response.acl ?? []
-
-    const isPublic = acl.some(
-      entry => entry.principal === '{DAV:}authenticated'
-    )
+    const isPublic = sourceIsPublic ?? isPublishedAcl(response)
 
     const members = (Array.isArray(invites) ? invites : [])
       .filter(isUsableInvite)

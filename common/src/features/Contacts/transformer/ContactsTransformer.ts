@@ -11,9 +11,12 @@ import {
   ContactOrg,
   ContactPhone,
   ContactSocialProfile,
-  RawAddressBook
+  ContactUrl,
+  RawAddressBook,
+  SingleContactProperty,
+  WithParams
 } from '../contactsTypes'
-import { hasUnchangedSource } from '../contactsUtils'
+import { formatAddress, hasUnchangedSource } from '../contactsUtils'
 import {
   DavAddressBookItem,
   DavContactItem,
@@ -108,22 +111,93 @@ function getTextValues(prop: JCalProperty): string[] {
     )
 }
 
-function parseUriValues(
-  prop: JCalProperty,
-  scheme: RegExp
-): { type: string | null; value: string }[] {
+// the parameters of a property, kept only when it has some: a malformed one is none
+function readParams(prop: JCalProperty): JCalParams | undefined {
+  const params: unknown = prop[1]
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    return undefined
+  }
+  return Object.keys(params).length > 0 ? (params as JCalParams) : undefined
+}
+
+function withParams<T extends object>(
+  entry: T,
+  params: JCalParams | undefined
+): T & WithParams {
+  return params ? { ...entry, params } : entry
+}
+
+function parseUriValues(prop: JCalProperty, scheme: RegExp): ContactEmail[] {
   const type = getTypeParam(prop[1])
+  const params = readParams(prop)
   return getTextValues(prop)
     .map(raw => raw.replace(scheme, ''))
     .filter(Boolean)
-    .map(value => ({ type, value }))
+    .map(value => withParams({ type, value }, params))
 }
 
-function getTypeParam(params: JCalParams): string | null {
-  const type = params.type
+function getTypeParam(params: JCalParams | undefined): string | null {
+  const type = params?.type
   if (typeof type === 'string') return type
   if (Array.isArray(type) && type.length > 0) return type[0]
   return null
+}
+
+function typeTokens(type: unknown): string[] {
+  if (typeof type === 'string') return [type]
+  if (Array.isArray(type)) {
+    return type.filter((token): token is string => typeof token === 'string')
+  }
+  return []
+}
+
+// the TYPE values the form chooses from: the only ones a change replaces
+const FORM_TYPES = new Set(['home', 'work', 'cell', 'other'])
+
+/**
+ * Parameters to write for a typed property (RFC 6350 §5.6). An unchanged type
+ * keeps the TYPE list as read; a changed one replaces only its home, work,
+ * cell or other value, keeping the others (INTERNET, VOICE, FAX, pref…).
+ */
+export function mergeTypeParam(
+  params: JCalParams | undefined,
+  type: string | null
+): JCalParams {
+  const read = params ?? {}
+  const readType = getTypeParam(read)?.toLowerCase() ?? ''
+  if (readType === (type ?? '').toLowerCase()) return read
+  const { type: readTokens, ...others } = read
+  const kept = typeTokens(readTokens).filter(
+    token => !FORM_TYPES.has(token.toLowerCase())
+  )
+  const tokens = type ? [type, ...kept] : kept
+  if (tokens.length === 0) return others
+  return { ...others, type: tokens.length === 1 ? tokens[0] : tokens }
+}
+
+function withoutParam(
+  params: JCalParams | undefined,
+  name: string
+): JCalParams | undefined {
+  if (!params || !(name in params)) return params
+  const others = Object.fromEntries(
+    Object.entries(params).filter(([key]) => key !== name)
+  )
+  return Object.keys(others).length > 0 ? others : undefined
+}
+
+/** Parameters of an edited name: its SORT-AS (RFC 6350 §5.9) no longer applies. */
+export function withoutSortAs(
+  params: JCalParams | undefined
+): JCalParams | undefined {
+  return withoutParam(params, 'sort-as')
+}
+
+/** Parameters of an edited address: its LABEL (RFC 6350 §6.3.1) no longer applies. */
+export function withoutLabel(
+  params: JCalParams | undefined
+): JCalParams | undefined {
+  return withoutParam(params, 'label')
 }
 
 function parseName(card: JCalCard): ContactName | null {
@@ -141,20 +215,66 @@ function parseName(card: JCalCard): ContactName | null {
   }
 }
 
+// RFC 6350 §5.3: PREF is an integer between 1 (most preferred) and 100
+const MIN_PREF = 1
+const MAX_PREF = 100
+// vCard 3 marks the preferred value with a pref token in TYPE, ranked after
+// any PREF value, and a value marked neither way after both
+const TYPE_PREF_RANK = MAX_PREF + 1
+const UNMARKED_RANK = MAX_PREF + 2
+
+function readPrefParam(value: unknown): number | null {
+  const scalar: unknown = Array.isArray(value) ? value[0] : value
+  const pref =
+    typeof scalar === 'string' && scalar.trim() !== '' ? Number(scalar) : scalar
+  return Number.isInteger(pref) &&
+    (pref as number) >= MIN_PREF &&
+    (pref as number) <= MAX_PREF
+    ? (pref as number)
+    : null
+}
+
+function hasPrefType(params: JCalParams): boolean {
+  const types: unknown[] = ([] as unknown[]).concat(params.type ?? [])
+  return types.some(
+    type => typeof type === 'string' && type.toLowerCase() === 'pref'
+  )
+}
+
+function preferenceRank(prop: JCalProperty): number {
+  const params = prop[1]
+  return (
+    readPrefParam(params.pref) ??
+    (hasPrefType(params) ? TYPE_PREF_RANK : UNMARKED_RANK)
+  )
+}
+
+/**
+ * Lists the properties from the most preferred to the least, keeping the card
+ * order between equals, so that the first value is the one the card prefers.
+ */
+function byPreference(properties: JCalProperty[]): JCalProperty[] {
+  return properties
+    .map(prop => ({ prop, rank: preferenceRank(prop) }))
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ prop }) => prop)
+}
+
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return getCardProperties(card, 'email').flatMap(prop =>
+  return byPreference(getCardProperties(card, 'email')).flatMap(prop =>
     parseUriValues(prop, /^mailto:/)
   )
 }
 
 function parsePhones(card: JCalCard): ContactPhone[] {
-  return getCardProperties(card, 'tel').flatMap(prop => {
+  return byPreference(getCardProperties(card, 'tel')).flatMap(prop => {
     const type = getTypeParam(prop[1])
+    const params = readParams(prop)
     return getTextValues(prop).flatMap((raw): ContactPhone[] => {
       // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
       const value = stripTel(raw)
       if (!value) return []
-      const phone: ContactPhone = { type, value }
+      const phone: ContactPhone = withParams({ type, value }, params)
       if (raw !== value) phone.source = { valueType: prop[2], value: raw }
       return [phone]
     })
@@ -189,20 +309,32 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         )
       const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
       const type = getTypeParam(prop[1])
-      return {
-        type,
-        poBox,
-        extended,
-        street,
-        locality,
-        region,
-        postalCode,
-        country,
-        ...(extra.length > 0 && { extra }),
-        ...multiValuedComponents(values)
-      }
+      const label = getLabelParam(prop[1])
+      return withParams(
+        {
+          type,
+          ...(label && { label }),
+          poBox,
+          extended,
+          street,
+          locality,
+          region,
+          postalCode,
+          country,
+          ...(extra.length > 0 && { extra }),
+          ...multiValuedComponents(values)
+        },
+        readParams(prop)
+      )
     })
-    .filter((a): a is ContactAddress => a !== null)
+    .filter((a): a is ContactAddress => a !== null && formatAddress(a) !== '')
+}
+
+// RFC 6350 §6.3.1: LABEL is the delivery address text of the ADR
+function getLabelParam(params: JCalParams): string | undefined {
+  const label = params.label
+  const text = Array.isArray(label) ? label.join(',') : label
+  return typeof text === 'string' && text.trim() ? text : undefined
 }
 
 function parseSocialProfiles(card: JCalCard): ContactSocialProfile[] {
@@ -210,15 +342,41 @@ function parseSocialProfiles(card: JCalCard): ContactSocialProfile[] {
     .map(prop => {
       const value = getStringValue(prop) ?? ''
       const type = getTypeParam(prop[1])
-      return { type, value }
+      return withParams({ type, value }, readParams(prop))
     })
     .filter(s => s.value)
 }
 
-function parseUrls(card: JCalCard): string[] {
+function parseUrls(card: JCalCard): ContactUrl[] {
   return getCardProperties(card, 'url')
-    .map(prop => getStringValue(prop) ?? '')
-    .filter(Boolean)
+    .map(prop =>
+      withParams({ value: getStringValue(prop) ?? '' }, readParams(prop))
+    )
+    .filter(url => url.value)
+}
+
+const SINGLE_PROPERTIES: SingleContactProperty[] = [
+  'fn',
+  'n',
+  'nickname',
+  'categories',
+  'org',
+  'title',
+  'role',
+  'note'
+]
+
+// the parameters of the first FN, N, ORG…: the one the contact shows and writes back
+function parsePropertyParams(
+  card: JCalCard
+): Partial<Record<SingleContactProperty, JCalParams>> {
+  return Object.fromEntries(
+    SINGLE_PROPERTIES.flatMap(name => {
+      const prop = getCardProperties(card, name)[0]
+      const params = prop && readParams(prop)
+      return params ? [[name, params]] : []
+    })
+  )
 }
 
 function parseOrg(card: JCalCard): ContactOrg | null {
@@ -262,8 +420,15 @@ export function readHref(href: unknown): string | undefined {
   return typeof href === 'string' ? href : undefined
 }
 
+// only a trailing extension is the one of the file: "x.vcfy.vcf" is "x.vcfy"
+function stripExtension(segment: string, extension: string): string {
+  return segment.endsWith(extension)
+    ? segment.slice(0, -extension.length)
+    : segment
+}
+
 function extractId(href: unknown, extension: string): string {
-  return readHref(href)?.split('/').pop()?.replace(extension, '') ?? ''
+  return stripExtension(readHref(href)?.split('/').pop() ?? '', extension)
 }
 
 // a sharee's copy of a book points to the original through its source:
@@ -366,6 +531,8 @@ export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   }
 }
 
+// properties read into the contact and written back by denormalizeContact:
+// any other property goes through passthroughProps, so that saving keeps it
 const KNOWN_PROPERTIES = new Set([
   'version',
   'uid',
@@ -373,23 +540,16 @@ const KNOWN_PROPERTIES = new Set([
   'n',
   'nickname',
   'bday',
-  'anniversary',
-  'gender',
   'email',
   'tel',
   'adr',
-  'impp',
   'socialprofile',
   'url',
   'org',
   'title',
   'role',
   'categories',
-  'note',
-  'lang',
-  'tz',
-  'geo',
-  'rev'
+  'note'
 ])
 
 /** Converts a DAV card into a contact, decoding its file ID and parsing known fields. */
@@ -445,6 +605,11 @@ export function normalizeContact(item: DavContactItem): Contact {
   const note = getCardProperty(card, 'note')
   if (note) contact.note = note
 
+  const propertyParams = parsePropertyParams(card)
+  if (Object.keys(propertyParams).length > 0) {
+    contact.propertyParams = propertyParams
+  }
+
   // an unreadable bday is kept as-is so that saving does not lose it
   const passthroughProps = card[1].filter(
     prop =>
@@ -458,10 +623,10 @@ export function normalizeContact(item: DavContactItem): Contact {
 
 function makeTypedProperty(
   name: string,
-  type: string | null,
+  entry: { type: string | null } & WithParams,
   value: JCalValue
 ): JCalProperty {
-  return [name, type ? { type } : {}, 'text', value]
+  return [name, mergeTypeParam(entry.params, entry.type), 'text', value]
 }
 
 // RFC 6350 §4.3.4 date-and-or-time, in the extended form jCard uses (RFC 7095 §3.5.3)
@@ -485,25 +650,56 @@ function makeBirthdayProperty(
 
 /** Writes the stored TEL value back when the readable number was not changed. */
 function makePhoneProperty(phone: ContactPhone): JCalProperty {
-  const { type, value, source } = phone
+  const { value, source } = phone
   if (source && hasUnchangedSource(phone)) {
-    return ['tel', type ? { type } : {}, source.valueType, source.value]
+    return [
+      'tel',
+      mergeTypeParam(phone.params, phone.type),
+      source.valueType,
+      source.value
+    ]
   }
-  return makeTypedProperty('tel', type, value)
+  return makeTypedProperty('tel', phone, value)
+}
+
+// Apple and Google label a property through a companion of the same group
+const GROUP_COMPANIONS = new Set(['x-ablabel', 'x-abadr'])
+
+function groupOf(prop: JCalProperty): string | undefined {
+  // a passthrough property is written back as read: its parameters may be malformed
+  const group = readParams(prop)?.group
+  return typeof group === 'string' ? group.toLowerCase() : undefined
+}
+
+function isGroupCompanion(prop: JCalProperty): boolean {
+  return GROUP_COMPANIONS.has(prop[0].toLowerCase())
+}
+
+/** Drops the companions left without the property of their group, deleted by the user. */
+function dropOrphanCompanions(properties: JCalProperty[]): JCalProperty[] {
+  const carried = new Set(
+    properties.filter(prop => !isGroupCompanion(prop)).map(groupOf)
+  )
+  return properties.filter(prop => {
+    const group = groupOf(prop)
+    return !isGroupCompanion(prop) || group === undefined || carried.has(group)
+  })
 }
 
 /** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */
 export function denormalizeContact(contact: Contact): JCalCard {
+  const paramsOf = (name: SingleContactProperty): JCalParams =>
+    contact.propertyParams?.[name] ?? {}
   const properties: JCalProperty[] = [
     ['version', {}, 'text', '4.0'],
     // the file name only decides the URL: a card from another client keeps its own UID
     contact.uidProperty ?? ['uid', {}, 'text', contact.id],
-    ['fn', {}, 'text', contact.displayName]
+    ['fn', paramsOf('fn'), 'text', contact.displayName]
   ]
   if (contact.name) {
     properties.push([
       'n',
-      {},
+      paramsOf('n'),
       'text',
       restoreComponents(
         [contact.name.familyName, contact.name.givenName, '', '', ''],
@@ -512,13 +708,23 @@ export function denormalizeContact(contact: Contact): JCalCard {
     ])
   }
   if (contact.nicknames?.length) {
-    properties.push(['nickname', {}, 'text', ...contact.nicknames])
+    properties.push([
+      'nickname',
+      paramsOf('nickname'),
+      'text',
+      ...contact.nicknames
+    ])
   }
   if (contact.categories?.length) {
-    properties.push(['categories', {}, 'text', ...contact.categories])
+    properties.push([
+      'categories',
+      paramsOf('categories'),
+      'text',
+      ...contact.categories
+    ])
   }
   contact.emails.forEach(email => {
-    properties.push(makeTypedProperty('email', email.type, email.value))
+    properties.push(makeTypedProperty('email', email, email.value))
   })
   contact.phones?.forEach(phone => {
     properties.push(makePhoneProperty(phone))
@@ -527,7 +733,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     properties.push(
       makeTypedProperty(
         'adr',
-        address.type,
+        address,
         restoreComponents(
           [
             address.poBox,
@@ -545,17 +751,15 @@ export function denormalizeContact(contact: Contact): JCalCard {
     )
   })
   contact.socialProfiles?.forEach(profile => {
-    properties.push(
-      makeTypedProperty('socialprofile', profile.type, profile.value)
-    )
+    properties.push(makeTypedProperty('socialprofile', profile, profile.value))
   })
   contact.urls?.forEach(url => {
-    properties.push(['url', {}, 'uri', url])
+    properties.push(['url', url.params ?? {}, 'uri', url.value])
   })
   if (contact.org) {
     properties.push([
       'org',
-      {},
+      paramsOf('org'),
       'text',
       restoreComponents(
         [contact.org.name, ...contact.org.units],
@@ -563,13 +767,13 @@ export function denormalizeContact(contact: Contact): JCalCard {
       )
     ])
   }
-  const singles: [string, string | undefined][] = [
+  const singles: [SingleContactProperty, string | undefined][] = [
     ['title', contact.title],
     ['role', contact.role],
     ['note', contact.note]
   ]
   singles.forEach(([name, value]) => {
-    if (value) properties.push([name, {}, 'text', value])
+    if (value) properties.push([name, paramsOf(name), 'text', value])
   })
   if (contact.birthday) {
     properties.push(
@@ -577,7 +781,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     )
   }
   properties.push(...(contact.passthroughProps ?? []))
-  return ['vcard', properties]
+  return ['vcard', dropOrphanCompanions(properties)]
 }
 
 export const buildFullShareesList = (

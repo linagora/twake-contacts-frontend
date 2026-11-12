@@ -84,6 +84,97 @@ describe('normalizeContact', () => {
   it('keeps a file name that is not valid percent-encoding as is', () => {
     expect(contactAt('/addressbooks/bob/book1/100%.vcf').id).toBe('100%')
   })
+
+  it('strips the extension only at the end of the file name', () => {
+    expect(contactAt('/addressbooks/bob/book1/x.vcfy.vcf').id).toBe('x.vcfy')
+  })
+
+  it('keeps an encoded ".vcf" inside the file name', () => {
+    expect(contactAt('/addressbooks/bob/book1/a%2Evcf%2Fb.vcf').id).toBe(
+      'a.vcf/b'
+    )
+  })
+})
+
+describe('preferred values (#451)', () => {
+  const contactWith = (properties: JCalProperty[]): Contact =>
+    normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo'], ...properties]]
+    })
+
+  const emailValues = (properties: JCalProperty[]): string[] =>
+    contactWith(properties).emails.map(email => email.value)
+
+  it.each([[{ pref: '1' }], [{ type: ['INTERNET', 'HOME', 'pref'] }]])(
+    'puts the preferred email first with %j',
+    params => {
+      expect(
+        emailValues([
+          ['email', {}, 'text', 'a@x.example'],
+          ['email', params, 'text', 'f+tag@x.example']
+        ])
+      ).toEqual(['f+tag@x.example', 'a@x.example'])
+    }
+  )
+
+  it('orders the emails by PREF value, then pref in TYPE, then unmarked', () => {
+    expect(
+      emailValues([
+        ['email', {}, 'text', 'none@x.example'],
+        ['email', { type: 'PREF' }, 'text', 'type@x.example'],
+        ['email', { pref: '50' }, 'text', 'fifty@x.example'],
+        ['email', { pref: ['2'] }, 'text', 'two@x.example']
+      ])
+    ).toEqual([
+      'two@x.example',
+      'fifty@x.example',
+      'type@x.example',
+      'none@x.example'
+    ])
+  })
+
+  it('keeps the card order between emails of the same preference', () => {
+    expect(
+      emailValues([
+        ['email', {}, 'text', 'a@x.example'],
+        ['email', { pref: '1' }, 'text', 'b@x.example'],
+        ['email', {}, 'text', 'c@x.example'],
+        ['email', { pref: '1' }, 'text', 'd@x.example']
+      ])
+    ).toEqual(['b@x.example', 'd@x.example', 'a@x.example', 'c@x.example'])
+  })
+
+  it.each([['0'], ['101'], ['1.5'], ['abc'], ['']])(
+    'ignores the out of range PREF %j',
+    pref => {
+      expect(
+        emailValues([
+          ['email', {}, 'text', 'a@x.example'],
+          ['email', { pref }, 'text', 'b@x.example']
+        ])
+      ).toEqual(['a@x.example', 'b@x.example'])
+    }
+  )
+
+  it('puts the preferred phone first', () => {
+    expect(
+      contactWith([
+        ['tel', {}, 'text', '0611'],
+        ['tel', { pref: '1' }, 'text', '0622']
+      ]).phones?.map(phone => phone.value)
+    ).toEqual(['0622', '0611'])
+  })
+
+  it('writes the preferred email first on save', () => {
+    const saved = denormalizeContact(
+      contactWith([
+        ['email', {}, 'text', 'a@x.example'],
+        ['email', { pref: '1' }, 'text', 'b@x.example']
+      ])
+    )[1].filter(prop => prop[0] === 'email')
+    expect(saved.map(prop => prop[3])).toEqual(['b@x.example', 'a@x.example'])
+  })
 })
 
 const sharedBook = (shareAccess?: number | null): DavAddressBookItem => ({

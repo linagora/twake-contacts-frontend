@@ -66,7 +66,11 @@ it('keeps discovery disabled until the publication refresh completes', async () 
   renderSection(false)
   fireEvent.click(screen.getByRole('switch'))
   await waitFor(() =>
-    expect(fetchAddressBookDetails).toHaveBeenCalledWith('owner', 'book')
+    expect(fetchAddressBookDetails).toHaveBeenCalledWith(
+      'owner',
+      'book',
+      undefined
+    )
   )
   expect(screen.getByRole('switch')).toBeDisabled()
   expect(setAddressBookPublished).toHaveBeenCalledWith('owner', 'book', true)

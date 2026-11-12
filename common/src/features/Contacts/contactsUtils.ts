@@ -17,8 +17,19 @@ function joinNonBlank(parts: string[], separator: string): string {
     .join(separator)
 }
 
-/** Joins the address components in postal order, e.g. "10 Avenue des Champs, 75008 Paris, France". */
+/**
+ * Joins the address components in postal order, e.g. "10 Avenue des Champs, 75008 Paris, France".
+ * An address with no component filled is shown from its LABEL, one line per label line.
+ */
 export function formatAddress(address: ContactAddress): string {
+  return formatAddressComponents(address) || formatAddressLabel(address)
+}
+
+function formatAddressLabel({ label }: ContactAddress): string {
+  return label ? joinNonBlank(label.split(/\r?\n/), ', ') : ''
+}
+
+function formatAddressComponents(address: ContactAddress): string {
   return joinNonBlank(
     [
       address.poBox,

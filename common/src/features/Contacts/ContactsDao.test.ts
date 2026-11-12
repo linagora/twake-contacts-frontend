@@ -107,7 +107,13 @@ describe('normalizeContact', () => {
       expect.objectContaining({
         id: 'contact-2',
         displayName: 'Jane Roe',
-        emails: [{ type: 'work', value: 'jane.roe@example.org' }]
+        emails: [
+          {
+            type: 'work',
+            value: 'jane.roe@example.org',
+            params: { type: 'work' }
+          }
+        ]
       })
     )
   })
@@ -210,7 +216,7 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withTel).phones).toEqual([
-      { type: 'Work', value: '0788668833' }
+      { type: 'Work', value: '0788668833', params: { type: 'Work' } }
     ])
   })
 
@@ -229,6 +235,7 @@ describe('normalizeContact', () => {
       {
         type: 'Work',
         value: '0788668833',
+        params: { type: 'Work' },
         source: { valueType: 'uri', value: 'tel:0788668833' }
       }
     ])
@@ -247,8 +254,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withEmails).emails).toEqual([
-      { type: 'Work', value: 'work@example.org' },
-      { type: 'Home', value: 'home@example.org' }
+      { type: 'Work', value: 'work@example.org', params: { type: 'Work' } },
+      { type: 'Home', value: 'home@example.org', params: { type: 'Home' } }
     ])
   })
 
@@ -265,8 +272,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withPhones).phones).toEqual([
-      { type: 'Work', value: '0788668833' },
-      { type: 'Home', value: '0788668844' }
+      { type: 'Work', value: '0788668833', params: { type: 'Work' } },
+      { type: 'Home', value: '0788668844', params: { type: 'Home' } }
     ])
   })
 
@@ -290,8 +297,8 @@ describe('normalizeContact', () => {
       { type: null, value: '12' }
     ])
     expect(contact.phones).toEqual([
-      { type: 'Work', value: '112' },
-      { type: 'Work', value: '(650) 555-0100' },
+      { type: 'Work', value: '112', params: { type: 'Work' } },
+      { type: 'Work', value: '(650) 555-0100', params: { type: 'Work' } },
       { type: null, value: '12' }
     ])
   })
@@ -329,7 +336,8 @@ describe('normalizeContact', () => {
         locality: 'Paris',
         region: '',
         postalCode: '75008',
-        country: 'France'
+        country: 'France',
+        params: { type: 'Work' }
       }
     ])
   })
@@ -418,6 +426,66 @@ describe('normalizeContact', () => {
     expect(formatAddress(address)).toContain('BP 12')
   })
 
+  it('shows the label of an ADR without components', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          [
+            'adr',
+            { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+            'text',
+            ['', '', '', '', '', '', '']
+          ]
+        ]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(address.label).toBe('1 Infinite Loop\nCupertino')
+    expect(formatAddress(address)).toBe('1 Infinite Loop, Cupertino')
+  })
+
+  it('shows the components of an ADR rather than its label', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [['adr', { label: 'Label text' }, 'text', ['', '', '1 rue', 'Lyon']]]
+      ]
+    })
+    const [address] = contact.addresses ?? []
+    expect(formatAddress(address)).toBe('1 rue, Lyon')
+  })
+
+  it('ignores an ADR holding neither components nor label', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['adr', { type: 'HOME', label: ' ' }, 'text', ['', '', '', '']],
+          ['adr', {}, 'text', ['', '', '1 rue', 'Lyon']]
+        ]
+      ]
+    })
+    expect(contact.addresses?.map(formatAddress)).toEqual(['1 rue, Lyon'])
+  })
+
+  it('writes the label of an ADR back', () => {
+    const adr: JCalProperty = [
+      'adr',
+      { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+      'text',
+      ['', '', '', '', '', '', '']
+    ]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [adr]]
+    })
+    expect(denormalizeContact(contact)[1]).toContainEqual(adr)
+  })
+
   it('shows an address whose only content is after the seventh component', () => {
     const contact = normalizeContact({
       _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
@@ -443,8 +511,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withSocial).socialProfiles).toEqual([
-      { type: 'Skype', value: 'testskype' },
-      { type: 'Twitter', value: 'testtwitter' }
+      { type: 'Skype', value: 'testskype', params: { type: 'Skype' } },
+      { type: 'Twitter', value: 'testtwitter', params: { type: 'Twitter' } }
     ])
   })
 
@@ -461,8 +529,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withUrls).urls).toEqual([
-      'https://example.org',
-      'https://example.com'
+      { value: 'https://example.org' },
+      { value: 'https://example.com' }
     ])
   })
 
@@ -495,7 +563,7 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withMailto).emails).toEqual([
-      { type: 'Work', value: 'test@example.org' }
+      { type: 'Work', value: 'test@example.org', params: { type: 'Work' } }
     ])
   })
 
@@ -732,7 +800,7 @@ describe('denormalizeContact', () => {
     expect(
       normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
         .addresses
-    ).toEqual([address])
+    ).toEqual([{ ...address, params: { type: 'work' } }])
   })
 
   it('writes a text EMAIL back as a bare address', () => {
@@ -885,7 +953,13 @@ describe('fetchContact', () => {
       expect.objectContaining({
         id: 'c60',
         displayName: 'Search Own',
-        emails: [{ type: 'work', value: 'own@twake.app' }]
+        emails: [
+          {
+            type: 'work',
+            value: 'own@twake.app',
+            params: { type: 'work' }
+          }
+        ]
       })
     )
   })
@@ -1654,6 +1728,70 @@ describe('fetchAddressBookDetails', () => {
 
     expect(members).toEqual([])
   })
+
+  it('tells whether the book is published from its own ACL', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          acl: [{ privilege: '{DAV:}read', principal: '{DAV:}authenticated' }]
+        })
+    } as never)
+
+    const { isPublic } = await fetchAddressBookDetails('u1', 'b1')
+
+    expect(isPublic).toBe(true)
+    expect(api).toHaveBeenCalledTimes(1)
+  })
+
+  it('tells whether a delegated copy is published from the ACL of its source book', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockImplementation(((url: string) => ({
+      json: () =>
+        Promise.resolve(
+          url === 'dav/addressbooks/alice/source.json'
+            ? {
+                acl: [
+                  { privilege: '{DAV:}read', principal: '{DAV:}authenticated' }
+                ]
+              }
+            : {
+                '{DAV:}invite': [],
+                acl: [
+                  {
+                    privilege: '{DAV:}share',
+                    principal: 'principals/users/bob'
+                  }
+                ]
+              }
+        )
+    })) as never)
+
+    const { isPublic } = await fetchAddressBookDetails('bob', 'copy', {
+      userId: 'alice',
+      bookId: 'source'
+    })
+
+    expect(isPublic).toBe(true)
+    expect(api).toHaveBeenCalledWith('dav/addressbooks/alice/source.json', {
+      method: 'PROPFIND',
+      json: { properties: ['acl'] }
+    })
+  })
+
+  it('tells a delegated copy is private when its source book is not published', async () => {
+    vi.mocked(api).mockReset()
+    vi.mocked(api).mockReturnValue({
+      json: () => Promise.resolve({ '{DAV:}invite': [], acl: [] })
+    } as never)
+
+    const { isPublic } = await fetchAddressBookDetails('bob', 'copy', {
+      userId: 'alice',
+      bookId: 'source'
+    })
+
+    expect(isPublic).toBe(false)
+  })
 })
 
 describe('resolveAddressBookMember', () => {
@@ -1741,6 +1879,19 @@ describe('export', () => {
 
   it('exports a single contact as vCard', async () => {
     await expect(exportContact(book, 'a/b')).resolves.toBe(vcf)
+
+    expect(api.get).toHaveBeenCalledWith(
+      'dav/addressbooks/bob/book1/a%2Fb.vcf',
+      { headers: { Accept: 'text/vcard' } }
+    )
+  })
+
+  it('exports a listed card whose file name is percent-encoded in its href', async () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/bob/book1/a%2Fb.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', 'Jo']]]
+    })
+    await exportContact(book, contact.id)
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/book1/a%2Fb.vcf',
