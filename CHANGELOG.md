@@ -87,3 +87,4 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - Backend error messages are no longer shown to users
 - Opening the sign-in callback page without a pending sign-in, by a reload, the Back button or a bookmark,
   signs in again instead of leaving a blank page ([#422](https://github.com/linagora/twake-contacts-frontend/pull/422))
+- Phone numbers stored as `TEL` URIs are read whatever the case of `tel:`, and RFC 3966 `phone-context` parameters and percent escapes no longer end up in the displayed number ([#498](https://github.com/linagora/twake-contacts-frontend/pull/498))
