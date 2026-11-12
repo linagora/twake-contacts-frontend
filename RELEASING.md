@@ -19,9 +19,14 @@ The running application exposes its version in `window.APP_VERSION` (from `/vers
 
 ## Changelog
 
-Every pull request changing `apps/`, `common/` or `public/` adds a line under `## [Unreleased]` in
-`CHANGELOG.md`, grouped by `Added`, `Changed` and `Fixed`. The Jenkins build of the pull request fails
-otherwise, unless one of its commit messages contains `[no changelog]` (refactoring, tests, ...).
+`CHANGELOG.md` is kept by twake-changelog, the changelog automation of the Twake software factory: it
+reviews the commits merged on `main` since its last pass and opens a pull request writing them under
+`## [Unreleased]` (and a `## [X.Y.Z] - YYYY-MM-DD` section for a version tagged since), grouped by `Added`,
+`Changed` and `Fixed`, in the style of the file. A pull request changing the app does not edit
+`CHANGELOG.md`: its commits give what the automation needs, a subject a user can read (conventional
+commits: `feat:`, `fix:`, `feat!:` for a breaking change), its issue or pull request number, and the steps
+of an upgrade under `BREAKING CHANGE:` or an `Upgrade` section of the commit message. Review and merge the
+pull requests of twake-changelog, fixing their wording there.
 
 ## Backend compatibility
 
@@ -41,8 +46,10 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
    npm version <patch|minor|major> --workspaces --include-workspace-root --no-git-tag-version
    ```
 
-3. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, check its `Compatibility`
-   line against `package.json`, and add a new empty `## [Unreleased]` section above it.
+3. Merge the open pull request of twake-changelog, if any, then in `CHANGELOG.md` rename `## [Unreleased]`
+   to `## [X.Y.Z] - YYYY-MM-DD`, check its `Compatibility` line against `package.json`, and add a new empty
+   `## [Unreleased]` section above it. (A version tagged without this step gets its section from
+   twake-changelog at its next pass.)
 4. Commit, get the pull request merged, then tag the merge commit on `main` and push the tag:
 
    ```bash
