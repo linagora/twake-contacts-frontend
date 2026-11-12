@@ -125,7 +125,7 @@ export const ContactsPage: React.FC = () => {
             >
               <ContactSearchBar />
               <Stack direction="row" className="u-flex-items-center">
-                {!isMobile && <ContrastToggle />}
+                {(isDesktop || isExtraLarge) && <ContrastToggle />}
                 {config.DEBUG && <ThemeToggle />}
               </Stack>
             </Stack>
