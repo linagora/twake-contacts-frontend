@@ -40,9 +40,10 @@ feature relies on a newer backend, raise the minimum in `package.json`, `README.
 
 1. Pick the level: `patch` for fixes only, `minor` for new features, `major` for a breaking change,
    including a raised backend minimum that existing deployments do not meet.
-2. Merge the open pull request of twake-changelog, if any, so that `## [Unreleased]` holds every change
-   merged so far; then update your checkout of `main`, and on it bump the version of the root and of every
-   workspace:
+2. Bring the changelog up to date with every commit merged so far: run twake-changelog on this repository
+   (Changelog proposals, in Other automations of the software factory dashboard) and merge the pull request
+   it opens, or check it found nothing to propose. Then update your checkout of `main`, and on it bump the
+   version of the root and of every workspace:
 
    ```bash
    npm version <patch|minor|major> --workspaces --include-workspace-root --no-git-tag-version
