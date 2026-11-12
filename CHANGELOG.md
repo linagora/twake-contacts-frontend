@@ -81,5 +81,7 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
   operable sidebar sections, focus kept in place after closing a popover, removing a row or saving, share
   and search results announced to screen readers
 - Each contact action has one name everywhere, and address books are renamed with "Rename"
+- Tablet-sized screens (769 to 1023 px wide) use the mobile layout, so address books stay reachable and the
+  create button is no longer cut off
 - Copy and move feedback names the contact and its destination
 - Backend error messages are no longer shown to users
