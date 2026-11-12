@@ -1,6 +1,7 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
+  ContactAddress,
   ContactName,
   ContactPhoneSource,
   ContactSocialProfile,
@@ -26,6 +27,11 @@ export interface PhoneFormEntry extends ContactFormEntry {
   source?: ContactPhoneSource
 }
 
+/** An address row keeps the address it was read from, so it is never matched against another row. */
+export interface AddressFormEntry extends ContactFormEntry {
+  source?: ContactAddress
+}
+
 export interface ContactFormValues {
   addressBookId: string
   givenName: string
@@ -34,7 +40,7 @@ export interface ContactFormValues {
   matrixId: string
   phones: PhoneFormEntry[]
   emails: ContactFormEntry[]
-  addresses: ContactFormEntry[]
+  addresses: AddressFormEntry[]
 }
 
 export type ContactFormListKey = 'phones' | 'emails' | 'addresses'
@@ -92,12 +98,31 @@ export function makeFormValuesFromContact(
     ),
     emails: orEmptyEntry(contact.emails.map(toEntry)),
     addresses: orEmptyEntry(
-      (contact.addresses ?? []).map(address =>
-        toEntry({ ...address, value: formatAddress(address) })
-      )
+      (contact.addresses ?? []).map(address => ({
+        ...toEntry({ ...address, value: formatAddress(address) }),
+        source: address
+      }))
     )
   }
 }
+
+/** A row read from an address and left unchanged is written back as read, with the parameters of the row. */
+const toSavedAddress = (entry: AddressFormEntry): ContactAddress =>
+  entry.source && formatAddress(entry.source) === entry.value
+    ? { ...entry.source, type: entry.type, params: entry.params }
+    : withParams(
+        {
+          type: entry.type,
+          poBox: '',
+          extended: '',
+          street: entry.value.trim(),
+          locality: '',
+          region: '',
+          postalCode: '',
+          country: ''
+        },
+        withoutLabel(entry.params)
+      )
 
 /** Builds the contact to save. With a base contact, fields the form does not edit are kept. */
 export function makeContactFromForm(
@@ -107,29 +132,7 @@ export function makeContactFromForm(
   const givenName = values.givenName.trim()
   const familyName = values.familyName.trim()
   const matrixId = values.matrixId.trim()
-  // the original is found by the row index before the blank rows are dropped,
-  // as makeFormValuesFromContact lists one row per address of the base contact
-  const addresses = values.addresses.flatMap((entry, index) => {
-    if (!hasValue(entry)) return []
-    const original = base?.addresses?.[index]
-    const untouched = original && formatAddress(original) === entry.value
-    // the row, not the index, tells which parameters the address has
-    if (untouched)
-      return { ...original, type: entry.type, params: entry.params }
-    return withParams(
-      {
-        type: entry.type,
-        poBox: '',
-        extended: '',
-        street: entry.value.trim(),
-        locality: '',
-        region: '',
-        postalCode: '',
-        country: ''
-      },
-      withoutLabel(entry.params)
-    )
-  })
+  const addresses = values.addresses.filter(hasValue).map(toSavedAddress)
   const phones = values.phones
     .filter(hasValue)
     .map(entry =>
