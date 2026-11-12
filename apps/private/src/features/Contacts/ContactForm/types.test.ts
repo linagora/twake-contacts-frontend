@@ -361,3 +361,34 @@ describe('saving multi-valued structured components', () => {
     ])
   })
 })
+
+describe('saving a contact with properties the form does not model', () => {
+  it('keeps the properties it does not edit', () => {
+    const others = [
+      ['anniversary', {}, 'date-and-or-time', '2010-06-12'],
+      ['impp', { pref: '1' }, 'uri', 'xmpp:jm@tb.example'],
+      ['gender', {}, 'text', ['F', 'she']],
+      ['geo', {}, 'uri', 'geo:48.85,2.35'],
+      ['tz', {}, 'text', 'Europe/Paris'],
+      ['lang', { pref: '1' }, 'language-tag', 'fr'],
+      ['rev', {}, 'timestamp', '2024-03-02T10:11:12Z']
+    ]
+    const stored = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['fn', {}, 'text', 'Jane Doe'],
+          ...others
+        ]
+      ]
+    } as never)
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(stored, 'b'), stored)
+    )
+
+    others.forEach(prop => expect(saved[1]).toContainEqual(prop))
+  })
+})
