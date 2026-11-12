@@ -16,7 +16,7 @@ import {
   SingleContactProperty,
   WithParams
 } from '../contactsTypes'
-import { hasUnchangedSource } from '../contactsUtils'
+import { formatAddress, hasUnchangedSource } from '../contactsUtils'
 import {
   DavAddressBookItem,
   DavContactItem,
@@ -295,9 +295,11 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         )
       const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
       const type = getTypeParam(prop[1])
+      const label = getLabelParam(prop[1])
       return withParams(
         {
           type,
+          ...(label && { label }),
           poBox,
           extended,
           street,
@@ -311,7 +313,14 @@ function parseAddresses(card: JCalCard): ContactAddress[] {
         readParams(prop)
       )
     })
-    .filter((a): a is ContactAddress => a !== null)
+    .filter((a): a is ContactAddress => a !== null && formatAddress(a) !== '')
+}
+
+// RFC 6350 §6.3.1: LABEL is the delivery address text of the ADR
+function getLabelParam(params: JCalParams): string | undefined {
+  const label = params.label
+  const text = Array.isArray(label) ? label.join(',') : label
+  return typeof text === 'string' && text.trim() ? text : undefined
 }
 
 function parseSocialProfiles(card: JCalCard): ContactSocialProfile[] {

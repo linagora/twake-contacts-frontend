@@ -532,6 +532,54 @@ describe('saving multi-valued structured components', () => {
   })
 })
 
+describe('saving an address known by its label only', () => {
+  const labelOnly: JCalProperty = [
+    'adr',
+    { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+    'text',
+    ['', '', '', '', '', '', '']
+  ]
+  const stored = normalizeContact({
+    _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+    data: [
+      'vcard',
+      [
+        ['version', {}, 'text', '4.0'],
+        ['fn', {}, 'text', 'Jane Doe'],
+        labelOnly,
+        ['adr', { type: 'WORK' }, 'text', ['', '', '1 rue', 'Lyon', '', '', '']]
+      ]
+    ]
+  } as never)
+
+  it('shows the label in the form and writes it back unchanged', () => {
+    const values = makeFormValuesFromContact(stored, 'b')
+    expect(values.addresses[0].value).toBe('1 Infinite Loop, Cupertino')
+
+    const saved = denormalizeContact(makeContactFromForm(values, stored))
+
+    expect(saved[1]).toContainEqual([
+      'adr',
+      { type: 'HOME', label: '1 Infinite Loop\nCupertino' },
+      'text',
+      ['', '', '', '', '', '', '']
+    ])
+  })
+
+  it('keeps the next address as read when the labelled one is cleared', () => {
+    const values = makeFormValuesFromContact(stored, 'b')
+
+    const saved = makeContactFromForm(
+      { ...values, addresses: [{ type: '', value: '' }, values.addresses[1]] },
+      stored
+    )
+
+    expect(saved.addresses).toEqual([
+      { ...stored.addresses?.[1], type: 'work' }
+    ])
+  })
+})
+
 describe('saving a contact with properties the form does not model', () => {
   it('keeps the properties it does not edit', () => {
     const others = [
