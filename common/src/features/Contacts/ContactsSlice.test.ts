@@ -737,6 +737,39 @@ describe('updateContact', () => {
 })
 
 describe('deleteContact', () => {
+  it.each([
+    [0, 0],
+    [3, 2],
+    [null, null]
+  ])('updates unloaded contact count %s to %s', (count, expected) => {
+    const store = makeStore({
+      book1: makeBook('book1', [], count),
+      book2: makeBook('book2', [])
+    })
+    const args = { userId: 'u1', addressBookId: 'book1', contactId: alice.id }
+
+    store.dispatch(deleteContact.fulfilled(args, 'r1', args))
+
+    expect(store.getState().contacts.addressBooks.book1.contactsCount).toBe(
+      expected
+    )
+  })
+
+  it('keeps a stale zero count non-negative when removing a loaded contact', () => {
+    const store = makeStore({
+      book1: makeBook('book1', [alice], 0),
+      book2: makeBook('book2', [])
+    })
+    const args = { userId: 'u1', addressBookId: 'book1', contactId: alice.id }
+
+    store.dispatch(deleteContact.fulfilled(args, 'r1', args))
+
+    expect(store.getState().contacts.addressBooks.book1.contactsCount).toBe(0)
+    expect(store.getState().contacts.addressBooks.book1.contacts).toStrictEqual(
+      []
+    )
+  })
+
   it('removes the contact from its book and from the listings', async () => {
     vi.mocked(deleteContactDao).mockResolvedValue()
     const store = makeStore(
@@ -769,6 +802,49 @@ describe('deleteContact', () => {
 })
 
 describe('moveContact', () => {
+  it.each([
+    [0, 0],
+    [3, 2],
+    [null, null]
+  ])('updates unloaded contact count %s to %s', (count, expected) => {
+    const store = makeStore({
+      book1: makeBook('book1', [], count),
+      book2: makeBook('book2', [])
+    })
+    const args = {
+      userId: 'u1',
+      fromAddressBookId: 'book1',
+      toAddressBookId: 'book2',
+      contact: alice
+    }
+
+    store.dispatch(moveContact.fulfilled(args, 'r1', args))
+
+    expect(store.getState().contacts.addressBooks.book1.contactsCount).toBe(
+      expected
+    )
+  })
+
+  it('keeps a stale zero count non-negative when removing a loaded contact', () => {
+    const store = makeStore({
+      book1: makeBook('book1', [alice], 0),
+      book2: makeBook('book2', [])
+    })
+    const args = {
+      userId: 'u1',
+      fromAddressBookId: 'book1',
+      toAddressBookId: 'book2',
+      contact: alice
+    }
+
+    store.dispatch(moveContact.fulfilled(args, 'r1', args))
+
+    expect(store.getState().contacts.addressBooks.book1.contactsCount).toBe(0)
+    expect(store.getState().contacts.addressBooks.book1.contacts).toStrictEqual(
+      []
+    )
+  })
+
   beforeEach(() => {
     vi.mocked(moveContactDao).mockResolvedValue()
   })
