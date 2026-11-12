@@ -1,4 +1,4 @@
-import { JCalProperty, JCalValue } from './davTypes'
+import { JCalParams, JCalProperty, JCalValue } from './davTypes'
 import { userData } from '../User/userDataTypes'
 import { AddressBookCapabilities, AddressBookKind } from './addressBookModel'
 
@@ -39,8 +39,21 @@ export interface ContactName {
   components?: JCalValue[]
 }
 
+/**
+ * Parameters of a property as read (RFC 6350 §5: PREF, the TYPE list, LABEL,
+ * LANGUAGE, ALTID, X- parameters…, and the group sabre/vobject carries as the
+ * `group` parameter), written back on save so that other clients keep them.
+ */
+export interface WithParams {
+  params?: JCalParams
+}
+
+/** The properties a contact holds at most once, whose parameters are kept by name. */
+export type SingleContactProperty =
+  'fn' | 'n' | 'nickname' | 'categories' | 'org' | 'title' | 'role' | 'note'
+
 /** Components of a vCard ADR property (RFC 6350 §6.3.1). */
-export interface ContactAddress {
+export interface ContactAddress extends WithParams {
   type: string | null
   poBox: string
   extended: string
@@ -63,7 +76,7 @@ export interface ContactPhoneSource {
   value: string
 }
 
-export interface ContactPhone {
+export interface ContactPhone extends WithParams {
   type: string | null
   /** Number without the `tel:` scheme. */
   value: string
@@ -71,13 +84,17 @@ export interface ContactPhone {
   source?: ContactPhoneSource
 }
 
-export interface ContactEmail {
+export interface ContactEmail extends WithParams {
   type: string | null
   value: string
 }
 
-export interface ContactSocialProfile {
+export interface ContactSocialProfile extends WithParams {
   type: string | null
+  value: string
+}
+
+export interface ContactUrl extends WithParams {
   value: string
 }
 
@@ -100,7 +117,7 @@ export interface Contact {
   phones?: ContactPhone[]
   addresses?: ContactAddress[]
   socialProfiles?: ContactSocialProfile[]
-  urls?: string[]
+  urls?: ContactUrl[]
   org?: ContactOrg
   title?: string
   role?: string
@@ -108,6 +125,8 @@ export interface Contact {
   note?: string
   /** The card's own UID property, written back as read: it may differ from the file name `id`. */
   uidProperty?: JCalProperty
+  /** Parameters of the single properties (FN, N, ORG…) as read, written back on save. */
+  propertyParams?: Partial<Record<SingleContactProperty, JCalParams>>
   passthroughProps?: JCalProperty[]
 }
 

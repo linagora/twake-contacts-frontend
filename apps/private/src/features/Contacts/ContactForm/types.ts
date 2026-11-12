@@ -1,15 +1,22 @@
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import {
   Contact,
+  ContactName,
   ContactPhoneSource,
-  ContactSocialProfile
+  ContactSocialProfile,
+  WithParams
 } from '@common/features/Contacts/contactsTypes'
 import {
   formatAddress,
   hasUnchangedSource
 } from '@common/features/Contacts/contactsUtils'
+import {
+  withoutLabel,
+  withoutSortAs
+} from '@common/features/Contacts/transformer/ContactsTransformer'
 
-export interface ContactFormEntry {
+/** A row keeps the parameters of the property it shows, written back on save. */
+export interface ContactFormEntry extends WithParams {
   type: string
   value: string
 }
@@ -63,13 +70,13 @@ export function makeFormValuesFromContact(
   contact: Contact,
   addressBookId: string
 ): ContactFormValues {
-  const toEntry = (entry: {
-    type: string | null
-    value: string
-  }): ContactFormEntry => ({
-    type: entry.type?.toLowerCase() ?? '',
-    value: entry.value
-  })
+  const toEntry = (
+    entry: { type: string | null; value: string } & WithParams
+  ): ContactFormEntry =>
+    withParams(
+      { type: entry.type?.toLowerCase() ?? '', value: entry.value },
+      entry.params
+    )
   return {
     addressBookId,
     givenName: contact.name?.givenName ?? '',
@@ -85,10 +92,9 @@ export function makeFormValuesFromContact(
     ),
     emails: orEmptyEntry(contact.emails.map(toEntry)),
     addresses: orEmptyEntry(
-      (contact.addresses ?? []).map(address => ({
-        type: address.type?.toLowerCase() ?? '',
-        value: formatAddress(address)
-      }))
+      (contact.addresses ?? []).map(address =>
+        toEntry({ ...address, value: formatAddress(address) })
+      )
     )
   }
 }
@@ -104,32 +110,38 @@ export function makeContactFromForm(
   const addresses = values.addresses.filter(hasValue).map((entry, index) => {
     const original = base?.addresses?.[index]
     const untouched = original && formatAddress(original) === entry.value
-    return untouched
-      ? { ...original, type: entry.type }
-      : {
-          type: entry.type,
-          poBox: '',
-          extended: '',
-          street: entry.value.trim(),
-          locality: '',
-          region: '',
-          postalCode: '',
-          country: ''
-        }
+    // the row, not the index, tells which parameters the address has
+    if (untouched)
+      return { ...original, type: entry.type, params: entry.params }
+    return withParams(
+      {
+        type: entry.type,
+        poBox: '',
+        extended: '',
+        street: entry.value.trim(),
+        locality: '',
+        region: '',
+        postalCode: '',
+        country: ''
+      },
+      withoutLabel(entry.params)
+    )
   })
   const phones = values.phones
     .filter(hasValue)
     .map(entry =>
       hasUnchangedSource(entry)
         ? entry
-        : { type: entry.type, value: entry.value }
+        : withParams({ type: entry.type, value: entry.value }, entry.params)
     )
+  const name = { givenName, familyName }
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
     displayName: [givenName, familyName].filter(Boolean).join(' '),
     // the components as read are kept, so that an unchanged name is written back as read
-    name: { ...base?.name, givenName, familyName },
+    name: { ...base?.name, ...name },
+    ...withNameParams(base, name),
     categories: values.categories,
     emails: values.emails
       .filter(hasValue)
@@ -137,6 +149,30 @@ export function makeContactFromForm(
     phones,
     addresses,
     socialProfiles: updateMatrixProfile(base?.socialProfiles ?? [], matrixId)
+  }
+}
+
+function withParams<T extends object>(
+  entry: T,
+  params: WithParams['params']
+): T & WithParams {
+  return params ? { ...entry, params } : entry
+}
+
+const isSameName = (a: ContactName | undefined, b: ContactName): boolean =>
+  a?.givenName === b.givenName && a?.familyName === b.familyName
+
+/** The parameters of the single properties, without the SORT-AS of a renamed contact. */
+function withNameParams(
+  base: Contact | undefined,
+  name: ContactName
+): Pick<Contact, 'propertyParams'> {
+  const propertyParams = base?.propertyParams
+  if (!propertyParams?.n || isSameName(base?.name, name)) return {}
+  const { n, ...others } = propertyParams
+  const nParams = withoutSortAs(n)
+  return {
+    propertyParams: nParams ? { ...others, n: nParams } : others
   }
 }
 

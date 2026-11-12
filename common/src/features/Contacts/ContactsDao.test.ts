@@ -107,7 +107,13 @@ describe('normalizeContact', () => {
       expect.objectContaining({
         id: 'contact-2',
         displayName: 'Jane Roe',
-        emails: [{ type: 'work', value: 'jane.roe@example.org' }]
+        emails: [
+          {
+            type: 'work',
+            value: 'jane.roe@example.org',
+            params: { type: 'work' }
+          }
+        ]
       })
     )
   })
@@ -210,7 +216,7 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withTel).phones).toEqual([
-      { type: 'Work', value: '0788668833' }
+      { type: 'Work', value: '0788668833', params: { type: 'Work' } }
     ])
   })
 
@@ -229,6 +235,7 @@ describe('normalizeContact', () => {
       {
         type: 'Work',
         value: '0788668833',
+        params: { type: 'Work' },
         source: { valueType: 'uri', value: 'tel:0788668833' }
       }
     ])
@@ -247,8 +254,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withEmails).emails).toEqual([
-      { type: 'Work', value: 'work@example.org' },
-      { type: 'Home', value: 'home@example.org' }
+      { type: 'Work', value: 'work@example.org', params: { type: 'Work' } },
+      { type: 'Home', value: 'home@example.org', params: { type: 'Home' } }
     ])
   })
 
@@ -265,8 +272,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withPhones).phones).toEqual([
-      { type: 'Work', value: '0788668833' },
-      { type: 'Home', value: '0788668844' }
+      { type: 'Work', value: '0788668833', params: { type: 'Work' } },
+      { type: 'Home', value: '0788668844', params: { type: 'Home' } }
     ])
   })
 
@@ -290,8 +297,8 @@ describe('normalizeContact', () => {
       { type: null, value: '12' }
     ])
     expect(contact.phones).toEqual([
-      { type: 'Work', value: '112' },
-      { type: 'Work', value: '(650) 555-0100' },
+      { type: 'Work', value: '112', params: { type: 'Work' } },
+      { type: 'Work', value: '(650) 555-0100', params: { type: 'Work' } },
       { type: null, value: '12' }
     ])
   })
@@ -329,7 +336,8 @@ describe('normalizeContact', () => {
         locality: 'Paris',
         region: '',
         postalCode: '75008',
-        country: 'France'
+        country: 'France',
+        params: { type: 'Work' }
       }
     ])
   })
@@ -443,8 +451,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withSocial).socialProfiles).toEqual([
-      { type: 'Skype', value: 'testskype' },
-      { type: 'Twitter', value: 'testtwitter' }
+      { type: 'Skype', value: 'testskype', params: { type: 'Skype' } },
+      { type: 'Twitter', value: 'testtwitter', params: { type: 'Twitter' } }
     ])
   })
 
@@ -461,8 +469,8 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withUrls).urls).toEqual([
-      'https://example.org',
-      'https://example.com'
+      { value: 'https://example.org' },
+      { value: 'https://example.com' }
     ])
   })
 
@@ -495,7 +503,7 @@ describe('normalizeContact', () => {
       ]
     }
     expect(normalizeContact(withMailto).emails).toEqual([
-      { type: 'Work', value: 'test@example.org' }
+      { type: 'Work', value: 'test@example.org', params: { type: 'Work' } }
     ])
   })
 
@@ -732,7 +740,7 @@ describe('denormalizeContact', () => {
     expect(
       normalizeContact({ data: card, _links: { self: { href: 'c-1.vcf' } } })
         .addresses
-    ).toEqual([address])
+    ).toEqual([{ ...address, params: { type: 'work' } }])
   })
 
   it('writes a text EMAIL back as a bare address', () => {
@@ -885,7 +893,13 @@ describe('fetchContact', () => {
       expect.objectContaining({
         id: 'c60',
         displayName: 'Search Own',
-        emails: [{ type: 'work', value: 'own@twake.app' }]
+        emails: [
+          {
+            type: 'work',
+            value: 'own@twake.app',
+            params: { type: 'work' }
+          }
+        ]
       })
     )
   })
