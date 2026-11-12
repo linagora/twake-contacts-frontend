@@ -1343,6 +1343,30 @@ describe('normalizeContact of a malformed card', () => {
       properties.every(p => Array.isArray(p) && typeof p[0] === 'string')
     ).toBe(true)
   })
+
+  it.each([
+    [['x-broken']],
+    [['x-broken', {}, 'text']],
+    [['uid', null, 'text', 'id']],
+    [['x-broken', [], 'text', 'value']],
+    [['x-broken', 'params', 'text', 'value']],
+    [['x-broken', {}, 42, 'value']]
+  ])('drops a property that does not match RFC 7095: %j', property => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [['fn', {}, 'text', 'Jane Doe'], property]
+      ] as unknown as JCalCard
+    })
+
+    const [, properties] = denormalizeContact(contact)
+
+    expect(contact.displayName).toBe('Jane Doe')
+    expect(contact.uidProperty).toBeUndefined()
+    expect(contact.passthroughProps).toBeUndefined()
+    expect(properties).not.toContainEqual(property)
+  })
 })
 
 describe('fetchAddressBooks', () => {

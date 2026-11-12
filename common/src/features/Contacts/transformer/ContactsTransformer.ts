@@ -27,9 +27,19 @@ import {
   JCalValue
 } from '../davTypes'
 
-// RFC 7095 §3.3: a property is [name, params, valueType, ...values]
+function isParamsObject(params: unknown): boolean {
+  return typeof params === 'object' && params !== null && !Array.isArray(params)
+}
+
+// RFC 7095 §3.3: a property is [name, params, valueType, value, ...values]
 function isCardProperty(property: unknown): property is JCalProperty {
-  return Array.isArray(property) && typeof property[0] === 'string'
+  return (
+    Array.isArray(property) &&
+    property.length >= 4 &&
+    typeof property[0] === 'string' &&
+    isParamsObject(property[1]) &&
+    typeof property[2] === 'string'
+  )
 }
 
 /**
