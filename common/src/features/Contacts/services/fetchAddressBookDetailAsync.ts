@@ -4,7 +4,8 @@ import {
   fetchAddressBookDetails,
   resolveAddressBookMember
 } from '../ContactsDao'
-import { ContactsState } from '../contactsTypes'
+import { AddressBook, ContactsState } from '../contactsTypes'
+import { DavBookRef } from '@common/api/davPaths'
 import { createDictionary } from '@common/utils/dictionary'
 import { userData } from '@common/features/User/userDataTypes'
 
@@ -18,6 +19,12 @@ interface DetailRequest {
   addressBookId: string
   requestId: string
 }
+
+/** The book of the owner a delegated copy shares, whose ACL tells whether it is published. */
+const sourceBookOf = (book: AddressBook | undefined): DavBookRef | undefined =>
+  book?.ownerId && book.sourceBookId
+    ? { userId: book.ownerId, bookId: book.sourceBookId }
+    : undefined
 
 /** The members of the book are known, their profiles are not yet. */
 export const addressBookDetailReceived = createAction<
@@ -95,11 +102,16 @@ export const fetchAddressBookDetailThunk = (
   >(
     async (
       { userId, addressBookId, silent },
-      { dispatch, requestId, rejectWithValue }
+      { dispatch, getState, requestId, rejectWithValue }
     ) => {
+      const { contacts } = getState() as { contacts: ContactsState }
       let details: { members: userData[]; isPublic: boolean }
       try {
-        details = await fetchAddressBookDetails(userId, addressBookId)
+        details = await fetchAddressBookDetails(
+          userId,
+          addressBookId,
+          sourceBookOf(contacts.addressBooks[addressBookId])
+        )
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
