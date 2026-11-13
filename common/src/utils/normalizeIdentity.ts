@@ -1,7 +1,17 @@
 import { safeDecodeURIComponent } from './safeDecodeURIComponent'
 
+const MAILTO_SCHEME = /^mailto:/i
+
+/**
+ * Turns an EMAIL value into the address alone: removes the `mailto:` scheme
+ * (case-insensitive, RFC 3986 §3.1) and, for RFC 6068 URIs, the header fields
+ * after `?` and the percent escapes.
+ */
 export function stripMailto(email?: string): string {
-  return (email ?? '').trim().replace(/^mailto:/i, '')
+  const trimmed = (email ?? '').trim()
+  if (!MAILTO_SCHEME.test(trimmed)) return trimmed
+  const [address] = trimmed.replace(MAILTO_SCHEME, '').split('?')
+  return safeDecodeURIComponent(address).trim()
 }
 
 export const TEL_SCHEME = /^tel:/i
