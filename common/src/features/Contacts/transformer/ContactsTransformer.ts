@@ -700,6 +700,9 @@ export function normalizeContact(item: DavContactItem): Contact {
   )
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 
+  const carriedGroups = carriedGroupsOf(card[1])
+  if (carriedGroups.size > 0) contact.carriedGroups = [...carriedGroups]
+
   return contact
 }
 
@@ -763,14 +766,29 @@ function isGroupCompanion(prop: JCalProperty): boolean {
   return GROUP_COMPANIONS.has(prop[0].toLowerCase())
 }
 
-/** Drops the companions left without the property of their group, deleted by the user. */
-function dropOrphanCompanions(properties: JCalProperty[]): JCalProperty[] {
-  const carried = new Set(
-    properties.filter(prop => !isGroupCompanion(prop)).map(groupOf)
+function carriedGroupsOf(properties: JCalProperty[]): Set<string> {
+  return new Set(
+    properties
+      .filter(prop => !isGroupCompanion(prop))
+      .map(groupOf)
+      .filter((group): group is string => group !== undefined)
   )
+}
+
+/**
+ * Drops the companions left without the property of their group, deleted by the user.
+ * A companion whose group carried no other property when read is kept as read.
+ */
+function dropOrphanCompanions(
+  properties: JCalProperty[],
+  carriedOnRead: string[]
+): JCalProperty[] {
+  const carried = carriedGroupsOf(properties)
+  const orphaned = (group: string): boolean =>
+    carriedOnRead.includes(group) && !carried.has(group)
   return properties.filter(prop => {
     const group = groupOf(prop)
-    return !isGroupCompanion(prop) || group === undefined || carried.has(group)
+    return !isGroupCompanion(prop) || group === undefined || !orphaned(group)
   })
 }
 
@@ -876,7 +894,10 @@ export function denormalizeContact(contact: Contact): JCalCard {
     )
   }
   properties.push(...(contact.passthroughProps ?? []))
-  return ['vcard', dropOrphanCompanions(properties)]
+  return [
+    'vcard',
+    dropOrphanCompanions(properties, contact.carriedGroups ?? [])
+  ]
 }
 
 export const buildFullShareesList = (

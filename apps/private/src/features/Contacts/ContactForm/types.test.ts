@@ -500,6 +500,21 @@ describe('saving an unchanged contact', () => {
 
       expect(saved.map(prop => prop[0])).not.toContain('x-ablabel')
     })
+
+    it('keeps a label whose group had no other property when read', () => {
+      const label: JCalProperty = [
+        'x-ablabel',
+        { group: 'item1', language: 'en-GB' },
+        'unknown',
+        'BLOG'
+      ]
+
+      const saved = save(
+        readCard([['url', {}, 'uri', 'https://x.example/'], label])
+      )
+
+      expect(saved).toContainEqual(label)
+    })
   })
 })
 
