@@ -140,14 +140,13 @@ export function makeContactFromForm(
         ? entry
         : withParams({ type: entry.type, value: entry.value }, entry.params)
     )
-  const name = { givenName, familyName }
+  const name = savedName(base?.name, { givenName, familyName })
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
     displayName: [givenName, familyName].filter(Boolean).join(' '),
-    // the components as read are kept, so that an unchanged name is written back as read
-    name: { ...base?.name, ...name },
-    ...withNameParams(base, name),
+    name,
+    ...withNameParams(base, name !== base?.name),
     categories: values.categories,
     emails: values.emails
       .filter(hasValue)
@@ -165,16 +164,27 @@ function withParams<T extends object>(
   return params ? { ...entry, params } : entry
 }
 
-const isSameName = (a: ContactName | undefined, b: ContactName): boolean =>
-  a?.givenName === b.givenName && a?.familyName === b.familyName
+/** The form trims the names: spaces around a name as read are not an edit. */
+const isSameName = (read: ContactName, form: ContactName): boolean =>
+  read.givenName.trim() === form.givenName &&
+  read.familyName.trim() === form.familyName
+
+/**
+ * An unchanged name is the name as read, written back as read. A renamed one
+ * keeps the other components as read.
+ */
+const savedName = (
+  read: ContactName | undefined,
+  form: ContactName
+): ContactName => (read && isSameName(read, form) ? read : { ...read, ...form })
 
 /** The parameters of the single properties, without the SORT-AS of a renamed contact. */
 function withNameParams(
   base: Contact | undefined,
-  name: ContactName
+  renamed: boolean
 ): Pick<Contact, 'propertyParams'> {
   const propertyParams = base?.propertyParams
-  if (!propertyParams?.n || isSameName(base?.name, name)) return {}
+  if (!propertyParams?.n || !renamed) return {}
   const { n, ...others } = propertyParams
   const nParams = withoutSortAs(n)
   return {
