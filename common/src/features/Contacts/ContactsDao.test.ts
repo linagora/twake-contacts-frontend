@@ -162,7 +162,11 @@ describe('normalizeContact', () => {
         ]
       ]
     })
-    expect(contact.name).toEqual({ familyName: 'Doe', givenName: '' })
+    expect(contact.name).toEqual({
+      familyName: 'Doe',
+      givenName: '',
+      components: ['Doe']
+    })
     expect(JSON.stringify(denormalizeContact(contact))).not.toContain('null')
   })
 
@@ -177,7 +181,11 @@ describe('normalizeContact', () => {
         ]
       ]
     })
-    expect(contact.name).toEqual({ familyName: '', givenName: '' })
+    expect(contact.name).toEqual({
+      familyName: '',
+      givenName: '',
+      components: []
+    })
   })
 
   it.each([
@@ -634,8 +642,49 @@ describe('normalizeContact', () => {
     })
     expect(contact.name).toMatchObject({
       familyName: 'van der Berg',
-      givenName: 'Jan'
+      givenName: 'Jan',
+      components: [['van der', 'Berg'], 'Jan', '', '', '']
     })
+  })
+
+  it('writes an unchanged N back as read', () => {
+    const n = [
+      ['van der', 'Berg'],
+      'Jan',
+      ['Quincy', 'Q'],
+      'Dr.',
+      'Jr.',
+      '',
+      'III'
+    ]
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: ['vcard', [['n', {}, 'text', n]]]
+    })
+    const written = denormalizeContact(contact)[1].find(p => p[0] === 'n')
+    expect(written?.[3]).toEqual(n)
+  })
+
+  it('replaces only family and given names in N', () => {
+    const contact = normalizeContact({
+      ...collectedItem,
+      data: [
+        'vcard',
+        [
+          [
+            'n',
+            {},
+            'text',
+            [['van der', 'Berg'], 'Jan', 'Quincy', 'Dr.', 'Jr.']
+          ]
+        ]
+      ]
+    })
+    const written = denormalizeContact({
+      ...contact,
+      name: { ...contact.name, familyName: 'Doe', givenName: 'Jane' }
+    })[1].find(p => p[0] === 'n')
+    expect(written?.[3]).toEqual(['Doe', 'Jane', 'Quincy', 'Dr.', 'Jr.'])
   })
 
   it('normalizes a deeply nested structured component without overflowing', () => {

@@ -35,7 +35,10 @@ export interface AddressBook extends RawAddressBook {
 export interface ContactName {
   familyName: string
   givenName: string
-  /** Components as read, kept only when one holds several values (RFC 6350 §3.3), to write it back unchanged. */
+  /**
+   * Every N component as read (RFC 6350 §6.2.2, RFC 9554 additions), so that
+   * those the form does not edit are written back unchanged.
+   */
   components?: JCalValue[]
 }
 

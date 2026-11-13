@@ -3,6 +3,7 @@ import {
   ContactAddress
 } from '@common/features/Contacts/contactsTypes'
 import {
+  DavContactItem,
   JCalParams,
   JCalProperty,
   JCalValue
@@ -751,5 +752,61 @@ describe('saving repeated text properties', () => {
     expect(saved).toContainEqual(en)
     expect(saved).toContainEqual(ja)
     expect(saved.filter(p => p[0] === 'org')).toHaveLength(2)
+  })
+})
+
+describe('N round trip', () => {
+  const readContact = (n: string[]): Contact =>
+    normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['uid', {}, 'text', 'c1'],
+          ['fn', {}, 'text', 'Dr. Jane Q. Doe Jr.'],
+          ['n', {}, 'text', n]
+        ]
+      ]
+    } as unknown as DavContactItem)
+  const savedN = (contact: Contact, edit = {}): JCalValue | undefined =>
+    denormalizeContact(
+      makeContactFromForm(
+        { ...makeFormValuesFromContact(contact, 'contacts'), ...edit },
+        contact
+      )
+    )[1].find(p => p[0] === 'n')?.[3]
+
+  it('keeps every N component on an unchanged save', () => {
+    const n = ['Doe', 'Jane', 'Quincy', 'Dr.', 'Jr.']
+    expect(savedN(readContact(n))).toEqual(n)
+  })
+
+  it('keeps the RFC 9554 components of a seven-component N', () => {
+    const n = ['Doe', 'Jane', 'Quincy', 'Dr.', 'Jr.', '王', 'III']
+    expect(savedN(readContact(n))).toEqual(n)
+  })
+
+  it('writes the edited family and given names, the other components as read', () => {
+    const contact = readContact(['Doe', 'Jane', 'Quincy', 'Dr.', 'Jr.'])
+    expect(
+      savedN(contact, { givenName: 'Janet', familyName: 'Smith' })
+    ).toEqual(['Smith', 'Janet', 'Quincy', 'Dr.', 'Jr.'])
+  })
+
+  it('writes five components for a new contact', () => {
+    const values = makeFormValuesFromContact(
+      { id: 'new', displayName: '', emails: [] },
+      'contacts'
+    )
+    const saved = denormalizeContact(
+      makeContactFromForm({ ...values, givenName: 'Ann', familyName: 'Lee' })
+    )
+    expect(saved[1].find(p => p[0] === 'n')?.[3]).toEqual([
+      'Lee',
+      'Ann',
+      '',
+      '',
+      ''
+    ])
   })
 })

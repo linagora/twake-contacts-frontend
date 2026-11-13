@@ -250,8 +250,13 @@ function parseName(card: JCalCard): ContactName | null {
   return {
     familyName,
     givenName,
-    ...multiValuedComponents(values)
+    components: values.map(nameComponent)
   }
+}
+
+// keeps a component as read, one level of values deep (RFC 7095 §3.3.1.3)
+function nameComponent(value: unknown): JCalValue {
+  return Array.isArray(value) ? value.map(scalarText) : scalarText(value)
 }
 
 // RFC 6350 §5.3: PREF is an integer between 1 (most preferred) and 100
@@ -802,6 +807,33 @@ function dropOrphanCompanions(
   })
 }
 
+// RFC 6350 §6.2.2: family, given, additional, prefixes, suffixes
+const RFC6350_N_COMPONENTS = 5
+
+/** Writes family and given names from the contact, the other N components as read. */
+function makeNameValue({
+  familyName,
+  givenName,
+  components = []
+}: ContactName): JCalValue[] {
+  const keepIfUnchanged = (index: number, text: string): JCalValue =>
+    index < components.length && componentText(components[index]) === text
+      ? components[index]
+      : text
+  const value = [
+    keepIfUnchanged(0, familyName),
+    keepIfUnchanged(1, givenName),
+    ...components.slice(2)
+  ]
+  return [
+    ...value,
+    ...Array.from(
+      { length: Math.max(0, RFC6350_N_COMPONENTS - value.length) },
+      () => ''
+    )
+  ]
+}
+
 /** Builds the jCal card the DAV server expects on PUT, mirroring the legacy VcardBuilder. */
 export function denormalizeContact(contact: Contact): JCalCard {
   const paramsOf = (name: SingleContactProperty): JCalParams =>
@@ -813,15 +845,7 @@ export function denormalizeContact(contact: Contact): JCalCard {
     ['fn', paramsOf('fn'), 'text', contact.displayName]
   ]
   if (contact.name) {
-    properties.push([
-      'n',
-      paramsOf('n'),
-      'text',
-      restoreComponents(
-        [contact.name.familyName, contact.name.givenName, '', '', ''],
-        contact.name.components
-      )
-    ])
+    properties.push(['n', paramsOf('n'), 'text', makeNameValue(contact.name)])
   }
   if (contact.nicknames?.length) {
     properties.push([
