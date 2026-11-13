@@ -155,12 +155,12 @@ describe('ContactsSidebar', () => {
     fireEvent.click(screen.getByText('Reserved book'))
     await waitFor(() =>
       expect(screen.getByTestId('location')).toHaveTextContent(
-        '/contacts/Team%2F%23100%25'
+        '/contacts/Team%2F%23100%2525'
       )
     )
     expect(screen.getByText('Create').closest('a')).toHaveAttribute(
       'href',
-      '/contacts/new/Team%2F%23100%25'
+      '/contacts/new/Team%2F%23100%2525'
     )
   })
 

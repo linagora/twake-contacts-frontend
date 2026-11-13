@@ -22,15 +22,16 @@ import {
   within
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, Route, Routes, useParams } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import I18n from 'twake-i18n'
+import { useContactRouteParams } from './contactPath'
 import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
 
 vi.mock('@common/features/Contacts/ContactsDao')
 
 const ContactRoute = (): React.ReactElement => {
-  const { addressBookId, contactId } = useParams()
+  const { addressBookId, contactId } = useContactRouteParams()
   return (
     <>
       <div>Contact</div>
@@ -474,7 +475,7 @@ describe('CreateContactPage duplicate email warning', () => {
     expect(screen.getByText('Contact')).toBeInTheDocument()
   })
 
-  it.each(['a/b', 'c#1', '100%'])(
+  it.each(['a/b', 'c#1', '100%', 'a%2Fb'])(
     'opens the existing contact whose file name is "%s"',
     async id => {
       vi.mocked(searchContacts).mockResolvedValue([

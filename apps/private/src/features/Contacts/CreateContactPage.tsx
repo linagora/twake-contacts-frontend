@@ -1,11 +1,11 @@
-import { addressBookPath } from './contactPath'
+import { addressBookPath, useContactRouteParams } from './contactPath'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { createContact } from '@common/features/Contacts/ContactsSlice'
 import { DEFAULT_ADDRESS_BOOK_ID } from '@common/features/Contacts/constants'
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
 import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
   ContactForm,
@@ -20,7 +20,7 @@ export const CreateContactPage: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { addressBookId } = useParams()
+  const { addressBookId } = useContactRouteParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const writableBooks = useAppSelector(selectWritableBooks)
   const loading = useAppSelector(state => state.contacts.loading)

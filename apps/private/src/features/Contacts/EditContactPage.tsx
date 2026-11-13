@@ -10,7 +10,7 @@ import { isDomainAddressBookId } from '@common/features/Contacts/addressBookMode
 import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
-import { Link, Navigate, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
   ContactForm,
@@ -18,7 +18,11 @@ import {
   makeContactFromForm,
   makeFormValuesFromContact
 } from './ContactForm'
-import { addressBookPath, contactPath } from './contactPath'
+import {
+  addressBookPath,
+  contactPath,
+  useContactRouteParams
+} from './contactPath'
 import { ContactFormSkeleton } from './ContactSkeletons'
 import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
@@ -27,7 +31,7 @@ export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { addressBookId = '', contactId = '' } = useParams()
+  const { addressBookId = '', contactId = '' } = useContactRouteParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const allWritableBooks = useAppSelector(selectWritableBooks)
   const currentBook = useAppSelector(
