@@ -1372,7 +1372,6 @@ describe('normalizeContact of a malformed card', () => {
   it.each([
     [['x-broken']],
     [['x-broken', {}, 'text']],
-    [['uid', null, 'text', 'id']],
     [['x-broken', [], 'text', 'value']],
     [['x-broken', 'params', 'text', 'value']],
     [['x-broken', {}, 42, 'value']]
@@ -1391,6 +1390,24 @@ describe('normalizeContact of a malformed card', () => {
     expect(contact.uidProperty).toBeUndefined()
     expect(contact.passthroughProps).toBeUndefined()
     expect(properties).not.toContainEqual(property)
+  })
+
+  it('reads a property whose parameters are null as one without any', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'Jane Doe'],
+          ['uid', null, 'text', 'id']
+        ]
+      ] as unknown as JCalCard
+    })
+
+    const [, properties] = denormalizeContact(contact)
+
+    expect(contact.uidProperty).toEqual(['uid', {}, 'text', 'id'])
+    expect(properties).toContainEqual(['uid', {}, 'text', 'id'])
   })
 })
 
