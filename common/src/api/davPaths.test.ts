@@ -3,7 +3,9 @@ import {
   bookJsonHref,
   bookJsonPath,
   bookPath,
+  cardFileName,
   cardHref,
+  cardIdOf,
   cardPath,
   fromServerBookId,
   toServerBookId,
@@ -60,6 +62,26 @@ describe('davPaths', () => {
   it('keeps "@" and ":" as Sabre writes them', () => {
     expect(cardPath(book, 'uid@host:1')).toBe(
       'dav/addressbooks/user-1/book-1/uid@host:1.vcf'
+    )
+  })
+
+  it.each([
+    ['u1.vcf', 'u1'],
+    ['x.vcfy.vcf', 'x.vcfy'],
+    ['x.VCF', 'x.VCF/'],
+    ['abc', 'abc/'],
+    ['', '']
+  ])('round trips the card file name %s through its id', (fileName, id) => {
+    expect(cardIdOf(fileName)).toBe(id)
+    if (fileName) expect(cardFileName(id)).toBe(fileName)
+  })
+
+  it('addresses a card whose file name does not end in ".vcf" by it (#623)', () => {
+    expect(cardPath(book, cardIdOf('x.VCF'))).toBe(
+      'dav/addressbooks/user-1/book-1/x.VCF'
+    )
+    expect(cardHref(book, cardIdOf('a b'))).toBe(
+      '/addressbooks/user-1/book-1/a%20b'
     )
   })
 

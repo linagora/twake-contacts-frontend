@@ -3,6 +3,7 @@ import { userData as UserDataType } from '@common/features/User/userDataTypes'
 import { stripMailto, stripTel } from '@common/utils/normalizeIdentity'
 import { safeDecodeURIComponent } from '@common/utils/safeDecodeURIComponent'
 import { AddressBookAccessLevel } from '../davTypes'
+import { cardIdOf } from '@common/api/davPaths'
 import {
   Contact,
   ContactAddress,
@@ -502,8 +503,12 @@ function stripExtension(segment: string, extension: string): string {
     : segment
 }
 
+function lastSegment(href: unknown): string {
+  return readHref(href)?.split('/').pop() ?? ''
+}
+
 function extractId(href: unknown, extension: string): string {
-  return stripExtension(readHref(href)?.split('/').pop() ?? '', extension)
+  return stripExtension(lastSegment(href), extension)
 }
 
 // a sharee's copy of a book points to the original through its source:
@@ -627,9 +632,13 @@ const KNOWN_PROPERTIES = new Set([
   'note'
 ])
 
+const CARD_EXTENSION = '.vcf'
+
 /** Converts a DAV card into a contact, decoding its file ID and parsing known fields. */
 export function normalizeContact(item: DavContactItem): Contact {
-  const id = decodeDavSegment(extractId(item?._links?.self?.href, '.vcf'))
+  // the file name is kept as the server gave it: the card is addressed by it
+  const fileName = decodeDavSegment(lastSegment(item?._links?.self?.href))
+  const id = cardIdOf(fileName)
   const card: JCalCard = ['vcard', readCardProperties(item?.data)]
 
   const shown = pickShownProperties(card)
@@ -641,7 +650,8 @@ export function normalizeContact(item: DavContactItem): Contact {
 
   const contact: Contact = {
     id,
-    displayName: (fn && getStringValue(fn)) ?? id,
+    displayName:
+      (fn && getStringValue(fn)) ?? stripExtension(fileName, CARD_EXTENSION),
     emails: parseEmails(card)
   }
 

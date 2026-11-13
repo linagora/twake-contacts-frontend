@@ -54,7 +54,7 @@ export interface DavLinks {
 
 /** One contact of an address book, as embedded under `dav:item`. */
 export interface DavContactItem {
-  /** `href` ends in `<uid>.vcf` — the contact id. */
+  /** `href` ends in the card file name, `<uid>.vcf` mostly — see cardIdOf. */
   _links?: DavLinks
   etag?: string
   data: JCalCard

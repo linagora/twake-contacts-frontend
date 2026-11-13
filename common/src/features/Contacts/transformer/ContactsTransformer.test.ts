@@ -89,6 +89,25 @@ describe('normalizeContact', () => {
     expect(contactAt('/addressbooks/bob/book1/x.vcfy.vcf').id).toBe('x.vcfy')
   })
 
+  it.each([
+    ['x.VCF', 'x.VCF/'],
+    ['abc', 'abc/'],
+    ['%F0%9F%98%80.VCF', '😀.VCF/']
+  ])(
+    'marks the id of a card file %s not ending in ".vcf" (#623)',
+    (fileName, id) => {
+      expect(contactAt(`/addressbooks/bob/book1/${fileName}`).id).toBe(id)
+    }
+  )
+
+  it('falls back to the card file name as display name (#623)', () => {
+    const nameless = (href: string): Contact =>
+      normalizeContact({ _links: { self: { href } }, data: ['vcard', []] })
+
+    expect(nameless('/addressbooks/bob/book1/x.VCF').displayName).toBe('x.VCF')
+    expect(nameless('/addressbooks/bob/book1/u1.vcf').displayName).toBe('u1')
+  })
+
   it('keeps an encoded ".vcf" inside the file name', () => {
     expect(contactAt('/addressbooks/bob/book1/a%2Evcf%2Fb.vcf').id).toBe(
       'a.vcf/b'
