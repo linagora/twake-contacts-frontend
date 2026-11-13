@@ -140,14 +140,11 @@ export function makeContactFromForm(
         ? entry
         : withParams({ type: entry.type, value: entry.value }, entry.params)
     )
-  const name = savedName(base?.name, { givenName, familyName })
   return {
     ...base,
     id: base?.id ?? crypto.randomUUID(),
-    displayName: [givenName, familyName].filter(Boolean).join(' '),
     // N components the form does not edit are kept from the base contact
-    name,
-    ...withNameParams(base, name !== base?.name),
+    ...makeNameFromForm({ givenName, familyName }, values.emails, base),
     categories: values.categories,
     emails: values.emails
       .filter(hasValue)
@@ -190,6 +187,42 @@ function withNameParams(
   const nParams = withoutSortAs(n)
   return {
     propertyParams: nParams ? { ...others, n: nParams } : others
+  }
+}
+
+/**
+ * FN and N of the contact to save. Another client's FN may carry what the form
+ * does not show (titles, middle names, "Family, Given" order, another script):
+ * it is kept while neither name field changes, and only rebuilt from them otherwise.
+ * FN is never empty (RFC 6350 §6.2.1) and no N is added while both fields are empty.
+ */
+function makeNameFromForm(
+  formName: ContactName,
+  emails: ContactFormEntry[],
+  base?: Contact
+): Pick<Contact, 'displayName' | 'name' | 'propertyParams'> {
+  const { givenName, familyName } = formName
+  const nameChanged =
+    !base ||
+    givenName !== (base.name?.givenName ?? '').trim() ||
+    familyName !== (base.name?.familyName ?? '').trim()
+  const builtName = [givenName, familyName].filter(Boolean).join(' ')
+  const displayName =
+    [
+      nameChanged ? builtName : base?.displayName,
+      base?.displayName,
+      builtName,
+      base?.org?.name,
+      emails.find(hasValue)?.value
+    ]
+      .map(candidate => candidate?.trim())
+      .find(Boolean) ?? ''
+  const name =
+    givenName || familyName ? savedName(base?.name, formName) : base?.name
+  return {
+    displayName,
+    name,
+    ...(name && withNameParams(base, name !== base?.name))
   }
 }
 

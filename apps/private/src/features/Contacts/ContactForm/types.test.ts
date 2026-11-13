@@ -810,3 +810,136 @@ describe('N round trip', () => {
     ])
   })
 })
+
+describe('saving the name of a contact', () => {
+  const titled: Contact = {
+    id: 'c1',
+    displayName: 'Dr. Jane Q. Doe Jr.',
+    name: { givenName: 'Jane', familyName: 'Doe' },
+    emails: []
+  }
+
+  it('keeps the display name when the name fields are unchanged', () => {
+    const saved = makeContactFromForm(
+      makeFormValuesFromContact(titled, 'book'),
+      titled
+    )
+
+    expect(saved.displayName).toBe('Dr. Jane Q. Doe Jr.')
+  })
+
+  it('keeps the "Family, Given" FN of a card saved unchanged', () => {
+    const read = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/0f8b7a6c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '4.0'],
+          ['uid', {}, 'text', '0f8b7a6c'],
+          ['fn', {}, 'text', 'Müller, Jürgen'],
+          ['n', {}, 'text', ['Müller', 'Jürgen', '', '', '']]
+        ]
+      ]
+    })
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(read, 'contacts'), read)
+    )
+
+    expect(saved[1].filter(prop => prop[0] === 'fn')).toEqual([
+      ['fn', {}, 'text', 'Müller, Jürgen']
+    ])
+  })
+
+  it('rebuilds the display name when a name field changes', () => {
+    const values = {
+      ...makeFormValuesFromContact(titled, 'book'),
+      familyName: 'Smith'
+    }
+
+    const saved = makeContactFromForm(values, titled)
+
+    expect(saved.displayName).toBe('Jane Smith')
+    expect(saved.name).toEqual({ givenName: 'Jane', familyName: 'Smith' })
+  })
+
+  it('keeps the display name of a card without N and adds no N', () => {
+    const base: Contact = { id: 'b7a0', displayName: 'Front Desk', emails: [] }
+
+    const saved = makeContactFromForm(
+      makeFormValuesFromContact(base, 'book'),
+      base
+    )
+
+    expect(saved.displayName).toBe('Front Desk')
+    expect(saved.name).toBeUndefined()
+  })
+
+  it('writes neither an empty FN nor an N for a card without N', () => {
+    const read = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/b7a0.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '3.0'],
+          ['uid', {}, 'text', 'b7a0'],
+          ['fn', {}, 'text', 'Front Desk'],
+          ['tel', { type: 'WORK' }, 'text', '+1 425 555 0100']
+        ]
+      ]
+    })
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(read, 'contacts'), read)
+    )
+
+    expect(saved[1].filter(prop => prop[0] === 'fn')).toEqual([
+      ['fn', {}, 'text', 'Front Desk']
+    ])
+    expect(saved[1].filter(prop => prop[0] === 'n')).toEqual([])
+  })
+
+  it('names a nameless contact after its organisation', () => {
+    const base: Contact = {
+      id: 'x',
+      displayName: '',
+      org: { name: 'Initech', units: ['IT'] },
+      emails: []
+    }
+
+    const saved = makeContactFromForm(
+      makeFormValuesFromContact(base, 'book'),
+      base
+    )
+
+    expect(saved.displayName).toBe('Initech')
+  })
+
+  it('names a new nameless contact after its first email', () => {
+    const values = {
+      ...makeFormValuesFromContact(
+        { id: 'x', displayName: '', emails: [] },
+        'book'
+      ),
+      emails: [{ type: 'work', value: ' jane@example.com ' }]
+    }
+
+    expect(makeContactFromForm(values).displayName).toBe('jane@example.com')
+  })
+
+  it('builds the display name of a new contact from its name fields', () => {
+    const values = {
+      ...makeFormValuesFromContact(
+        { id: 'x', displayName: '', emails: [] },
+        'book'
+      ),
+      givenName: ' Jane ',
+      familyName: 'Doe'
+    }
+
+    const saved = makeContactFromForm(values)
+
+    expect(saved.displayName).toBe('Jane Doe')
+    expect(saved.name).toEqual({ givenName: 'Jane', familyName: 'Doe' })
+  })
+})
