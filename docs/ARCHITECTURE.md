@@ -140,6 +140,12 @@ The [`Jenkinsfile`](../Jenkinsfile) builds the app, runs the unit tests
 suite, then publishes the Docker images. The end-to-end stack (esn-sabre, side service, Dex…) and how to run it
 locally are described in [`e2e/README.md`](../e2e/README.md).
 
+The Docker Hub and GitHub credentials are bound only around the steps that publish
+or comment, never while code of the checked out sources runs. A pull request from
+the fork of an outside contributor runs no stage until a linagora member approves
+it, or submits a review `Build this please`, on its head commit: a later push needs
+a new review.
+
 ## Decision records
 
 - [0001 Normalised store with server-sorted listings](adr/0001-normalised-store-with-server-sorted-listings.md)

@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_CREDENTIAL = credentials('dockerHub')
-        GITHUB_CREDENTIAL = credentials('github')
-    }
-
     tools {
         nodejs 'nodejs_24'
     }
@@ -16,7 +11,24 @@ pipeline {
         disableConcurrentBuilds()
     }
     
+    // No pipeline-level credentials: every stage up to the deploy runs code of the checked out
+    // sources (npm lifecycle scripts, package.json scripts, tests). The secrets are bound only
+    // around the steps that need them, see withGithubCredential and withDockerHubLogin.
     stages {
+      stage('Authorize fork') {
+        // A fork pull request runs no code of its own before an org member vouches for its
+        // head commit: the owner of the fork is a linagora member, or a member submitted a
+        // review on that very commit (approval, or a review comment 'Build this please').
+        when {
+          changeRequest()
+          expression { env.CHANGE_FORK != null }
+        }
+        steps {
+          script {
+            authorizeFork()
+          }
+        }
+      }
       stage('Compile') {
           steps {
             sh 'npm ci'
@@ -83,65 +95,17 @@ pipeline {
         }
         steps {
           script {
-            // If the PR comes from a fork, verify the fork owner is a linagora org member
-            if (env.CHANGE_FORK) {
-              def forkOwner = env.CHANGE_FORK
-              def memberStatus = sh(
-                script: """curl -s -o /dev/null -w "%{http_code}" \
-                  -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \
-                  "https://api.github.com/orgs/linagora/members/${forkOwner}" """,
-                returnStdout: true
-              ).trim()
-              echo "GitHub org membership check returned HTTP ${memberStatus} for '${forkOwner}'"
-              if (memberStatus == '204') {
-                echo "Fork owner '${forkOwner}' is a linagora org member, proceeding."
-              } else if (memberStatus == '404') {
-                echo "Fork owner '${forkOwner}' is not a member of the linagora organization."
-                // Check if a linagora member has approved the build via comment
-                def approvedByMember = false
-                def commentsJson = sh(
-                  script: """curl -s \
-                    -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \
-                    "https://api.github.com/repos/linagora/twake-contacts-frontend/issues/\${CHANGE_ID}/comments" """,
-                  returnStdout: true
-                ).trim()
-                def comments = readJSON text: commentsJson
-                for (comment in comments) {
-                  if (comment.body.trim() == 'Build this please') {
-                    def commenter = comment.user.login
-                    def commenterStatus = sh(
-                      script: """curl -s -o /dev/null -w "%{http_code}" \
-                        -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \
-                        "https://api.github.com/orgs/linagora/members/${commenter}" """,
-                      returnStdout: true
-                    ).trim()
-                    if (commenterStatus == '204') {
-                      echo "Build approved by linagora member '${commenter}', proceeding."
-                      approvedByMember = true
-                      break
-                    }
-                  }
-                }
-                if (!approvedByMember) {
-                  echo "No linagora member approval found. Skipping deploy."
-                  return
-                }
-              } else if (memberStatus == '401' || memberStatus == '403') {
-                error("Authentication/permission error validating fork owner: ${memberStatus}")
-              } else {
-                error("GitHub API error ${memberStatus} while checking membership for '${forkOwner}'")
-              }
-            }
-
             def dockerTag = "${env.CHANGE_ID}"
             env.DOCKER_TAG = dockerTag
             echo "Docker tag: ${dockerTag}"
             def shortSha = env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'dev'
             sh 'npm run build'
             sh "docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=${shortSha} -t linagora/twake-contacts-web-pr:\$DOCKER_TAG ."
-            sh 'echo $DOCKER_HUB_CREDENTIAL_PSW | docker login -u $DOCKER_HUB_CREDENTIAL_USR --password-stdin'
-            sh 'docker push linagora/twake-contacts-web-pr:$DOCKER_TAG'
-            sh """
+            withDockerHubLogin {
+              sh 'docker push linagora/twake-contacts-web-pr:$DOCKER_TAG'
+            }
+            withGithubCredential {
+              sh """
               HTTP_STATUS=\$(curl -s -o /tmp/gh_comment_response.json -w "%{http_code}" -X POST \\
                 -H "Authorization: token \${GITHUB_CREDENTIAL_PSW}" \\
                 -H "Content-Type: application/json" \\
@@ -151,7 +115,8 @@ pipeline {
                 echo "WARNING: GitHub API comment failed with HTTP \$HTTP_STATUS"
                 cat /tmp/gh_comment_response.json
               fi
-            """
+              """
+            }
           }
         }
       }
@@ -184,10 +149,13 @@ pipeline {
             echo "Build version: ${env.BUILD_VERSION}, docker tags: ${dockerTags}"
             sh 'npm run build'
             sh 'docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=$BUILD_VERSION -t linagora/twake-contacts-web:$BUILD_VERSION .'
-            sh 'echo $DOCKER_HUB_CREDENTIAL_PSW | docker login -u $DOCKER_HUB_CREDENTIAL_USR --password-stdin'
             dockerTags.each { tag ->
               sh "docker tag linagora/twake-contacts-web:\$BUILD_VERSION linagora/twake-contacts-web:${tag}"
-              sh "docker push linagora/twake-contacts-web:${tag}"
+            }
+            withDockerHubLogin {
+              dockerTags.each { tag ->
+                sh "docker push linagora/twake-contacts-web:${tag}"
+              }
             }
           }
         }
@@ -198,4 +166,106 @@ pipeline {
             deleteDir() /* clean up our workspace */
         }
     }
+}
+
+// A fork pull request is built only when its owner is a linagora member, or when a member reviewed
+// its head commit. GitHub ties the review to that commit (commit_id), so a commit pushed after the
+// approval is not built until a member reviews it again.
+def authorizeFork() {
+  withGithubCredential {
+    def forkOwner = env.CHANGE_FORK
+    if (isOrgMember(forkOwner)) {
+      echo "Fork owner '${forkOwner}' is a linagora org member, proceeding."
+      return
+    }
+    def headSha = checkedOutPullRequestHead()
+    def approver = memberReviewerOf(headSha)
+    if (approver) {
+      echo "Commit ${headSha} approved by linagora member '${approver}', proceeding."
+      return
+    }
+    error("Fork owner '${forkOwner}' is not a linagora org member and no member reviewed commit ${headSha}. " +
+      "A linagora member must approve the pull request, or submit a review 'Build this please', " +
+      "on this commit, then re-run the build.")
+  }
+}
+
+// The head commit of the pull request, checked against the sources Jenkins checked out: HEAD itself,
+// or the second parent of the merge commit Jenkins builds with the target branch
+def checkedOutPullRequestHead() {
+  def headSha = githubApi("pulls/${env.CHANGE_ID}").head.sha
+  def checkedOut = sh(script: 'git rev-parse HEAD; git rev-parse -q --verify "HEAD^2" || true', returnStdout: true)
+    .trim().tokenize('\n')
+  if (!checkedOut.contains(headSha)) {
+    error("The pull request head moved to ${headSha} since the checkout of ${checkedOut}: re-run the build.")
+  }
+  return headSha
+}
+
+// The login of a linagora member who approved the given commit, or reviewed it with 'Build this please'
+def memberReviewerOf(String sha) {
+  def reviews = githubApi("pulls/${env.CHANGE_ID}/reviews?per_page=100")
+  for (review in reviews) {
+    def approves = review.state == 'APPROVED' ||
+      (review.state != 'DISMISSED' && "${review.body}".trim() == 'Build this please')
+    if (review.commit_id == sha && approves && isOrgMember(review.user.login)) {
+      return review.user.login
+    }
+  }
+  return null
+}
+
+def isOrgMember(String login) {
+  def status
+  withEnv(["GITHUB_LOGIN=${login}"]) {
+    status = sh(
+      script: 'curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_CREDENTIAL_PSW" ' +
+        '"https://api.github.com/orgs/linagora/members/$GITHUB_LOGIN"',
+      returnStdout: true
+    ).trim()
+  }
+  echo "GitHub org membership check returned HTTP ${status} for '${login}'"
+  if (status == '204') {
+    return true
+  }
+  if (status == '404') {
+    return false
+  }
+  error("GitHub API error ${status} while checking the membership of '${login}'")
+}
+
+def githubApi(String path) {
+  def json
+  withEnv(["GITHUB_API_PATH=${path}"]) {
+    json = sh(
+      script: 'curl -sf -H "Authorization: token $GITHUB_CREDENTIAL_PSW" ' +
+        '"https://api.github.com/repos/linagora/twake-contacts-frontend/$GITHUB_API_PATH"',
+      returnStdout: true
+    )
+  }
+  return readJSON(text: json)
+}
+
+// Binds the GitHub token as GITHUB_CREDENTIAL_USR / GITHUB_CREDENTIAL_PSW around the given steps only
+def withGithubCredential(Closure body) {
+  withCredentials([usernamePassword(credentialsId: 'github',
+      usernameVariable: 'GITHUB_CREDENTIAL_USR', passwordVariable: 'GITHUB_CREDENTIAL_PSW')]) {
+    body()
+  }
+}
+
+// Logs in Docker Hub in a throwaway Docker config deleted afterwards, so that the credential never
+// stays on the agent where a later build could read it
+def withDockerHubLogin(Closure body) {
+  withEnv(["DOCKER_CONFIG=${pwd(tmp: true)}/docker-config"]) {
+    try {
+      withCredentials([usernamePassword(credentialsId: 'dockerHub',
+          usernameVariable: 'DOCKER_HUB_CREDENTIAL_USR', passwordVariable: 'DOCKER_HUB_CREDENTIAL_PSW')]) {
+        sh 'mkdir -p "$DOCKER_CONFIG" && echo "$DOCKER_HUB_CREDENTIAL_PSW" | docker login -u "$DOCKER_HUB_CREDENTIAL_USR" --password-stdin'
+      }
+      body()
+    } finally {
+      sh 'docker logout || true; rm -rf "$DOCKER_CONFIG"'
+    }
+  }
 }
