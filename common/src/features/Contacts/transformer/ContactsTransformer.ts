@@ -584,8 +584,11 @@ export function normalizeContact(item: DavContactItem): Contact {
   const card = item.data
 
   const shown = pickShownProperties(card)
-  // a card whose every FN is blank keeps showing it, as it is written back
-  const fn = shown.fn ?? getCardProperties(card, 'fn')[0]
+  // a card whose every FN is blank keeps showing it, as it is written back;
+  // an unreadable FN cannot be written back, it is kept as read
+  const fn =
+    shown.fn ??
+    getCardProperties(card, 'fn').find(prop => getStringValue(prop) !== null)
 
   const contact: Contact = {
     id,

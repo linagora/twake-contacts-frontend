@@ -1958,4 +1958,15 @@ describe('repeated text properties', () => {
     const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
     expect(fns).toEqual([en, ['fn', {}, 'text', ''], ja])
   })
+
+  it('keeps an unreadable FN when it is the only one', () => {
+    const unreadable: JCalProperty = ['fn', {}, 'text', ['Mei Tanaka']]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [unreadable]]
+    } as unknown as DavContactItem)
+    expect(contact.displayName).toBe('c')
+    const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
+    expect(fns).toEqual([['fn', {}, 'text', 'c'], unreadable])
+  })
 })
