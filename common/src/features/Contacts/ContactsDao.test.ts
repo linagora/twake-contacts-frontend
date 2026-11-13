@@ -1091,6 +1091,93 @@ describe('fetchContactsPage', () => {
     ])
   })
 
+  it('returns the readable contacts of a page holding malformed cards', async () => {
+    mockResponse({
+      _embedded: {
+        'dav:item': [
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+            data: card
+          },
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c2.vcf' } },
+            data: [
+              'vcard',
+              [null, ['fn', {}, 'text', 'Jane Doe']]
+            ] as unknown as JCalCard
+          },
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c3.vcf' } }
+          } as DavContactItem,
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c4.vcf' } },
+            data: null as unknown as JCalCard
+          },
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c5.vcf' } },
+            data: ['vcard', ''] as unknown as JCalCard
+          },
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c6.vcf' } },
+            data: ['vcard', {}] as unknown as JCalCard
+          }
+        ]
+      }
+    })
+
+    const page = await fetchContactsPage(
+      'u1',
+      book,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
+
+    expect(
+      page.entries.map(entry => [entry.contact.id, entry.contact.displayName])
+    ).toStrictEqual([
+      ['c1', 'Alice Roche'],
+      ['c2', 'Jane Doe'],
+      ['c3', 'c3'],
+      ['c4', 'c4'],
+      ['c5', 'c5'],
+      ['c6', 'c6']
+    ])
+  })
+
+  it('skips a card that cannot be read, keeping the others of the page', async () => {
+    mockResponse({
+      _embedded: {
+        'dav:item': [
+          Object.defineProperty(
+            { _links: { self: { href: '/addressbooks/u1/book1/c0.vcf' } } },
+            'data',
+            {
+              get: () => {
+                throw new Error('unreadable')
+              }
+            }
+          ) as DavContactItem,
+          {
+            _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+            data: card
+          }
+        ]
+      }
+    })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const page = await fetchContactsPage(
+      'u1',
+      book,
+      { after: null, sort: DEFAULT_CONTACT_SORT },
+      false
+    )
+
+    expect(page.entries.map(entry => entry.contact.id)).toStrictEqual(['c1'])
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
   it('reads the contacts of every address book without the domain members', async () => {
     mockResponse({})
 
@@ -1188,6 +1275,99 @@ describe('searchContacts', () => {
     expect(
       entries.map(entry => [entry.addressBookId, entry.contact.id])
     ).toStrictEqual([['book1', 'c1']])
+  })
+
+  it('returns the readable contacts when a card is malformed', async () => {
+    vi.mocked(api.post).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          _embedded: {
+            'dav:item': [
+              {
+                _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+                data: ['vcard', [null, ['fn', {}, 'text', 'Jane Doe']]]
+              },
+              { _links: { self: { href: '/addressbooks/u1/book1/c2.vcf' } } },
+              {
+                _links: { self: { href: '/addressbooks/u1/book1/c3.vcf' } },
+                data: card
+              }
+            ]
+          }
+        })
+    } as never)
+
+    const entries = await searchContacts([], 'jane')
+
+    expect(
+      entries.map(entry => [entry.contact.id, entry.contact.displayName])
+    ).toStrictEqual([
+      ['c1', 'Jane Doe'],
+      ['c2', 'c2'],
+      ['c3', 'Jane Doe']
+    ])
+  })
+})
+
+describe('getCardProperty', () => {
+  it('returns null for a malformed card', () => {
+    expect(getCardProperty(undefined as never, 'fn')).toBeNull()
+    expect(getCardProperty(null as never, 'fn')).toBeNull()
+    expect(getCardProperty(['vcard', ''] as never, 'fn')).toBeNull()
+    expect(getCardProperty(['vcard', {}] as never, 'fn')).toBeNull()
+    expect(getCardProperty(['vcard', [null]] as never, 'fn')).toBeNull()
+  })
+
+  it('reads a property after entries that are not properties', () => {
+    expect(
+      getCardProperty(
+        ['vcard', [null, -1, 'x', ['fn', {}, 'text', 'Jane Doe']]] as never,
+        'fn'
+      )
+    ).toBe('Jane Doe')
+  })
+})
+
+describe('normalizeContact of a malformed card', () => {
+  it('drops the entries of a card that are not properties', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [['fn', {}, 'text', 'Jane Doe'], -1, 'x', true, {}, null, [42]]
+      ] as unknown as JCalCard
+    })
+
+    const [, properties] = denormalizeContact(contact)
+
+    expect(contact.passthroughProps).toBeUndefined()
+    expect(
+      properties.every(p => Array.isArray(p) && typeof p[0] === 'string')
+    ).toBe(true)
+  })
+
+  it.each([
+    [['x-broken']],
+    [['x-broken', {}, 'text']],
+    [['uid', null, 'text', 'id']],
+    [['x-broken', [], 'text', 'value']],
+    [['x-broken', 'params', 'text', 'value']],
+    [['x-broken', {}, 42, 'value']]
+  ])('drops a property that does not match RFC 7095: %j', property => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u1/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [['fn', {}, 'text', 'Jane Doe'], property]
+      ] as unknown as JCalCard
+    })
+
+    const [, properties] = denormalizeContact(contact)
+
+    expect(contact.displayName).toBe('Jane Doe')
+    expect(contact.uidProperty).toBeUndefined()
+    expect(contact.passthroughProps).toBeUndefined()
+    expect(properties).not.toContainEqual(property)
   })
 })
 

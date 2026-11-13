@@ -26,6 +26,7 @@ import {
   AddressBookAccessLevel,
   DavAddressBookItem,
   DavAddressBooksResponse,
+  DavContactItem,
   DavContactsResponse,
   JCalCard,
   DavInvite
@@ -246,11 +247,33 @@ export async function fetchContactsPage(
 
   const items = data._embedded?.['dav:item'] ?? []
   return {
-    entries: items.map(item => ({
-      addressBookId: book?.id ?? toStoreAddressBookId(item._links?.self?.href),
-      contact: normalizeContact(item)
-    })),
+    entries: items.flatMap(item =>
+      readContactEntry(
+        item,
+        book?.id ?? toStoreAddressBookId(item?._links?.self?.href)
+      )
+    ),
     next: data.next ?? null
+  }
+}
+
+/**
+ * The entry of a card of a listing or a search, or none when the card cannot
+ * be read: one unreadable card must not keep the others of its page hidden.
+ */
+function readContactEntry(
+  item: DavContactItem,
+  addressBookId: string
+): ContactEntry[] {
+  try {
+    return [{ addressBookId, contact: normalizeContact(item) }]
+  } catch (error) {
+    console.warn(
+      'Skipping an unreadable contact',
+      item?._links?.self?.href,
+      error
+    )
+    return []
   }
 }
 
@@ -423,15 +446,8 @@ export async function searchContacts(
 
   const items = data._embedded?.['dav:item'] ?? []
   return items.flatMap(item => {
-    const addressBookId = toStoreAddressBookId(item._links?.self?.href)
-    return addressBookId
-      ? [
-          {
-            addressBookId,
-            contact: normalizeContact(item)
-          }
-        ]
-      : []
+    const addressBookId = toStoreAddressBookId(item?._links?.self?.href)
+    return addressBookId ? readContactEntry(item, addressBookId) : []
   })
 }
 
