@@ -47,9 +47,37 @@ export function bookJsonHref(book: DavBookRef): string {
   return `${bookHref(book)}.json`
 }
 
-/** `/addressbooks/<userId>/<bookId>/<cardId>.vcf` */
+const CARD_EXTENSION = '.vcf'
+
+/**
+ * Ends the id of a card whose file name is not `<id>.vcf`. A resource name
+ * cannot hold a "/", so no `<id>.vcf` card has an id ending with it.
+ */
+const VERBATIM_FILE_NAME_MARK = '/'
+
+/**
+ * The id of a card from its decoded file name: `<id>.vcf` for the cards of
+ * this app and most clients, the file name itself otherwise (`x.VCF`, `abc`),
+ * marked so that the card is addressed back under that very name (CardDAV
+ * resource names are case-sensitive: `x.VCF` is not `x.vcf`).
+ */
+export function cardIdOf(fileName: string): string {
+  if (fileName === '') return ''
+  return fileName.endsWith(CARD_EXTENSION)
+    ? fileName.slice(0, -CARD_EXTENSION.length)
+    : `${fileName}${VERBATIM_FILE_NAME_MARK}`
+}
+
+/** The decoded file name of a card from its id, see cardIdOf. */
+export function cardFileName(cardId: string): string {
+  return cardId.endsWith(VERBATIM_FILE_NAME_MARK)
+    ? cardId.slice(0, -VERBATIM_FILE_NAME_MARK.length)
+    : `${cardId}${CARD_EXTENSION}`
+}
+
+/** `/addressbooks/<userId>/<bookId>/<cardFileName>`, `<cardId>.vcf` mostly */
 export function cardHref(book: DavBookRef, cardId: string): string {
-  return `${bookHref(book)}/${encodeDavSegment(cardId)}.vcf`
+  return `${bookHref(book)}/${encodeDavSegment(cardFileName(cardId))}`
 }
 
 /** `dav/addressbooks/<userId>/<bookId>` */
@@ -62,7 +90,7 @@ export function bookJsonPath(book: DavBookRef): string {
   return proxied(bookJsonHref(book))
 }
 
-/** `dav/addressbooks/<userId>/<bookId>/<cardId>.vcf` */
+/** `dav/addressbooks/<userId>/<bookId>/<cardFileName>`, see cardHref */
 export function cardPath(book: DavBookRef, cardId: string): string {
   return proxied(cardHref(book, cardId))
 }

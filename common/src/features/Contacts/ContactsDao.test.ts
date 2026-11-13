@@ -2097,6 +2097,62 @@ describe('DAV paths of a book whose ids need encoding', () => {
     ])
   })
 
+  it.each([
+    [
+      '/addressbooks/c%231/my%20book/x.VCF',
+      'dav/addressbooks/c%231/my%20book/x.VCF'
+    ],
+    [
+      '/addressbooks/c%231/my%20book/abc',
+      'dav/addressbooks/c%231/my%20book/abc'
+    ],
+    [
+      '/addressbooks/c%231/my%20book/%F0%9F%98%80.VCF',
+      'dav/addressbooks/c%231/my%20book/%F0%9F%98%80.VCF'
+    ]
+  ])(
+    'addresses the listed card %s at its own href from every call (#623)',
+    async (href, path) => {
+      const listed = normalizeContact({
+        _links: { self: { href } },
+        data: namedItem.data
+      })
+
+      await fetchContact(book, listed.id)
+      await exportContact(book, listed.id)
+      await saveContact(book.userId, book.id, listed)
+      await deleteContact(book.userId, book.id, listed.id)
+      await moveContact(ref, ref, listed.id)
+      await copyContact(ref, ref, listed.id)
+
+      expect(vi.mocked(api.get).mock.calls.map(([url]) => url)).toEqual([
+        path,
+        path
+      ])
+      expect(vi.mocked(api.put).mock.calls[0][0]).toBe(path)
+      expect(vi.mocked(api.delete).mock.calls[0][0]).toBe(path)
+      expect(vi.mocked(api).mock.calls.map(([url]) => url)).toEqual([
+        path,
+        path
+      ])
+    }
+  )
+
+  it('moves a card under its own file name (#623)', async () => {
+    const listed = normalizeContact({
+      _links: { self: { href: '/addressbooks/c%231/my%20book/x.VCF' } },
+      data: namedItem.data
+    })
+
+    await moveContact(ref, { ...ref, addressBookId: 'other' }, listed.id)
+
+    expect(vi.mocked(api).mock.calls[0][1]?.headers).toEqual(
+      expect.objectContaining({
+        Destination: '/addressbooks/c%231/other/x.VCF'
+      })
+    )
+  })
+
   it('encodes the ids of the book collection', async () => {
     await exportAddressBook(book)
 
