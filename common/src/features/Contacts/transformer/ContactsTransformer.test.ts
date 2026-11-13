@@ -504,6 +504,35 @@ describe('buildFullShareesList', () => {
       }
     ])
   })
+
+  it('keys an external member, without a user id, by its href', () => {
+    const external: userData = {
+      ...member('ext', AddressBookAccessLevel.Viewer),
+      openpaasId: undefined,
+      href: 'mailto:ext@example.com'
+    }
+
+    const sharees = buildFullShareesList(
+      'alice',
+      [external],
+      [
+        {
+          userId: 'mailto:ext@example.com',
+          role: AddressBookAccessLevel.None,
+          href: 'mailto:ext@example.com'
+        }
+      ]
+    )
+
+    expect(sharees).toEqual([
+      ownerEntry,
+      {
+        userId: 'mailto:ext@example.com',
+        access: AddressBookAccessLevel.None,
+        href: 'mailto:ext@example.com'
+      }
+    ])
+  })
 })
 
 describe('denormalizeContact', () => {

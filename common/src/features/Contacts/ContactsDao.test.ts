@@ -1785,6 +1785,35 @@ describe('fetchAddressBookDetails', () => {
     ])
   })
 
+  it('does not take a mailto: href as the id of an external member', async () => {
+    vi.mocked(api).mockReturnValue({
+      json: () =>
+        Promise.resolve({
+          '{DAV:}invite': [
+            {
+              access: 2,
+              comment: null,
+              href: 'mailto:a@x.example',
+              inviteStatus: 2
+            },
+            { access: 2, comment: null, href: 'MAILTO:', inviteStatus: 2 },
+            { access: 2, inviteStatus: 2, href: 'principals/users/m3' }
+          ],
+          acl: []
+        })
+    } as never)
+
+    const { members } = await fetchAddressBookDetails('u1', 'b1')
+
+    expect(
+      members.map(m => [m.openpaasId, m.sid, m.name, m.email, m.href])
+    ).toEqual([
+      [undefined, '', 'a@x.example', 'a@x.example', 'mailto:a@x.example'],
+      [undefined, '', '', '', 'MAILTO:'],
+      ['m3', 'm3', 'm3', '', 'principals/users/m3']
+    ])
+  })
+
   it('lists no member when the invites are not an array', async () => {
     vi.mocked(api).mockReturnValue({
       json: () => Promise.resolve({ '{DAV:}invite': { foo: 1 }, acl: [] })
@@ -1899,6 +1928,18 @@ describe('resolveAddressBookMember', () => {
     vi.mocked(fetchUserById).mockRejectedValue(new Error('not found'))
 
     await expect(resolveAddressBookMember(invited)).resolves.toBe(invited)
+  })
+
+  it('does not look up an external member, invited by its email', async () => {
+    const external = {
+      ...invited,
+      sid: '',
+      sub: '',
+      openpaasId: undefined
+    }
+
+    await expect(resolveAddressBookMember(external)).resolves.toBe(external)
+    expect(fetchUserById).not.toHaveBeenCalled()
   })
 })
 

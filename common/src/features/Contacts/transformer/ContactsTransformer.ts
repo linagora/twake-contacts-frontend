@@ -879,6 +879,13 @@ export function denormalizeContact(contact: Contact): JCalCard {
   return ['vcard', dropOrphanCompanions(properties)]
 }
 
+/**
+ * Identifies a member of the sharing dialog: its user id, or for an external
+ * sharee (invited by its email, without a user id) its href.
+ */
+export const shareeKey = (member: UserDataType): string | undefined =>
+  member.openpaasId || member.href || undefined
+
 export const buildFullShareesList = (
   userDataId: string | undefined,
   invitedMembers: UserDataType[],
@@ -896,14 +903,14 @@ export const buildFullShareesList = (
   })
 
   // the owner entry must never be overwritten, whatever the members or updates say
-  invitedMembers
-    .filter(m => m.openpaasId && m.openpaasId !== userDataId)
-    .forEach(m => {
-      shareesMap.set(m.openpaasId as string, {
-        role: m.role ?? AddressBookAccessLevel.Viewer,
-        href: m.href || `mailto:${m.email}`
-      })
+  invitedMembers.forEach(m => {
+    const key = shareeKey(m)
+    if (!key || key === userDataId) return
+    shareesMap.set(key, {
+      role: m.role ?? AddressBookAccessLevel.Viewer,
+      href: m.href || `mailto:${m.email}`
     })
+  })
 
   updates
     .filter(u => u.userId !== userDataId)

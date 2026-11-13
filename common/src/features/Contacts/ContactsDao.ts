@@ -1,5 +1,6 @@
 import { config } from '@common/config'
 import { api } from '@common/utils/apiUtils'
+import { stripMailto } from '@common/utils/normalizeIdentity'
 import {
   bookJsonHref,
   bookJsonPath,
@@ -480,19 +481,21 @@ export async function createAddressBook(
     userId
   )
 }
-const MAILTO_PREFIX = 'mailto:'
+const MAILTO_SCHEME = /^mailto:/i
 
 /**
  * Builds a member from its invite alone, listable before (or without) the
  * lookup of its profile: identified by its principal, named by its email.
+ * An invite without a principal and with a `mailto:` href is an external
+ * sharee: it has no user id, only its email and its href.
  */
 function toInviteMember(invite: DavInvite): userData {
   const principal = asString(invite.principal)
   const href = asString(invite.href)
-  const memberUserId = (principal || href).split('/').pop() || undefined
-  const email = href.startsWith(MAILTO_PREFIX)
-    ? href.slice(MAILTO_PREFIX.length)
-    : ''
+  const isExternal = MAILTO_SCHEME.test(href)
+  const principalPath = principal || (isExternal ? '' : href)
+  const memberUserId = principalPath.split('/').pop() || undefined
+  const email = isExternal ? stripMailto(href) : ''
 
   return {
     email,
