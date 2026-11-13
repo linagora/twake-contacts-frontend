@@ -98,8 +98,11 @@ the fields set in [`ContactsDao.ts`](../common/src/features/Contacts/ContactsDao
 User, address-book and contact IDs are stored decoded. DAV href normalization
 uses `decodeDavSegment`, preserving malformed percent encodings. DAV requests
 use the segment-encoding helpers in `common/src/api/davPaths.ts`. UI links use
-`apps/private/src/features/Contacts/contactPath.ts` to encode each route segment
-once; React Router returns decoded IDs to the pages.
+`apps/private/src/features/Contacts/contactPath.ts` to encode each route segment,
+with its `%` escaped once more: React Router decodes the segment and turns every
+`%2F` of a param into `/`, so a literal `%2F` would come back as `/`. Pages read
+the IDs through `useContactRouteParams`, never `useParams`, which decodes the
+params once more.
 
 ## Backend endpoints
 

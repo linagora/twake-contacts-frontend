@@ -24,10 +24,11 @@ import {
   useBreakpoints
 } from '@linagora/twake-mui'
 import { useCallback, useEffect } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactsLoadErrorState } from './ContactsLoadErrorState'
 import { ContactsTable } from './ContactsTable'
+import { useContactRouteParams } from './contactPath'
 import { useFocusHeadingOnArrival } from './focusHeadingOnArrival'
 import { NoContactsEmptyState } from './NoContactsEmptyState'
 import { ImportContactsButton } from './ImportContactsButton'
@@ -37,7 +38,7 @@ export const AddressBookPage: React.FC = () => {
   const { t } = useI18n()
   const { isMobile, isTablet, isDesktop, isExtraLarge } = useBreakpoints()
   const dispatch = useAppDispatch()
-  const { addressBookId } = useParams()
+  const { addressBookId } = useContactRouteParams()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const loading = useAppSelector(state => state.contacts.loading)

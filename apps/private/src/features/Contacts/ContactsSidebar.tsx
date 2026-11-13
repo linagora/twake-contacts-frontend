@@ -1,4 +1,4 @@
-import { addressBookPath } from './contactPath'
+import { addressBookPath, useContactRouteParams } from './contactPath'
 import React, { useId, useState } from 'react'
 import { useAppSelector } from '@common/app/hooks'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
@@ -15,7 +15,7 @@ import {
   useBreakpoints,
   Skeleton
 } from '@linagora/twake-mui'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { AddressBookNavItem } from './ContactsSidebar/AddressBookNavItem'
 import { MyContactsNavItem } from './ContactsSidebar/MyContactsNavItem'
@@ -45,7 +45,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
   const myBooksListId = useId()
   const sharedBooksListId = useId()
   const { t } = useI18n()
-  const { addressBookId } = useParams()
+  const { addressBookId } = useContactRouteParams()
   const navigate = useNavigate()
   const { isMobile, isTablet, isDesktop, isExtraLarge } = useBreakpoints()
 

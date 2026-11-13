@@ -7,9 +7,13 @@ import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
 import { useContactsExport } from '@common/features/Contacts/hooks/useContactsExport'
 import { downloadFile, toFileName } from '@common/utils/downloadFile'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
-import { contactPath, editContactPath } from './contactPath'
+import {
+  contactPath,
+  editContactPath,
+  useContactRouteParams
+} from './contactPath'
 import { CopyContactDialog, MoveContactDialog } from './CopyContactDialog'
 import { DeleteContactDialog } from './DeleteContactDialog'
 import { ContactRowDropdownMenu } from './ContactRowDropdownMenu'
@@ -30,7 +34,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const { exportContact } = useContactsExport()
   const { isMobile } = useBreakpoints()
   const navigate = useNavigate()
-  const params = useParams()
+  const params = useContactRouteParams()
   const book = useAppSelector(state => selectBook(state, addressBookId))
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
   const deleteContact = useDeleteContact(addressBookId, contact)

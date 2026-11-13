@@ -33,10 +33,10 @@ describe('sidebarHelpers', () => {
     it('encodes a writable book ID while loaded or loading', () => {
       const id = 'Team/#100%'
       expect(getCreateContactLink(id, anAddressBook({ id }))).toBe(
-        '/contacts/new/Team%2F%23100%25'
+        '/contacts/new/Team%2F%23100%2525'
       )
       expect(getCreateContactLink(id, undefined, true)).toBe(
-        '/contacts/new/Team%2F%23100%25'
+        '/contacts/new/Team%2F%23100%2525'
       )
     })
 

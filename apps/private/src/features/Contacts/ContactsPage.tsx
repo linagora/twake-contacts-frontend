@@ -1,4 +1,4 @@
-import { createContactPath } from './contactPath'
+import { createContactPath, useContactRouteParams } from './contactPath'
 import { config } from '@common/config'
 import {
   Content,
@@ -22,7 +22,7 @@ import {
 import { selectBook } from '@common/features/Contacts/contactsSelectors'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { useEffect, useState } from 'react'
-import { Link, Outlet, useLocation, useParams } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { AddressBookSuccessSnackbar } from './AddressBookSuccessSnackbar'
 import { ContactTransferSnackbar } from './ContactTransferSnackbar'
@@ -49,7 +49,7 @@ export const ContactsPage: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const { isMobile, isTablet, isDesktop, isExtraLarge } = useBreakpoints()
-  const { addressBookId } = useParams()
+  const { addressBookId } = useContactRouteParams()
   const location = useLocation()
   const openpaasId = useAppSelector(state => state.user.userData.openpaasId)
   const domains = useAppSelector(state => state.user.userData.domains)

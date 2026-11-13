@@ -1,4 +1,4 @@
-import { addressBookPath } from './contactPath'
+import { addressBookPath, useContactRouteParams } from './contactPath'
 import { translateContactType } from '@common/locales/dynamicKeys'
 import {
   formatAddress,
@@ -34,7 +34,7 @@ import {
 import cx from 'classnames'
 import { useState } from 'react'
 
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { ContactActionsMenu } from './ContactActionsMenu'
 import { AvatarHeader } from './ContactForm/fields/AvatarHeader'
@@ -162,7 +162,7 @@ export const ContactPage: React.FC = () => {
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
-  const { addressBookId = '', contactId } = useParams()
+  const { addressBookId = '', contactId } = useContactRouteParams()
   const { contact, loading } = useContact(addressBookId, contactId)
   // The list the contact was opened from, falling back to its own book
   const backTo =

@@ -36,11 +36,12 @@ vi.mock('./features/Contacts/CreateContactPage', () => ({
 }))
 
 vi.mock('./features/Contacts/ContactPage', async () => {
-  const { useParams } =
-    await vi.importActual<typeof import('react-router')>('react-router')
+  const { useContactRouteParams } = await vi.importActual<
+    typeof import('./features/Contacts/contactPath')
+  >('./features/Contacts/contactPath')
   return {
     ContactPage: () => {
-      const { addressBookId, contactId } = useParams()
+      const { addressBookId, contactId } = useContactRouteParams()
       return <p>{`Contact ${addressBookId}/${contactId}`}</p>
     }
   }
