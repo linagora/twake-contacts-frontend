@@ -36,7 +36,7 @@ import {
   JCalProperty,
   JCalValue
 } from './davTypes'
-import { AddressBook, RawAddressBook } from './contactsTypes'
+import { AddressBook, Contact, RawAddressBook } from './contactsTypes'
 import { DEFAULT_CONTACT_SORT } from './constants'
 import { matchPath } from 'react-router'
 
@@ -583,12 +583,14 @@ describe('normalizeContact', () => {
     expect(contact.org).toMatchObject({ name: 'Acme', units: ['A B'] })
   })
 
-  it('ignores an object org component', () => {
+  it('ignores an object org component and keeps it on save', () => {
+    const org = ['org', {}, 'text', [{ a: 1 }]]
     const contact = normalizeContact({
       _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
-      data: ['vcard', [['org', {}, 'text', [{ a: 1 }]]]]
+      data: ['vcard', [org]]
     } as unknown as DavContactItem)
-    expect(contact.org).toEqual({ name: '', units: [] })
+    expect(contact).not.toHaveProperty('org')
+    expect(denormalizeContact(contact)[1]).toContainEqual(org)
   })
 
   it('reads numeric components as text', () => {
@@ -1772,12 +1774,12 @@ describe('nickname text-list', () => {
     expect(nickname).toEqual(['nickname', {}, 'text', 'Jo', 'JJ'])
   })
 
-  it('ignores a NICKNAME holding only empty values', () => {
+  it('ignores a NICKNAME holding only empty values and keeps it as read', () => {
     const contact = normalizeContact(withNicknames(''))
     expect(contact).not.toHaveProperty('nicknames')
-    expect(denormalizeContact(contact)[1].some(p => p[0] === 'nickname')).toBe(
-      false
-    )
+    expect(
+      denormalizeContact(contact)[1].filter(p => p[0] === 'nickname')
+    ).toEqual([['nickname', {}, 'text', '']])
   })
 })
 
@@ -1861,5 +1863,110 @@ describe('normalizeAddressBook', () => {
     })
 
     expect(book.id).toBe('100%')
+  })
+})
+
+describe('repeated text properties', () => {
+  const withProps = (...props: JCalProperty[]): Contact =>
+    normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', 'Jane'], ...props]]
+    } as unknown as DavContactItem)
+
+  it('writes back every occurrence of the text properties', () => {
+    const contact = withProps(
+      ['title', { altid: '1', language: 'en' }, 'text', 'Director'],
+      ['title', { altid: '1', language: 'fr' }, 'text', 'Directeur'],
+      ['note', {}, 'text', ''],
+      ['note', {}, 'text', 'Jane Doe'],
+      ['nickname', {}, 'text', 'Jo'],
+      ['nickname', {}, 'text', 'JJ'],
+      ['categories', {}, 'text', 'vip'],
+      ['categories', {}, 'text', 'friends'],
+      ['role', {}, 'text', 'Lead'],
+      ['role', { type: 'HOME' }, 'text', 'Chair'],
+      ['bday', {}, 'date', '1990-04-12'],
+      ['bday', {}, 'date', '--0412']
+    )
+    const values = denormalizeContact(contact)[1].map(p => p[3])
+    const expected = [
+      'Director',
+      'Directeur',
+      '',
+      'Jane Doe',
+      'Jo',
+      'JJ',
+      'vip',
+      'friends',
+      'Lead',
+      'Chair',
+      '1990-04-12',
+      '--0412'
+    ]
+    expected.forEach(value => expect(values).toContain(value))
+    expect(contact.note).toBe('Jane Doe')
+    expect(contact.title).toBe('Director')
+    expect(contact.birthday).toBe('1990-04-12')
+  })
+
+  it('keeps the parameters of an unchanged property', () => {
+    const title: JCalProperty = [
+      'title',
+      { altid: '1', language: 'en' },
+      'text',
+      'Director'
+    ]
+    const props = denormalizeContact(withProps(title))[1]
+    expect(props.filter(p => p[0] === 'title')).toEqual([title])
+  })
+
+  it('writes an edited property with the parameters of the occurrence it shows', () => {
+    const contact = withProps(['note', { language: 'en' }, 'text', 'old'])
+    const props = denormalizeContact({ ...contact, note: 'new' })[1]
+    expect(props.filter(p => p[0] === 'note')).toEqual([
+      ['note', { language: 'en' }, 'text', 'new']
+    ])
+  })
+
+  it('shows the first ORG with content and keeps the others', () => {
+    const blank: JCalProperty = ['org', {}, 'text', [' ', '']]
+    const second: JCalProperty = ['org', {}, 'text', 'First', 'Second']
+    const contact = withProps(blank, ['org', {}, 'text', 'Acme'], second)
+    expect(contact.org).toEqual({ name: 'Acme', units: [] })
+    const orgs = denormalizeContact(contact)[1].filter(p => p[0] === 'org')
+    expect(orgs).toEqual([['org', {}, 'text', ['Acme']], blank, second])
+  })
+
+  it('shows the first FN with content and keeps its variants', () => {
+    const en: JCalProperty = [
+      'fn',
+      { language: 'en', altid: '1' },
+      'text',
+      'Mei Tanaka'
+    ]
+    const ja: JCalProperty = [
+      'fn',
+      { language: 'ja', altid: '1' },
+      'text',
+      '田中 芽衣'
+    ]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['fn', {}, 'text', ''], en, ja]]
+    } as unknown as DavContactItem)
+    expect(contact.displayName).toBe('Mei Tanaka')
+    const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
+    expect(fns).toEqual([en, ['fn', {}, 'text', ''], ja])
+  })
+
+  it('keeps an unreadable FN when it is the only one', () => {
+    const unreadable: JCalProperty = ['fn', {}, 'text', ['Mei Tanaka']]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [unreadable]]
+    } as unknown as DavContactItem)
+    expect(contact.displayName).toBe('c')
+    const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
+    expect(fns).toEqual([['fn', {}, 'text', 'c'], unreadable])
   })
 })

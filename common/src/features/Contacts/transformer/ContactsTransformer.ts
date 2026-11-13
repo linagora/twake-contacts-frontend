@@ -352,22 +352,69 @@ const SINGLE_PROPERTIES: SingleContactProperty[] = [
   'note'
 ]
 
-// the parameters of the first FN, N, ORG…: the one the contact shows and writes back
+// the parameters of the FN, N, ORG… the contact shows and writes back
 function parsePropertyParams(
-  card: JCalCard
+  shown: Record<string, JCalProperty>
 ): Partial<Record<SingleContactProperty, JCalParams>> {
   return Object.fromEntries(
     SINGLE_PROPERTIES.flatMap(name => {
-      const prop = getCardProperties(card, name)[0]
+      const prop = shown[name]
       const params = prop && readParams(prop)
       return params ? [[name, params]] : []
     })
   )
 }
 
-function parseOrg(card: JCalCard): ContactOrg | null {
-  const prop = getCardProperties(card, 'org')[0]
-  if (!prop) return null
+function hasText(value: string | null): boolean {
+  return !!value?.trim()
+}
+
+function hasTextProperty(prop: JCalProperty): boolean {
+  return hasText(getStringValue(prop))
+}
+
+function hasTextListProperty(prop: JCalProperty): boolean {
+  return getStringValues(prop).some(hasText)
+}
+
+function hasOrgProperty(prop: JCalProperty): boolean {
+  const org = parseOrgProperty(prop)
+  return !!org && [org.name, ...org.units].some(hasText)
+}
+
+function hasBirthdayProperty(prop: JCalProperty): boolean {
+  return parseBirthdayProperty(prop) !== null
+}
+
+// RFC 6350 lets these properties repeat (language variants with ALTID, a second
+// NOTE...): the model shows the first one with content, the others are kept as read
+const SINGLE_OCCURRENCE_PROPERTIES: Record<
+  string,
+  (prop: JCalProperty) => boolean
+> = {
+  fn: hasTextProperty,
+  nickname: hasTextListProperty,
+  bday: hasBirthdayProperty,
+  org: hasOrgProperty,
+  title: hasTextProperty,
+  role: hasTextProperty,
+  categories: hasTextListProperty,
+  note: hasTextProperty
+}
+
+/** The occurrence of each repeatable property the model reads, keyed by property name. */
+function pickShownProperties(card: JCalCard): Record<string, JCalProperty> {
+  return Object.fromEntries(
+    Object.entries(SINGLE_OCCURRENCE_PROPERTIES).flatMap(
+      ([name, hasContent]) => {
+        const shown = getCardProperties(card, name).find(hasContent)
+        return shown ? [[name, shown]] : []
+      }
+    )
+  )
+}
+
+function parseOrgProperty(prop: JCalProperty): ContactOrg | null {
   const rawValue = prop[3]
   let values: string[]
   let source = {}
@@ -387,18 +434,11 @@ function parseOrg(card: JCalCard): ContactOrg | null {
 }
 
 // RFC 7095 sends a date as a string, non-conformant writers may store a number
-function parseBirthday(card: JCalCard): string | null {
-  const value = getCardProperties(card, 'bday')[0]?.[3]
-  return typeof value === 'string' || typeof value === 'number'
+function parseBirthdayProperty(prop: JCalProperty): string | null {
+  const value = prop[3]
+  return (typeof value === 'string' && value) || typeof value === 'number'
     ? String(value)
     : null
-}
-
-// text-list properties (RFC 6350 NICKNAME, CATEGORIES) carry every value after the type
-function parseTextList(card: JCalCard, name: string): string[] {
-  const prop = getCardProperties(card, name)[0]
-  if (!prop) return []
-  return getStringValues(prop)
 }
 
 // hrefs come as-is from the JSON payload, anything but a string is a missing one
@@ -543,9 +583,16 @@ export function normalizeContact(item: DavContactItem): Contact {
   const id = decodeDavSegment(extractId(item._links?.self?.href, '.vcf'))
   const card = item.data
 
+  const shown = pickShownProperties(card)
+  // a card whose every FN is blank keeps showing it, as it is written back;
+  // an unreadable FN cannot be written back, it is kept as read
+  const fn =
+    shown.fn ??
+    getCardProperties(card, 'fn').find(prop => getStringValue(prop) !== null)
+
   const contact: Contact = {
     id,
-    displayName: getCardProperty(card, 'fn') ?? id,
+    displayName: (fn && getStringValue(fn)) ?? id,
     emails: parseEmails(card)
   }
 
@@ -555,13 +602,11 @@ export function normalizeContact(item: DavContactItem): Contact {
   const name = parseName(card)
   if (name) contact.name = name
 
-  const nicknames = parseTextList(card, 'nickname')
-  if (nicknames.some(Boolean)) contact.nicknames = nicknames
+  if (shown.nickname) contact.nicknames = getStringValues(shown.nickname)
 
-  const birthday = parseBirthday(card)
-  if (birthday) {
-    contact.birthday = birthday
-    contact.birthdayProp = getCardProperties(card, 'bday')[0]
+  if (shown.bday) {
+    contact.birthday = parseBirthdayProperty(shown.bday) as string
+    contact.birthdayProp = shown.bday
   }
 
   const phones = parsePhones(card)
@@ -576,31 +621,33 @@ export function normalizeContact(item: DavContactItem): Contact {
   const urls = parseUrls(card)
   if (urls.length > 0) contact.urls = urls
 
-  const org = parseOrg(card)
-  if (org) contact.org = org
+  if (shown.org) contact.org = parseOrgProperty(shown.org) as ContactOrg
 
-  const title = getCardProperty(card, 'title')
-  if (title) contact.title = title
+  if (shown.title) contact.title = getStringValue(shown.title) as string
 
-  const role = getCardProperty(card, 'role')
-  if (role) contact.role = role
+  if (shown.role) contact.role = getStringValue(shown.role) as string
 
-  const categories = parseTextList(card, 'categories')
-  if (categories.length > 0) contact.categories = categories
+  if (shown.categories) contact.categories = getStringValues(shown.categories)
 
-  const note = getCardProperty(card, 'note')
-  if (note) contact.note = note
+  if (shown.note) contact.note = getStringValue(shown.note) as string
 
-  const propertyParams = parsePropertyParams(card)
+  const propertyParams = parsePropertyParams({
+    ...shown,
+    ...(fn && { fn }),
+    ...(name && { n: getCardProperties(card, 'n')[0] })
+  })
   if (Object.keys(propertyParams).length > 0) {
     contact.propertyParams = propertyParams
   }
 
-  // an unreadable bday is kept as-is so that saving does not lose it
+  // the other occurrences of a repeatable property, and the unreadable ones,
+  // are kept as-is so that saving does not lose them
+  const read = new Set(Object.values(shown))
+  if (fn) read.add(fn)
   const passthroughProps = card[1].filter(
     prop =>
       !KNOWN_PROPERTIES.has(prop[0]) ||
-      (prop[0] === 'bday' && !contact.birthday)
+      (prop[0] in SINGLE_OCCURRENCE_PROPERTIES && !read.has(prop))
   )
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 

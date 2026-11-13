@@ -610,3 +610,42 @@ describe('saving a contact with properties the form does not model', () => {
     others.forEach(prop => expect(saved[1]).toContainEqual(prop))
   })
 })
+
+describe('saving repeated text properties', () => {
+  it('keeps the other FN and ORG properties on an unchanged save', () => {
+    const en: JCalProperty = [
+      'fn',
+      { language: 'en', altid: '1' },
+      'text',
+      'Mei Tanaka'
+    ]
+    const ja: JCalProperty = [
+      'fn',
+      { language: 'ja', altid: '1' },
+      'text',
+      '田中 芽衣'
+    ]
+    const read = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['uid', {}, 'text', 'c1'],
+          en,
+          ja,
+          ['n', {}, 'text', ['Tanaka', 'Mei', '', '', '']],
+          ['org', {}, 'text', 'Acme'],
+          ['org', {}, 'text', ['Initech', 'IT']]
+        ]
+      ]
+    })
+
+    const saved = denormalizeContact(
+      makeContactFromForm(makeFormValuesFromContact(read, 'contacts'), read)
+    )[1]
+
+    expect(saved).toContainEqual(en)
+    expect(saved).toContainEqual(ja)
+    expect(saved.filter(p => p[0] === 'org')).toHaveLength(2)
+  })
+})
