@@ -16,7 +16,7 @@
   },
   "peerDependencies": {
     "@linagora/twake-icons": "^3.0.0",
-    "@linagora/twake-mui": "^19.5.0",
+    "@linagora/twake-mui": "^19.6.0",
     "@reduxjs/toolkit": "^2.14.0",
     "@sentry/react": "^11.11.0",
     "react": "^19.3.0",
