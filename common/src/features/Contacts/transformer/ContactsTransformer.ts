@@ -616,6 +616,37 @@ export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   }
 }
 
+// N as a plain string (non-conformant writers) holds the family name only
+function nameText(card: JCalCard, name: ContactName | null): string {
+  if (name) return [name.givenName, name.familyName].join(' ')
+  return getCardProperty(card, 'n') ?? ''
+}
+
+/**
+ * RFC 6350 requires FN, but a card written elsewhere may lack it or leave it
+ * blank: name it from what it holds, its file name being the last resort.
+ */
+function buildDisplayName(
+  card: JCalCard,
+  fileName: string,
+  parsed: {
+    fn: JCalProperty | undefined
+    name: ContactName | null
+    org: ContactOrg | null
+    nicknames: string[]
+    emails: ContactEmail[]
+  }
+): string {
+  const candidates = [
+    parsed.fn && getStringValue(parsed.fn),
+    nameText(card, parsed.name),
+    parsed.org?.name,
+    ...parsed.nicknames,
+    parsed.emails[0]?.value
+  ]
+  return candidates.map(text => text?.trim()).find(Boolean) ?? fileName
+}
+
 // properties read into the contact and written back by denormalizeContact:
 // any other property goes through passthroughProps, so that saving keeps it
 const KNOWN_PROPERTIES = new Set([
@@ -647,26 +678,33 @@ export function normalizeContact(item: DavContactItem): Contact {
   const card: JCalCard = ['vcard', readCardProperties(item?.data)]
 
   const shown = pickShownProperties(card)
-  // a card whose every FN is blank keeps showing it, as it is written back;
-  // an unreadable FN cannot be written back, it is kept as read
+  // a card whose every FN is blank is written back with the name shown, under
+  // the parameters of that FN; an unreadable FN cannot be written back, it is
+  // kept as read
   const fn =
     shown.fn ??
     getCardProperties(card, 'fn').find(prop => getStringValue(prop) !== null)
+  const emails = parseEmails(card)
+  const name = parseName(card)
+  const org = shown.org ? parseOrgProperty(shown.org) : null
+  const nicknames = shown.nickname ? getStringValues(shown.nickname) : []
 
   const contact: Contact = {
     id,
-    displayName:
-      (fn && getStringValue(fn)) ?? stripExtension(fileName, CARD_EXTENSION),
-    emails: parseEmails(card)
+    displayName: buildDisplayName(
+      card,
+      stripExtension(fileName, CARD_EXTENSION),
+      { fn: shown.fn, name, org, nicknames, emails }
+    ),
+    emails
   }
 
   const uidProperty = getCardProperties(card, 'uid')[0]
   if (uidProperty) contact.uidProperty = uidProperty
 
-  const name = parseName(card)
   if (name) contact.name = name
 
-  if (shown.nickname) contact.nicknames = getStringValues(shown.nickname)
+  if (shown.nickname) contact.nicknames = nicknames
 
   if (shown.bday) {
     contact.birthday = parseBirthdayProperty(shown.bday) as string
@@ -685,7 +723,7 @@ export function normalizeContact(item: DavContactItem): Contact {
   const urls = parseUrls(card)
   if (urls.length > 0) contact.urls = urls
 
-  if (shown.org) contact.org = parseOrgProperty(shown.org) as ContactOrg
+  if (org) contact.org = org
 
   if (shown.title) contact.title = getStringValue(shown.title) as string
 

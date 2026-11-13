@@ -218,6 +218,64 @@ describe('normalizeContact', () => {
     expect(normalizeContact(withoutFn).displayName).toBe('contact-1')
   })
 
+  describe('display name without a usable FN', () => {
+    const item = (...props: JCalCard[1]): DavContactItem => ({
+      _links: { self: { href: '/addressbooks/u/b/file-name.vcf' } },
+      data: ['vcard', [['version', {}, 'text', '4.0'], ...props]]
+    })
+
+    it.each([
+      [[['n', {}, 'text', ['Martin', 'Alice', '', '', '']]], 'Alice Martin'],
+      [[['n', {}, 'text', ['Martin', '', '', '', '']]], 'Martin'],
+      [[['n', {}, 'text', 'Martin']], 'Martin'],
+      [[['org', {}, 'text', ['Initech', 'IT']]], 'Initech'],
+      [[['nickname', {}, 'text', 'Ali']], 'Ali'],
+      [[['email', {}, 'text', 'mailto:a@x.example']], 'a@x.example'],
+      [
+        [
+          ['fn', {}, 'text', ['a', 'b']],
+          ['org', {}, 'text', ['Initech']]
+        ],
+        'Initech'
+      ],
+      [
+        [
+          ['n', {}, 'text', ['', '', '', '', '']],
+          ['email', {}, 'text', 'it@initech.example']
+        ],
+        'it@initech.example'
+      ]
+    ] as [JCalCard[1], string][])('names %j %s', (props, expected) => {
+      expect(normalizeContact(item(...props)).displayName).toBe(expected)
+    })
+
+    it.each(['', ' ', '\t'])('does not keep the blank FN %j as name', fn => {
+      const contact = normalizeContact(
+        item(['fn', {}, 'text', fn], ['org', {}, 'text', ['Initech', 'IT']])
+      )
+      expect(contact.displayName).toBe('Initech')
+    })
+
+    it('keeps a FN over the other properties', () => {
+      const contact = normalizeContact(
+        item(
+          ['fn', {}, 'text', 'Dr. Alice'],
+          ['n', {}, 'text', ['Martin', 'Alice', '', '', '']]
+        )
+      )
+      expect(contact.displayName).toBe('Dr. Alice')
+    })
+
+    it('falls back to the file name for a card holding no name', () => {
+      expect(
+        normalizeContact({
+          ...item(['fn', {}, 'text', ' ']),
+          _links: { self: { href: '/addressbooks/u/b/urn:uuid:0f8b.vcf' } }
+        }).displayName
+      ).toBe('urn:uuid:0f8b')
+    })
+  })
+
   it('does not include optional fields when absent', () => {
     const minimal: DavContactItem = {
       ...collectedItem,
