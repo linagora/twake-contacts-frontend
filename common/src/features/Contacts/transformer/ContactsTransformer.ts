@@ -457,12 +457,18 @@ const SINGLE_OCCURRENCE_PROPERTIES: Record<
   note: hasTextProperty
 }
 
-/** The occurrence of each repeatable property the model reads, keyed by property name. */
+/**
+ * The occurrence of each repeatable property the model reads, keyed by property
+ * name: the one the card prefers (lowest PREF, RFC 6350 section 5.3) among
+ * those with content, the first one when none is preferred.
+ */
 function pickShownProperties(card: JCalCard): Record<string, JCalProperty> {
   return Object.fromEntries(
     Object.entries(SINGLE_OCCURRENCE_PROPERTIES).flatMap(
       ([name, hasContent]) => {
-        const shown = getCardProperties(card, name).find(hasContent)
+        const shown = byPreference(getCardProperties(card, name)).find(
+          hasContent
+        )
         return shown ? [[name, shown]] : []
       }
     )
@@ -683,7 +689,9 @@ export function normalizeContact(item: DavContactItem): Contact {
   // kept as read
   const fn =
     shown.fn ??
-    getCardProperties(card, 'fn').find(prop => getStringValue(prop) !== null)
+    byPreference(getCardProperties(card, 'fn')).find(
+      prop => getStringValue(prop) !== null
+    )
   const emails = parseEmails(card)
   const name = parseName(card)
   const org = shown.org ? parseOrgProperty(shown.org) : null

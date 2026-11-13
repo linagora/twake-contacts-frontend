@@ -2383,6 +2383,63 @@ describe('repeated text properties', () => {
     expect(fns).toEqual([en, ['fn', {}, 'text', ''], ja])
   })
 
+  it('shows the FN the card prefers and writes it back with its parameters', () => {
+    const fr: JCalProperty = [
+      'fn',
+      { altid: '1', language: 'fr' },
+      'text',
+      'van der Berg'
+    ]
+    const en: JCalProperty = [
+      'fn',
+      { altid: '1', language: 'en', pref: '1' },
+      'text',
+      'Jane Doe'
+    ]
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: ['vcard', [['version', {}, 'text', '4.0'], fr, en]]
+    } as unknown as DavContactItem)
+    expect(contact.displayName).toBe('Jane Doe')
+    const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
+    expect(fns).toEqual([en, fr])
+  })
+
+  it('shows the FN with the lowest PREF', () => {
+    const contact = withProps(
+      ['fn', { pref: '50' }, 'text', 'Fifty'],
+      ['fn', { pref: '2' }, 'text', 'Two']
+    )
+    expect(contact.displayName).toBe('Two')
+  })
+
+  it('keeps the first FN when none is preferred', () => {
+    const contact = normalizeContact({
+      _links: { self: { href: '/addressbooks/u/b/c.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['fn', {}, 'text', 'First'],
+          ['fn', {}, 'text', 'Second']
+        ]
+      ]
+    } as unknown as DavContactItem)
+    expect(contact.displayName).toBe('First')
+  })
+
+  it('skips a preferred FN without content', () => {
+    const contact = withProps(['fn', { pref: '1' }, 'text', ' '])
+    expect(contact.displayName).toBe('Jane')
+  })
+
+  it('shows the TITLE the card prefers', () => {
+    const contact = withProps(
+      ['title', { altid: '1', language: 'fr' }, 'text', 'Directeur'],
+      ['title', { altid: '1', language: 'en', pref: '1' }, 'text', 'Director']
+    )
+    expect(contact.title).toBe('Director')
+  })
+
   it('keeps an unreadable FN when it is the only one', () => {
     const unreadable: JCalProperty = ['fn', {}, 'text', ['Mei Tanaka']]
     const contact = normalizeContact({
