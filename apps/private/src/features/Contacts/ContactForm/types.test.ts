@@ -398,6 +398,39 @@ describe('saving an unchanged contact', () => {
       expect(saved).toContainEqual(n)
     })
 
+    it('keeps N as read when a name component only differs by surrounding spaces', () => {
+      const n: JCalProperty = [
+        'n',
+        { 'sort-as': 'Berg,Anna' },
+        'text',
+        ['van der Berg ', ' ', '', '', '']
+      ]
+
+      const saved = save(readCard([n]))
+
+      expect(saved).toContainEqual(n)
+    })
+
+    it('drops SORT-AS when the family name is changed', () => {
+      const n: JCalProperty = [
+        'n',
+        { 'sort-as': 'Berg,Anna' },
+        'text',
+        ['van der Berg ', 'Anna', '', '', '']
+      ]
+      const saved = save(readCard([n]), values => {
+        values.familyName = 'Smith'
+      })
+
+      expect(paramsOf(saved, 'n')).toEqual({})
+      expect(saved).toContainEqual([
+        'n',
+        {},
+        'text',
+        ['Smith', 'Anna', '', '', '']
+      ])
+    })
+
     it('keeps PREF, the TYPE list, the group and the LABEL', () => {
       const saved = save(
         readCard([
