@@ -316,4 +316,36 @@ describe('ShareAddressBookDialog', () => {
     await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('removes an external member, invited by its email without a user id', async () => {
+    const user = userEvent.setup()
+    const external = {
+      name: 'ext@x.example',
+      email: 'ext@x.example',
+      href: 'mailto:ext@x.example',
+      role: AddressBookAccessLevel.Viewer
+    } as userData
+    mockedFetchDetails
+      .mockResolvedValueOnce({ members: [external], isPublic: false })
+      .mockReturnValue(new Promise(() => undefined))
+    mockedUpdateShares.mockResolvedValue(undefined)
+    renderDialog()
+
+    await user.click(await screen.findByRole('button', { name: 'Remove' }))
+
+    await waitFor(() =>
+      expect(mockedUpdateShares).toHaveBeenCalledWith(
+        'alice',
+        'book1',
+        expect.arrayContaining([
+          {
+            userId: 'mailto:ext@x.example',
+            access: AddressBookAccessLevel.None,
+            href: 'mailto:ext@x.example'
+          }
+        ])
+      )
+    )
+    expect(screen.queryByText('ext@x.example')).not.toBeInTheDocument()
+  })
 })

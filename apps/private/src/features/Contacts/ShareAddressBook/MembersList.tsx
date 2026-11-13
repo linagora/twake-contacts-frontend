@@ -13,6 +13,7 @@ import { Icon, UserGroup } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
 import { userData } from '@common/features/User/userDataTypes'
 import { useAppSelector } from '@common/app/hooks'
+import { shareeKey } from '@common/features/Contacts/transformer/ContactsTransformer'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { MemberRow } from './MemberRow'
 import { partitionMembers } from './sharingHelpers'
@@ -62,10 +63,12 @@ export const MembersList: React.FC<MembersListProps> = ({
         <MemberRow member={me} isCurrentUser />
         {others.map((member, index) => (
           <MemberRow
-            key={member.openpaasId || index}
+            key={shareeKey(member) || index}
             member={member}
             onUpdateMember={onUpdateMember}
-            isUpdating={updatingMemberId === member.openpaasId}
+            isUpdating={
+              !!updatingMemberId && updatingMemberId === shareeKey(member)
+            }
           />
         ))}
       </List>

@@ -18,7 +18,10 @@ import {
 } from '@common/features/Contacts/ContactsSlice'
 import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { userData as UserDataType } from '@common/features/User/userDataTypes'
-import { buildFullShareesList } from '@common/features/Contacts/transformer/ContactsTransformer'
+import {
+  buildFullShareesList,
+  shareeKey
+} from '@common/features/Contacts/transformer/ContactsTransformer'
 import { toContactsErrorKey } from '@common/features/Contacts/contactsUtils'
 import { RejectedError } from '@common/utils/errorUtils'
 
@@ -92,9 +95,10 @@ const useAddressBookSharingState = (
   )
   const activeInvitedMembers = useMemo(
     () =>
-      invitedMembers.filter(
-        m => !m.openpaasId || !removedIds.includes(m.openpaasId)
-      ),
+      invitedMembers.filter(m => {
+        const key = shareeKey(m)
+        return !key || !removedIds.includes(key)
+      }),
     [invitedMembers, removedIds]
   )
 
@@ -262,17 +266,18 @@ const createHandleUpdateMember =
     role: AddressBookAccessLevel
   ) => Promise<void>) =>
   async (user: UserDataType, role: AddressBookAccessLevel): Promise<void> => {
-    if (!user.openpaasId) return
+    const key = shareeKey(user)
+    if (!key) return
 
     if (role === AddressBookAccessLevel.None) {
-      setRemovedIds(prev => [...prev, user.openpaasId || ''])
+      setRemovedIds(prev => [...prev, key])
     } else {
-      setUpdatingMemberId(user.openpaasId)
+      setUpdatingMemberId(key)
     }
 
     const updates = [
       {
-        userId: user.openpaasId,
+        userId: key,
         role,
         href: user.href || `mailto:${user.email}`
       }
@@ -286,7 +291,7 @@ const createHandleUpdateMember =
       updates,
       onError: () => {
         if (role === AddressBookAccessLevel.None) {
-          setRemovedIds(prev => prev.filter(id => id !== user.openpaasId))
+          setRemovedIds(prev => prev.filter(id => id !== key))
         }
       },
       onSettled: () => setUpdatingMemberId(null),
