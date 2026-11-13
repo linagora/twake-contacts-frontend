@@ -657,3 +657,62 @@ describe('BDAY round trip', () => {
     expect(savedBday(contact)).toEqual([['bday', {}, 'text', 'circa 1800']])
   })
 })
+
+describe('group companions already alone in the card', () => {
+  const readCard = (properties: JCalProperty[]): Contact =>
+    normalizeContact({
+      _links: { self: { href: '/addressbooks/u/contacts/c1.vcf' } },
+      data: [
+        'vcard',
+        [
+          ['version', {}, 'text', '3.0'],
+          ['uid', {}, 'text', 'c1'],
+          ['fn', {}, 'text', 'Mei Tanaka'],
+          ...properties
+        ]
+      ]
+    })
+
+  const label: JCalProperty = [
+    'x-ablabel',
+    { group: 'item1', language: 'en-GB' },
+    'unknown',
+    'BLOG'
+  ]
+
+  it('keeps an X-ABLabel whose group had no other property when read', () => {
+    const saved = denormalizeContact(
+      readCard([['url', {}, 'uri', 'https://x.example/'], label])
+    )
+
+    expect(saved[1]).toContainEqual(label)
+  })
+
+  it('keeps it next to an ungrouped X-ABLabel', () => {
+    const ungrouped: JCalProperty = ['x-ablabel', {}, 'unknown', 'Mine']
+
+    const saved = denormalizeContact(readCard([ungrouped, label]))
+
+    expect(saved[1]).toContainEqual(ungrouped)
+    expect(saved[1]).toContainEqual(label)
+  })
+
+  it('keeps an X-ABADR whose group had no other property when read', () => {
+    const abadr: JCalProperty = ['x-abadr', { group: 'item2' }, 'unknown', 'fr']
+
+    const saved = denormalizeContact(readCard([abadr]))
+
+    expect(saved[1]).toContainEqual(abadr)
+  })
+
+  it('still drops the companion of a grouped property removed before saving', () => {
+    const read = readCard([
+      ['email', { group: 'item1' }, 'text', 'mei@x.example'],
+      label
+    ])
+
+    const saved = denormalizeContact({ ...read, emails: [] })
+
+    expect(saved[1]).not.toContainEqual(label)
+  })
+})

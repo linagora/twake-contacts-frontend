@@ -130,6 +130,8 @@ export interface Contact {
   /** Parameters of the single properties (FN, N, ORG…) as read, written back on save. */
   propertyParams?: Partial<Record<SingleContactProperty, JCalParams>>
   passthroughProps?: JCalProperty[]
+  /** Groups carried by a property other than a label companion, as read: a save drops only the companions it orphans. */
+  carriedGroups?: string[]
 }
 
 export interface AddressBookWithContacts extends AddressBook {
