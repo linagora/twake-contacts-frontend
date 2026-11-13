@@ -1,4 +1,7 @@
-import { Contact } from '@common/features/Contacts/contactsTypes'
+import {
+  Contact,
+  ContactAddress
+} from '@common/features/Contacts/contactsTypes'
 import {
   JCalParams,
   JCalProperty,
@@ -88,6 +91,59 @@ describe('makeContactFromForm', () => {
     const saved = makeContactFromForm(cleared, contact)
 
     expect(saved.addresses).toEqual([{ ...untypedAddress, type: 'work' }])
+  })
+
+  describe('with structured addresses', () => {
+    const home = {
+      type: 'home',
+      poBox: '',
+      extended: '',
+      street: '1 rue',
+      locality: 'Lyon',
+      region: '',
+      postalCode: '69001',
+      country: 'France'
+    }
+    const work = {
+      type: 'work',
+      poBox: '',
+      extended: '',
+      street: '2 av',
+      locality: 'Nice',
+      region: '',
+      postalCode: '06000',
+      country: 'France'
+    }
+    const withAddresses = (addresses: ContactAddress[]): Contact => ({
+      id: 'c1',
+      displayName: 'Mei Tanaka',
+      emails: [],
+      addresses
+    })
+
+    it('keeps the components of an address that follows an emptied one', () => {
+      const card = withAddresses([home, work])
+      const values = makeFormValuesFromContact(card, 'book')
+      values.addresses[0] = { ...values.addresses[0], value: '' }
+
+      expect(makeContactFromForm(values, card).addresses).toEqual([work])
+    })
+
+    it('keeps the components of the other addresses when one is removed', () => {
+      const card = withAddresses([home, work])
+      const values = makeFormValuesFromContact(card, 'book')
+      values.addresses.splice(0, 1)
+
+      expect(makeContactFromForm(values, card).addresses).toEqual([work])
+    })
+
+    it('matches each row with its own address when rows are reordered', () => {
+      const card = withAddresses([home, work])
+      const values = makeFormValuesFromContact(card, 'book')
+      values.addresses.reverse()
+
+      expect(makeContactFromForm(values, card).addresses).toEqual([work, home])
+    })
   })
 
   it('trims the emails', () => {
