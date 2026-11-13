@@ -31,15 +31,22 @@ function isParamsObject(params: unknown): boolean {
   return typeof params === 'object' && params !== null && !Array.isArray(params)
 }
 
-// RFC 7095 §3.3: a property is [name, params, valueType, value, ...values]
+// RFC 7095 §3.3: a property is [name, params, valueType, value, ...values];
+// null params, written by some non-conformant writers, stand for no parameter
 function isCardProperty(property: unknown): property is JCalProperty {
   return (
     Array.isArray(property) &&
     property.length >= 4 &&
     typeof property[0] === 'string' &&
-    isParamsObject(property[1]) &&
+    (property[1] === null || isParamsObject(property[1])) &&
     typeof property[2] === 'string'
   )
+}
+
+function withParamsObject(property: JCalProperty): JCalProperty {
+  if (property[1] !== null) return property
+  const [name, , valueType, ...values] = property
+  return [name, {}, valueType, ...values] as JCalProperty
 }
 
 /**
@@ -48,7 +55,9 @@ function isCardProperty(property: unknown): property is JCalProperty {
  */
 function readCardProperties(card: unknown): JCalProperty[] {
   const properties: unknown = Array.isArray(card) ? card[1] : undefined
-  return Array.isArray(properties) ? properties.filter(isCardProperty) : []
+  return Array.isArray(properties)
+    ? properties.filter(isCardProperty).map(withParamsObject)
+    : []
 }
 
 export function getCardProperty(card: JCalCard, name: string): string | null {
