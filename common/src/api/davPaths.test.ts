@@ -85,6 +85,22 @@ describe('davPaths', () => {
     )
   })
 
+  it.each([['.'], ['..']])(
+    'refuses to address a card named %s, which would reach another resource',
+    fileName => {
+      const id = cardIdOf(fileName)
+
+      expect(() => cardPath(book, id)).toThrow()
+      expect(() => cardHref(book, id)).toThrow()
+    }
+  )
+
+  it('still addresses a card named "..vcf"', () => {
+    expect(cardPath(book, cardIdOf('..vcf'))).toBe(
+      'dav/addressbooks/user-1/book-1/..vcf'
+    )
+  })
+
   it('maps the domain book between its store and server ids', () => {
     expect(toServerBookId('dab')).toBe('domain-members')
     expect(toServerBookId('book-1')).toBe('book-1')

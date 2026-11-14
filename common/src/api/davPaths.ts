@@ -68,11 +68,24 @@ export function cardIdOf(fileName: string): string {
     : `${fileName}${VERBATIM_FILE_NAME_MARK}`
 }
 
-/** The decoded file name of a card from its id, see cardIdOf. */
+/**
+ * "." and ".." are removed when a URL is resolved: a card named so would be
+ * addressed as its book, or as the home of the books.
+ */
+const DOT_SEGMENTS = new Set(['.', '..'])
+
+/**
+ * The decoded file name of a card from its id, see cardIdOf. Throws for a
+ * name no request can address, so that no call reaches another resource.
+ */
 export function cardFileName(cardId: string): string {
-  return cardId.endsWith(VERBATIM_FILE_NAME_MARK)
+  const fileName = cardId.endsWith(VERBATIM_FILE_NAME_MARK)
     ? cardId.slice(0, -VERBATIM_FILE_NAME_MARK.length)
     : `${cardId}${CARD_EXTENSION}`
+  if (DOT_SEGMENTS.has(fileName)) {
+    throw new Error(`No card can be addressed by the name "${fileName}"`)
+  }
+  return fileName
 }
 
 /** `/addressbooks/<userId>/<bookId>/<cardFileName>`, `<cardId>.vcf` mostly */
