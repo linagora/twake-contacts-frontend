@@ -9,14 +9,9 @@ field of `package.json`.
 
 ## [Unreleased]
 
-First release of the Twake Contacts frontend, a Single Page Application allowing users to manage their
-contacts. It shares its technical stack with the Twake Calendar frontend, reads and writes contacts on
-`esn-sabre` (CardDAV) through `twake-calendar-side-service`, and signs users in over OIDC.
-
-**Compatibility:** esn-sabre >= 2.4.7.9, twake-calendar-side-service >= 2.4.7.7
-
 ### Added
 
+- Address book page header with its sharing status and the actions of the sidebar
 - Private contacts application for authenticated users, with OIDC sign in through `@linagora/twake-oidc`
   and SSO logout
 - Address books: listing in a sidebar sorted alphabetically and grouped by category (mine, shared, domain),
@@ -40,7 +35,6 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
   malformed setting shows a page naming it
 - Bounded API retry policy: 15 s timeout per attempt, reads retried twice, writes never replayed automatically,
   a `Retry-After` header capped to 3 s
-- Address book page header with its sharing status and the actions of the sidebar
 - Warning when a new contact's email already belongs to another contact
 - High-contrast mode, switchable from every screen
 - Skip link, a single main landmark, an h1 and a page title on every screen, and the interface language on
@@ -58,6 +52,8 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
   24.15.0 or later in the 24.x series ([#521](https://github.com/linagora/twake-contacts-frontend/pull/521))
 - The application talks to `twake-calendar-side-service` (`SIDE_SERVICE_BASE_URL`) instead of an OpenPaaS
   backend and the DAV server directly
+- Emails and phones are listed by preference (`PREF`, or a `pref` token in `TYPE`), so the preferred email is the one used by the list, the mail composer and new events ([#612](https://github.com/linagora/twake-contacts-frontend/pull/612))
+- A card with several `FN` variants is shown, sorted and given initials under the preferred one; the other single-value properties (`TITLE`, `NOTE`, `ROLE`, `ORG`, `NICKNAME`, `CATEGORIES`, `BDAY`) follow the same rule ([#632](https://github.com/linagora/twake-contacts-frontend/pull/632))
 
 ### Fixed
 
@@ -88,3 +84,23 @@ contacts. It shares its technical stack with the Twake Calendar frontend, reads 
 - Opening the sign-in callback page without a pending sign-in, by a reload, the Back button or a bookmark,
   signs in again instead of leaving a blank page ([#422](https://github.com/linagora/twake-contacts-frontend/pull/422))
 - Phone numbers stored as `TEL` URIs are read whatever the case of `tel:`, and RFC 3966 `phone-context` parameters and percent escapes no longer end up in the displayed number ([#498](https://github.com/linagora/twake-contacts-frontend/pull/498))
+- A moved contact is no longer listed twice when the destination already held a stale card with the same id ([#601](https://github.com/linagora/twake-contacts-frontend/pull/601))
+- The contact count of an address book never goes below zero after a delete or a move ([#604](https://github.com/linagora/twake-contacts-frontend/pull/604))
+- The Discovery switch of an address book shared with an Editor shows its real state and can unpublish it ([#605](https://github.com/linagora/twake-contacts-frontend/pull/605))
+- Saving a contact keeps the multi-valued `ADR`, `ORG` and `N` components (a street on two lines, alternative organisation names) instead of joining them ([#602](https://github.com/linagora/twake-contacts-frontend/pull/602))
+- Saving a contact keeps `ANNIVERSARY`, `IMPP`, `GENDER`, `GEO`, `TZ`, `LANG` and `REV`, which were deleted by any edit ([#609](https://github.com/linagora/twake-contacts-frontend/pull/609))
+- Saving a contact keeps the parameters of its properties (`PREF`, `TYPE` list, `itemN` group, `ADR;LABEL`, `SORT-AS`, `LANGUAGE`, `ALTID`, `X-` parameters) for other clients ([#610](https://github.com/linagora/twake-contacts-frontend/pull/610))
+- Saving a contact keeps every occurrence of `FN`, `ORG`, `NOTE`, `NICKNAME`, `TITLE`, `ROLE`, `BDAY` and `CATEGORIES`, language variants included ([#607](https://github.com/linagora/twake-contacts-frontend/pull/607))
+- Saving a contact keeps the `N` components the form does not edit (additional names, prefix, suffix) ([#608](https://github.com/linagora/twake-contacts-frontend/pull/608))
+- Saving a contact whose name is unchanged keeps its display name (`FN`) as written by another client, and `N;SORT-AS` is kept when the name only had surrounding spaces ([#606](https://github.com/linagora/twake-contacts-frontend/pull/606), [#630](https://github.com/linagora/twake-contacts-frontend/pull/630))
+- Saving a contact keeps an `X-ABLabel` or `X-ABADR` that was alone in its group ([#631](https://github.com/linagora/twake-contacts-frontend/pull/631))
+- Removing or reordering an address row no longer turns the later addresses into a single street line ([#611](https://github.com/linagora/twake-contacts-frontend/pull/611))
+- An address known only by its `LABEL` is shown, and an address with neither components nor label is no longer listed as an empty row ([#618](https://github.com/linagora/twake-contacts-frontend/pull/618))
+- Phones, emails and addresses are labelled with their first known `TYPE` (`TEL;TYPE=VOICE,CELL`, `INTERNET,HOME`), and unexpected `TYPE` values no longer break the display ([#613](https://github.com/linagora/twake-contacts-frontend/pull/613))
+- A malformed card no longer prevents the other contacts of a page or a search from being listed ([#614](https://github.com/linagora/twake-contacts-frontend/pull/614))
+- An `EMAIL` written `MAILTO:`, with spaces, `?subject=` or `%40` is read as the address alone ([#616](https://github.com/linagora/twake-contacts-frontend/pull/616))
+- A card without a usable `FN` is named from its `N`, organisation, nickname or first email before falling back to its file name ([#617](https://github.com/linagora/twake-contacts-frontend/pull/617))
+- Cards whose file name contains `.vcf` inside the name are no longer confused with another card on export, delete, copy or move ([#615](https://github.com/linagora/twake-contacts-frontend/pull/615))
+- Cards written by other clients under a file name not ending in `.vcf` (`x.VCF`, `abc`) can be opened, exported, saved, deleted, copied and moved, and a card named `.` or `..` is refused instead of reaching another resource ([#634](https://github.com/linagora/twake-contacts-frontend/pull/634))
+- A contact whose file name holds a literal `%2F` opens correctly ([#633](https://github.com/linagora/twake-contacts-frontend/pull/633))
+- An external sharee invited by email is no longer looked up as a user nor named "mailto:" in the sharing dialog ([#629](https://github.com/linagora/twake-contacts-frontend/pull/629))
