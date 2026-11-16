@@ -85,11 +85,13 @@ describe('davPaths', () => {
     )
   })
 
-  it.each([['.'], ['..']])(
-    'refuses to address a card named %s, which would reach another resource',
-    fileName => {
-      const id = cardIdOf(fileName)
+  it.each([['.'], ['..']])('gives no id to a card named %s', fileName => {
+    expect(cardIdOf(fileName)).toBe('')
+  })
 
+  it.each([['./'], ['../']])(
+    'refuses to address the id %s, which would reach another resource',
+    id => {
       expect(() => cardPath(book, id)).toThrow()
       expect(() => cardHref(book, id)).toThrow()
     }

@@ -56,23 +56,24 @@ const CARD_EXTENSION = '.vcf'
 const VERBATIM_FILE_NAME_MARK = '/'
 
 /**
- * The id of a card from its decoded file name: `<id>.vcf` for the cards of
- * this app and most clients, the file name itself otherwise (`x.VCF`, `abc`),
- * marked so that the card is addressed back under that very name (CardDAV
- * resource names are case-sensitive: `x.VCF` is not `x.vcf`).
- */
-export function cardIdOf(fileName: string): string {
-  if (fileName === '') return ''
-  return fileName.endsWith(CARD_EXTENSION)
-    ? fileName.slice(0, -CARD_EXTENSION.length)
-    : `${fileName}${VERBATIM_FILE_NAME_MARK}`
-}
-
-/**
  * "." and ".." are removed when a URL is resolved: a card named so would be
  * addressed as its book, or as the home of the books.
  */
 const DOT_SEGMENTS = new Set(['.', '..'])
+
+/**
+ * The id of a card from its decoded file name: `<id>.vcf` for the cards of
+ * this app and most clients, the file name itself otherwise (`x.VCF`, `abc`),
+ * marked so that the card is addressed back under that very name (CardDAV
+ * resource names are case-sensitive: `x.VCF` is not `x.vcf`). A card named
+ * "." or ".." has no id: no request can address it.
+ */
+export function cardIdOf(fileName: string): string {
+  if (fileName === '' || DOT_SEGMENTS.has(fileName)) return ''
+  return fileName.endsWith(CARD_EXTENSION)
+    ? fileName.slice(0, -CARD_EXTENSION.length)
+    : `${fileName}${VERBATIM_FILE_NAME_MARK}`
+}
 
 /**
  * The decoded file name of a card from its id, see cardIdOf. Throws for a
