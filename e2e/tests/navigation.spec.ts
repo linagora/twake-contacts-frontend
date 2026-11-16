@@ -22,7 +22,9 @@ test.describe('NAV sidebar and navigation', () => {
       'Book 2',
       'Book 10',
       'Zeta',
-      'Shared'
+      'Shared',
+      'Fix and merge',
+      'Merge'
     ])
     await expect(contacts.myContactsChevron).toBeVisible()
     await expect(contacts.newAddressBookButton).toBeVisible()
@@ -202,7 +204,13 @@ test.describe('NAV sidebar and navigation', () => {
     const contacts = await new LoginPage(page).loginAs(user)
 
     const entries = contacts.entries
-    await expect(entries).toHaveText([/^My contacts/, 'Shared', /^QA Book/])
+    await expect(entries).toHaveText([
+      /^My contacts/,
+      'Shared',
+      /^QA Book/,
+      'Fix and merge',
+      'Merge'
+    ])
     await expect(contacts.bookEntry('QA Book')).toContainText(owner.displayName)
     await contacts.book('QA Book').hover()
     await expect(page.getByRole('tooltip', { name: 'QA Book' })).toBeVisible()
@@ -242,7 +250,9 @@ test.describe('NAV sidebar and navigation', () => {
       'Shared',
       `Alpha Shared${bob.displayName}`,
       `Mid Carol${carol.displayName}`,
-      `Zulu Shared${bob.displayName}`
+      `Zulu Shared${bob.displayName}`,
+      'Fix and merge',
+      'Merge'
     ])
 
     const sharedToggle = contacts.nav.getByRole('button', {
