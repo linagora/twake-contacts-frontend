@@ -1215,9 +1215,7 @@ describe('fetchContactsPage', () => {
 
     expect(
       page.entries.map(entry => [entry.addressBookId, entry.contact.id])
-    ).toStrictEqual([
-      ['book1', 'c1']
-    ])
+    ).toStrictEqual([['book1', 'c1']])
   })
 
   it('returns the readable contacts of a page holding malformed cards', async () => {
