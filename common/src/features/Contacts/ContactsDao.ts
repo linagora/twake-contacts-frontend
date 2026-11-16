@@ -267,7 +267,11 @@ function readContactEntry(
   addressBookId: string
 ): ContactEntry[] {
   try {
-    return [{ addressBookId, contact: normalizeContact(item) }]
+    const contact = normalizeContact(item)
+    // no id, no request can address the card (a card named "." or ".."): it
+    // is not listed, rather than offering actions that cannot work
+    if (contact.id === '') return []
+    return [{ addressBookId, contact }]
   } catch (error) {
     console.warn(
       'Skipping an unreadable contact',

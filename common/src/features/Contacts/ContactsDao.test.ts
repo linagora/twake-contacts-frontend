@@ -1216,8 +1216,7 @@ describe('fetchContactsPage', () => {
     expect(
       page.entries.map(entry => [entry.addressBookId, entry.contact.id])
     ).toStrictEqual([
-      ['book1', 'c1'],
-      ['', '']
+      ['book1', 'c1']
     ])
   })
 
@@ -1307,6 +1306,35 @@ describe('fetchContactsPage', () => {
     expect(warn).toHaveBeenCalled()
     warn.mockRestore()
   })
+
+  it.each([['.'], ['%2E'], ['..']])(
+    'does not list a card named %s, which no request can address',
+    async name => {
+      mockResponse({
+        _embedded: {
+          'dav:item': [
+            {
+              _links: { self: { href: `/addressbooks/u1/book1/${name}` } },
+              data: card
+            },
+            {
+              _links: { self: { href: '/addressbooks/u1/book1/c1.vcf' } },
+              data: card
+            }
+          ]
+        }
+      })
+
+      const page = await fetchContactsPage(
+        'u1',
+        book,
+        { after: null, sort: DEFAULT_CONTACT_SORT },
+        false
+      )
+
+      expect(page.entries.map(entry => entry.contact.id)).toStrictEqual(['c1'])
+    }
+  )
 
   it('reads the contacts of every address book without the domain members', async () => {
     mockResponse({})
