@@ -16,7 +16,8 @@ export function useDiscoverySection({
 }: UseDiscoverySectionArgs): {
   isPublic: boolean | undefined
   loading: boolean
-  isDisabled: boolean
+  // Publication state unknown: nothing can be toggled
+  isUnavailable: boolean
   handleToggle: (
     _event: React.ChangeEvent<HTMLInputElement>,
     checked: boolean
@@ -30,14 +31,13 @@ export function useDiscoverySection({
   )
   const [loading, setLoading] = useState(false)
 
-  const isDisabled =
-    loading || isPublic === undefined || !userId || !addressBookId
+  const isUnavailable = isPublic === undefined || !userId || !addressBookId
 
   const handleToggle = async (
     _event: React.ChangeEvent<HTMLInputElement>,
     checked: boolean
   ): Promise<void> => {
-    if (isDisabled) return
+    if (loading || isUnavailable) return
     setLoading(true)
     try {
       await dispatch(
@@ -61,5 +61,5 @@ export function useDiscoverySection({
     }
   }
 
-  return { isPublic, loading, isDisabled, handleToggle }
+  return { isPublic, loading, isUnavailable, handleToggle }
 }

@@ -23,10 +23,11 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
   addressBookId
 }) => {
   const { t } = useI18n()
-  const { isPublic, isDisabled, handleToggle } = useDiscoverySection({
-    userId,
-    addressBookId
-  })
+  const { isPublic, loading, isUnavailable, handleToggle } =
+    useDiscoverySection({
+      userId,
+      addressBookId
+    })
 
   return (
     <Stack spacing={1} className="u-mt-2">
@@ -56,9 +57,12 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
           <Switch
             checked={isPublic ?? false}
             onChange={(e, checked) => void handleToggle(e, checked)}
-            disabled={isDisabled}
+            // Saving keeps the switch focusable: disabling it would drop the focus out of the dialog
+            disabled={isUnavailable}
             slotProps={{
               input: {
+                'aria-disabled': loading,
+                'aria-busy': loading,
                 'aria-label': t('contacts.share.discovery.toggleTooltip')
               }
             }}
