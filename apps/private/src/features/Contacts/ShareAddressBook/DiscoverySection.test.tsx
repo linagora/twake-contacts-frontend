@@ -55,7 +55,7 @@ it('disables discovery while publication state is unknown', () => {
   expect(setAddressBookPublished).not.toHaveBeenCalled()
 })
 
-it('keeps discovery disabled until the publication refresh completes', async () => {
+it('keeps discovery focused and busy until the publication refresh completes', async () => {
   vi.mocked(setAddressBookPublished).mockResolvedValue()
   let completeRefresh!: (value: { members: []; isPublic: boolean }) => void
   vi.mocked(fetchAddressBookDetails).mockReturnValue(
@@ -64,7 +64,9 @@ it('keeps discovery disabled until the publication refresh completes', async () 
     })
   )
   renderSection(false)
-  fireEvent.click(screen.getByRole('switch'))
+  const toggle = screen.getByRole('switch')
+  act(() => toggle.focus())
+  fireEvent.click(toggle)
   await waitFor(() =>
     expect(fetchAddressBookDetails).toHaveBeenCalledWith(
       'owner',
@@ -72,14 +74,22 @@ it('keeps discovery disabled until the publication refresh completes', async () 
       undefined
     )
   )
-  expect(screen.getByRole('switch')).toBeDisabled()
+  expect(toggle).toBeEnabled()
+  expect(toggle).toHaveAttribute('aria-disabled', 'true')
+  expect(toggle).toHaveAttribute('aria-busy', 'true')
+  expect(toggle).toHaveFocus()
   expect(setAddressBookPublished).toHaveBeenCalledWith('owner', 'book', true)
+
+  fireEvent.click(toggle)
+  expect(setAddressBookPublished).toHaveBeenCalledTimes(1)
+
   await act(async () => {
     completeRefresh({ members: [], isPublic: true })
     await Promise.resolve()
   })
-  expect(screen.getByRole('switch')).toBeEnabled()
-  expect(screen.getByRole('switch')).toBeChecked()
+  expect(toggle).toHaveAttribute('aria-disabled', 'false')
+  expect(toggle).toBeChecked()
+  expect(toggle).toHaveFocus()
 })
 
 it('preserves successful publication after refresh failure and allows unpublishing', async () => {
@@ -90,11 +100,15 @@ it('preserves successful publication after refresh failure and allows unpublishi
   renderSection(false)
 
   fireEvent.click(screen.getByRole('switch'))
-  await waitFor(() => expect(screen.getByRole('switch')).toBeEnabled())
+  await waitFor(() =>
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-disabled', 'false')
+  )
   expect(screen.getByRole('switch')).toBeChecked()
 
   fireEvent.click(screen.getByRole('switch'))
-  await waitFor(() => expect(screen.getByRole('switch')).toBeEnabled())
+  await waitFor(() =>
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-disabled', 'false')
+  )
   expect(setAddressBookPublished).toHaveBeenLastCalledWith(
     'owner',
     'book',
@@ -110,7 +124,9 @@ it('preserves the previous state when publication fails', async () => {
   renderSection(false)
 
   fireEvent.click(screen.getByRole('switch'))
-  await waitFor(() => expect(screen.getByRole('switch')).toBeEnabled())
+  await waitFor(() =>
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-disabled', 'false')
+  )
   expect(screen.getByRole('switch')).not.toBeChecked()
   expect(fetchAddressBookDetails).not.toHaveBeenCalled()
 })
