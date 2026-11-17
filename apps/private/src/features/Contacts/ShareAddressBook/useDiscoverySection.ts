@@ -30,14 +30,14 @@ export function useDiscoverySection({
   )
   const [loading, setLoading] = useState(false)
 
-  const isDisabled =
-    loading || isPublic === undefined || !userId || !addressBookId
+  // Not disabled while saving: a disabled switch drops its focus to <body>
+  const isDisabled = isPublic === undefined || !userId || !addressBookId
 
   const handleToggle = async (
     _event: React.ChangeEvent<HTMLInputElement>,
     checked: boolean
   ): Promise<void> => {
-    if (isDisabled) return
+    if (isDisabled || loading) return
     setLoading(true)
     try {
       await dispatch(

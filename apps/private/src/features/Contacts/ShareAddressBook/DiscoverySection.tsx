@@ -23,7 +23,7 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
   addressBookId
 }) => {
   const { t } = useI18n()
-  const { isPublic, isDisabled, handleToggle } = useDiscoverySection({
+  const { isPublic, loading, isDisabled, handleToggle } = useDiscoverySection({
     userId,
     addressBookId
   })
@@ -59,6 +59,8 @@ export const DiscoverySection: React.FC<DiscoverySectionProps> = ({
             disabled={isDisabled}
             slotProps={{
               input: {
+                'aria-disabled': loading,
+                'aria-busy': loading,
                 'aria-label': t('contacts.share.discovery.toggleTooltip')
               }
             }}
