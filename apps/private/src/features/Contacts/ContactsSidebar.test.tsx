@@ -71,7 +71,7 @@ const makeBook = (id: string, name: string): AddressBookWithContacts =>
 
 function LocationDisplay(): React.ReactElement {
   const location = useLocation()
-  return <div data-testid="location">{location.pathname}</div>
+  return <div data-testid="location">{location.pathname + location.search}</div>
 }
 
 function renderSidebar(
