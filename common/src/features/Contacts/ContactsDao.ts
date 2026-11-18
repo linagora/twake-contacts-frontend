@@ -287,6 +287,11 @@ function toStoreAddressBookId(href: unknown): string {
   return fromServerBookId(extractAddressBookIdFromHref(href))
 }
 
+// A card URL serves both its jCard and its vCard: the server neither varies
+// on Accept nor gives them distinct ETags, so the browser cache would answer
+// one with the other (#650). Reads of a card stay out of the HTTP cache.
+const UNCACHED: RequestCache = 'no-store'
+
 export async function fetchContact(
   book: AddressBook,
   contactId: string
@@ -294,7 +299,10 @@ export async function fetchContact(
   const href = cardPath(toServerBookRef(book), contactId)
 
   const data: JCalCard = await api
-    .get(href, { headers: { Accept: 'application/vcard+json' } })
+    .get(href, {
+      cache: UNCACHED,
+      headers: { Accept: 'application/vcard+json' }
+    })
     .json()
 
   // the route id is the one to look the contact up with, not its encoded form
@@ -330,6 +338,7 @@ export async function exportContact(
 ): Promise<Blob> {
   return api
     .get(cardPath(toServerBookRef(book), contactId), {
+      cache: UNCACHED,
       headers: { Accept: 'text/vcard' }
     })
     .blob()

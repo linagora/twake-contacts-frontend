@@ -1079,7 +1079,7 @@ describe('fetchContact', () => {
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/contacts/c60.vcf',
-      { headers: { Accept: 'application/vcard+json' } }
+      { cache: 'no-store', headers: { Accept: 'application/vcard+json' } }
     )
     expect(contact).toEqual(
       expect.objectContaining({
@@ -2122,7 +2122,7 @@ describe('export', () => {
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/book1/a%2Fb.vcf',
-      { headers: { Accept: 'text/vcard' } }
+      { cache: 'no-store', headers: { Accept: 'text/vcard' } }
     )
   })
 
@@ -2135,7 +2135,7 @@ describe('export', () => {
 
     expect(api.get).toHaveBeenCalledWith(
       'dav/addressbooks/bob/book1/a%2Fb.vcf',
-      { headers: { Accept: 'text/vcard' } }
+      { cache: 'no-store', headers: { Accept: 'text/vcard' } }
     )
   })
 })
@@ -2207,6 +2207,7 @@ describe('DAV paths of a book whose ids need encoding', () => {
     await exportContact(book, 'c1')
 
     expect(api.get).toHaveBeenCalledWith(cardPath, {
+      cache: 'no-store',
       headers: { Accept: 'text/vcard' }
     })
   })
