@@ -485,10 +485,10 @@ describe('fetchMoreContacts', () => {
     const state = store.getState().contacts
     expect(getListedIds(state, 'book1')).toStrictEqual(['c1'])
     expect(state.listings.book1.failed).toBe(true)
-    expect(state.error).not.toBe(null)
+    expect(state.error).toBeNull()
   })
 
-  it('reports a page that fails and stops its listing without completing it', async () => {
+  it('stops a listing whose page fails without completing it nor raising a page-wide error', async () => {
     vi.mocked(fetchContactsPage).mockRejectedValue({
       response: { status: 400 },
       message: 'Bad request'
@@ -506,7 +506,7 @@ describe('fetchMoreContacts', () => {
     expect(state.listings.book1).toEqual(
       expect.objectContaining({ refs: [], hasMore: true, failed: true })
     )
-    expect(state.error).not.toBe(null)
+    expect(state.error).toBeNull()
     expect(fetchContactsPage).toHaveBeenCalledTimes(1)
   })
 
