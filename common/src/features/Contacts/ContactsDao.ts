@@ -329,6 +329,15 @@ export async function fetchContact(
   return readCard(cardPath(toServerBookRef(book), contactId), contactId)
 }
 
+/** The card as saved now in the book, with its ETag. */
+export async function fetchSavedContact(
+  userId: string,
+  bookId: string,
+  contactId: string
+): Promise<Contact> {
+  return readCard(cardPath({ userId, bookId }, contactId), contactId)
+}
+
 async function readCard(
   path: string,
   contactId: string,

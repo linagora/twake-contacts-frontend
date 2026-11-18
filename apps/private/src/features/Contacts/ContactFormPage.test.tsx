@@ -6,6 +6,7 @@ import {
 } from '@common/features/Contacts/constants'
 import {
   fetchContact,
+  fetchSavedContact,
   moveContact as moveContactDao,
   saveContact,
   searchContacts
@@ -771,6 +772,67 @@ describe('EditContactPage', () => {
       expect.objectContaining({ etag: '"v1"' }),
       'update'
     )
+  })
+
+  it('keeps a change saved meanwhile by someone else in another field (#649)', async () => {
+    const { store } = renderPage(['/contacts/book1/c1/edit'])
+    const opened = store.getState().contacts.addressBooks.book1.contacts[0]
+    const current = {
+      ...opened,
+      phones: [{ type: 'cell', value: '+33611223344' }],
+      etag: '"v2"'
+    }
+    vi.mocked(fetchSavedContact).mockResolvedValue(current)
+    vi.mocked(saveContact)
+      .mockReset()
+      .mockRejectedValueOnce({ response: { status: 412 }, message: 'Changed' })
+      .mockImplementation(savedWith('"v3"'))
+
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: 'Concurrent' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Contact')).toBeInTheDocument()
+    })
+    expect(saveContact).toHaveBeenLastCalledWith(
+      'u1',
+      'book1',
+      expect.objectContaining({
+        displayName: 'Alice Concurrent',
+        phones: current.phones,
+        etag: '"v2"'
+      }),
+      'update'
+    )
+  })
+
+  it('tells the contact changed meanwhile when someone else edited the same field (#649)', async () => {
+    const { store } = renderPage(['/contacts/book1/c1/edit'])
+    const opened = store.getState().contacts.addressBooks.book1.contacts[0]
+    vi.mocked(fetchSavedContact).mockResolvedValue({
+      ...opened,
+      displayName: 'Alice Other',
+      name: { givenName: 'Alice', familyName: 'Other' },
+      etag: '"v2"'
+    })
+    vi.mocked(saveContact)
+      .mockReset()
+      .mockRejectedValue({ response: { status: 412 }, message: 'Changed' })
+
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: 'Concurrent' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(store.getState().contacts.error).toBe(
+        'contacts.errors.changedMeanwhile'
+      )
+    })
+    expect(saveContact).toHaveBeenCalledTimes(1)
+    expect(screen.getByLabelText('Last name')).toHaveValue('Concurrent')
   })
 
   it('saves again against its own saved version after a failed move (#649)', async () => {
