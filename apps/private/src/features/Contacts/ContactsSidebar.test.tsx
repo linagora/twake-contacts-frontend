@@ -71,7 +71,7 @@ const makeBook = (id: string, name: string): AddressBookWithContacts =>
 
 function LocationDisplay(): React.ReactElement {
   const location = useLocation()
-  return <div data-testid="location">{location.pathname}</div>
+  return <div data-testid="location">{location.pathname + location.search}</div>
 }
 
 function renderSidebar(
@@ -342,6 +342,21 @@ describe('ContactsSidebar', () => {
         '/contacts/other'
       )
     })
+
+    it.each(['/contacts', '/contacts?scope=shared', '/contacts/own'])(
+      'closes the drawer when tapping My contacts from %s',
+      path => {
+        const onClose = vi.fn()
+        renderSidebar(path, books, onClose)
+
+        fireEvent.click(
+          screen.getByRole('button', { name: en.contacts.myContacts })
+        )
+
+        expect(onClose).toHaveBeenCalledTimes(1)
+        expect(screen.getByTestId('location')).toHaveTextContent(/^\/contacts$/)
+      }
+    )
   })
 
   describe('current address book', () => {
