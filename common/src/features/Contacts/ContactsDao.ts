@@ -107,12 +107,41 @@ async function enrichAddressBookOwner(
   book.ownerId = ownerId
   book.sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
 
-  const name = await fetchOwnerDisplayName(ownerId)
+  const [name, sourceContactsCount] = await Promise.all([
+    fetchOwnerDisplayName(ownerId),
+    book.contactsCount == null
+      ? fetchSourceContactsCount({ userId: ownerId, bookId: book.sourceBookId })
+      : undefined
+  ])
   if (name) {
     book.ownerDisplayName = name
   }
+  if (sourceContactsCount != null) {
+    book.contactsCount = sourceContactsCount
+  }
 
   return classifyAddressBook(book, userId)
+}
+
+/**
+ * esn-sabre gives no count for a subscription to a public book
+ * (numberOfContacts is null): it is read from its source book, readable as it
+ * is public. Never rejects: a count that cannot be read stays unknown.
+ */
+async function fetchSourceContactsCount(
+  source: DavBookRef
+): Promise<number | null> {
+  try {
+    const sourceBook = await propfindAddressBook(source, [
+      `{${CONTACTS_NS}}numberOfContacts`
+    ])
+    return normalizeContactsCount(
+      sourceBook[`{${CONTACTS_NS}}numberOfContacts`]
+    )
+  } catch {
+    console.warn(`Failed to fetch the contacts count of ${source.bookId}`)
+    return null
+  }
 }
 
 // The owner of a shared or subscribed book is named from the profile, so that
