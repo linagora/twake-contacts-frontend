@@ -532,7 +532,22 @@ describe('fetchMoreContacts', () => {
 
 describe('createContact', () => {
   beforeEach(() => {
-    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
+  })
+
+  it('creates the card only when none exists and keeps its ETag (#649)', async () => {
+    vi.mocked(saveContact).mockResolvedValue('"v1"')
+    const store = makeStore({ book1: makeBook('book1', []) })
+    const created = { ...alice, id: 'new' }
+
+    await store.dispatch(
+      createContact({ userId: 'u1', addressBookId: 'book1', contact: created })
+    )
+
+    expect(saveContact).toHaveBeenCalledWith('u1', 'book1', created, 'create')
+    expect(store.getState().contacts.addressBooks.book1.contacts).toEqual([
+      { ...created, etag: '"v1"' }
+    ])
   })
 
   it('places the contact at its sorted place among the loaded ones', async () => {
@@ -680,7 +695,43 @@ describe('createContact', () => {
 
 describe('updateContact', () => {
   beforeEach(() => {
-    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
+  })
+
+  it('updates the version read and keeps the ETag of the saved one (#649)', async () => {
+    vi.mocked(saveContact).mockResolvedValue('"v2"')
+    const store = makeStore({ book1: makeBook('book1', [alice]) })
+    const updated = { ...alice, title: 'CEO', etag: '"v1"' }
+
+    await store.dispatch(
+      updateContact({ userId: 'u1', addressBookId: 'book1', contact: updated })
+    )
+
+    expect(saveContact).toHaveBeenCalledWith('u1', 'book1', updated, 'update')
+    expect(store.getState().contacts.addressBooks.book1.contacts[0]).toEqual({
+      ...updated,
+      etag: '"v2"'
+    })
+  })
+
+  it('tells the contact changed meanwhile when the server refuses the save (#649)', async () => {
+    vi.mocked(saveContact).mockRejectedValue({
+      response: { status: 412 },
+      message: 'Precondition Failed'
+    })
+    const store = makeStore({ book1: makeBook('book1', [alice]) })
+
+    await store.dispatch(
+      updateContact({
+        userId: 'u1',
+        addressBookId: 'book1',
+        contact: { ...alice, title: 'CEO', etag: '"v1"' }
+      })
+    )
+
+    const state = store.getState().contacts
+    expect(state.error).toBe('contacts.errors.changedMeanwhile')
+    expect(state.addressBooks.book1.contacts[0]).toEqual(alice)
   })
 
   it('moves a renamed contact to its new sorted place', async () => {

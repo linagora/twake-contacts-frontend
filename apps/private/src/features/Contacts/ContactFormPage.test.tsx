@@ -10,11 +10,13 @@ import {
   saveContact,
   searchContacts
 } from '@common/features/Contacts/ContactsDao'
+import { updateContact } from '@common/features/Contacts/ContactsSlice'
 import { ContactEntry } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -40,7 +42,9 @@ const ContactRoute = (): React.ReactElement => {
   )
 }
 
-function renderPage(initialEntries: string[]): ReturnType<typeof render> {
+function renderPage(
+  initialEntries: string[]
+): ReturnType<typeof render> & { store: ReturnType<typeof setupStore> } {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
@@ -70,7 +74,8 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
               phones: [],
               categories: ['Team A'],
               addresses: [],
-              socialProfiles: []
+              socialProfiles: [],
+              etag: '"v1"'
             }
           ]
         },
@@ -123,7 +128,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
     }
   })
 
-  return render(
+  const rendered = render(
     <Provider store={store}>
       <TwakeMuiThemeProvider>
         <I18n dictRequire={() => en} lang="en">
@@ -152,6 +157,7 @@ function renderPage(initialEntries: string[]): ReturnType<typeof render> {
       </TwakeMuiThemeProvider>
     </Provider>
   )
+  return { ...rendered, store }
 }
 
 describe('CreateContactPage', () => {
@@ -375,7 +381,10 @@ describe('CreateContactPage', () => {
     let resolveSave: () => void = () => undefined
     vi.mocked(saveContact).mockReset()
     vi.mocked(saveContact).mockImplementation(
-      () => new Promise<void>(resolve => (resolveSave = resolve))
+      () =>
+        new Promise<undefined>(
+          resolve => (resolveSave = () => resolve(undefined))
+        )
     )
     renderPage(['/contacts/new/book1'])
 
@@ -676,7 +685,7 @@ describe('EditContactPage', () => {
   })
 
   it('updates the contact and moves it to a different address book', async () => {
-    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
@@ -700,7 +709,8 @@ describe('EditContactPage', () => {
       expect.objectContaining({
         id: 'c1',
         displayName: 'Alice Updated Roche'
-      })
+      }),
+      'update'
     )
     expect(moveContactDao).toHaveBeenCalledWith(
       { userId: 'u1', addressBookId: 'book1' },
@@ -710,7 +720,7 @@ describe('EditContactPage', () => {
   })
 
   it('navigates to the contact in the new address book after moving', async () => {
-    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
@@ -725,8 +735,42 @@ describe('EditContactPage', () => {
     })
   })
 
+  it('saves against the version the form was opened on, not one refreshed meanwhile (#649)', async () => {
+    vi.mocked(saveContact).mockResolvedValue('"v3"')
+    const { store } = renderPage(['/contacts/book1/c1/edit'])
+    const refreshed = {
+      ...store.getState().contacts.addressBooks.book1.contacts[0],
+      phones: [{ type: 'cell', value: '+33611223344' }],
+      etag: '"v2"'
+    }
+    act(() => {
+      store.dispatch(
+        updateContact.fulfilled(
+          { userId: 'u1', addressBookId: 'book1', contact: refreshed },
+          'refresh',
+          { userId: 'u1', addressBookId: 'book1', contact: refreshed }
+        )
+      )
+    })
+
+    fireEvent.change(screen.getByLabelText('Last name'), {
+      target: { value: 'Concurrent' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Contact')).toBeInTheDocument()
+    })
+    expect(saveContact).toHaveBeenCalledWith(
+      'u1',
+      'book1',
+      expect.objectContaining({ etag: '"v1"' }),
+      'update'
+    )
+  })
+
   it('only updates the contact when the address book is unchanged', async () => {
-    vi.mocked(saveContact).mockResolvedValue()
+    vi.mocked(saveContact).mockResolvedValue(undefined)
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 

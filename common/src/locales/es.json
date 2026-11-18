@@ -127,6 +127,7 @@
       "loadMembers": "No se pudieron cargar los miembros de esta libreta de direcciones",
       "create": "No se ha podido crear el contacto",
       "update": "No se ha podido actualizar el contacto",
+      "changedMeanwhile": "Otra persona ha modificado este contacto desde que lo abrió. Vuelva a cargar la página para ver los cambios y edítelo de nuevo.",
       "delete": "No se ha podido eliminar el contacto",
       "forbidden": "No tiene permiso para modificar esta libreta de direcciones",
       "share": "No se ha podido compartir la libreta de direcciones",

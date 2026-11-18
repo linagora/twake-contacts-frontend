@@ -123,6 +123,15 @@ at [twake-calendar-side-service](https://github.com/linagora/twake-calendar-side
 The calls live in [`ContactsDao.ts`](../common/src/features/Contacts/ContactsDao.ts)
 and [`UserDao.ts`](../common/src/features/User/UserDao.ts).
 
+A contact keeps the `etag` of the card it was read from (the listing item, or
+the `ETag` header of a single card) so that saving never silently overwrites a
+change saved meanwhile by someone else: an update sends it as `If-Match`, a
+creation sends `If-None-Match: *`, and the server answers `412` when the card
+changed. esn-sabre answers a JSON `PUT` without `ETag`, so the saved card is
+read back for the ETag of the next update. The edit form saves against the
+version it was opened on, even when a realtime refresh replaced it meanwhile.
+A contact with no known ETag is updated without precondition.
+
 ## Authentication
 
 OIDC authorisation code with PKCE through

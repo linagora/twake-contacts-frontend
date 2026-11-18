@@ -22,8 +22,13 @@ export const updateContactThunk = (
   >(
     async (args, { rejectWithValue }) => {
       try {
-        await saveContact(args.userId, args.addressBookId, args.contact)
-        return args
+        const etag = await saveContact(
+          args.userId,
+          args.addressBookId,
+          args.contact,
+          'update'
+        )
+        return { ...args, contact: { ...args.contact, etag } }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
@@ -40,10 +45,11 @@ export const updateContactThunk = (
         placeContactInListings(state, { addressBookId, contactId: contact.id })
       },
       rejected: (state, action) => {
-        state.error = toContactsErrorKey(
-          action.payload,
-          'contacts.errors.update'
-        )
+        // the card changed since it was read: saving would lose that change
+        state.error =
+          action.payload?.status === 412
+            ? 'contacts.errors.changedMeanwhile'
+            : toContactsErrorKey(action.payload, 'contacts.errors.update')
       }
     }
   )

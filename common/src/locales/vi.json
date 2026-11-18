@@ -127,6 +127,7 @@
       "loadMembers": "Không thể tải danh sách thành viên của sổ địa chỉ này",
       "create": "Không thể tạo liên hệ",
       "update": "Không thể cập nhật liên hệ",
+      "changedMeanwhile": "Liên hệ này đã được người khác thay đổi kể từ khi bạn mở nó. Hãy tải lại trang để xem các thay đổi, sau đó chỉnh sửa lại.",
       "delete": "Không thể xóa liên hệ",
       "forbidden": "Bạn không có quyền chỉnh sửa sổ địa chỉ này",
       "share": "Không thể chia sẻ sổ địa chỉ",

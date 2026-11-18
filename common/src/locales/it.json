@@ -127,6 +127,7 @@
       "loadMembers": "Impossibile caricare i membri di questa rubrica",
       "create": "Impossibile creare il contatto",
       "update": "Impossibile aggiornare il contatto",
+      "changedMeanwhile": "Questo contatto è stato modificato da un'altra persona da quando l'hai aperto. Ricarica la pagina per vedere le modifiche, poi modificalo di nuovo.",
       "delete": "Impossibile eliminare il contatto",
       "forbidden": "Non hai l'autorizzazione per modificare questa rubrica",
       "share": "Impossibile condividere la rubrica",

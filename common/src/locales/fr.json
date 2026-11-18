@@ -127,6 +127,7 @@
       "loadMembers": "Impossible de charger les membres de ce carnet d'adresses",
       "create": "Échec de la création du contact",
       "update": "Échec de la modification du contact",
+      "changedMeanwhile": "Ce contact a été modifié par quelqu'un d'autre depuis que vous l'avez ouvert. Rechargez la page pour voir les modifications, puis modifiez-le à nouveau.",
       "delete": "Échec de la suppression du contact",
       "forbidden": "Vous n'avez pas le droit de modifier ce carnet d'adresses",
       "share": "Échec du partage du carnet d'adresses",
