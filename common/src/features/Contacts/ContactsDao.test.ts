@@ -2604,33 +2604,47 @@ describe('saveContact preconditions (#649)', () => {
     })
   })
 
-  it('resolves with the ETag answered by the PUT', async () => {
+  it('resolves with the contact saved and the ETag answered by the PUT', async () => {
     vi.mocked(api.put).mockResolvedValue(
       new Response(null, { headers: { ETag: '"v3"' } }) as never
     )
 
-    await expect(saveContact('u1', 'book1', contact, 'update')).resolves.toBe(
-      '"v3"'
-    )
+    await expect(
+      saveContact('u1', 'book1', contact, 'update')
+    ).resolves.toEqual({ ...contact, etag: '"v3"' })
     expect(api.get).not.toHaveBeenCalled()
   })
 
-  it('reads the ETag of the saved card back when the PUT answers none', async () => {
-    await expect(saveContact('u1', 'book1', contact, 'update')).resolves.toBe(
-      '"v2"'
+  it('reads the saved card back, content and ETag together, when the PUT answers no ETag', async () => {
+    const readBack = ['vcard', [['fn', {}, 'text', 'Teresa Meanwhile']]]
+    vi.mocked(api.get).mockResolvedValue(
+      new Response(JSON.stringify(readBack), {
+        headers: { ETag: '"v2"' }
+      }) as never
+    )
+
+    const saved = await saveContact('u1', 'book1', contact, 'update')
+
+    expect(saved).toEqual(
+      expect.objectContaining({
+        id: 'c1',
+        displayName: 'Teresa Meanwhile',
+        etag: '"v2"'
+      })
     )
     expect(api.get).toHaveBeenCalledWith(path, {
       cache: 'no-store',
-      headers: { Accept: 'application/vcard+json' }
+      headers: { Accept: 'application/vcard+json' },
+      retry: 0
     })
   })
 
-  it('saves even when the ETag cannot be read back', async () => {
+  it('saves even when the card cannot be read back, its version then unknown', async () => {
     vi.mocked(api.get).mockRejectedValue(new Error('network'))
 
     await expect(
       saveContact('u1', 'book1', contact, 'update')
-    ).resolves.toBeUndefined()
+    ).resolves.toEqual({ ...contact, etag: undefined })
   })
 
   it('rejects a stale update refused by the server', async () => {

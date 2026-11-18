@@ -44,7 +44,10 @@ export const EditContactPage: React.FC = () => {
       : allWritableBooks
   const writableBooks = formBooks.filter(book => book.kind !== 'domain')
   const { contact, loading } = useContact(addressBookId, contactId)
-  const openedEtag = useOpenedEtag(contact, `${addressBookId}/${contactId}`)
+  const [openedEtag, recordSavedEtag] = useOpenedEtag(
+    contact,
+    `${addressBookId}/${contactId}`
+  )
 
   useDocumentTitle(
     !contact && !loading ? t('contacts.notFound') : t('contacts.form.editTitle')
@@ -102,6 +105,8 @@ export const EditContactPage: React.FC = () => {
           contact: updatedContact
         })
       ).unwrap()
+      // a failed move keeps the form open: saving again replaces this version
+      recordSavedEtag(saved.contact.etag)
 
       if (values.addressBookId && values.addressBookId !== addressBookId) {
         await dispatch(

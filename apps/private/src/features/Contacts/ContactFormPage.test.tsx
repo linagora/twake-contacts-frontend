@@ -11,7 +11,7 @@ import {
   searchContacts
 } from '@common/features/Contacts/ContactsDao'
 import { updateContact } from '@common/features/Contacts/ContactsSlice'
-import { ContactEntry } from '@common/features/Contacts/contactsTypes'
+import { Contact, ContactEntry } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -31,6 +31,12 @@ import { CreateContactPage } from './CreateContactPage'
 import { EditContactPage } from './EditContactPage'
 
 vi.mock('@common/features/Contacts/ContactsDao')
+
+// saveContact resolves with the saved card and the ETag of its new version
+const savedWith =
+  (etag?: string) =>
+  (_userId: string, _bookId: string, contact: Contact): Promise<Contact> =>
+    Promise.resolve({ ...contact, etag })
 
 const ContactRoute = (): React.ReactElement => {
   const { addressBookId, contactId } = useContactRouteParams()
@@ -381,10 +387,8 @@ describe('CreateContactPage', () => {
     let resolveSave: () => void = () => undefined
     vi.mocked(saveContact).mockReset()
     vi.mocked(saveContact).mockImplementation(
-      () =>
-        new Promise<undefined>(
-          resolve => (resolveSave = () => resolve(undefined))
-        )
+      (_userId, _bookId, contact) =>
+        new Promise<Contact>(resolve => (resolveSave = () => resolve(contact)))
     )
     renderPage(['/contacts/new/book1'])
 
@@ -549,7 +553,7 @@ describe('CreateContactPage duplicate email warning', () => {
       camille('c9', 'camille.durand@example.com')
     ])
     vi.mocked(saveContact).mockReset()
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
     renderPage(['/contacts/new/book1'])
 
     typeEmail('camille.durand@example.com')
@@ -685,7 +689,7 @@ describe('EditContactPage', () => {
   })
 
   it('updates the contact and moves it to a different address book', async () => {
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
@@ -720,7 +724,7 @@ describe('EditContactPage', () => {
   })
 
   it('navigates to the contact in the new address book after moving', async () => {
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 
@@ -736,7 +740,7 @@ describe('EditContactPage', () => {
   })
 
   it('saves against the version the form was opened on, not one refreshed meanwhile (#649)', async () => {
-    vi.mocked(saveContact).mockResolvedValue('"v3"')
+    vi.mocked(saveContact).mockImplementation(savedWith('"v3"'))
     const { store } = renderPage(['/contacts/book1/c1/edit'])
     const refreshed = {
       ...store.getState().contacts.addressBooks.book1.contacts[0],
@@ -769,8 +773,31 @@ describe('EditContactPage', () => {
     )
   })
 
+  it('saves again against its own saved version after a failed move (#649)', async () => {
+    vi.mocked(saveContact).mockImplementation(savedWith('"v2"'))
+    vi.mocked(moveContactDao)
+      .mockRejectedValueOnce(new Error('Server error'))
+      .mockResolvedValueOnce()
+    renderPage(['/contacts/book1/c1/edit'])
+
+    fireEvent.mouseDown(screen.getByLabelText('Address book'))
+    fireEvent.click(screen.getByRole('option', { name: 'Book 2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(moveContactDao).toHaveBeenCalledTimes(1))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Contact')).toBeInTheDocument()
+    })
+    expect(vi.mocked(saveContact).mock.calls.map(([, , c]) => c.etag)).toEqual([
+      '"v1"',
+      '"v2"'
+    ])
+  })
+
   it('only updates the contact when the address book is unchanged', async () => {
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
     vi.mocked(moveContactDao).mockResolvedValue()
     renderPage(['/contacts/book1/c1/edit'])
 

@@ -50,6 +50,12 @@ import {
 
 vi.mock('./ContactsDao')
 
+// saveContact resolves with the saved card and the ETag of its new version
+const savedWith =
+  (etag?: string) =>
+  (_userId: string, _bookId: string, contact: Contact): Promise<Contact> =>
+    Promise.resolve({ ...contact, etag })
+
 const alice = aContact({ id: 'c1', displayName: 'Alice Roche' })
 const bob = aContact({ id: 'c2', displayName: 'Bob Martin' })
 const carl = aContact({ id: 'c3', displayName: 'Carl Dubois' })
@@ -532,11 +538,11 @@ describe('fetchMoreContacts', () => {
 
 describe('createContact', () => {
   beforeEach(() => {
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
   })
 
   it('creates the card only when none exists and keeps its ETag (#649)', async () => {
-    vi.mocked(saveContact).mockResolvedValue('"v1"')
+    vi.mocked(saveContact).mockImplementation(savedWith('"v1"'))
     const store = makeStore({ book1: makeBook('book1', []) })
     const created = { ...alice, id: 'new' }
 
@@ -695,11 +701,11 @@ describe('createContact', () => {
 
 describe('updateContact', () => {
   beforeEach(() => {
-    vi.mocked(saveContact).mockResolvedValue(undefined)
+    vi.mocked(saveContact).mockImplementation(savedWith())
   })
 
   it('updates the version read and keeps the ETag of the saved one (#649)', async () => {
-    vi.mocked(saveContact).mockResolvedValue('"v2"')
+    vi.mocked(saveContact).mockImplementation(savedWith('"v2"'))
     const store = makeStore({ book1: makeBook('book1', [alice]) })
     const updated = { ...alice, title: 'CEO', etag: '"v1"' }
 
@@ -712,6 +718,24 @@ describe('updateContact', () => {
       ...updated,
       etag: '"v2"'
     })
+  })
+
+  it('keeps the card as read back after the save, with its ETag (#649)', async () => {
+    const readBack = { ...alice, title: 'CEO', phones: [], etag: '"v3"' }
+    vi.mocked(saveContact).mockResolvedValue(readBack)
+    const store = makeStore({ book1: makeBook('book1', [alice]) })
+
+    await store.dispatch(
+      updateContact({
+        userId: 'u1',
+        addressBookId: 'book1',
+        contact: { ...alice, title: 'CEO', etag: '"v1"' }
+      })
+    )
+
+    expect(store.getState().contacts.addressBooks.book1.contacts[0]).toEqual(
+      readBack
+    )
   })
 
   it('tells the contact changed meanwhile when the server refuses the save (#649)', async () => {
