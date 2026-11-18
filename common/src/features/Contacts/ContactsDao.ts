@@ -1,5 +1,6 @@
 import { config } from '@common/config'
 import { api } from '@common/utils/apiUtils'
+import type { Options } from 'ky'
 import { stripMailto } from '@common/utils/normalizeIdentity'
 import {
   bookJsonHref,
@@ -325,27 +326,30 @@ export async function fetchContact(
   book: AddressBook,
   contactId: string
 ): Promise<Contact> {
-  const href = cardPath(toServerBookRef(book), contactId)
+  return readCard(cardPath(toServerBookRef(book), contactId), contactId)
+}
 
-  const response = await getCard(href)
-  const data = (await response.json()) as JCalCard
+async function readCard(
+  path: string,
+  contactId: string,
+  options: Options = {}
+): Promise<Contact> {
+  const response = await api.get(path, {
+    cache: UNCACHED,
+    headers: { Accept: 'application/vcard+json' },
+    ...options
+  })
+  const data = await response.json<JCalCard>()
 
   // the route id is the one to look the contact up with, not its encoded form
   return {
     ...normalizeContact({
-      _links: { self: { href } },
+      _links: { self: { href: path } },
       data,
       etag: etagOf(response)
     }),
     id: contactId
   }
-}
-
-function getCard(path: string): Promise<Response> {
-  return api.get(path, {
-    cache: UNCACHED,
-    headers: { Accept: 'application/vcard+json' }
-  })
 }
 
 // undefined when the server sends none, or when CORS does not expose it
@@ -367,18 +371,16 @@ function preconditionHeaders(
 }
 
 // esn-sabre answers a JSON PUT without ETag, the card being stored as a vCard:
-// the new version is read back to guard the next update
-async function readSavedEtag(
-  path: string,
-  response: Response
-): Promise<string | undefined> {
-  const etag = etagOf(response)
-  if (etag) return etag
+// the saved card is read back, its content together with its ETag, so that a
+// change saved meanwhile by someone else is never labelled as the version
+// shown. Not retried: the save is done, only the guard of the next update
+// is at stake.
+async function readSaved(path: string, contact: Contact): Promise<Contact> {
   try {
-    return etagOf(await getCard(path))
+    return await readCard(path, contact.id, { retry: 0 })
   } catch {
     // the card is saved: only the guard of the next update is lost
-    return undefined
+    return { ...contact, etag: undefined }
   }
 }
 
@@ -416,14 +418,15 @@ export async function exportContact(
 
 /**
  * Writes the card, refused with HTTP 412 when it exists already (creation) or
- * changed since it was read (update). Resolves with the ETag of the saved card.
+ * changed since it was read (update). Resolves with the saved card and its
+ * ETag, undefined when it cannot be known.
  */
 export async function saveContact(
   userId: string,
   bookId: string,
   contact: Contact,
   mode: SaveMode
-): Promise<string | undefined> {
+): Promise<Contact> {
   const path = cardPath({ userId, bookId }, contact.id)
   const response = await api.put(path, {
     headers: {
@@ -432,7 +435,8 @@ export async function saveContact(
     },
     json: denormalizeContact(contact)
   })
-  return readSavedEtag(path, response)
+  const etag = etagOf(response)
+  return etag ? { ...contact, etag } : readSaved(path, contact)
 }
 
 export async function deleteContact(

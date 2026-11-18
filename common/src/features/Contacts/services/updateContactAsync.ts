@@ -22,13 +22,13 @@ export const updateContactThunk = (
   >(
     async (args, { rejectWithValue }) => {
       try {
-        const etag = await saveContact(
+        const contact = await saveContact(
           args.userId,
           args.addressBookId,
           args.contact,
           'update'
         )
-        return { ...args, contact: { ...args.contact, etag } }
+        return { ...args, contact }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }

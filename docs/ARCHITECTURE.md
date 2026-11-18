@@ -128,9 +128,18 @@ the `ETag` header of a single card) so that saving never silently overwrites a
 change saved meanwhile by someone else: an update sends it as `If-Match`, a
 creation sends `If-None-Match: *`, and the server answers `412` when the card
 changed. esn-sabre answers a JSON `PUT` without `ETag`, so the saved card is
-read back for the ETag of the next update. The edit form saves against the
-version it was opened on, even when a realtime refresh replaced it meanwhile.
-A contact with no known ETag is updated without precondition.
+read back, once, and stored with its ETag: the content and the ETag of the
+store always belong to the same version. The edit form saves against the
+version it was opened on, even when a realtime refresh replaced it meanwhile,
+then against the version it saved itself when it stays open, as after a failed
+move. A contact with no known ETag is updated without precondition.
+
+This guard requires the side service to forward `If-Match` and
+`If-None-Match` to esn-sabre. Served from another origin than the app, it must
+also allow both request headers in CORS and expose `ETag`
+(`Access-Control-Expose-Headers: ETag`): otherwise a contact opened directly by
+URL, or read back after a save, has no known ETag. Contacts from listings carry
+theirs in the JSON body.
 
 ## Authentication
 
