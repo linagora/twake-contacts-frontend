@@ -273,12 +273,16 @@ describe('AddressBookPage load failure', () => {
         entries: [{ addressBookId: 'book1', contact: alice }],
         next: null
       })
-    renderPage('/contacts/book1', { book1: makeBook('book1', []) })
+    const store = renderPage('/contacts/book1', {
+      book1: makeBook('book1', [])
+    })
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       en.contacts.errors.load
     )
     expect(screen.queryByText(en.contacts.empty.title)).not.toBeInTheDocument()
+    // the inline error is the only report, not also a page banner
+    expect(store.getState().contacts.error).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: en.error.retry }))
 
