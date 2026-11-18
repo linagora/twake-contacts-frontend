@@ -298,17 +298,58 @@ export async function fetchContact(
 ): Promise<Contact> {
   const href = cardPath(toServerBookRef(book), contactId)
 
-  const data: JCalCard = await api
-    .get(href, {
-      cache: UNCACHED,
-      headers: { Accept: 'application/vcard+json' }
-    })
-    .json()
+  const response = await getCard(href)
+  const data = (await response.json()) as JCalCard
 
   // the route id is the one to look the contact up with, not its encoded form
   return {
-    ...normalizeContact({ _links: { self: { href } }, data }),
+    ...normalizeContact({
+      _links: { self: { href } },
+      data,
+      etag: etagOf(response)
+    }),
     id: contactId
+  }
+}
+
+function getCard(path: string): Promise<Response> {
+  return api.get(path, {
+    cache: UNCACHED,
+    headers: { Accept: 'application/vcard+json' }
+  })
+}
+
+// undefined when the server sends none, or when CORS does not expose it
+function etagOf(response: Response): string | undefined {
+  return response.headers.get('ETag') ?? undefined
+}
+
+/** Whether the saved card is a new one, or an update of the version read. */
+export type SaveMode = 'create' | 'update'
+
+// a creation must not replace an existing card; an update must not replace a
+// version other than the one read (HTTP 412 otherwise, RFC 9110 §13.1)
+function preconditionHeaders(
+  contact: Contact,
+  mode: SaveMode
+): Record<string, string> {
+  if (mode === 'create') return { 'If-None-Match': '*' }
+  return contact.etag ? { 'If-Match': contact.etag } : {}
+}
+
+// esn-sabre answers a JSON PUT without ETag, the card being stored as a vCard:
+// the new version is read back to guard the next update
+async function readSavedEtag(
+  path: string,
+  response: Response
+): Promise<string | undefined> {
+  const etag = etagOf(response)
+  if (etag) return etag
+  try {
+    return etagOf(await getCard(path))
+  } catch {
+    // the card is saved: only the guard of the next update is lost
+    return undefined
   }
 }
 
@@ -344,15 +385,25 @@ export async function exportContact(
     .blob()
 }
 
+/**
+ * Writes the card, refused with HTTP 412 when it exists already (creation) or
+ * changed since it was read (update). Resolves with the ETag of the saved card.
+ */
 export async function saveContact(
   userId: string,
   bookId: string,
-  contact: Contact
-): Promise<void> {
-  await api.put(cardPath({ userId, bookId }, contact.id), {
-    headers: { 'Content-Type': 'application/vcard+json' },
+  contact: Contact,
+  mode: SaveMode
+): Promise<string | undefined> {
+  const path = cardPath({ userId, bookId }, contact.id)
+  const response = await api.put(path, {
+    headers: {
+      'Content-Type': 'application/vcard+json',
+      ...preconditionHeaders(contact, mode)
+    },
     json: denormalizeContact(contact)
   })
+  return readSavedEtag(path, response)
 }
 
 export async function deleteContact(

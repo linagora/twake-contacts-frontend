@@ -710,6 +710,10 @@ export function normalizeContact(item: DavContactItem): Contact {
   const uidProperty = getCardProperties(card, 'uid')[0]
   if (uidProperty) contact.uidProperty = uidProperty
 
+  if (typeof item?.etag === 'string' && item.etag !== '') {
+    contact.etag = item.etag
+  }
+
   if (name) contact.name = name
 
   if (shown.nickname) contact.nicknames = nicknames

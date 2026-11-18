@@ -285,7 +285,8 @@ describe('normalizeContact', () => {
     expect(contact).toEqual({
       id: 'contact-1',
       displayName: 'contact-1',
-      emails: []
+      emails: [],
+      etag: collectedItem.etag
     })
     expect(contact).not.toHaveProperty('phones')
     expect(contact).not.toHaveProperty('addresses')
@@ -1067,8 +1068,18 @@ describe('fetchContact', () => {
   beforeEach(() => {
     vi.mocked(api.get).mockReset()
     vi.mocked(api.get).mockReturnValue({
+      headers: new Headers({ ETag: '"v1"' }),
       json: () => Promise.resolve(card)
     } as unknown as ReturnType<typeof api.get>)
+  })
+
+  it('keeps the ETag of the card to guard its next update (#649)', async () => {
+    const contact = await fetchContact(
+      classifyAddressBook({ ...book, id: 'contacts' }, 'bob'),
+      'c60'
+    )
+
+    expect(contact.etag).toBe('"v1"')
   })
 
   it('reads the single vCard of the contact as jCard', async () => {
@@ -2196,10 +2207,14 @@ describe('DAV paths of a book whose ids need encoding', () => {
     vi.mocked(api).mockReset()
     vi.mocked(api.get).mockReset()
     vi.mocked(api.get).mockReturnValue({
+      headers: new Headers(),
       blob: () => Promise.resolve(new Blob()),
       json: () => Promise.resolve(['vcard', []])
     } as unknown as ReturnType<typeof api.get>)
     vi.mocked(api.put).mockReset()
+    vi.mocked(api.put).mockResolvedValue(
+      new Response(null, { status: 204, headers: { ETag: '"v2"' } }) as never
+    )
     vi.mocked(api.delete).mockReset()
   })
 
@@ -2214,10 +2229,12 @@ describe('DAV paths of a book whose ids need encoding', () => {
 
   it('addresses the same card from every call', async () => {
     await fetchContact(book, 'c1')
-    await saveContact(book.userId, book.id, {
-      ...normalizeContact(namedItem),
-      id: 'c1'
-    })
+    await saveContact(
+      book.userId,
+      book.id,
+      { ...normalizeContact(namedItem), id: 'c1' },
+      'update'
+    )
     await deleteContact(book.userId, book.id, 'c1')
     await moveContact(ref, ref, 'c1')
     await copyContact(ref, ref, 'c1')
@@ -2254,7 +2271,7 @@ describe('DAV paths of a book whose ids need encoding', () => {
 
       await fetchContact(book, listed.id)
       await exportContact(book, listed.id)
-      await saveContact(book.userId, book.id, listed)
+      await saveContact(book.userId, book.id, listed, 'update')
       await deleteContact(book.userId, book.id, listed.id)
       await moveContact(ref, ref, listed.id)
       await copyContact(ref, ref, listed.id)
@@ -2476,5 +2493,94 @@ describe('repeated text properties', () => {
     expect(contact.displayName).toBe('c')
     const fns = denormalizeContact(contact)[1].filter(p => p[0] === 'fn')
     expect(fns).toEqual([['fn', {}, 'text', 'c'], unreadable])
+  })
+})
+
+describe('saveContact preconditions (#649)', () => {
+  const path = 'dav/addressbooks/u1/book1/c1.vcf'
+  const contact: Contact = {
+    id: 'c1',
+    displayName: 'Teresa Again',
+    emails: [],
+    etag: '"v1"'
+  }
+  const headersOfPut = (): Record<string, string> =>
+    (vi.mocked(api.put).mock.calls[0][1] as { headers: Record<string, string> })
+      .headers
+
+  beforeEach(() => {
+    vi.mocked(api.get).mockReset()
+    vi.mocked(api.put).mockReset()
+    vi.mocked(api.put).mockResolvedValue(new Response(null) as never)
+    vi.mocked(api.get).mockResolvedValue(
+      new Response(null, { headers: { ETag: '"v2"' } }) as never
+    )
+  })
+
+  it('updates only the version read, with If-Match', async () => {
+    await saveContact('u1', 'book1', contact, 'update')
+
+    expect(api.put).toHaveBeenCalledWith(path, expect.anything())
+    expect(headersOfPut()).toEqual({
+      'Content-Type': 'application/vcard+json',
+      'If-Match': '"v1"'
+    })
+  })
+
+  it('updates a contact whose version is unknown without precondition', async () => {
+    await saveContact('u1', 'book1', { ...contact, etag: undefined }, 'update')
+
+    expect(headersOfPut()).toEqual({
+      'Content-Type': 'application/vcard+json'
+    })
+  })
+
+  it('creates a card only when none exists, with If-None-Match', async () => {
+    await saveContact('u1', 'book1', { ...contact, etag: undefined }, 'create')
+
+    expect(headersOfPut()).toEqual({
+      'Content-Type': 'application/vcard+json',
+      'If-None-Match': '*'
+    })
+  })
+
+  it('resolves with the ETag answered by the PUT', async () => {
+    vi.mocked(api.put).mockResolvedValue(
+      new Response(null, { headers: { ETag: '"v3"' } }) as never
+    )
+
+    await expect(saveContact('u1', 'book1', contact, 'update')).resolves.toBe(
+      '"v3"'
+    )
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
+  it('reads the ETag of the saved card back when the PUT answers none', async () => {
+    await expect(saveContact('u1', 'book1', contact, 'update')).resolves.toBe(
+      '"v2"'
+    )
+    expect(api.get).toHaveBeenCalledWith(path, {
+      cache: 'no-store',
+      headers: { Accept: 'application/vcard+json' }
+    })
+  })
+
+  it('saves even when the ETag cannot be read back', async () => {
+    vi.mocked(api.get).mockRejectedValue(new Error('network'))
+
+    await expect(
+      saveContact('u1', 'book1', contact, 'update')
+    ).resolves.toBeUndefined()
+  })
+
+  it('rejects a stale update refused by the server', async () => {
+    const refused = Object.assign(new Error('Precondition Failed'), {
+      response: new Response(null, { status: 412 })
+    })
+    vi.mocked(api.put).mockRejectedValue(refused)
+
+    await expect(saveContact('u1', 'book1', contact, 'update')).rejects.toBe(
+      refused
+    )
   })
 })

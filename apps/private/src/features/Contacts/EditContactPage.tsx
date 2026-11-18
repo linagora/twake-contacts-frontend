@@ -26,6 +26,7 @@ import {
 import { ContactFormSkeleton } from './ContactSkeletons'
 import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
+import { useOpenedEtag } from './useOpenedEtag'
 
 export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -43,6 +44,7 @@ export const EditContactPage: React.FC = () => {
       : allWritableBooks
   const writableBooks = formBooks.filter(book => book.kind !== 'domain')
   const { contact, loading } = useContact(addressBookId, contactId)
+  const openedEtag = useOpenedEtag(contact, `${addressBookId}/${contactId}`)
 
   useDocumentTitle(
     !contact && !loading ? t('contacts.notFound') : t('contacts.form.editTitle')
@@ -87,9 +89,13 @@ export const EditContactPage: React.FC = () => {
 
   const handleSubmit = async (values: ContactFormValues): Promise<void> => {
     if (!openpaasId) return
-    const updatedContact = makeContactFromForm(values, contact)
+    // the version the form was filled from, not one refreshed meanwhile
+    const updatedContact = {
+      ...makeContactFromForm(values, contact),
+      etag: openedEtag
+    }
     try {
-      await dispatch(
+      const saved = await dispatch(
         updateContact({
           userId: openpaasId,
           addressBookId,
@@ -103,7 +109,7 @@ export const EditContactPage: React.FC = () => {
             userId: openpaasId,
             fromAddressBookId: addressBookId,
             toAddressBookId: values.addressBookId,
-            contact: updatedContact
+            contact: saved.contact
           })
         ).unwrap()
         void navigate(contactPath(values.addressBookId, contactId), {

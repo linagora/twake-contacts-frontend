@@ -135,6 +135,11 @@ export interface Contact {
   passthroughProps?: JCalProperty[]
   /** Groups carried by a property other than a label companion, as read: a save drops only the companions it orphans. */
   carriedGroups?: string[]
+  /**
+   * ETag of the card as read or saved, sent as `If-Match` on update so that a
+   * change saved meanwhile by someone else is refused rather than overwritten.
+   */
+  etag?: string
 }
 
 export interface AddressBookWithContacts extends AddressBook {

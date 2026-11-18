@@ -27,8 +27,13 @@ export const createContactThunk = (
   >(
     async (args, { rejectWithValue }) => {
       try {
-        await saveContact(args.userId, args.addressBookId, args.contact)
-        return args
+        const etag = await saveContact(
+          args.userId,
+          args.addressBookId,
+          args.contact,
+          'create'
+        )
+        return { ...args, contact: { ...args.contact, etag } }
       } catch (err) {
         return rejectWithValue(toRejectedError(err))
       }
