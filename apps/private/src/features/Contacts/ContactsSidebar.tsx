@@ -104,7 +104,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
             onToggle={() => setIsMyContactsExpanded(!isMyContactsExpanded)}
             onNavigate={() => {
               setIsMyContactsExpanded(true)
-              void navigate('/contacts')
+              handleItemClick('/contacts')
             }}
             onOpenCreateBook={() => {
               onOpenCreateBook()

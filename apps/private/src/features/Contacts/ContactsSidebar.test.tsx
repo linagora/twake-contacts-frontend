@@ -342,6 +342,21 @@ describe('ContactsSidebar', () => {
         '/contacts/other'
       )
     })
+
+    it.each(['/contacts', '/contacts?scope=shared', '/contacts/own'])(
+      'closes the drawer when tapping My contacts from %s',
+      path => {
+        const onClose = vi.fn()
+        renderSidebar(path, books, onClose)
+
+        fireEvent.click(
+          screen.getByRole('button', { name: en.contacts.myContacts })
+        )
+
+        expect(onClose).toHaveBeenCalledTimes(1)
+        expect(screen.getByTestId('location')).toHaveTextContent(/^\/contacts$/)
+      }
+    )
   })
 
   describe('current address book', () => {
