@@ -1810,6 +1810,66 @@ describe('fetchAddressBooks', () => {
     ])
     expect(books[2].capabilities.addContacts).toBe(false)
   })
+
+  describe('contacts count of a subscription to a public book', () => {
+    const mockSubscription = (numberOfContacts: number | null): void => {
+      vi.mocked(api.get).mockReturnValue({
+        json: () =>
+          Promise.resolve({
+            _embedded: {
+              'dav:addressbook': [
+                {
+                  _links: { self: { href: '/addressbooks/me-id/public.json' } },
+                  'dav:acl': ['dav:read'],
+                  numberOfContacts,
+                  'openpaas:source': '/addressbooks/bob-id/bob-public.json'
+                }
+              ]
+            }
+          })
+      } as unknown as ReturnType<typeof api.get>)
+    }
+
+    it('reads the count of the source book when the backend gives none', async () => {
+      mockSubscription(null)
+      domainBook(3)
+
+      const [subscription] = await fetchAddressBooks('me-id')
+
+      expect(subscription.contactsCount).toBe(3)
+      expect(api).toHaveBeenCalledWith(
+        'dav/addressbooks/bob-id/bob-public.json',
+        expect.objectContaining({
+          method: 'PROPFIND',
+          json: {
+            properties: ['{http://open-paas.org/contacts}numberOfContacts']
+          }
+        })
+      )
+    })
+
+    it('keeps the count given by the backend', async () => {
+      mockSubscription(5)
+
+      const [subscription] = await fetchAddressBooks('me-id')
+
+      expect(subscription.contactsCount).toBe(5)
+      expect(api).not.toHaveBeenCalled()
+    })
+
+    it('keeps the count unknown when the source book cannot be read', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      mockSubscription(null)
+      vi.mocked(api).mockImplementation(() => {
+        throw new Error('forbidden')
+      })
+
+      const [subscription] = await fetchAddressBooks('me-id')
+
+      expect(subscription.contactsCount).toBeNull()
+      expect(subscription.ownerDisplayName).toBe('Bob Martin')
+    })
+  })
 })
 
 describe('searchContacts', () => {

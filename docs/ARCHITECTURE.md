@@ -93,6 +93,10 @@ the fields set in [`ContactsDao.ts`](../common/src/features/Contacts/ContactsDao
 | Subscription to a public book | `ownerId` set, created by `subscribeToAddressBook` | Read, or write when the source grants it |
 | Domain book `dab` | `id === 'dab'`, `userId` the domain id | Read only from the UI, never shared nor a write target |
 
+esn-sabre lists a subscription to a public book with `numberOfContacts: null`:
+its count is read from its source book (a `PROPFIND` of `numberOfContacts`),
+left unknown when that read fails.
+
 ## IDs in URLs
 
 User, address-book and contact IDs are stored decoded. DAV href normalization
