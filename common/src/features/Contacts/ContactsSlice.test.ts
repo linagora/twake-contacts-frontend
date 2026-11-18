@@ -15,6 +15,7 @@ import {
   fetchAddressBooks,
   fetchContact as fetchContactDao,
   fetchContactsPage,
+  fetchSavedContact,
   moveContact as moveContactDao,
   saveContact,
   subscribeToAddressBook
@@ -756,6 +757,99 @@ describe('updateContact', () => {
     const state = store.getState().contacts
     expect(state.error).toBe('contacts.errors.changedMeanwhile')
     expect(state.addressBooks.book1.contacts[0]).toEqual(alice)
+  })
+
+  describe('with the edits of the form, when the card changed meanwhile (#649)', () => {
+    const opened = { ...alice, etag: '"v1"' }
+    const edited = { ...opened, title: 'CEO' }
+    const edits = { opened, fields: ['title' as const] }
+    const preconditionFailed = {
+      response: { status: 412 },
+      message: 'Precondition Failed'
+    }
+
+    const saveEdits = async (): Promise<ReturnType<typeof makeStore>> => {
+      const store = makeStore({ book1: makeBook('book1', [alice]) })
+      await store.dispatch(
+        updateContact({
+          userId: 'u1',
+          addressBookId: 'book1',
+          contact: edited,
+          edits
+        })
+      )
+      return store
+    }
+
+    beforeEach(() => {
+      vi.mocked(saveContact)
+        .mockReset()
+        .mockRejectedValueOnce(preconditionFailed)
+        .mockImplementation(savedWith('"v3"'))
+    })
+
+    it('saves the edits again over that version, against its ETag', async () => {
+      const current = { ...opened, note: 'Met at FOSDEM', etag: '"v2"' }
+      vi.mocked(fetchSavedContact).mockResolvedValue(current)
+
+      const store = await saveEdits()
+
+      const rebased = { ...current, title: 'CEO' }
+      expect(fetchSavedContact).toHaveBeenCalledWith('u1', 'book1', 'c1')
+      expect(saveContact).toHaveBeenLastCalledWith(
+        'u1',
+        'book1',
+        rebased,
+        'update'
+      )
+      const state = store.getState().contacts
+      expect(state.error).toBeNull()
+      expect(state.addressBooks.book1.contacts[0]).toEqual({
+        ...rebased,
+        etag: '"v3"'
+      })
+    })
+
+    it('tells the contact changed meanwhile when that version changed an edited field', async () => {
+      vi.mocked(fetchSavedContact).mockResolvedValue({
+        ...opened,
+        title: 'CFO',
+        etag: '"v2"'
+      })
+
+      const store = await saveEdits()
+
+      expect(saveContact).toHaveBeenCalledTimes(1)
+      expect(store.getState().contacts.error).toBe(
+        'contacts.errors.changedMeanwhile'
+      )
+    })
+
+    it('tells the contact changed meanwhile when that version cannot be read', async () => {
+      vi.mocked(fetchSavedContact).mockRejectedValue(new Error('Network'))
+
+      const store = await saveEdits()
+
+      expect(saveContact).toHaveBeenCalledTimes(1)
+      expect(store.getState().contacts.error).toBe(
+        'contacts.errors.changedMeanwhile'
+      )
+    })
+
+    it('tells the contact changed meanwhile when the second save is refused too', async () => {
+      vi.mocked(fetchSavedContact).mockResolvedValue({
+        ...opened,
+        etag: '"v2"'
+      })
+      vi.mocked(saveContact).mockReset().mockRejectedValue(preconditionFailed)
+
+      const store = await saveEdits()
+
+      expect(saveContact).toHaveBeenCalledTimes(2)
+      expect(store.getState().contacts.error).toBe(
+        'contacts.errors.changedMeanwhile'
+      )
+    })
   })
 
   it('moves a renamed contact to its new sorted place', async () => {

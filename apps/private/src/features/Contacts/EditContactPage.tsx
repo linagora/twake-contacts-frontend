@@ -7,6 +7,7 @@ import {
 import { selectWritableBooks } from '@common/features/Contacts/contactsSelectors'
 import { isHiddenAddressBook } from '@common/features/Contacts/contactsUtils'
 import { isDomainAddressBookId } from '@common/features/Contacts/addressBookModel'
+import { editedFields } from '@common/features/Contacts/rebaseContact'
 import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
 import { Icon, Left } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
@@ -26,7 +27,7 @@ import {
 import { ContactFormSkeleton } from './ContactSkeletons'
 import { FOCUS_HEADING_STATE } from './focusHeadingOnArrival'
 import { useContact } from './useContact'
-import { useOpenedEtag } from './useOpenedEtag'
+import { useOpenedVersion } from './useOpenedVersion'
 
 export const EditContactPage: React.FC = () => {
   const { t } = useI18n()
@@ -44,7 +45,7 @@ export const EditContactPage: React.FC = () => {
       : allWritableBooks
   const writableBooks = formBooks.filter(book => book.kind !== 'domain')
   const { contact, loading } = useContact(addressBookId, contactId)
-  const [openedEtag, recordSavedEtag] = useOpenedEtag(
+  const [opened, recordSaved] = useOpenedVersion(
     contact,
     `${addressBookId}/${contactId}`
   )
@@ -91,22 +92,25 @@ export const EditContactPage: React.FC = () => {
   const backTo = contactPath(addressBookId, contactId)
 
   const handleSubmit = async (values: ContactFormValues): Promise<void> => {
-    if (!openpaasId) return
+    if (!openpaasId || !opened) return
     // the version the form was filled from, not one refreshed meanwhile
-    const updatedContact = {
-      ...makeContactFromForm(values, contact),
-      etag: openedEtag
-    }
+    const updatedContact = makeContactFromForm(values, opened)
+    const unedited = makeContactFromForm(
+      makeFormValuesFromContact(opened, addressBookId),
+      opened
+    )
     try {
       const saved = await dispatch(
         updateContact({
           userId: openpaasId,
           addressBookId,
-          contact: updatedContact
+          contact: updatedContact,
+          // changed meanwhile, the card gets these edits only
+          edits: { opened, fields: editedFields(unedited, updatedContact) }
         })
       ).unwrap()
       // a failed move keeps the form open: saving again replaces this version
-      recordSavedEtag(saved.contact.etag)
+      recordSaved(saved.contact)
 
       if (values.addressBookId && values.addressBookId !== addressBookId) {
         await dispatch(

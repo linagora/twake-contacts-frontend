@@ -134,6 +134,14 @@ version it was opened on, even when a realtime refresh replaced it meanwhile,
 then against the version it saved itself when it stays open, as after a failed
 move. A contact with no known ETag is updated without precondition.
 
+Refused with `412`, the edit form does not give up at once: it reads the card
+saved meanwhile and, when that version changed none of the fields the form
+edited, saves the edited fields over it, once, against its ETag
+([`rebaseContact.ts`](../common/src/features/Contacts/rebaseContact.ts)). The
+fields are compared whole (the name, the emails, the phones…): a field changed
+on both sides, or a version that cannot be read or has no known ETag, still
+asks the user to reload.
+
 This guard requires the side service to forward `If-Match` and
 `If-None-Match` to esn-sabre. Served from another origin than the app, it must
 also allow both request headers in CORS and expose `ETag`
