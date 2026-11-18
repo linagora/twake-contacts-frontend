@@ -4,7 +4,6 @@ import { fetchContactsPage } from '../ContactsDao'
 import { ContactEntry, ContactsState } from '../contactsTypes'
 import { ALL_CONTACTS_LISTING, DOMAIN_ADDRESS_BOOK_ID } from '../constants'
 import { appendListingPage } from '../contactListings'
-import { toContactsErrorKey } from '../contactsUtils'
 
 export interface FetchMoreContactsPayload {
   userId: string
@@ -126,14 +125,9 @@ export const fetchMoreContactsThunk = (
           return
         }
         // the api already retried: the listing keeps its remaining pages but
-        // stops loading them until a retry or the next visit of its view
+        // stops loading them until a retry or the next visit of its view.
+        // Its view reports the failure inline with a retry, not page-wide.
         listing.failed = true
-        if (action.payload?.status !== 401) {
-          state.error = toContactsErrorKey(
-            action.payload,
-            'contacts.errors.load'
-          )
-        }
       }
     }
   )
