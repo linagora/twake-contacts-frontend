@@ -1,4 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router'
 import { Provider } from 'react-redux'
 import {
   TwakeMuiThemeProvider,
@@ -252,6 +254,70 @@ describe('ContactCell', () => {
       pressEscape()
 
       expect(nameButton()).not.toHaveFocus()
+    })
+  })
+
+  describe('render cost (#667)', () => {
+    // the cell is rendered once per column for every rendered row of the
+    // table, and again on every render of the table: a busy-wait in it, that
+    // calls performance.now() in a loop, froze the list for seconds
+    const tableColumns: VirtualizedTableColumn[] = [
+      'contact.displayName',
+      'contact.emails.0.value',
+      'contact.phones.0.value',
+      'contact.categories',
+      'actions'
+    ].map(id => ({ id }))
+    const loadingRow = { id: 'loading-more-0', loadingMore: true }
+    const rows = [row, loadingRow] as VirtualizedTableRow[]
+    const store = setupStore({
+      user: { userData: { openpaasId: 'u1' } } as UserState
+    })
+
+    const table = (): ReactElement => (
+      <Provider store={store}>
+        <TwakeMuiThemeProvider>
+          <I18n dictRequire={() => enLocale} lang="en">
+            <MemoryRouter>
+              {rows.flatMap((cellRow, rowIndex) =>
+                tableColumns.map(cellColumn => (
+                  <ContactCell
+                    key={`${rowIndex}-${cellColumn.id}`}
+                    row={cellRow}
+                    column={cellColumn}
+                  />
+                ))
+              )}
+            </MemoryRouter>
+          </I18n>
+        </TwakeMuiThemeProvider>
+      </Provider>
+    )
+
+    // React and MUI read the clock on their own: only the reads made while
+    // ContactCell itself runs count
+    const spyClockReadsFromContactCell = (): (() => number) => {
+      const readNow = performance.now.bind(performance)
+      let reads = 0
+      vi.spyOn(performance, 'now').mockImplementation(() => {
+        if (new Error().stack?.includes('ContactCell.tsx')) reads += 1
+        return readNow()
+      })
+      return () => reads
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('reads no clock while rendering the cells of contacts and skeletons', () => {
+      const clockReads = spyClockReadsFromContactCell()
+
+      const { rerender } = render(table())
+      rerender(table())
+
+      expect(screen.getByText('Anna Default')).toBeInTheDocument()
+      expect(clockReads()).toBe(0)
     })
   })
 })
