@@ -97,6 +97,7 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
       <Box
         className="u-flex-auto u-mt-1-half"
         sx={theme => ({
+          overflowX: 'hidden',
           overflowY: 'auto',
           scrollbarWidth: 'thin',
           scrollbarGutter: 'stable',
