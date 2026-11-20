@@ -22,6 +22,14 @@ import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes
 import * as ContactsDao from '@common/features/Contacts/ContactsDao'
 
 vi.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/config', async () => {
+  const actual =
+    await vi.importActual<typeof import('@common/config')>('@common/config')
+  return {
+    ...actual,
+    config: { ...actual.config, CONTRAST_TOGGLE: true }
+  }
+})
 
 const mockDeleteAddressBook = vi.mocked(ContactsDao.deleteAddressBook)
 const mockUpdateAddressBook = vi.mocked(ContactsDao.updateAddressBook)

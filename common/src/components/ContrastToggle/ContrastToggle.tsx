@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { config } from '@common/config'
 import { setContrastMode } from '@common/features/Settings/SettingsSlice'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { Contrast, Icon } from '@linagora/twake-icons'
@@ -11,6 +12,8 @@ export const ContrastToggle: React.FC = () => {
     state => state.settings.contrastMode === 'more'
   )
   const label = t('theme.highContrast')
+
+  if (!config.CONTRAST_TOGGLE) return null
 
   const handleToggle = (): void => {
     dispatch(setContrastMode(isHighContrast ? 'default' : 'more'))

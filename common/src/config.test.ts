@@ -141,6 +141,22 @@ describe('loadConfig', () => {
     ])
   })
 
+  it.each([
+    [true, true],
+    ['true', true],
+    [false, false],
+    ['false', false]
+  ])('reads CONTRAST_TOGGLE = %j as %j', (raw, expected) => {
+    expect(
+      loadConfig({ ...VALID_SOURCE, CONTRAST_TOGGLE: raw }).config
+        .CONTRAST_TOGGLE
+    ).toBe(expected)
+  })
+
+  it('defaults CONTRAST_TOGGLE to false when omitted', () => {
+    expect(loadConfig(VALID_SOURCE).config.CONTRAST_TOGGLE).toBe(false)
+  })
+
   it('reports an unsupported SSO_RESPONSE_TYPE as invalid', () => {
     expect(
       loadConfig({ ...VALID_SOURCE, SSO_RESPONSE_TYPE: 'token' }).errors
