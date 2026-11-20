@@ -86,8 +86,8 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
             {t('contacts.menu.share')}
           </Button>
         )}
-        <AddressBookMoreActionsButton actions={actions} />
         {children}
+        <AddressBookMoreActionsButton actions={actions} />
       </Stack>
       {actions.dialogs}
     </Stack>
