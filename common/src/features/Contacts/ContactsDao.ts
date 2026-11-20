@@ -257,7 +257,8 @@ export async function fetchContactsPage(
   userId: string,
   book: AddressBook | null,
   { after, sort }: { after: string | null; sort: ContactSort },
-  withDomainMembers: boolean
+  withDomainMembers: boolean,
+  options?: { cache?: RequestCache }
 ): Promise<{ entries: ContactEntry[]; next: string | null }> {
   const { url, searchParams } = getContactsPageUrl(
     userId,
@@ -272,7 +273,8 @@ export async function fetchContactsPage(
         order: sort.order,
         limit: String(CONTACTS_PAGINATION_LIMIT),
         ...(after ? { after } : {})
-      }
+      },
+      ...(options?.cache ? { cache: options.cache } : {})
     })
     .json()
 
@@ -366,6 +368,18 @@ function etagOf(response: Response): string | undefined {
   return response.headers.get('ETag') ?? undefined
 }
 
+/** A fresh snapshot for destructive merges; fail closed without a strong ETag. */
+export async function fetchContactForMerge(
+  book: AddressBook,
+  contactId: string
+): Promise<{ contact: Contact; etag: string }> {
+  const contact = await fetchContact(book, contactId)
+  if (!contact.etag || contact.etag.startsWith('W/')) {
+    throw new Error('Missing strong ETag')
+  }
+  return { contact, etag: contact.etag }
+}
+
 /** Whether the saved card is a new one, or an update of the version read. */
 export type SaveMode = 'create' | 'update'
 
@@ -451,9 +465,13 @@ export async function saveContact(
 export async function deleteContact(
   userId: string,
   bookId: string,
-  contactId: string
+  contactId: string,
+  etag?: string
 ): Promise<void> {
-  await api.delete(cardPath({ userId, bookId }, contactId))
+  await api.delete(
+    cardPath({ userId, bookId }, contactId),
+    ...(etag ? [{ headers: { 'If-Match': etag } }] : [])
+  )
 }
 
 export async function copyContact(

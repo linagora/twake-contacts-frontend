@@ -190,6 +190,32 @@
         "description": "Anderen erlauben, dieses Adressbuch über die Suche zu finden und hinzuzufügen.",
         "toggleTooltip": "Auffindbarkeit aktivieren/deaktivieren"
       }
+    },
+    "merge": {
+      "sectionTitle": "Korrigieren und zusammenführen",
+      "navLabel": "Zusammenführen",
+      "title": "Duplikate zusammenführen",
+      "headingWithCount": "Duplikate zusammenführen (%{count})",
+      "mergeAll": "Alle zusammenführen",
+      "merge": "Zusammenführen",
+      "merged": "Zusammengeführt",
+      "viewContact": "Kontakt anzeigen",
+      "emptyTitle": "Keine doppelten Kontakte",
+      "emptySubtitle": "Alle Ihre persönlichen Kontakte sind bereits aktuell.",
+      "mergeSuccess": "Kontakte zusammengeführt",
+      "mergeAllSuccess": "Alle doppelten Kontakte zusammengeführt",
+      "mergeError": "Kontakte konnten nicht zusammengeführt werden. Bitte versuchen Sie es erneut.",
+      "changedError": "Kontakte wurden seit der Suche geändert. Prüfen Sie die aktualisierten Kontakte vor dem erneuten Zusammenführen.",
+      "conflictError": "Widersprüchliche Kontaktdaten können nicht sicher zusammengeführt werden. Bearbeiten Sie die Kontakte, um die Konflikte vorher zu lösen.",
+      "conflictErrorWithFields": "Widersprüchliche Kontaktdaten (%{fields}) können nicht sicher zusammengeführt werden. Bearbeiten Sie die Kontakte, um die Konflikte vorher zu lösen.",
+      "fields": {
+        "birthday": "Geburtstag",
+        "org": "Organisation",
+        "title": "Titel",
+        "role": "Rolle",
+        "note": "Notiz"
+      },
+      "loadError": "Kontakte konnten für die Duplikatsuche nicht geladen werden."
     }
   },
   "error": {

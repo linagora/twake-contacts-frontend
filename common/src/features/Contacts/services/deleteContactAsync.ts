@@ -14,6 +14,8 @@ export interface DeleteContactArgs {
   userId: string
   addressBookId: string
   contactId: string
+  etag?: string
+  ignoreNotFound?: boolean
 }
 
 export const deleteContactThunk = (
@@ -32,10 +34,17 @@ export const deleteContactThunk = (
   >(
     async (args, { rejectWithValue }) => {
       try {
-        await deleteContact(args.userId, args.addressBookId, args.contactId)
+        await deleteContact(
+          args.userId,
+          args.addressBookId,
+          args.contactId,
+          ...(args.etag ? [args.etag] : [])
+        )
         return args
       } catch (err) {
-        return rejectWithValue(toOperationError(err, 'delete'))
+        const error = toOperationError(err, 'delete')
+        if (args.ignoreNotFound && error.reason === 'notFound') return args
+        return rejectWithValue(error)
       }
     },
     {
