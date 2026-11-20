@@ -22,6 +22,7 @@ export interface DuplicateGroupCardProps {
   mergedContact?: MergedContactTarget
   isMerging: boolean
   isMergeDisabled?: boolean
+  hideActions?: boolean
   error?: string | null
   onMerge: (groupId: string) => void
   onViewContact?: (groupId: string) => void
@@ -147,6 +148,7 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
   mergedContact,
   isMerging,
   isMergeDisabled = false,
+  hideActions = false,
   error = null,
   onMerge,
   onViewContact
@@ -185,21 +187,23 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
         </Stack>
       </Paper>
 
-      <Stack
-        direction="row"
-        spacing={2}
-        className="u-flex-items-center u-flex-justify-end u-mt-1"
-      >
-        <CardActionButton
-          groupId={group.id}
-          isMerged={isMerged}
-          mergedContact={mergedContact}
-          isMerging={isMerging}
-          isMergeDisabled={isMergeDisabled}
-          onMerge={onMerge}
-          onViewContact={onViewContact}
-        />
-      </Stack>
+      {!hideActions && (
+        <Stack
+          direction="row"
+          spacing={2}
+          className="u-flex-items-center u-flex-justify-end u-mt-1"
+        >
+          <CardActionButton
+            groupId={group.id}
+            isMerged={isMerged}
+            mergedContact={mergedContact}
+            isMerging={isMerging}
+            isMergeDisabled={isMergeDisabled}
+            onMerge={onMerge}
+            onViewContact={onViewContact}
+          />
+        </Stack>
+      )}
     </Box>
   )
 }
