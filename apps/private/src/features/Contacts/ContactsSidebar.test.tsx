@@ -137,7 +137,6 @@ function renderSidebar(
                   />
                 }
               >
-                <Route path="merge" element={<div />} />
                 <Route path=":addressBookId" element={<div />} />
               </Route>
             </Routes>
@@ -223,8 +222,7 @@ describe('ContactsSidebar', () => {
       '10 Team',
       'Alpha',
       'beta',
-      'zeta',
-      en.contacts.merge.navLabel
+      'zeta'
     ])
   })
 
@@ -652,30 +650,5 @@ describe('ContactsSidebar', () => {
         expect(child.tagName).toBe('LI')
       )
     )
-  })
-
-  describe('Merge & fix action', () => {
-    it('navigates to /contacts/merge when clicked', () => {
-      renderSidebar('/contacts')
-
-      fireEvent.click(
-        screen.getByRole('button', { name: en.contacts.merge.navLabel })
-      )
-
-      expect(screen.getByTestId('location')).toHaveTextContent(
-        '/contacts/merge'
-      )
-    })
-
-    it('marks Merge & fix as current page on /contacts/merge and not My contacts', () => {
-      renderSidebar('/contacts/merge')
-
-      expect(
-        screen.getByRole('button', { name: en.contacts.merge.navLabel })
-      ).toHaveAttribute('aria-current', 'page')
-      expect(
-        screen.getByRole('button', { name: en.contacts.myContacts })
-      ).not.toHaveAttribute('aria-current', 'page')
-    })
   })
 })

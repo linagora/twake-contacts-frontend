@@ -190,32 +190,6 @@
         "description": "Cho phép người khác tìm và thêm sổ địa chỉ này qua tìm kiếm.",
         "toggleTooltip": "Bật/tắt chế độ khám phá công khai"
       }
-    },
-    "merge": {
-      "sectionTitle": "Sửa và hợp nhất",
-      "navLabel": "Hợp nhất",
-      "title": "Hợp nhất trùng lặp",
-      "headingWithCount": "Hợp nhất trùng lặp (%{count})",
-      "mergeAll": "Hợp nhất tất cả",
-      "merge": "Hợp nhất",
-      "merged": "Đã hợp nhất",
-      "viewContact": "Xem liên hệ",
-      "emptyTitle": "Không có liên hệ trùng lặp",
-      "emptySubtitle": "Tất cả liên hệ cá nhân của bạn đều đã được cập nhật.",
-      "mergeSuccess": "Đã hợp nhất liên hệ",
-      "mergeAllSuccess": "Đã hợp nhất tất cả liên hệ trùng lặp",
-      "mergeError": "Không thể hợp nhất danh bạ. Vui lòng thử lại.",
-      "changedError": "Các liên hệ đã thay đổi kể từ khi quét. Hãy xem lại các liên hệ đã cập nhật trước khi hợp nhất lại.",
-      "conflictError": "Không thể hợp nhất an toàn các thông tin xung đột. Hãy chỉnh sửa các liên hệ để giải quyết xung đột trước khi hợp nhất.",
-      "conflictErrorWithFields": "Không thể hợp nhất an toàn các thông tin xung đột (%{fields}). Hãy chỉnh sửa các liên hệ để giải quyết xung đột trước khi hợp nhất.",
-      "fields": {
-        "birthday": "Ngày sinh",
-        "org": "Tổ chức",
-        "title": "Chức danh",
-        "role": "Vai trò",
-        "note": "Ghi chú"
-      },
-      "loadError": "Không thể tải danh bạ để tìm trùng lặp."
     }
   },
   "error": {

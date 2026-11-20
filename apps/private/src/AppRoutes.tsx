@@ -8,7 +8,6 @@ import { ContactPage } from './features/Contacts/ContactPage'
 import { ContactsPage } from './features/Contacts/ContactsPage'
 import { CreateContactPage } from './features/Contacts/CreateContactPage'
 import { EditContactPage } from './features/Contacts/EditContactPage'
-import { MergeContactsPage } from './features/Contacts/MergeContacts'
 import HandleLogin from './features/User/HandleLogin'
 import { CallbackResume } from './features/User/LoginCallback'
 
@@ -31,7 +30,6 @@ export function AppRoutes(): React.JSX.Element {
           <Route path="new" element={<CreateContactPage />} />
           {/* Under a static segment: `:addressBookId/new` would shadow a contact whose id is "new" */}
           <Route path="new/:addressBookId" element={<CreateContactPage />} />
-          <Route path="merge" element={<MergeContactsPage />} />
           <Route path=":addressBookId" element={<AddressBookPage />} />
           <Route path=":addressBookId/:contactId" element={<ContactPage />} />
           <Route

@@ -149,24 +149,6 @@ also allow both request headers in CORS and expose `ETag`
 URL, or read back after a save, has no known ETag. Contacts from listings carry
 theirs in the JSON body.
 
-Duplicate merges reread each candidate with `fetchContactForMerge`, require a
-strong ETag, and compare all contact fields with the scanned candidates. Changed
-candidates refresh the group and require another explicit merge action. The
-update (via `contact.etag` without `edits`, so it never rebases) and deletes
-carry `If-Match` through the thunks to avoid overwriting or deleting a
-concurrent edit after the reread. Before deleting any sources, the merge reads
-the saved target again and requires a strong ETag; a missing or unreadable target
-leaves all sources in place. The read is not a transaction: a later deletion of
-the target by another client remains possible. A merge can finish only partially; retries
-reread the candidates, and a delete returning 404 is already complete.
-Conflicting single-valued or opaque vCard details block deletion until the user
-reconciles them. Opaque properties are preserved by name and exact content
-(including parameters); PHOTO and SOUND may have multiple values per RFC 6350
-§§6.2.4 and 6.7.5. Other opaque properties, including unknown extensions, block
-the merge when the same name has different content across candidates. Carried
-group names are unioned. The form does not edit arbitrary opaque properties:
-those conflicts need a vCard-capable client or import workflow to reconcile.
-
 ## Authentication
 
 OIDC authorisation code with PKCE through

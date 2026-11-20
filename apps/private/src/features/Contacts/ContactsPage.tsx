@@ -61,22 +61,15 @@ export const ContactsPage: React.FC = () => {
   const canWriteCurrentBook = currentBook?.capabilities.addContacts ?? false
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
-  const isMergePage =
-    pathSegments.length === 2 &&
-    pathSegments[0] === 'contacts' &&
-    pathSegments[1] === 'merge'
   const isAddressBookPage =
     (pathSegments.length === 1 && pathSegments[0] === 'contacts') ||
     (pathSegments.length === 2 &&
       pathSegments[0] === 'contacts' &&
-      pathSegments[1] !== 'new' &&
-      pathSegments[1] !== 'merge')
+      pathSegments[1] !== 'new')
 
-  const title = isMergePage
-    ? t('contacts.merge.title')
-    : addressBookId
-      ? getAddressBookDisplayName(book, t)
-      : t('contacts.myContacts')
+  const title = addressBookId
+    ? getAddressBookDisplayName(book, t)
+    : t('contacts.myContacts')
 
   const createLink =
     addressBookId && canWriteCurrentBook

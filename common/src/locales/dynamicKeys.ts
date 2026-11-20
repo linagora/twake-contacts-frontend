@@ -11,14 +11,6 @@ const CONTACT_TYPE_KEYS = {
   other: 'contacts.types.other'
 } as const
 
-const MERGE_CONFLICT_FIELD_KEYS = {
-  birthday: 'contacts.merge.fields.birthday',
-  org: 'contacts.merge.fields.org',
-  title: 'contacts.merge.fields.title',
-  role: 'contacts.merge.fields.role',
-  note: 'contacts.merge.fields.note'
-} as const
-
 /** Keys of @linagora/twake-mui components overridden by the app dictionary. */
 const TWAKE_MUI_KEYS = ['ContactPopover.emailButton'] as const
 
@@ -38,7 +30,6 @@ const TWAKE_BAR_KEYS = [
 
 export const DYNAMIC_KEYS: readonly string[] = [
   ...Object.values(CONTACT_TYPE_KEYS),
-  ...Object.values(MERGE_CONFLICT_FIELD_KEYS),
   ...TWAKE_MUI_KEYS,
   ...TWAKE_BAR_KEYS
 ]
@@ -59,18 +50,3 @@ export const translateContactType = (
     ? t(CONTACT_TYPE_KEYS[normalizedType])
     : type
 }
-
-const isMergeConflictField = (
-  field: string
-): field is keyof typeof MERGE_CONFLICT_FIELD_KEYS =>
-  Object.hasOwn(MERGE_CONFLICT_FIELD_KEYS, field)
-
-/**
- * Translates a known merge conflict field name, falling back to the raw
- * vCard property name for opaque properties.
- */
-export const translateMergeConflictField = (
-  field: string,
-  t: (key: string) => string
-): string =>
-  isMergeConflictField(field) ? t(MERGE_CONFLICT_FIELD_KEYS[field]) : field

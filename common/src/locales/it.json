@@ -190,32 +190,6 @@
         "description": "Consenti ad altri di trovare e aggiungere questa rubrica tramite la ricerca.",
         "toggleTooltip": "Attiva/disattiva la scoperta pubblica"
       }
-    },
-    "merge": {
-      "sectionTitle": "Correggi e unisci",
-      "navLabel": "Unisci",
-      "title": "Unisci duplicati",
-      "headingWithCount": "Unisci duplicati (%{count})",
-      "mergeAll": "Unisci tutto",
-      "merge": "Unisci",
-      "merged": "Unito",
-      "viewContact": "Visualizza contatto",
-      "emptyTitle": "Nessun contatto duplicato",
-      "emptySubtitle": "Tutti i tuoi contatti personali sono già aggiornati.",
-      "mergeSuccess": "Contatti uniti",
-      "mergeAllSuccess": "Tutti i duplicati sono stati uniti",
-      "mergeError": "Impossibile unire i contatti. Riprova.",
-      "changedError": "I contatti sono cambiati dopo la ricerca. Controlla i contatti aggiornati prima di unirli di nuovo.",
-      "conflictError": "I dati in conflitto non possono essere uniti in sicurezza. Modifica i contatti per risolvere i conflitti prima di unirli.",
-      "conflictErrorWithFields": "I dati in conflitto (%{fields}) non possono essere uniti in sicurezza. Modifica i contatti per risolvere i conflitti prima di unirli.",
-      "fields": {
-        "birthday": "Compleanno",
-        "org": "Organizzazione",
-        "title": "Titolo",
-        "role": "Ruolo",
-        "note": "Nota"
-      },
-      "loadError": "Impossibile caricare i contatti per la deduplicazione."
     }
   },
   "error": {

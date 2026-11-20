@@ -17,7 +17,6 @@ import {
   fetchAddressBooks,
   fetchAddressBookDetails,
   fetchContact,
-  fetchContactForMerge,
   fetchContactsPage,
   fetchSubscribableAddressBooks,
   moveContact,
@@ -2287,47 +2286,6 @@ describe('DAV paths of a book whose ids need encoding', () => {
       headers: { Accept: 'text/vcard' }
     })
   })
-
-  it('reads a fresh merge snapshot and sends conditional writes and deletes', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      headers: new Headers({ ETag: '"v1"' }),
-      json: () => Promise.resolve(['vcard', [['fn', {}, 'text', 'Alex']]])
-    } as unknown as Awaited<ReturnType<typeof api.get>>)
-    const snapshot = await fetchContactForMerge(book, 'c1')
-    expect(snapshot.etag).toBe('"v1"')
-    expect(snapshot.contact.id).toBe('c1')
-    expect(api.get).toHaveBeenCalledWith(cardPath, {
-      headers: { Accept: 'application/vcard+json' },
-      cache: 'no-store'
-    })
-    await saveContact(book.userId, book.id, snapshot.contact, 'update')
-    await deleteContact(book.userId, book.id, 'c1', snapshot.etag)
-    expect(api.put).toHaveBeenCalledWith(
-      cardPath,
-      expect.objectContaining({
-        headers: {
-          'Content-Type': 'application/vcard+json',
-          'If-Match': '"v1"'
-        }
-      })
-    )
-    expect(api.delete).toHaveBeenCalledWith(cardPath, {
-      headers: { 'If-Match': '"v1"' }
-    })
-  })
-
-  it.each([undefined, 'W/"v1"'])(
-    'refuses an unsafe merge snapshot ETag (%s)',
-    async etag => {
-      vi.mocked(api.get).mockResolvedValue({
-        headers: new Headers(etag ? { ETag: etag } : {}),
-        json: () => Promise.resolve(['vcard', []])
-      } as unknown as Awaited<ReturnType<typeof api.get>>)
-      await expect(fetchContactForMerge(book, 'c1')).rejects.toThrow(
-        'Missing strong ETag'
-      )
-    }
-  )
 
   it('addresses the same card from every call', async () => {
     await fetchContact(book, 'c1')
