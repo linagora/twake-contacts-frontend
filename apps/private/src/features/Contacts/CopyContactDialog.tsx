@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction, useState } from 'react'
 import {
   Alert,
   Button,
@@ -11,32 +10,25 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import {
-  copyContact,
-  moveContact
-} from '@common/features/Contacts/ContactsSlice'
-import {
-  AddressBookWithContacts,
-  Contact
-} from '@common/features/Contacts/contactsTypes'
-import {
-  getAddressBookDisplayName,
-  isContactTransferDestination
-} from '@common/features/Contacts/contactsUtils'
+import { Contact } from '@common/features/Contacts/contactsTypes'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import {
   addressBookMenuProps,
   useAddressBookOptions
 } from './AddressBookOptions'
+import { DuplicateTransferDialog } from './DuplicateTransferDialog'
+import { useContactTransfer } from './useContactTransfer'
 
 const TRANSLATION_KEYS = {
   copy: {
     title: 'contacts.copyContact.title',
-    error: 'contacts.copyContact.error'
+    error: 'contacts.copyContact.error',
+    confirm: 'contacts.copy'
   },
   move: {
     title: 'contacts.moveContact.title',
-    error: 'contacts.moveContact.error'
+    error: 'contacts.moveContact.error',
+    confirm: 'contacts.moveContact.confirm'
   }
 } as const
 
@@ -44,70 +36,8 @@ interface ContactTransferDialogProps {
   contact: Contact
   addressBookId: string
   onClose: () => void
-  onSuccess?: (destinationId: string) => void
+  onSuccess?: (destinationId: string, contactId?: string) => void
   mode?: 'copy' | 'move'
-}
-
-const useContactTransfer = ({
-  contact,
-  addressBookId,
-  onClose,
-  onSuccess,
-  mode
-}: ContactTransferDialogProps): {
-  books: AddressBookWithContacts[]
-  destinationId: string
-  setDestinationId: Dispatch<SetStateAction<string>>
-  transferring: boolean
-  error: boolean
-  canTransfer: boolean
-  transfer: () => Promise<void>
-} => {
-  const dispatch = useAppDispatch()
-  const addressBooks = useAppSelector(state => state.contacts.addressBooks)
-  const books = Object.values(addressBooks).filter(
-    (book): book is AddressBookWithContacts =>
-      isContactTransferDestination(book, addressBookId)
-  )
-  const [destinationId, setDestinationId] = useState('')
-  const [transferring, setTransferring] = useState(false)
-  const [error, setError] = useState(false)
-  const destination = books.find(book => book.id === destinationId)
-  const source = addressBooks[addressBookId]
-  const canTransfer = !!source?.canWrite && !!destination && !transferring
-  const handleTransfer = async (): Promise<void> => {
-    if (!canTransfer) return
-    setTransferring(true)
-    setError(false)
-    try {
-      const args = {
-        fromAddressBookId: addressBookId,
-        toAddressBookId: destinationId,
-        contact
-      }
-      if (mode === 'move') {
-        await dispatch(moveContact({ ...args, userId: source.userId })).unwrap()
-      } else {
-        await dispatch(copyContact(args)).unwrap()
-      }
-      onClose()
-      onSuccess?.(destinationId)
-    } catch {
-      setError(true)
-    } finally {
-      setTransferring(false)
-    }
-  }
-
-  return {
-    books,
-    destinationId,
-    setDestinationId,
-    transferring,
-    error,
-    canTransfer,
-    transfer: handleTransfer
-  }
 }
 
 export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
@@ -118,20 +48,41 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
   mode = 'copy'
 }) => {
   const { t } = useI18n()
-  const translationKeys = TRANSLATION_KEYS[mode]
+  const keys = TRANSLATION_KEYS[mode]
   const {
     books,
+    sourceBook,
+    destination,
     destinationId,
     setDestinationId,
     transferring,
     error,
+    mergeError,
+    duplicateGroup,
     canTransfer,
-    transfer
+    transfer,
+    confirmWithoutMerge,
+    confirmMerge,
+    backToTransfer
   } = useContactTransfer({ contact, addressBookId, onClose, onSuccess, mode })
   const options = useAddressBookOptions(books)
-  const sourceBook = useAppSelector(
-    state => state.contacts.addressBooks[addressBookId]
-  )
+
+  if (duplicateGroup && destination) {
+    return (
+      <DuplicateTransferDialog
+        mode={mode}
+        destination={destination}
+        duplicateGroup={duplicateGroup}
+        transferring={transferring}
+        errorMessage={error ? t(keys.error) : null}
+        mergeError={mergeError}
+        onBack={backToTransfer}
+        onClose={onClose}
+        onConfirmWithoutMerge={() => void confirmWithoutMerge()}
+        onConfirmMerge={() => void confirmMerge()}
+      />
+    )
+  }
 
   return (
     <Dialog
@@ -142,9 +93,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
       aria-labelledby={`${mode}-contact-title`}
       onClick={event => event.stopPropagation()}
     >
-      <DialogTitle id={`${mode}-contact-title`}>
-        {t(translationKeys.title)}
-      </DialogTitle>
+      <DialogTitle id={`${mode}-contact-title`}>{t(keys.title)}</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">
@@ -153,7 +102,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
               book: getAddressBookDisplayName(sourceBook, t)
             })}
           </Typography>
-          {error && <Alert severity="error">{t(translationKeys.error)}</Alert>}
+          {error && <Alert severity="error">{t(keys.error)}</Alert>}
           {books.length === 0 ? (
             <Typography>{t('contacts.copyContact.empty')}</Typography>
           ) : (
@@ -172,7 +121,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={transferring}>
+        <Button variant="text" onClick={onClose} disabled={transferring}>
           {t('contacts.form.cancel')}
         </Button>
         <Button
@@ -180,9 +129,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
           disabled={!canTransfer}
           onClick={() => void transfer()}
         >
-          {mode === 'move'
-            ? t('contacts.moveContact.confirm')
-            : t('contacts.copy')}
+          {t(keys.confirm)}
         </Button>
       </DialogActions>
     </Dialog>
