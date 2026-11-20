@@ -178,6 +178,11 @@ export const CONFIG_SCHEMA = {
     false,
     'Shows the theme toggle and disables the Nginx browser cache when `true`'
   ),
+  CONTRAST_TOGGLE: withDefault(
+    boolean,
+    false,
+    'Shows the high-contrast toggle when `true`'
+  ),
   LANG: withDefault(
     nonEmptyString,
     'en',

@@ -7,6 +7,9 @@ import { Provider } from 'react-redux'
 import I18n from 'twake-i18n'
 import { ContrastToggle } from './ContrastToggle'
 
+const mockConfig = vi.hoisted(() => ({ CONTRAST_TOGGLE: true }))
+vi.mock('@common/config', () => ({ config: mockConfig }))
+
 const renderToggle = (
   contrastMode: 'default' | 'more' = 'default'
 ): ReturnType<typeof setupStore> => {
@@ -54,6 +57,18 @@ describe('ContrastToggle', () => {
 
     expect(store.getState().settings.contrastMode).toBe('default')
     expect(localStorage.getItem('contrast')).toBe('default')
+  })
+
+  it('hides the toggle when CONTRAST_TOGGLE is false', () => {
+    mockConfig.CONTRAST_TOGGLE = false
+    try {
+      renderToggle()
+      expect(
+        screen.queryByRole('button', { name: 'High contrast' })
+      ).not.toBeInTheDocument()
+    } finally {
+      mockConfig.CONTRAST_TOGGLE = true
+    }
   })
 })
 
