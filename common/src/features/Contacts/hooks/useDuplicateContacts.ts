@@ -33,7 +33,7 @@ export interface MergeGroupError {
   conflictFields?: string[]
 }
 
-const toMergeGroupError = (error: unknown): MergeGroupError => {
+export const toMergeGroupError = (error: unknown): MergeGroupError => {
   if (!(error instanceof MergeContactError)) return { reason: 'error' }
   return error.conflictFields.length > 0
     ? { reason: error.reason, conflictFields: error.conflictFields }

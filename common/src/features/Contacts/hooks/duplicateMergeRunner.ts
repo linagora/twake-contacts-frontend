@@ -9,9 +9,12 @@ import {
 } from '../mergeContactsTypes'
 import {
   buildMergedContactPlan,
+  buildMergedContactPlanIntoDestination,
   contactValueKey,
   findDuplicateContactGroups,
-  MergeContactError
+  findDuplicatesOfContactInBook,
+  MergeContactError,
+  MergedContactPlan
 } from '../mergeContactsUtils'
 
 export interface MergedContactTarget {
@@ -42,6 +45,7 @@ async function fetchAllBookContacts(
       false,
       { cache: 'no-store' }
     )
+    if (!page) break
     for (const entry of page.entries) {
       const key = `${entry.addressBookId}:${entry.contact.id}`
       if (!seenIds.has(key)) {
@@ -64,6 +68,18 @@ export async function loadPersonalBookDuplicates(
     books.map(book => fetchAllBookContacts(userId, book))
   )
   return findDuplicateContactGroups(bookEntries.flat())
+}
+
+export async function findDestinationDuplicates(
+  userId: string,
+  sourceEntry: DuplicateContactEntry,
+  destinationBook: AddressBook
+): Promise<DuplicateContactGroup | null> {
+  const destinationEntries = await fetchAllBookContacts(
+    destinationBook.userId || userId,
+    destinationBook
+  )
+  return findDuplicatesOfContactInBook(sourceEntry, destinationEntries)
 }
 
 async function fetchEntrySnapshot(
@@ -138,13 +154,25 @@ export interface ExecuteGroupMergeParams {
   refreshGroup: (entries: DuplicateContactEntry[]) => void
 }
 
-export async function executeGroupMerge({
-  dispatch,
-  userId,
-  group,
-  books,
-  refreshGroup
-}: ExecuteGroupMergeParams): Promise<MergedContactTarget> {
+export interface ExecuteTransferMergeParams {
+  dispatch: AppDispatch
+  userId: string
+  mode: 'copy' | 'move'
+  sourceEntry: DuplicateContactEntry
+  group: DuplicateContactGroup
+  books: AddressBook[]
+  refreshGroup: (entries: DuplicateContactEntry[]) => void
+}
+
+export interface MergedTransferTarget extends MergedContactTarget {
+  contactName: string
+}
+
+async function fetchVerifiedGroupSnapshots(
+  group: DuplicateContactGroup,
+  books: AddressBook[],
+  refreshGroup: (entries: DuplicateContactEntry[]) => void
+): Promise<ContactSnapshot[]> {
   const results = await Promise.all(
     group.entries.map(entry => fetchEntrySnapshot(entry, books))
   )
@@ -159,11 +187,28 @@ export async function executeGroupMerge({
     refreshGroup(snapshotEntries)
     throw new MergeContactError('changed')
   }
+  return snapshots
+}
 
-  const plan = buildMergedContactPlan(snapshotEntries)
+async function applyMergePlan({
+  dispatch,
+  userId,
+  books,
+  snapshots,
+  plan
+}: {
+  dispatch: AppDispatch
+  userId: string
+  books: AddressBook[]
+  snapshots: ContactSnapshot[]
+  plan: MergedContactPlan
+}): Promise<MergedTransferTarget> {
+  const targetBook = books.find(b => b.id === plan.targetAddressBookId)
+  const targetUserId = targetBook?.userId || userId
+
   await dispatch(
     updateContact({
-      userId,
+      userId: targetUserId,
       addressBookId: plan.targetAddressBookId,
       contact: {
         ...plan.updatedContact,
@@ -188,9 +233,10 @@ export async function executeGroupMerge({
   if (!savedTarget) throw new MergeContactError('changed')
 
   for (const item of plan.toDelete) {
+    const itemBook = books.find(b => b.id === item.addressBookId)
     await dispatch(
       deleteContact({
-        userId,
+        userId: itemBook?.userId || userId,
         addressBookId: item.addressBookId,
         contactId: item.contactId,
         ignoreNotFound: true,
@@ -201,8 +247,88 @@ export async function executeGroupMerge({
 
   return {
     addressBookId: plan.targetAddressBookId,
-    contactId: plan.updatedContact.id
+    contactId: plan.updatedContact.id,
+    contactName: savedTarget.contact.displayName
   }
+}
+
+export async function executeGroupMerge({
+  dispatch,
+  userId,
+  group,
+  books,
+  refreshGroup
+}: ExecuteGroupMergeParams): Promise<MergedContactTarget> {
+  const snapshots = await fetchVerifiedGroupSnapshots(
+    group,
+    books,
+    refreshGroup
+  )
+  const snapshotEntries = snapshots.map(({ addressBookId, contact }) => ({
+    addressBookId,
+    contact
+  }))
+  const plan = buildMergedContactPlan(snapshotEntries)
+  const target = await applyMergePlan({
+    dispatch,
+    userId,
+    books,
+    snapshots,
+    plan
+  })
+  return {
+    addressBookId: target.addressBookId,
+    contactId: target.contactId
+  }
+}
+
+export async function executeTransferMerge({
+  dispatch,
+  userId,
+  mode,
+  sourceEntry,
+  group,
+  books,
+  refreshGroup
+}: ExecuteTransferMergeParams): Promise<MergedTransferTarget> {
+  const snapshots = await fetchVerifiedGroupSnapshots(
+    group,
+    books,
+    refreshGroup
+  )
+  const snapshotEntries = snapshots.map(({ addressBookId, contact }) => ({
+    addressBookId,
+    contact
+  }))
+  const sourceSnapshot = snapshotEntries.find(
+    entry =>
+      entry.addressBookId === sourceEntry.addressBookId &&
+      entry.contact.id === sourceEntry.contact.id
+  )
+  const destinationSnapshots = snapshotEntries.filter(
+    entry =>
+      !(
+        entry.addressBookId === sourceEntry.addressBookId &&
+        entry.contact.id === sourceEntry.contact.id
+      )
+  )
+  if (!sourceSnapshot || destinationSnapshots.length === 0) {
+    refreshGroup(snapshotEntries)
+    throw new MergeContactError('changed')
+  }
+
+  const plan = buildMergedContactPlanIntoDestination(
+    sourceSnapshot,
+    destinationSnapshots,
+    mode === 'move'
+  )
+  return applyMergePlan({
+    dispatch,
+    userId,
+    books,
+    snapshots,
+    plan
+  })
 }
 
 export async function runQueuedMerges(
