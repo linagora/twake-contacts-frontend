@@ -8,7 +8,12 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · attualmente in %{book}",
-      "open": "Apri"
+      "open": "Apri",
+      "duplicateTitle": "Contatto duplicato trovato",
+      "duplicateCopyAlert": "Il contatto copiato verrà unito al contatto esistente in %{book}.",
+      "duplicateMoveAlert": "Il contatto spostato verrà unito al contatto esistente in %{book}.",
+      "copyWithoutMerge": "Copia senza unire",
+      "moveWithoutMerge": "Sposta senza unire"
     },
     "copyContact": {
       "success": "“%{name}” copiato in %{book}",

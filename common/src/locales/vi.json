@@ -8,7 +8,12 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · hiện ở %{book}",
-      "open": "Mở"
+      "open": "Mở",
+      "duplicateTitle": "Phát hiện liên hệ trùng lặp",
+      "duplicateCopyAlert": "Liên hệ được sao chép sẽ được hợp nhất vào liên hệ hiện có trong %{book}.",
+      "duplicateMoveAlert": "Liên hệ được di chuyển sẽ được hợp nhất vào liên hệ hiện có trong %{book}.",
+      "copyWithoutMerge": "Sao chép không hợp nhất",
+      "moveWithoutMerge": "Di chuyển không hợp nhất"
     },
     "copyContact": {
       "success": "Đã sao chép “%{name}” vào %{book}",
