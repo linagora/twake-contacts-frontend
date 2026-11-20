@@ -30,7 +30,7 @@ export const SharedSectionHeader: React.FC<SharedSectionHeaderProps> = ({
   const { t } = useI18n()
 
   const subscribeButton = (
-    <ListItemSecondaryAction>
+    <ListItemSecondaryAction className="u-mr-1-half">
       <CreateAddressBookButton
         onClick={onOpenSubscribe}
         label={t('contacts.addressBook.subscribeTitle')}

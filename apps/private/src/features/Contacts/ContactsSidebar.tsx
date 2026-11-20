@@ -94,8 +94,20 @@ export const ContactsSidebar: React.FC<ContactsSidebarProps> = ({
           </Button>
         </Box>
       )}
-      <Box className="u-flex-auto u-ov-auto u-mt-1-half">
-        <Nav className="u-mv-0">
+      <Box
+        className="u-flex-auto u-mt-1-half"
+        sx={theme => ({
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          scrollbarWidth: 'thin',
+          scrollbarGutter: 'stable',
+          scrollbarColor: 'transparent transparent',
+          '&:hover, &:focus-within': {
+            scrollbarColor: `${theme.vars.palette.text.disabled} transparent`
+          }
+        })}
+      >
+        <Nav className="u-mv-0" sx={{ marginRight: '-10px' }}>
           <MyContactsNavItem
             hasBooks={hasPersonalBooks}
             isExpanded={isMyContactsExpanded}
