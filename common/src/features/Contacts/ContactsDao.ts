@@ -89,37 +89,44 @@ export async function fetchAddressBooks(
   return userBooks
 }
 
+interface SharedSourceRef extends DavBookRef {
+  sourceBookId: string
+}
+
+function parseSharedSource(
+  source: string | undefined,
+  userId: string
+): SharedSourceRef | null {
+  if (!source) return null
+  // e.g. /addressbooks/6498ffa1d48f620025cc9dc2/431ae469-dfee-4b0a-a976-e04a12661b34.json
+  const parts = source.split('/')
+  if (parts.length < 3) return null
+
+  const ownerId = decodeDavSegment(parts[2] ?? '')
+  if (!ownerId || ownerId === userId) return null
+
+  const sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
+  return { userId: ownerId, bookId: sourceBookId, sourceBookId }
+}
+
 /** Resolves decoded source IDs and the owner's display name before classifying a book. */
 async function enrichAddressBookOwner(
   rawBook: DavAddressBookItem,
   userId: string
 ): Promise<AddressBook> {
   const book = normalizeAddressBook(rawBook)
-  const source = readAddressBookSource(rawBook)
+  const shared = parseSharedSource(readAddressBookSource(rawBook), userId)
+  if (!shared) return classifyAddressBook(book, userId)
 
-  if (!source) return classifyAddressBook(book, userId)
-
-  // e.g. /addressbooks/6498ffa1d48f620025cc9dc2/431ae469-dfee-4b0a-a976-e04a12661b34.json
-  const parts = source.split('/')
-  if (parts.length < 3) return classifyAddressBook(book, userId)
-
-  const ownerId = decodeDavSegment(parts[2] ?? '')
-  if (!ownerId || ownerId === userId) return classifyAddressBook(book, userId)
-  book.ownerId = ownerId
-  book.sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
+  book.ownerId = shared.userId
+  book.sourceBookId = shared.sourceBookId
 
   const [name, sourceContactsCount] = await Promise.all([
-    fetchOwnerDisplayName(ownerId),
-    book.contactsCount == null
-      ? fetchSourceContactsCount({ userId: ownerId, bookId: book.sourceBookId })
-      : undefined
+    fetchOwnerDisplayName(shared.userId),
+    book.contactsCount == null ? fetchSourceContactsCount(shared) : undefined
   ])
-  if (name) {
-    book.ownerDisplayName = name
-  }
-  if (sourceContactsCount != null) {
-    book.contactsCount = sourceContactsCount
-  }
+  if (name) book.ownerDisplayName = name
+  if (sourceContactsCount != null) book.contactsCount = sourceContactsCount
 
   return classifyAddressBook(book, userId)
 }
@@ -247,6 +254,28 @@ function getContactsPageUrl(
   }
 }
 
+function buildContactsPageParams(
+  baseParams: Record<string, string>,
+  sort: ContactSort,
+  after: string | null
+): Record<string, string> {
+  return {
+    ...baseParams,
+    sort: sort.by,
+    order: sort.order,
+    limit: String(CONTACTS_PAGINATION_LIMIT),
+    ...(after ? { after } : {})
+  }
+}
+
+function resolveEntryAddressBookId(
+  book: AddressBook | null,
+  item: DavContactItem
+): string {
+  if (book) return book.id
+  return toStoreAddressBookId(item?._links?.self?.href)
+}
+
 /**
  * One page of the contacts of a book, or of every book of the user when book
  * is null, in the sort order. after is the next cursor of the previous page,
@@ -265,26 +294,16 @@ export async function fetchContactsPage(
     book,
     withDomainMembers
   )
-  const data: DavContactsResponse = await api
-    .get(url, {
-      searchParams: {
-        ...searchParams,
-        sort: sort.by,
-        order: sort.order,
-        limit: String(CONTACTS_PAGINATION_LIMIT),
-        ...(after ? { after } : {})
-      },
-      ...(options?.cache ? { cache: options.cache } : {})
-    })
-    .json()
+  const requestOptions: Options = {
+    searchParams: buildContactsPageParams(searchParams, sort, after),
+    ...(options?.cache ? { cache: options.cache } : {})
+  }
+  const data: DavContactsResponse = await api.get(url, requestOptions).json()
 
   const items = data._embedded?.['dav:item'] ?? []
   return {
     entries: items.flatMap(item =>
-      readContactEntry(
-        item,
-        book?.id ?? toStoreAddressBookId(item?._links?.self?.href)
-      )
+      readContactEntry(item, resolveEntryAddressBookId(book, item))
     ),
     next: data.next ?? null
   }

@@ -8,7 +8,12 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · currently in %{book}",
-      "open": "Open"
+      "open": "Open",
+      "duplicateTitle": "Duplicate contact found",
+      "duplicateCopyAlert": "The copied contact will be merged into the existing contact in %{book}.",
+      "duplicateMoveAlert": "The moved contact will be merged into the existing contact in %{book}.",
+      "copyWithoutMerge": "Copy without merging",
+      "moveWithoutMerge": "Move without merging"
     },
     "copyContact": {
       "success": "“%{name}” copied to %{book}",

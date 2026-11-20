@@ -5,7 +5,6 @@ import {
 } from '@common/features/Contacts/hooks/useDuplicateContacts'
 import { DuplicateContactGroup } from '@common/features/Contacts/mergeContactsTypes'
 import { useDocumentTitle } from '@common/hooks/useDocumentTitle'
-import { translateMergeConflictField } from '@common/locales/dynamicKeys'
 import { Check, Icon, Merge } from '@linagora/twake-icons'
 import {
   Alert,
@@ -22,24 +21,7 @@ import { Link } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import { useFocusHeadingOnArrival } from '../focusHeadingOnArrival'
 import { DuplicateGroupCard } from './DuplicateGroupCard'
-
-const formatMergeError = (
-  error: MergeGroupError | undefined,
-  t: (key: string, options?: Record<string, unknown>) => string
-): string | null => {
-  if (!error) return null
-  if (error.reason === 'changed') return t('contacts.merge.changedError')
-  if (error.reason === 'conflict') {
-    if (error.conflictFields?.length) {
-      const fields = error.conflictFields
-        .map(field => translateMergeConflictField(field, t))
-        .join(', ')
-      return t('contacts.merge.conflictErrorWithFields', { fields })
-    }
-    return t('contacts.merge.conflictError')
-  }
-  return t('contacts.merge.mergeError')
-}
+import { formatMergeError } from './formatMergeError'
 
 const getOrphanedGroupErrors = (
   groups: DuplicateContactGroup[],

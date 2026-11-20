@@ -8,7 +8,12 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · сейчас в «%{book}»",
-      "open": "Открыть"
+      "open": "Открыть",
+      "duplicateTitle": "Найден дубликат контакта",
+      "duplicateCopyAlert": "Скопированный контакт будет объединён с существующим контактом в «%{book}».",
+      "duplicateMoveAlert": "Перемещённый контакт будет объединён с существующим контактом в «%{book}».",
+      "copyWithoutMerge": "Копировать без объединения",
+      "moveWithoutMerge": "Переместить без объединения"
     },
     "copyContact": {
       "success": "«%{name}» скопирован в «%{book}»",

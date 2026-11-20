@@ -185,6 +185,31 @@ export function findDuplicateContactGroups(
   return groupEntriesByRoot(entries, find)
 }
 
+export function findDuplicatesOfContactInBook(
+  sourceEntry: DuplicateContactEntry,
+  destinationEntries: DuplicateContactEntry[]
+): DuplicateContactGroup | null {
+  const candidates = destinationEntries.filter(
+    entry =>
+      !(
+        entry.addressBookId === sourceEntry.addressBookId &&
+        entry.contact.id === sourceEntry.contact.id
+      )
+  )
+  if (candidates.length === 0) return null
+
+  const groups = findDuplicateContactGroups([sourceEntry, ...candidates])
+  return (
+    groups.find(group =>
+      group.entries.some(
+        entry =>
+          entry.addressBookId === sourceEntry.addressBookId &&
+          entry.contact.id === sourceEntry.contact.id
+      )
+    ) ?? null
+  )
+}
+
 export interface MergedContactPlan {
   targetAddressBookId: string
   updatedContact: Contact
@@ -313,20 +338,11 @@ function mergeSingleValuedFields(
   }
 }
 
-/**
- * Picks the most complete contact (most phone, email, and Matrix ID entries)
- * to update, keeps its name and existing details, appends any non-duplicate
- * phones/emails/social profiles and other compatible fields from the other
- * contacts. Conflicting single-valued fields require manual reconciliation
- * before any contact can be marked for deletion.
- */
-export function buildMergedContactPlan(
-  entries: DuplicateContactEntry[]
+function mergeEntriesIntoPrimary(
+  primary: DuplicateContactEntry,
+  duplicates: DuplicateContactEntry[],
+  toDeleteEntries: DuplicateContactEntry[]
 ): MergedContactPlan {
-  const primaryIndex = findMostCompleteIndex(entries)
-  const primary = entries[primaryIndex]
-  const duplicates = entries.filter((_, index) => index !== primaryIndex)
-
   const phones = mergeUniqueEntries(
     primary.contact.phones ?? [],
     duplicates.flatMap(d => d.contact.phones ?? []),
@@ -365,9 +381,49 @@ export function buildMergedContactPlan(
   return {
     targetAddressBookId: primary.addressBookId,
     updatedContact,
-    toDelete: duplicates.map(d => ({
+    toDelete: toDeleteEntries.map(d => ({
       addressBookId: d.addressBookId,
       contactId: d.contact.id
     }))
   }
+}
+
+/**
+ * Picks the most complete contact (most phone, email, and Matrix ID entries)
+ * to update, keeps its name and existing details, appends any non-duplicate
+ * phones/emails/social profiles and other compatible fields from the other
+ * contacts. Conflicting single-valued fields require manual reconciliation
+ * before any contact can be marked for deletion.
+ */
+export function buildMergedContactPlan(
+  entries: DuplicateContactEntry[]
+): MergedContactPlan {
+  const primaryIndex = findMostCompleteIndex(entries)
+  const primary = entries[primaryIndex]
+  const duplicates = entries.filter((_, index) => index !== primaryIndex)
+
+  return mergeEntriesIntoPrimary(primary, duplicates, duplicates)
+}
+
+/**
+ * Merges a transferred (copied or moved) contact into the most complete
+ * duplicate contact in the destination address book. Only deletes the source
+ * contact when `deleteSource` is true (i.e. move).
+ */
+export function buildMergedContactPlanIntoDestination(
+  sourceEntry: DuplicateContactEntry,
+  destinationEntries: DuplicateContactEntry[],
+  deleteSource: boolean
+): MergedContactPlan {
+  const primaryIndex = findMostCompleteIndex(destinationEntries)
+  const primary = destinationEntries[primaryIndex]
+  const otherDestinations = destinationEntries.filter(
+    (_, index) => index !== primaryIndex
+  )
+  const sourcesToMerge = [sourceEntry, ...otherDestinations]
+  const toDelete = deleteSource
+    ? [sourceEntry, ...otherDestinations]
+    : otherDestinations
+
+  return mergeEntriesIntoPrimary(primary, sourcesToMerge, toDelete)
 }

@@ -144,12 +144,14 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
           contact={contact}
           addressBookId={addressBookId}
           onClose={handleCloseDialog}
-          onSuccess={destinationId => {
+          onSuccess={(destinationId, mergedContactId) => {
             if (
               params.addressBookId === addressBookId &&
               params.contactId === contact.id
             ) {
-              void navigate(contactPath(destinationId, contact.id))
+              void navigate(
+                contactPath(destinationId, mergedContactId ?? contact.id)
+              )
             }
           }}
         />
