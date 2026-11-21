@@ -249,6 +249,22 @@ describe('normalizeContact', () => {
       expect(normalizeContact(item(...props)).displayName).toBe(expected)
     })
 
+    it.each([
+      [['', '', 'Marie', '', ''], 'Marie'],
+      [['', '', '', 'Dr.', ''], 'Dr.'],
+      [['', '', '', '', 'Jr.'], 'Jr.'],
+      [['', '', ['Anna', 'Maria'], '', ''], 'Anna Maria'],
+      [['', '', 'Marie', 'Dr.', 'Jr.'], 'Dr. Marie Jr.'],
+      [[' ', '', '\tTab\t', ' ', '...'], 'Tab ...']
+    ] as [JCalCard[1][number][3], string][])(
+      'names N %j from its other components',
+      (n, expected) => {
+        expect(normalizeContact(item(['n', {}, 'text', n])).displayName).toBe(
+          expected
+        )
+      }
+    )
+
     it.each(['', ' ', '\t'])('does not keep the blank FN %j as name', fn => {
       const contact = normalizeContact(
         item(['fn', {}, 'text', fn], ['org', {}, 'text', ['Initech', 'IT']])
