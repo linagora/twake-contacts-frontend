@@ -100,6 +100,18 @@ describe('normalizeContact', () => {
     }
   )
 
+  it.each([
+    ['%2F.vcf', '/.vcf/'],
+    ['a%2F.vcf', 'a/.vcf/'],
+    ['.%2F.vcf', './.vcf/'],
+    ['.vcf', '.vcf/']
+  ])(
+    'keeps verbatim the card file %s whose stem is empty or ends in "/" (#678)',
+    (fileName, id) => {
+      expect(contactAt(`/addressbooks/bob/book1/${fileName}`).id).toBe(id)
+    }
+  )
+
   it('falls back to the card file name as display name (#623)', () => {
     const nameless = (href: string): Contact =>
       normalizeContact({ _links: { self: { href } }, data: ['vcard', []] })
