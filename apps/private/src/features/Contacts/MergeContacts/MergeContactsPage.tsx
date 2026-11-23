@@ -59,7 +59,7 @@ const getOrphanedGroupErrors = (
     .filter((message): message is string => message !== null)
 }
 
-const MergeContactsBody: React.FC<{
+interface MergeContactsBodyProps {
   isLoading: boolean
   error: string | null
   groups: DuplicateContactGroup[]
@@ -73,7 +73,28 @@ const MergeContactsBody: React.FC<{
   onMergeGroup: (groupId: string) => void
   onDismissGroup: (groupId: string) => void
   onViewContact: (groupId: string) => void
-}> = ({
+}
+
+const MergeContactsEmptyState: React.FC = () => {
+  const { t } = useI18n()
+  return (
+    <Empty
+      icon={<Icon icon={Merge} size={48} />}
+      iconSize="normal"
+      title={t('contacts.merge.emptyTitle')}
+      text={t('contacts.merge.emptySubtitle')}
+      componentsProps={{ title: { component: 'h2' } }}
+    >
+      <Stack className="u-flex-items-center u-mt-1">
+        <Button component={Link} to="/contacts" variant="outlined">
+          {t('contacts.back')}
+        </Button>
+      </Stack>
+    </Empty>
+  )
+}
+
+const MergeContactsBody: React.FC<MergeContactsBodyProps> = ({
   isLoading,
   error,
   groups,
@@ -98,25 +119,11 @@ const MergeContactsBody: React.FC<{
     )
   }
 
-  if (groups.length === 0 && error) return null
-
   if (groups.length === 0) {
-    return (
-      <Empty
-        icon={<Icon icon={Merge} size={48} />}
-        iconSize="normal"
-        title={t('contacts.merge.emptyTitle')}
-        text={t('contacts.merge.emptySubtitle')}
-        componentsProps={{ title: { component: 'h2' } }}
-      >
-        <Stack className="u-flex-items-center u-mt-1">
-          <Button component={Link} to="/contacts" variant="outlined">
-            {t('contacts.back')}
-          </Button>
-        </Stack>
-      </Empty>
-    )
+    return error ? null : <MergeContactsEmptyState />
   }
+
+  const hasActiveDismissal = dismissingGroupIds.size > 0
 
   return (
     <Stack spacing={3} className="u-maw-7">
@@ -127,9 +134,9 @@ const MergeContactsBody: React.FC<{
           isMerged={mergedIds.has(group.id)}
           mergedContact={mergedContacts[group.id]}
           isMerging={mergingGroupIds.has(group.id)}
-          isMergeDisabled={isMergingAll || dismissingGroupIds.size > 0}
+          isMergeDisabled={isMergingAll || hasActiveDismissal}
           isDismissing={dismissingGroupIds.has(group.id)}
-          isDismissDisabled={isMerging || dismissingGroupIds.size > 0}
+          isDismissDisabled={isMerging || hasActiveDismissal}
           error={formatMergeError(groupErrors[group.id], t)}
           onMerge={onMergeGroup}
           onDismiss={onDismissGroup}
@@ -140,10 +147,108 @@ const MergeContactsBody: React.FC<{
   )
 }
 
-export const MergeContactsPage: React.FC = () => {
+const MergeContactsHeader: React.FC<{
+  pendingCount: number
+  isMergeAllDisabled: boolean
+  onOpenMergeAll: () => void
+}> = ({ pendingCount, isMergeAllDisabled, onOpenMergeAll }) => {
   const { t } = useI18n()
   const { isMobile } = useBreakpoints()
   const headingRef = useFocusHeadingOnArrival<HTMLHeadingElement>()
+
+  return (
+    <Stack
+      direction="row"
+      spacing={2}
+      className="u-flex-items-center u-flex-justify-between"
+    >
+      <Typography
+        ref={headingRef}
+        tabIndex={-1}
+        component={isMobile ? 'p' : 'h1'}
+        variant="h5"
+      >
+        {pendingCount > 0
+          ? t('contacts.merge.headingWithCount', { count: pendingCount })
+          : t('contacts.merge.title')}
+      </Typography>
+
+      <Button
+        variant="contained"
+        startIcon={<Icon icon={Check} />}
+        disabled={isMergeAllDisabled}
+        onClick={onOpenMergeAll}
+      >
+        {t('contacts.merge.mergeAll')}
+      </Button>
+    </Stack>
+  )
+}
+
+const MergeAllConfirmationDialog: React.FC<{
+  open: boolean
+  disabled: boolean
+  onClose: () => void
+  onConfirm: () => void
+}> = ({ open, disabled, onClose, onConfirm }) => {
+  const { t } = useI18n()
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby="merge-all-title"
+      aria-describedby="merge-all-description"
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle id="merge-all-title">
+        {t('contacts.merge.mergeAll')}
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText id="merge-all-description">
+          {t('contacts.merge.mergeAllDescription')}
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="outlined" autoFocus onClick={onClose}>
+          {t('contacts.form.cancel')}
+        </Button>
+        <Button variant="contained" disabled={disabled} onClick={onConfirm}>
+          {t('contacts.merge.mergeAll')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+const MergeFeedbackSnackbar: React.FC<{
+  message: string | null
+  onClose: () => void
+}> = ({ message, onClose }) => {
+  const { t } = useI18n()
+  return (
+    <Snackbar
+      open={message !== null}
+      autoHideDuration={6000}
+      onClose={(_event, reason) => {
+        if (reason !== 'clickaway') onClose()
+      }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert
+        variant="filled"
+        severity="success"
+        closeText={t('contacts.form.close')}
+        onClose={onClose}
+      >
+        {message}
+      </Alert>
+    </Snackbar>
+  )
+}
+
+export const MergeContactsPage: React.FC = () => {
+  const { t } = useI18n()
   const {
     groups,
     mergedIds,
@@ -168,8 +273,8 @@ export const MergeContactsPage: React.FC = () => {
   )
   const visibleGroups = groups.filter(group => !hiddenGroupIds.has(group.id))
   const pendingCount = groups.filter(group => !mergedIds.has(group.id)).length
-  const isMergeAllDisabled =
-    isLoading || pendingCount === 0 || isMerging || dismissingGroupIds.size > 0
+  const isBusy = isLoading || isMerging || dismissingGroupIds.size > 0
+  const isMergeAllDisabled = isBusy || pendingCount === 0
   const orphanedGroupErrors = getOrphanedGroupErrors(groups, groupErrors, t)
 
   useDocumentTitle(t('contacts.merge.title'))
@@ -190,31 +295,11 @@ export const MergeContactsPage: React.FC = () => {
   return (
     <>
       <Stack spacing={3}>
-        <Stack
-          direction="row"
-          spacing={2}
-          className="u-flex-items-center u-flex-justify-between"
-        >
-          <Typography
-            ref={headingRef}
-            tabIndex={-1}
-            component={isMobile ? 'p' : 'h1'}
-            variant="h5"
-          >
-            {pendingCount > 0
-              ? t('contacts.merge.headingWithCount', { count: pendingCount })
-              : t('contacts.merge.title')}
-          </Typography>
-
-          <Button
-            variant="contained"
-            startIcon={<Icon icon={Check} />}
-            disabled={isMergeAllDisabled}
-            onClick={() => setShowMergeAllConfirmation(true)}
-          >
-            {t('contacts.merge.mergeAll')}
-          </Button>
-        </Stack>
+        <MergeContactsHeader
+          pendingCount={pendingCount}
+          isMergeAllDisabled={isMergeAllDisabled}
+          onOpenMergeAll={() => setShowMergeAllConfirmation(true)}
+        />
 
         {error && <Alert severity="error">{t(error)}</Alert>}
         {orphanedGroupErrors.map((message, index) => (
@@ -250,60 +335,20 @@ export const MergeContactsPage: React.FC = () => {
         />
       </Stack>
 
-      <Dialog
+      <MergeAllConfirmationDialog
         open={showMergeAllConfirmation}
+        disabled={isMergeAllDisabled}
         onClose={() => setShowMergeAllConfirmation(false)}
-        aria-labelledby="merge-all-title"
-        aria-describedby="merge-all-description"
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle id="merge-all-title">
-          {t('contacts.merge.mergeAll')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="merge-all-description">
-            {t('contacts.merge.mergeAllDescription')}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            autoFocus
-            onClick={() => setShowMergeAllConfirmation(false)}
-          >
-            {t('contacts.form.cancel')}
-          </Button>
-          <Button
-            variant="contained"
-            disabled={isMergeAllDisabled}
-            onClick={() => {
-              setShowMergeAllConfirmation(false)
-              void runWithFeedback(mergeAll, 'contacts.merge.mergeAllSuccess')
-            }}
-          >
-            {t('contacts.merge.mergeAll')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        open={snackbarMessage !== null}
-        autoHideDuration={6000}
-        onClose={(_event, reason) => {
-          if (reason !== 'clickaway') setSnackbarMessage(null)
+        onConfirm={() => {
+          setShowMergeAllConfirmation(false)
+          void runWithFeedback(mergeAll, 'contacts.merge.mergeAllSuccess')
         }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          variant="filled"
-          severity="success"
-          closeText={t('contacts.form.close')}
-          onClose={() => setSnackbarMessage(null)}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      />
+
+      <MergeFeedbackSnackbar
+        message={snackbarMessage}
+        onClose={() => setSnackbarMessage(null)}
+      />
     </>
   )
 }
