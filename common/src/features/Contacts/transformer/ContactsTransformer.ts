@@ -301,25 +301,33 @@ function byPreference(properties: JCalProperty[]): JCalProperty[] {
     .map(({ prop }) => prop)
 }
 
+function parseEmailProperty(prop: JCalProperty): ContactEmail[] {
+  return parseUriValues(prop, stripMailto)
+}
+
 function parseEmails(card: JCalCard): ContactEmail[] {
-  return byPreference(getCardProperties(card, 'email')).flatMap(prop =>
-    parseUriValues(prop, stripMailto)
+  return byPreference(getCardProperties(card, 'email')).flatMap(
+    parseEmailProperty
   )
 }
 
-function parsePhones(card: JCalCard): ContactPhone[] {
-  return byPreference(getCardProperties(card, 'tel')).flatMap(prop => {
-    const type = getTypeParam(prop[1])
-    const params = readParams(prop)
-    return getTextValues(prop).flatMap((raw): ContactPhone[] => {
-      // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
-      const value = stripTel(raw)
-      if (!value) return []
-      const phone: ContactPhone = withParams({ type, value }, params)
-      if (raw !== value) phone.source = { valueType: prop[2], value: raw }
-      return [phone]
-    })
+function parsePhoneProperty(prop: JCalProperty): ContactPhone[] {
+  const type = getTypeParam(prop[1])
+  const params = readParams(prop)
+  return getTextValues(prop).flatMap((raw): ContactPhone[] => {
+    // a tel: URI (vCard 4 default) is shown as its number and written back as a URI
+    const value = stripTel(raw)
+    if (!value) return []
+    const phone: ContactPhone = withParams({ type, value }, params)
+    if (raw !== value) phone.source = { valueType: prop[2], value: raw }
+    return [phone]
   })
+}
+
+function parsePhones(card: JCalCard): ContactPhone[] {
+  return byPreference(getCardProperties(card, 'tel')).flatMap(
+    parsePhoneProperty
+  )
 }
 
 const STREET_INDEX = 2
@@ -339,36 +347,38 @@ function toAddressComponents(rawValue: unknown): unknown[] | null {
 // RFC 6350 §6.3.1 defines seven ADR components, RFC 9554 appends more after them
 const RFC6350_ADR_COMPONENTS = 7
 
+// a blank or unreadable ADR shows nothing: it yields no address
+function parseAddressProperty(prop: JCalProperty): ContactAddress[] {
+  const values = toAddressComponents(prop[3])
+  if (!values) return []
+  const [poBox, extended, street, locality, region, postalCode, country] =
+    Array.from({ length: RFC6350_ADR_COMPONENTS }, (_, i) =>
+      componentText(values[i])
+    )
+  const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
+  const type = getTypeParam(prop[1])
+  const label = getLabelParam(prop[1])
+  const address: ContactAddress = withParams(
+    {
+      type,
+      ...(label && { label }),
+      poBox,
+      extended,
+      street,
+      locality,
+      region,
+      postalCode,
+      country,
+      ...(extra.length > 0 && { extra }),
+      ...multiValuedComponents(values)
+    },
+    readParams(prop)
+  )
+  return formatAddress(address) === '' ? [] : [address]
+}
+
 function parseAddresses(card: JCalCard): ContactAddress[] {
-  return getCardProperties(card, 'adr')
-    .map((prop): ContactAddress | null => {
-      const values = toAddressComponents(prop[3])
-      if (!values) return null
-      const [poBox, extended, street, locality, region, postalCode, country] =
-        Array.from({ length: RFC6350_ADR_COMPONENTS }, (_, i) =>
-          componentText(values[i])
-        )
-      const extra = values.slice(RFC6350_ADR_COMPONENTS).map(componentText)
-      const type = getTypeParam(prop[1])
-      const label = getLabelParam(prop[1])
-      return withParams(
-        {
-          type,
-          ...(label && { label }),
-          poBox,
-          extended,
-          street,
-          locality,
-          region,
-          postalCode,
-          country,
-          ...(extra.length > 0 && { extra }),
-          ...multiValuedComponents(values)
-        },
-        readParams(prop)
-      )
-    })
-    .filter((a): a is ContactAddress => a !== null && formatAddress(a) !== '')
+  return getCardProperties(card, 'adr').flatMap(parseAddressProperty)
 }
 
 // RFC 6350 §6.3.1: LABEL is the delivery address text of the ADR
@@ -378,22 +388,43 @@ function getLabelParam(params: JCalParams): string | undefined {
   return typeof text === 'string' && text.trim() ? text : undefined
 }
 
+function parseSocialProfileProperty(
+  prop: JCalProperty
+): ContactSocialProfile[] {
+  const value = getStringValue(prop)
+  if (!value) return []
+  const type = getServiceTypeParam(prop[1])
+  return [withParams({ type, value }, readParams(prop))]
+}
+
 function parseSocialProfiles(card: JCalCard): ContactSocialProfile[] {
-  return getCardProperties(card, 'socialprofile')
-    .map(prop => {
-      const value = getStringValue(prop) ?? ''
-      const type = getServiceTypeParam(prop[1])
-      return withParams({ type, value }, readParams(prop))
-    })
-    .filter(s => s.value)
+  return getCardProperties(card, 'socialprofile').flatMap(
+    parseSocialProfileProperty
+  )
+}
+
+function parseUrlProperty(prop: JCalProperty): ContactUrl[] {
+  const value = getStringValue(prop)
+  return value ? [withParams({ value }, readParams(prop))] : []
 }
 
 function parseUrls(card: JCalCard): ContactUrl[] {
-  return getCardProperties(card, 'url')
-    .map(prop =>
-      withParams({ value: getStringValue(prop) ?? '' }, readParams(prop))
-    )
-    .filter(url => url.value)
+  return getCardProperties(card, 'url').flatMap(parseUrlProperty)
+}
+
+// RFC 6350 lets these properties repeat, the model shows each occurrence with
+// content: an occurrence showing nothing (blank, unreadable) is kept as read
+const REPEATED_PROPERTIES: Record<string, (prop: JCalProperty) => unknown[]> = {
+  email: parseEmailProperty,
+  tel: parsePhoneProperty,
+  adr: parseAddressProperty,
+  socialprofile: parseSocialProfileProperty,
+  url: parseUrlProperty
+}
+
+function isUnshownRepeatedProperty(prop: JCalProperty): boolean {
+  const parse = REPEATED_PROPERTIES[prop[0]]
+  return parse !== undefined && parse(prop).length === 0
 }
 
 const SINGLE_PROPERTIES: SingleContactProperty[] = [
@@ -768,14 +799,16 @@ export function normalizeContact(item: DavContactItem): Contact {
     contact.propertyParams = propertyParams
   }
 
-  // the other occurrences of a repeatable property, and the unreadable ones,
-  // are kept as-is so that saving does not lose them
+  // the other occurrences of a repeatable property, and the unreadable or
+  // blank ones, are kept as-is so that saving does not lose them, nor the
+  // companions of their group
   const read = new Set(Object.values(shown))
   if (fn) read.add(fn)
   const passthroughProps = card[1].filter(
     prop =>
       !KNOWN_PROPERTIES.has(prop[0]) ||
-      (prop[0] in SINGLE_OCCURRENCE_PROPERTIES && !read.has(prop))
+      (prop[0] in SINGLE_OCCURRENCE_PROPERTIES && !read.has(prop)) ||
+      isUnshownRepeatedProperty(prop)
   )
   if (passthroughProps.length > 0) contact.passthroughProps = passthroughProps
 
