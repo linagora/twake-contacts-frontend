@@ -1,6 +1,6 @@
 # Decisions
 
-Decisions taken on twake-contacts-frontend, oldest first, one log for every package of the repository. From 2026-11-23, a new entry names the packages it covers in its Scope line; the entries before that date stay as written. Append only: a decision that changes gets a new entry that replaces the old one and cites it. Entry format: the `twake-decisions` skill of [linagora/twake-guidelines](https://github.com/linagora/twake-guidelines/blob/main/skills/twake-decisions/SKILL.md).
+Decisions taken on @contacts/common, oldest first, and on the repository as a whole. Append only: a decision that changes gets a new entry that replaces the old one and cites it. Entry format: the `twake-decisions` skill of [linagora/twake-guidelines](https://github.com/linagora/twake-guidelines/blob/main/skills/twake-decisions/SKILL.md).
 
 Categories: UX, UI, Product, Architecture, Infra, Tech.
 
@@ -31,3 +31,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: Crash-- (CTO), following [JF-Cozy's review of linagora/twake-ui#262](https://github.com/linagora/twake-ui/pull/262#discussion_r4663460487)
 - Why: a decision often spans packages, and the `twake-decisions` skill looks up `docs/decisions.md` at the root.
 - Scope: the whole repository, every package.
+
+## 2026-11-23, [Architecture] One decisions log per package
+
+- Decision: Replaces the decision of 2026-11-23, "One decisions log at the repo root". Each package keeps its own `docs/decisions.md` and the repo root has none; a decision that touches several packages goes in the log of the main one, the others named in its Scope line.
+- Decided by: Crash-- (CTO), [review comment on linagora/twake-ui#262](https://github.com/linagora/twake-ui/pull/262#discussion_r4664895803)
+- Why: one log per package keeps merge conflicts inside a package.
+- Scope: the whole repository, packages `common`, `apps/private` and `e2e`.
