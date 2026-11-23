@@ -11,6 +11,11 @@ import {
   Alert,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Empty,
   Snackbar,
   Stack,
@@ -29,6 +34,7 @@ const formatMergeError = (
 ): string | null => {
   if (!error) return null
   if (error.reason === 'changed') return t('contacts.merge.changedError')
+  if (error.reason === 'dismiss') return t('contacts.merge.dismissError')
   if (error.reason === 'conflict') {
     if (error.conflictFields?.length) {
       const fields = error.conflictFields
@@ -60,9 +66,12 @@ const MergeContactsBody: React.FC<{
   mergedIds: Set<string>
   mergedContacts: Record<string, MergedContactTarget>
   mergingGroupIds: Set<string>
+  dismissingGroupIds: Set<string>
+  isMerging: boolean
   isMergingAll: boolean
   groupErrors: Record<string, MergeGroupError>
   onMergeGroup: (groupId: string) => void
+  onDismissGroup: (groupId: string) => void
   onViewContact: (groupId: string) => void
 }> = ({
   isLoading,
@@ -71,9 +80,12 @@ const MergeContactsBody: React.FC<{
   mergedIds,
   mergedContacts,
   mergingGroupIds,
+  dismissingGroupIds,
+  isMerging,
   isMergingAll,
   groupErrors,
   onMergeGroup,
+  onDismissGroup,
   onViewContact
 }) => {
   const { t } = useI18n()
@@ -115,9 +127,12 @@ const MergeContactsBody: React.FC<{
           isMerged={mergedIds.has(group.id)}
           mergedContact={mergedContacts[group.id]}
           isMerging={mergingGroupIds.has(group.id)}
-          isMergeDisabled={isMergingAll}
+          isMergeDisabled={isMergingAll || dismissingGroupIds.size > 0}
+          isDismissing={dismissingGroupIds.has(group.id)}
+          isDismissDisabled={isMerging || dismissingGroupIds.size > 0}
           error={formatMergeError(groupErrors[group.id], t)}
           onMerge={onMergeGroup}
+          onDismiss={onDismissGroup}
           onViewContact={onViewContact}
         />
       ))}
@@ -138,17 +153,23 @@ export const MergeContactsPage: React.FC = () => {
     isMerging,
     isMergingAll,
     mergingGroupIds,
+    dismissingGroupIds,
     groupErrors,
     mergeGroup,
-    mergeAll
+    mergeAll,
+    dismissGroup
   } = useDuplicateContacts()
 
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null)
+  const [showMergeAllConfirmation, setShowMergeAllConfirmation] =
+    useState(false)
   const [hiddenGroupIds, setHiddenGroupIds] = useState<Set<string>>(
     () => new Set()
   )
   const visibleGroups = groups.filter(group => !hiddenGroupIds.has(group.id))
   const pendingCount = groups.filter(group => !mergedIds.has(group.id)).length
+  const isMergeAllDisabled =
+    isLoading || pendingCount === 0 || isMerging || dismissingGroupIds.size > 0
   const orphanedGroupErrors = getOrphanedGroupErrors(groups, groupErrors, t)
 
   useDocumentTitle(t('contacts.merge.title'))
@@ -188,10 +209,8 @@ export const MergeContactsPage: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<Icon icon={Check} />}
-            disabled={isLoading || pendingCount === 0 || isMerging}
-            onClick={() =>
-              void runWithFeedback(mergeAll, 'contacts.merge.mergeAllSuccess')
-            }
+            disabled={isMergeAllDisabled}
+            onClick={() => setShowMergeAllConfirmation(true)}
           >
             {t('contacts.merge.mergeAll')}
           </Button>
@@ -211,6 +230,8 @@ export const MergeContactsPage: React.FC = () => {
           mergedIds={mergedIds}
           mergedContacts={mergedContacts}
           mergingGroupIds={mergingGroupIds}
+          dismissingGroupIds={dismissingGroupIds}
+          isMerging={isMerging}
           isMergingAll={isMergingAll}
           groupErrors={groupErrors}
           onMergeGroup={id =>
@@ -219,9 +240,52 @@ export const MergeContactsPage: React.FC = () => {
               'contacts.merge.mergeSuccess'
             )
           }
+          onDismissGroup={id =>
+            void runWithFeedback(
+              () => dismissGroup(id),
+              'contacts.merge.dismissSuccess'
+            )
+          }
           onViewContact={id => setHiddenGroupIds(prev => new Set(prev).add(id))}
         />
       </Stack>
+
+      <Dialog
+        open={showMergeAllConfirmation}
+        onClose={() => setShowMergeAllConfirmation(false)}
+        aria-labelledby="merge-all-title"
+        aria-describedby="merge-all-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="merge-all-title">
+          {t('contacts.merge.mergeAll')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="merge-all-description">
+            {t('contacts.merge.mergeAllDescription')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            autoFocus
+            onClick={() => setShowMergeAllConfirmation(false)}
+          >
+            {t('contacts.form.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            disabled={isMergeAllDisabled}
+            onClick={() => {
+              setShowMergeAllConfirmation(false)
+              void runWithFeedback(mergeAll, 'contacts.merge.mergeAllSuccess')
+            }}
+          >
+            {t('contacts.merge.mergeAll')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarMessage !== null}

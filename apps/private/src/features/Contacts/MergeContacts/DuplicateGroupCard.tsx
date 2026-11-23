@@ -1,6 +1,11 @@
-import { Contact } from '@common/features/Contacts/contactsTypes'
+import { useAppSelector } from '@common/app/hooks'
+import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
+import { duplicateContactUrn } from '@common/features/Contacts/duplicateDismissals'
 import { MergedContactTarget } from '@common/features/Contacts/hooks/useDuplicateContacts'
-import { DuplicateContactGroup } from '@common/features/Contacts/mergeContactsTypes'
+import {
+  DuplicateContactEntry,
+  DuplicateContactGroup
+} from '@common/features/Contacts/mergeContactsTypes'
 import { translateContactType } from '@common/locales/dynamicKeys'
 import { Check, Email, Icon, Matrix, Telephone } from '@linagora/twake-icons'
 import {
@@ -22,18 +27,12 @@ export interface DuplicateGroupCardProps {
   mergedContact?: MergedContactTarget
   isMerging: boolean
   isMergeDisabled?: boolean
+  isDismissing: boolean
+  isDismissDisabled: boolean
   error?: string | null
   onMerge: (groupId: string) => void
+  onDismiss: (groupId: string) => void
   onViewContact?: (groupId: string) => void
-}
-
-const getCardBorderColor = (
-  error: string | null,
-  isMerged: boolean
-): 'error.main' | 'success.main' | undefined => {
-  if (error) return 'error.main'
-  if (isMerged) return 'success.main'
-  return undefined
 }
 
 const TypedContactFieldRow: React.FC<{
@@ -55,46 +54,60 @@ const TypedContactFieldRow: React.FC<{
   )
 }
 
-const DuplicateContactEntryItem: React.FC<{ contact: Contact }> = ({
+const DuplicateContactEntryItem: React.FC<DuplicateContactEntry> = ({
+  addressBookId,
   contact
-}) => (
-  <Stack
-    spacing={3}
-    className="u-flex-grow-1 u-flex-shrink-0 u-miw-4"
-    role="listitem"
-  >
-    <Stack direction="row" spacing={1.5} className="u-flex-items-center">
-      <ContactAvatar size="s" displayName={contact.displayName} />
-      <Typography variant="body1">{contact.displayName}</Typography>
+}) => {
+  const { t } = useI18n()
+  const book = useAppSelector(
+    state => state.contacts.addressBooks[addressBookId]
+  )
+  return (
+    <Stack
+      spacing={3}
+      className="u-flex-grow-1 u-flex-shrink-0 u-miw-4"
+      role="listitem"
+    >
+      <Stack direction="row" spacing={1.5} className="u-flex-items-center">
+        <ContactAvatar size="s" displayName={contact.displayName} />
+        <Box>
+          <Typography variant="body1">{contact.displayName}</Typography>
+          {book && (
+            <Typography variant="body2" color="text.secondary">
+              {getAddressBookDisplayName(book, t)}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+
+      {contact.phones?.map((phone, index) => (
+        <TypedContactFieldRow
+          key={`phone-${index}-${phone.value}`}
+          icon={Telephone}
+          value={phone.value}
+          type={phone.type}
+        />
+      ))}
+
+      {contact.emails.map((email, index) => (
+        <TypedContactFieldRow
+          key={`email-${index}-${email.value}`}
+          icon={Email}
+          value={email.value}
+          type={email.type}
+        />
+      ))}
+
+      {contact.socialProfiles?.map((profile, index) => (
+        <TypedContactFieldRow
+          key={`social-${index}-${profile.value}`}
+          icon={Matrix}
+          value={profile.value}
+        />
+      ))}
     </Stack>
-
-    {contact.phones?.map((phone, index) => (
-      <TypedContactFieldRow
-        key={`phone-${index}-${phone.value}`}
-        icon={Telephone}
-        value={phone.value}
-        type={phone.type}
-      />
-    ))}
-
-    {contact.emails.map((email, index) => (
-      <TypedContactFieldRow
-        key={`email-${index}-${email.value}`}
-        icon={Email}
-        value={email.value}
-        type={email.type}
-      />
-    ))}
-
-    {contact.socialProfiles?.map((profile, index) => (
-      <TypedContactFieldRow
-        key={`social-${index}-${profile.value}`}
-        icon={Matrix}
-        value={profile.value}
-      />
-    ))}
-  </Stack>
-)
+  )
+}
 
 const CardActionButton: React.FC<{
   groupId: string
@@ -147,20 +160,18 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
   mergedContact,
   isMerging,
   isMergeDisabled = false,
+  isDismissing,
+  isDismissDisabled,
   error = null,
   onMerge,
+  onDismiss,
   onViewContact
 }) => {
   const { t } = useI18n()
-  const borderColor = getCardBorderColor(error, isMerged)
 
   return (
     <Box>
-      <Paper
-        variant="outlined"
-        sx={borderColor ? { borderColor } : undefined}
-        className="u-p-2 u-bdrs-6 u-pos-relative"
-      >
+      <Paper variant="outlined" className="u-p-2 u-bdrs-6 u-pos-relative">
         {isMerged && (
           <Box
             role="img"
@@ -176,10 +187,10 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
           </Alert>
         )}
         <Stack direction="row" spacing={4} className="u-ov-auto" role="list">
-          {group.entries.map(({ addressBookId, contact }) => (
+          {group.entries.map(entry => (
             <DuplicateContactEntryItem
-              key={`${addressBookId}:${contact.id}`}
-              contact={contact}
+              key={duplicateContactUrn(entry)}
+              {...entry}
             />
           ))}
         </Stack>
@@ -190,6 +201,16 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
         spacing={2}
         className="u-flex-items-center u-flex-justify-end u-mt-1"
       >
+        {!isMerged && (
+          <Button
+            variant="text"
+            onClick={() => onDismiss(group.id)}
+            loading={isDismissing}
+            disabled={isDismissDisabled}
+          >
+            {t('contacts.merge.dismiss')}
+          </Button>
+        )}
         <CardActionButton
           groupId={group.id}
           isMerged={isMerged}

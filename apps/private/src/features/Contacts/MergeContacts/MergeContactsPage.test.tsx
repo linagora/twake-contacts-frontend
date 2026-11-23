@@ -10,11 +10,23 @@ import {
   DEFAULT_ADDRESS_BOOK_ID,
   DEFAULT_CONTACT_SORT
 } from '@common/features/Contacts/constants'
+import { Contact } from '@common/features/Contacts/contactsTypes'
 import { JCalProperty } from '@common/features/Contacts/davTypes'
+import { duplicateDismissalProperty } from '@common/features/Contacts/duplicateDismissals'
+import {
+  denormalizeContact,
+  normalizeContact
+} from '@common/features/Contacts/transformer/ContactsTransformer'
 import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import I18n from 'twake-i18n'
@@ -34,6 +46,18 @@ const mockFetchContactsPage = vi.mocked(fetchContactsPage)
 const mockFetchContactForMerge = vi.mocked(fetchContactForMerge)
 const mockSaveContact = vi.mocked(saveContact)
 const mockDeleteContact = vi.mocked(deleteContact)
+
+function openMergeAllConfirmation(): HTMLElement {
+  fireEvent.click(screen.getByRole('button', { name: 'Merge all' }))
+  return screen.getByRole('dialog', { name: 'Merge all' })
+}
+
+function confirmMergeAll(): void {
+  const confirmation = openMergeAllConfirmation()
+  fireEvent.click(
+    within(confirmation).getByRole('button', { name: 'Merge all' })
+  )
+}
 
 function renderMergePage(): ReturnType<typeof render> {
   const store = setupStore({
@@ -303,7 +327,7 @@ describe('MergeContactsPage', () => {
       ).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Merge all' }))
+    confirmMergeAll()
 
     await waitFor(() => {
       expect(screen.getAllByLabelText('Merged')).toHaveLength(2)
@@ -320,11 +344,8 @@ describe('MergeContactsPage', () => {
       mockSaveContact.mockRejectedValue(new Error('network error'))
       renderMergePage()
       await screen.findByText('Isabella Martinez')
-      fireEvent.click(
-        action === 'all'
-          ? screen.getByRole('button', { name: 'Merge all' })
-          : screen.getAllByRole('button', { name: 'Merge' })[0]
-      )
+      if (action === 'all') confirmMergeAll()
+      else fireEvent.click(screen.getAllByRole('button', { name: 'Merge' })[0])
       const alerts = await screen.findAllByText(en.contacts.merge.mergeError)
       expect(alerts).toHaveLength(action === 'all' ? 2 : 1)
       expect(screen.queryByText('Contacts merged')).not.toBeInTheDocument()
@@ -334,6 +355,149 @@ describe('MergeContactsPage', () => {
       expect(mockDeleteContact).not.toHaveBeenCalled()
     }
   )
+
+  it('warns about cross-book deletion and waits for confirmation before merging all', async () => {
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+    const confirmation = openMergeAllConfirmation()
+    expect(confirmation).toHaveAccessibleDescription(
+      en.contacts.merge.mergeAllDescription
+    )
+    expect(mockSaveContact).not.toHaveBeenCalled()
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      within(confirmation).getByRole('button', { name: 'Cancel' })
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(mockSaveContact).not.toHaveBeenCalled()
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+  })
+
+  it('saves a dismissed pair in both vCards and excludes it from a fresh scan', async () => {
+    const first = DEFAULT_MOCK_PAGES[`${DEFAULT_ADDRESS_BOOK_ID}:`].entries[0]
+    const second = DEFAULT_MOCK_PAGES['personal1:'].entries[0]
+    const stored = [first, second].map(entry => ({ ...entry }))
+    mockFetchContactsPage.mockImplementation((_user, book) =>
+      Promise.resolve({
+        entries: stored.filter(entry => entry.addressBookId === book?.id),
+        next: null
+      })
+    )
+    mockSaveContact.mockImplementation((_user, bookId, contact) => {
+      const entry = stored.find(item => item.addressBookId === bookId)
+      if (!entry) throw new Error('Missing test contact')
+      entry.contact = normalizeContact({
+        _links: {
+          self: { href: `/addressbooks/u1/${bookId}/${contact.id}.vcf` }
+        },
+        data: denormalizeContact(contact)
+      })
+      return Promise.resolve(entry.contact)
+    })
+    const page = renderMergePage()
+    await screen.findByText('Isabella Martinez')
+    expect(screen.getByText('My contacts')).toBeInTheDocument()
+    expect(screen.getByText('Family')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    await screen.findByText(en.contacts.merge.dismissSuccess)
+    expect(screen.queryByText('Isabella Martinez')).not.toBeInTheDocument()
+    expect(mockSaveContact).toHaveBeenCalledTimes(2)
+    expect(mockSaveContact).toHaveBeenCalledWith(
+      'u1',
+      DEFAULT_ADDRESS_BOOK_ID,
+      expect.objectContaining({
+        etag: '"c1-v1"',
+        passthroughProps: [
+          duplicateDismissalProperty('urn:twake:contact:personal1:c3')
+        ]
+      }),
+      'update'
+    )
+    expect(mockSaveContact).toHaveBeenCalledWith(
+      'u1',
+      'personal1',
+      expect.objectContaining({
+        etag: '"c3-v1"',
+        passthroughProps: [
+          duplicateDismissalProperty('urn:twake:contact:contacts:c1')
+        ]
+      }),
+      'update'
+    )
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+
+    page.unmount()
+    renderMergePage()
+    await screen.findByText(en.contacts.merge.emptyTitle)
+    expect(
+      screen.queryByRole('button', { name: 'Dismiss' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('can retry a partial dismissal without rewriting an already marked card', async () => {
+    const originalRead = mockFetchContactForMerge.getMockImplementation()
+    const stored = new Map<string, Contact>()
+    mockFetchContactForMerge.mockImplementation(async (book, id) => {
+      if (!originalRead) throw new Error('Missing reader')
+      const snapshot = await originalRead(book, id)
+      return { ...snapshot, contact: stored.get(id) ?? snapshot.contact }
+    })
+    const save = (
+      _user: string,
+      _book: string,
+      contact: Contact
+    ): Promise<Contact> => {
+      stored.set(contact.id, contact)
+      return Promise.resolve(contact)
+    }
+    mockSaveContact
+      .mockImplementation(save)
+      .mockImplementationOnce(save)
+      .mockRejectedValueOnce(new Error('network error'))
+
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Dismiss' })[0])
+    await screen.findByText(en.contacts.merge.dismissError)
+    expect(screen.getByText('Isabella Martinez')).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Dismiss' })[0])
+    await screen.findByText(en.contacts.merge.dismissSuccess)
+    expect(
+      mockSaveContact.mock.calls.map(([, , contact]) => contact.id)
+    ).toEqual(['c1', 'c3', 'c3'])
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+  })
+
+  it('refuses to merge a pair dismissed after the scan', async () => {
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+    const originalRead = mockFetchContactForMerge.getMockImplementation()
+    mockFetchContactForMerge.mockImplementation(async (book, id) => {
+      if (!originalRead) throw new Error('Missing reader')
+      const snapshot = await originalRead(book, id)
+      return id === 'c1'
+        ? {
+            ...snapshot,
+            contact: {
+              ...snapshot.contact,
+              passthroughProps: [
+                duplicateDismissalProperty('urn:twake:contact:personal1:c3')
+              ]
+            }
+          }
+        : snapshot
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Merge' })[0])
+    await screen.findByText(en.contacts.merge.changedError)
+    expect(screen.queryByText('Isabella Martinez')).not.toBeInTheDocument()
+    expect(mockSaveContact).not.toHaveBeenCalled()
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+  })
 
   it('refreshes changed candidates and requires another merge action', async () => {
     renderMergePage()
@@ -385,7 +549,7 @@ describe('MergeContactsPage', () => {
                 ? { note: entry.contact.id }
                 : {
                     passthroughProps: [
-                      ['x-custom', {}, 'text', entry.contact.id] as JCalProperty
+                      ['kind', {}, 'text', entry.contact.id] as JCalProperty
                     ]
                   })
             }
@@ -395,7 +559,7 @@ describe('MergeContactsPage', () => {
       renderMergePage()
       await screen.findByText('Isabella Martinez')
       fireEvent.click(screen.getAllByRole('button', { name: 'Merge' })[0])
-      const expectedField = field === 'note' ? 'Note' : 'X-CUSTOM'
+      const expectedField = field === 'note' ? 'Note' : 'KIND'
       expect(
         await screen.findByText(
           en.contacts.merge.conflictErrorWithFields.replace(
@@ -421,7 +585,7 @@ describe('MergeContactsPage', () => {
       )
     renderMergePage()
     await screen.findByText('Isabella Martinez')
-    fireEvent.click(screen.getByRole('button', { name: 'Merge all' }))
+    confirmMergeAll()
     await waitFor(() => expect(mockSaveContact).toHaveBeenCalledTimes(2))
     expect(screen.getByRole('button', { name: 'Merge all' })).toBeDisabled()
     expect(
@@ -617,7 +781,7 @@ describe('MergeContactsPage', () => {
       ).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Merge all' }))
+    confirmMergeAll()
 
     await waitFor(() => {
       expect(resolvers).toHaveLength(5)
@@ -640,25 +804,20 @@ describe('MergeContactsPage', () => {
     expect(mockDeleteContact).toHaveBeenCalledTimes(7)
   })
 
-  it('merges without false changed error when snapshot adds opaque metadata omitted from listing', async () => {
+  it('saves distinct X- properties from both snapshots when the listing omits them', async () => {
     renderMergePage()
     await screen.findByText('Isabella Martinez')
-    const photoProp: JCalProperty = [
-      'photo',
-      {},
-      'uri',
-      'https://example.com/avatar.png'
-    ]
+    const primaryProp: JCalProperty = ['x-custom', {}, 'text', 'First']
+    const sourceProp: JCalProperty = ['x-custom', {}, 'text', 'Second']
     const originalRead = mockFetchContactForMerge.getMockImplementation()
     mockFetchContactForMerge.mockImplementation(async (book, id) => {
       if (!originalRead) throw new Error('Missing reader')
       const snapshot = await originalRead(book, id)
-      return id === 'c3'
-        ? {
-            ...snapshot,
-            contact: { ...snapshot.contact, passthroughProps: [photoProp] }
-          }
-        : snapshot
+      const prop = id === 'c1' ? primaryProp : sourceProp
+      return {
+        ...snapshot,
+        contact: { ...snapshot.contact, passthroughProps: [prop] }
+      }
     })
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Merge' })[0])
@@ -671,7 +830,7 @@ describe('MergeContactsPage', () => {
       'u1',
       DEFAULT_ADDRESS_BOOK_ID,
       expect.objectContaining({
-        passthroughProps: [photoProp],
+        passthroughProps: [primaryProp, sourceProp],
         etag: '"c1-v1"'
       }),
       'update'
