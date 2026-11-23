@@ -52,8 +52,54 @@ import { userData } from '../User/userDataTypes'
 
 const CONTACTS_NS = config.CONTACTS_NS
 
+export type UserId = string
+export type AddressBookId = string
+export type ContactId = string
+export type ContactEtag = string
+export type AddressBookName = string
+export type SearchQuery = string
+export type ImportFileId = string
+export type ImportTarget = string
+export type IncludeDomainMembers = boolean
+export type PublishBookFlag = boolean
+
+export interface ContactsPageQuery {
+  after: string | null
+  sort: ContactSort
+  cache?: RequestCache
+}
+
+export interface ContactsPageResult {
+  entries: ContactEntry[]
+  next: string | null
+}
+
+export interface MergedContactSnapshot {
+  contact: Contact
+  etag: ContactEtag
+}
+
+export interface AddressBookDetailsResult {
+  members: userData[]
+  isPublic: boolean
+}
+
+export interface AddressBookNameUpdate {
+  name: AddressBookName
+}
+
+interface CardRequestTarget {
+  path: string
+  contactId: ContactId
+}
+
+interface ContactsPageTarget {
+  url: string
+  searchParams: Record<string, string>
+}
+
 async function fetchAddressBookItems(
-  userId: string
+  userId: UserId
 ): Promise<DavAddressBookItem[]> {
   const response = api.get(userBooksPath(userId), {
     searchParams: {
@@ -73,7 +119,7 @@ async function fetchAddressBookItems(
 }
 
 export async function fetchAddressBooks(
-  userId: string,
+  userId: UserId,
   domains?: DomainInfo[]
 ): Promise<AddressBook[]> {
   const books = await fetchAddressBookItems(userId)
@@ -89,30 +135,35 @@ export async function fetchAddressBooks(
   return userBooks
 }
 
-/** Resolves decoded source IDs and the owner's display name before classifying a book. */
-async function enrichAddressBookOwner(
+function parseSourceBookRef(
   rawBook: DavAddressBookItem,
-  userId: string
-): Promise<AddressBook> {
-  const book = normalizeAddressBook(rawBook)
+  userId: UserId
+): DavBookRef | null {
   const source = readAddressBookSource(rawBook)
-
-  if (!source) return classifyAddressBook(book, userId)
+  if (!source) return null
 
   // e.g. /addressbooks/6498ffa1d48f620025cc9dc2/431ae469-dfee-4b0a-a976-e04a12661b34.json
   const parts = source.split('/')
-  if (parts.length < 3) return classifyAddressBook(book, userId)
+  if (parts.length < 3) return null
 
   const ownerId = decodeDavSegment(parts[2] ?? '')
-  if (!ownerId || ownerId === userId) return classifyAddressBook(book, userId)
-  book.ownerId = ownerId
-  book.sourceBookId = decodeDavSegment(parts[3]?.replace('.json', '') ?? '')
+  if (!ownerId || ownerId === userId) return null
+
+  const rawBookSegment = parts[3] ?? ''
+  const bookId = decodeDavSegment(rawBookSegment.replace('.json', ''))
+  return { userId: ownerId, bookId }
+}
+
+async function applyOwnerMetadata(
+  book: RawAddressBook,
+  sourceRef: DavBookRef
+): Promise<void> {
+  book.ownerId = sourceRef.userId
+  book.sourceBookId = sourceRef.bookId
 
   const [name, sourceContactsCount] = await Promise.all([
-    fetchOwnerDisplayName(ownerId),
-    book.contactsCount == null
-      ? fetchSourceContactsCount({ userId: ownerId, bookId: book.sourceBookId })
-      : undefined
+    fetchOwnerDisplayName(sourceRef.userId),
+    book.contactsCount == null ? fetchSourceContactsCount(sourceRef) : undefined
   ])
   if (name) {
     book.ownerDisplayName = name
@@ -120,7 +171,18 @@ async function enrichAddressBookOwner(
   if (sourceContactsCount != null) {
     book.contactsCount = sourceContactsCount
   }
+}
 
+/** Resolves decoded source IDs and the owner's display name before classifying a book. */
+async function enrichAddressBookOwner(
+  rawBook: DavAddressBookItem,
+  userId: UserId
+): Promise<AddressBook> {
+  const book = normalizeAddressBook(rawBook)
+  const sourceRef = parseSourceBookRef(rawBook, userId)
+  if (sourceRef) {
+    await applyOwnerMetadata(book, sourceRef)
+  }
   return classifyAddressBook(book, userId)
 }
 
@@ -148,7 +210,7 @@ async function fetchSourceContactsCount(
 // The owner of a shared or subscribed book is named from the profile, so that
 // the label stays the same however the book entered the list
 async function fetchOwnerDisplayName(
-  ownerId: string
+  ownerId: UserId
 ): Promise<string | undefined> {
   try {
     const user = await fetchUserById(ownerId)
@@ -162,7 +224,7 @@ async function fetchOwnerDisplayName(
 
 async function fetchDomainAddressBooks(
   domains: DomainInfo[],
-  userId: string
+  userId: UserId
 ): Promise<AddressBook[]> {
   const domainBooks: AddressBook[] = []
 
@@ -195,9 +257,7 @@ async function fetchDomainAddressBooks(
           }
         )
         const data: DavAddressBookItem = await response.json()
-        domainBooks.push(
-          normalizeDomainAddressBook(data, domain.domainId, userId)
-        )
+        domainBooks.push(normalizeDomainAddressBook(data, domain, userId))
       } catch {
         console.warn(
           `Failed to fetch domain addressbook for domain ${domain.domainId}:`
@@ -211,14 +271,14 @@ async function fetchDomainAddressBooks(
 
 function normalizeDomainAddressBook(
   raw: DavAddressBookItem,
-  domainId: string,
-  userId: string
+  domain: DomainInfo,
+  userId: UserId
 ): AddressBook {
   const acl = raw['{DAV:}acl'] ?? []
   return classifyAddressBook(
     {
       id: DOMAIN_ADDRESS_BOOK_ID,
-      userId: domainId,
+      userId: domain.domainId,
       name: raw['{DAV:}displayname'] ?? '',
       contactsCount: normalizeContactsCount(
         raw[`{${CONTACTS_NS}}numberOfContacts`]
@@ -231,10 +291,10 @@ function normalizeDomainAddressBook(
 }
 
 function getContactsPageUrl(
-  userId: string,
+  userId: UserId,
   book: AddressBook | null,
-  withDomainMembers: boolean
-): { url: string; searchParams: Record<string, string> } {
+  withDomainMembers: IncludeDomainMembers
+): ContactsPageTarget {
   if (!book) {
     return {
       url: userContactsPath(userId),
@@ -247,6 +307,32 @@ function getContactsPageUrl(
   }
 }
 
+function buildContactsPageSearchParams(
+  baseParams: Record<string, string>,
+  { after, sort }: ContactsPageQuery
+): Record<string, string> {
+  return {
+    ...baseParams,
+    sort: sort.by,
+    order: sort.order,
+    limit: String(CONTACTS_PAGINATION_LIMIT),
+    ...(after ? { after } : {})
+  }
+}
+
+function readContactsPageEntries(
+  data: DavContactsResponse,
+  book: AddressBook | null
+): ContactEntry[] {
+  const items = data._embedded?.['dav:item'] ?? []
+  return items.flatMap(item =>
+    readContactEntry(
+      item,
+      book?.id ?? toStoreAddressBookId(item?._links?.self?.href)
+    )
+  )
+}
+
 /**
  * One page of the contacts of a book, or of every book of the user when book
  * is null, in the sort order. after is the next cursor of the previous page,
@@ -254,38 +340,24 @@ function getContactsPageUrl(
  * contacts of every book.
  */
 export async function fetchContactsPage(
-  userId: string,
+  userId: UserId,
   book: AddressBook | null,
-  { after, sort }: { after: string | null; sort: ContactSort },
-  withDomainMembers: boolean,
-  options?: { cache?: RequestCache }
-): Promise<{ entries: ContactEntry[]; next: string | null }> {
+  query: ContactsPageQuery,
+  withDomainMembers: IncludeDomainMembers
+): Promise<ContactsPageResult> {
   const { url, searchParams } = getContactsPageUrl(
     userId,
     book,
     withDomainMembers
   )
-  const data: DavContactsResponse = await api
-    .get(url, {
-      searchParams: {
-        ...searchParams,
-        sort: sort.by,
-        order: sort.order,
-        limit: String(CONTACTS_PAGINATION_LIMIT),
-        ...(after ? { after } : {})
-      },
-      ...(options?.cache ? { cache: options.cache } : {})
-    })
-    .json()
+  const requestOptions: Options = {
+    searchParams: buildContactsPageSearchParams(searchParams, query),
+    ...(query.cache ? { cache: query.cache } : {})
+  }
+  const data: DavContactsResponse = await api.get(url, requestOptions).json()
 
-  const items = data._embedded?.['dav:item'] ?? []
   return {
-    entries: items.flatMap(item =>
-      readContactEntry(
-        item,
-        book?.id ?? toStoreAddressBookId(item?._links?.self?.href)
-      )
-    ),
+    entries: readContactsPageEntries(data, book),
     next: data.next ?? null
   }
 }
@@ -296,7 +368,7 @@ export async function fetchContactsPage(
  */
 function readContactEntry(
   item: DavContactItem,
-  addressBookId: string
+  addressBookId: AddressBookId
 ): ContactEntry[] {
   try {
     const contact = normalizeContact(item)
@@ -315,7 +387,7 @@ function readContactEntry(
 }
 
 // The domain book is stored as dab, while its contacts are in domain-members
-function toStoreAddressBookId(href: unknown): string {
+function toStoreAddressBookId(href: unknown): AddressBookId {
   return fromServerBookId(extractAddressBookIdFromHref(href))
 }
 
@@ -326,23 +398,28 @@ const UNCACHED: RequestCache = 'no-store'
 
 export async function fetchContact(
   book: AddressBook,
-  contactId: string
+  contactId: ContactId
 ): Promise<Contact> {
-  return readCard(cardPath(toServerBookRef(book), contactId), contactId)
+  return readCard({
+    path: cardPath(toServerBookRef(book), contactId),
+    contactId
+  })
 }
 
 /** The card as saved now in the book, with its ETag. */
 export async function fetchSavedContact(
-  userId: string,
-  bookId: string,
-  contactId: string
+  userId: UserId,
+  bookId: AddressBookId,
+  contactId: ContactId
 ): Promise<Contact> {
-  return readCard(cardPath({ userId, bookId }, contactId), contactId)
+  return readCard({
+    path: cardPath({ userId, bookId }, contactId),
+    contactId
+  })
 }
 
 async function readCard(
-  path: string,
-  contactId: string,
+  { path, contactId }: CardRequestTarget,
   options: Options = {}
 ): Promise<Contact> {
   const response = await api.get(path, {
@@ -379,8 +456,8 @@ function etagOf(response: Response): string | undefined {
 /** A fresh snapshot for destructive merges; fail closed without a strong ETag. */
 export async function fetchContactForMerge(
   book: AddressBook,
-  contactId: string
-): Promise<{ contact: Contact; etag: string }> {
+  contactId: ContactId
+): Promise<MergedContactSnapshot> {
   const contact = await fetchContact(book, contactId)
   if (!contact.etag || contact.etag.startsWith('W/')) {
     throw new Error('Missing strong ETag')
@@ -406,9 +483,12 @@ function preconditionHeaders(
 // change saved meanwhile by someone else is never labelled as the version
 // shown. Not retried: the save is done, only the guard of the next update
 // is at stake.
-async function readSaved(path: string, contact: Contact): Promise<Contact> {
+async function readSaved(
+  target: CardRequestTarget,
+  contact: Contact
+): Promise<Contact> {
   try {
-    return await readCard(path, contact.id, { retry: 0 })
+    return await readCard(target, { retry: 0 })
   } catch {
     // the card is saved: only the guard of the next update is lost
     return { ...contact, etag: undefined }
@@ -437,7 +517,7 @@ export async function exportAddressBook(book: AddressBook): Promise<Blob> {
 /** One contact of the book as a vCard file. */
 export async function exportContact(
   book: AddressBook,
-  contactId: string
+  contactId: ContactId
 ): Promise<Blob> {
   return api
     .get(cardPath(toServerBookRef(book), contactId), {
@@ -453,8 +533,8 @@ export async function exportContact(
  * ETag, undefined when it cannot be known.
  */
 export async function saveContact(
-  userId: string,
-  bookId: string,
+  userId: UserId,
+  bookId: AddressBookId,
   contact: Contact,
   mode: SaveMode
 ): Promise<Contact> {
@@ -467,14 +547,16 @@ export async function saveContact(
     json: denormalizeContact(contact)
   })
   const etag = etagOf(response)
-  return etag ? { ...contact, etag } : readSaved(path, contact)
+  return etag
+    ? { ...contact, etag }
+    : readSaved({ path, contactId: contact.id }, contact)
 }
 
 export async function deleteContact(
-  userId: string,
-  bookId: string,
-  contactId: string,
-  etag?: string
+  userId: UserId,
+  bookId: AddressBookId,
+  contactId: ContactId,
+  etag?: ContactEtag
 ): Promise<void> {
   await api.delete(
     cardPath({ userId, bookId }, contactId),
@@ -485,8 +567,8 @@ export async function deleteContact(
 export async function copyContact(
   source: AddressBookRef,
   destination: AddressBookRef,
-  contactId: string
-): Promise<string> {
+  contactId: ContactId
+): Promise<ContactId> {
   const destinationContactId = crypto.randomUUID()
   await api(cardPath(toDavBookRef(source), contactId), {
     method: 'COPY',
@@ -504,7 +586,7 @@ export async function copyContact(
 export async function moveContact(
   source: AddressBookRef,
   destination: AddressBookRef,
-  contactId: string
+  contactId: ContactId
 ): Promise<void> {
   await api(cardPath(toDavBookRef(source), contactId), {
     method: 'MOVE',
@@ -517,7 +599,7 @@ export async function moveContact(
   })
 }
 
-export async function uploadImportFile(file: File): Promise<string> {
+export async function uploadImportFile(file: File): Promise<ImportFileId> {
   const data = await api
     .post('api/files', {
       searchParams: {
@@ -527,14 +609,14 @@ export async function uploadImportFile(file: File): Promise<string> {
       },
       body: file
     })
-    .json<{ _id: string }>()
+    .json<{ _id: ImportFileId }>()
 
   return data._id
 }
 
 export async function importContacts(
-  fileId: string,
-  target: string
+  fileId: ImportFileId,
+  target: ImportTarget
 ): Promise<void> {
   await api.post('linagora.esn.dav.import/api/import', {
     json: { fileId, target }
@@ -542,23 +624,23 @@ export async function importContacts(
 }
 
 export interface AddressBookRef {
-  userId: string
-  addressBookId: string
+  userId: UserId
+  addressBookId: AddressBookId
 }
 
 export interface MultiAddressBookSearchRequest {
-  query: string
+  query: SearchQuery
   addressBooks: AddressBookRef[]
 }
 
 /** Reads the decoded collection ID from a card href, or an empty ID if absent. */
-function extractAddressBookIdFromHref(href: unknown): string {
+function extractAddressBookIdFromHref(href: unknown): AddressBookId {
   return decodeDavSegment(readHref(href)?.split('/').at(-2) ?? '')
 }
 
 export async function searchContacts(
   addressBooks: AddressBook[],
-  search: string
+  search: SearchQuery
 ): Promise<ContactEntry[]> {
   const requestBody: MultiAddressBookSearchRequest = {
     query: search,
@@ -585,8 +667,8 @@ export async function searchContacts(
 }
 
 export async function createAddressBook(
-  userId: string,
-  name: string
+  userId: UserId,
+  name: AddressBookName
 ): Promise<AddressBook> {
   const id = crypto.randomUUID()
   await api.post(userBooksPath(userId), {
@@ -702,10 +784,10 @@ async function isSourceBookPublished(source: DavBookRef): Promise<boolean> {
  * @param source the book of the owner when the book is a delegated copy of it
  */
 export async function fetchAddressBookDetails(
-  userId: string,
-  addressBookId: string,
+  userId: UserId,
+  addressBookId: AddressBookId,
   source?: DavBookRef
-): Promise<{ members: userData[]; isPublic: boolean }> {
+): Promise<AddressBookDetailsResult> {
   try {
     const [response, sourceIsPublic] = await Promise.all([
       propfindAddressBook({ userId, bookId: addressBookId }, [
@@ -730,14 +812,14 @@ export async function fetchAddressBookDetails(
 }
 
 export interface ShareeUpdate {
-  userId: string
+  userId: UserId
   access: AddressBookAccessLevel
   href: string
 }
 
 export async function updateAddressBookShares(
-  userId: string,
-  addressBookId: string,
+  userId: UserId,
+  addressBookId: AddressBookId,
   sharees: ShareeUpdate[]
 ): Promise<void> {
   await api.post(bookJsonPath({ userId, bookId: addressBookId }), {
@@ -756,14 +838,14 @@ export async function updateAddressBookShares(
 }
 
 interface PeopleSearchResult {
-  id: string
+  id: UserId
   names?: { displayName: string }[]
   emailAddresses?: { value: string }[]
 }
 
 export async function searchUsers(
-  q: string,
-  excludeId: string,
+  q: SearchQuery,
+  excludeId: UserId,
   signal?: AbortSignal
 ): Promise<UserResult[]> {
   const data: PeopleSearchResult[] = await api
@@ -788,7 +870,7 @@ export async function searchUsers(
 
 // the owner's own books, which are not classified: they are not the user's
 export async function fetchSubscribableAddressBooks(
-  ownerId: string
+  ownerId: UserId
 ): Promise<RawAddressBook[]> {
   const data: DavAddressBooksResponse = await api
     .get(userBooksPath(ownerId), {
@@ -804,9 +886,9 @@ export async function fetchSubscribableAddressBooks(
 }
 
 export async function subscribeToAddressBook(
-  userId: string,
+  userId: UserId,
   source: RawAddressBook,
-  ownerDisplayName?: string
+  ownerDisplayName?: AddressBookName
 ): Promise<AddressBook> {
   const id = crypto.randomUUID()
   await api.post(userBooksPath(userId), {
@@ -829,7 +911,7 @@ export async function subscribeToAddressBook(
     }
   })
 
-  const subscribed = await readBackAddressBook(userId, id)
+  const subscribed = await readBackAddressBook({ userId, bookId: id })
   if (subscribed) {
     return {
       ...subscribed,
@@ -857,23 +939,22 @@ export async function subscribeToAddressBook(
 // Subscribing to a book delegated to the user restores the delegation, with its role,
 // instead of creating a read-only subscription: the book is read back for its real rights
 async function readBackAddressBook(
-  userId: string,
-  addressBookId: string
+  target: DavBookRef
 ): Promise<AddressBook | undefined> {
   try {
-    const raw = (await fetchAddressBookItems(userId)).find(
-      book => normalizeAddressBook(book).id === addressBookId
+    const raw = (await fetchAddressBookItems(target.userId)).find(
+      book => normalizeAddressBook(book).id === target.bookId
     )
-    return raw && (await enrichAddressBookOwner(raw, userId))
+    return raw && (await enrichAddressBookOwner(raw, target.userId))
   } catch {
-    console.warn(`Failed to read back the address book ${addressBookId}`)
+    console.warn(`Failed to read back the address book ${target.bookId}`)
     return undefined
   }
 }
 
 export async function deleteAddressBook(
-  userId: string,
-  addressBookId: string
+  userId: UserId,
+  addressBookId: AddressBookId
 ): Promise<void> {
   await api.delete(bookJsonPath({ userId, bookId: addressBookId }), {
     headers: { Accept: 'application/vcard+json' }
@@ -881,9 +962,9 @@ export async function deleteAddressBook(
 }
 
 export const updateAddressBook = async (
-  userId: string,
-  addressBookId: string,
-  { name }: { name: string }
+  userId: UserId,
+  addressBookId: AddressBookId,
+  { name }: AddressBookNameUpdate
 ): Promise<void> => {
   await api(bookJsonPath({ userId, bookId: addressBookId }), {
     method: 'PROPPATCH',
@@ -897,9 +978,9 @@ export const updateAddressBook = async (
 }
 
 export async function setAddressBookPublished(
-  userId: string,
-  addressBookId: string,
-  publish: boolean
+  userId: UserId,
+  addressBookId: AddressBookId,
+  publish: PublishBookFlag
 ): Promise<void> {
   await api.post(bookJsonPath({ userId, bookId: addressBookId }), {
     headers: {

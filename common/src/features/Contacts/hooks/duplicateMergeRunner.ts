@@ -31,6 +31,20 @@ interface ContactSnapshot {
   etag: string
 }
 
+function appendUnseenEntries(
+  target: DuplicateContactEntry[],
+  incoming: DuplicateContactEntry[],
+  seenIds: Set<string>
+): void {
+  for (const entry of incoming) {
+    const key = duplicateContactUrn(entry)
+    if (!seenIds.has(key)) {
+      seenIds.add(key)
+      target.push(entry)
+    }
+  }
+}
+
 async function fetchAllBookContacts(
   userId: string,
   book: AddressBook
@@ -44,17 +58,10 @@ async function fetchAllBookContacts(
     const page = await fetchContactsPage(
       userId,
       book,
-      { after, sort: { by: 'fn', order: 'asc' } },
-      false,
-      { cache: 'no-store' }
+      { after, sort: { by: 'fn', order: 'asc' }, cache: 'no-store' },
+      false
     )
-    for (const entry of page.entries) {
-      const key = duplicateContactUrn(entry)
-      if (!seenIds.has(key)) {
-        seenIds.add(key)
-        entries.push(entry)
-      }
-    }
+    appendUnseenEntries(entries, page.entries, seenIds)
     after = page.next || null
     if (!after || after === previousAfter) break
   }
@@ -162,6 +169,36 @@ async function readGroupSnapshots(
   return snapshots
 }
 
+async function saveContactDismissals(
+  dispatch: AppDispatch,
+  userId: string,
+  snapshot: ContactSnapshot,
+  peerUrns: string[]
+): Promise<void> {
+  const existing = dismissedDuplicateUrns(snapshot.contact)
+  const additions = peerUrns.filter(urn => !existing.has(urn))
+  if (additions.length === 0) return
+
+  const saved = await dispatch(
+    updateContact({
+      userId,
+      addressBookId: snapshot.addressBookId,
+      contact: {
+        ...snapshot.contact,
+        etag: snapshot.etag,
+        passthroughProps: [
+          ...(snapshot.contact.passthroughProps ?? []),
+          ...additions.map(duplicateDismissalProperty)
+        ]
+      }
+    })
+  ).unwrap()
+  const stored = dismissedDuplicateUrns(saved.contact)
+  if (!additions.every(urn => stored.has(urn))) {
+    throw new Error('Missing saved duplicate dismissal')
+  }
+}
+
 export async function executeGroupDismissal({
   dispatch,
   userId,
@@ -172,31 +209,28 @@ export async function executeGroupDismissal({
   const snapshots = await readGroupSnapshots(group, books, refreshGroup)
   const urns = snapshots.map(duplicateContactUrn)
 
-  for (const [index, { addressBookId, contact, etag }] of snapshots.entries()) {
-    const existing = dismissedDuplicateUrns(contact)
-    const additions = urns.filter(
-      (urn, peer) => peer !== index && !existing.has(urn)
-    )
-    if (additions.length === 0) continue
+  for (const [index, snapshot] of snapshots.entries()) {
+    const peerUrns = urns.filter((_, peer) => peer !== index)
+    await saveContactDismissals(dispatch, userId, snapshot, peerUrns)
+  }
+}
 
-    const saved = await dispatch(
-      updateContact({
+async function deleteMergedSources(
+  dispatch: AppDispatch,
+  userId: string,
+  snapshots: ContactSnapshot[],
+  toDelete: { addressBookId: string; contactId: string }[]
+): Promise<void> {
+  for (const item of toDelete) {
+    await dispatch(
+      deleteContact({
         userId,
-        addressBookId,
-        contact: {
-          ...contact,
-          etag,
-          passthroughProps: [
-            ...(contact.passthroughProps ?? []),
-            ...additions.map(duplicateDismissalProperty)
-          ]
-        }
+        addressBookId: item.addressBookId,
+        contactId: item.contactId,
+        ignoreNotFound: true,
+        etag: findSnapshotEtag(snapshots, item.addressBookId, item.contactId)
       })
     ).unwrap()
-    const stored = dismissedDuplicateUrns(saved.contact)
-    if (!additions.every(urn => stored.has(urn))) {
-      throw new Error('Missing saved duplicate dismissal')
-    }
   }
 }
 
@@ -241,21 +275,27 @@ export async function executeGroupMerge({
   )
   if (!savedTarget) throw new MergeContactError('changed')
 
-  for (const item of plan.toDelete) {
-    await dispatch(
-      deleteContact({
-        userId,
-        addressBookId: item.addressBookId,
-        contactId: item.contactId,
-        ignoreNotFound: true,
-        etag: findSnapshotEtag(snapshots, item.addressBookId, item.contactId)
-      })
-    ).unwrap()
-  }
+  await deleteMergedSources(dispatch, userId, snapshots, plan.toDelete)
 
   return {
     addressBookId: plan.targetAddressBookId,
     contactId: plan.updatedContact.id
+  }
+}
+
+async function runQueueWorker(
+  queue: DuplicateContactGroup[],
+  task: (group: DuplicateContactGroup) => Promise<void>,
+  failures: unknown[]
+): Promise<void> {
+  while (true) {
+    const nextGroup = queue.shift()
+    if (!nextGroup) return
+    try {
+      await task(nextGroup)
+    } catch (reason: unknown) {
+      failures.push(reason)
+    }
   }
 }
 
@@ -268,18 +308,9 @@ export async function runQueuedMerges(
   const workerCount = Math.min(limit, queue.length)
   const failures: unknown[] = []
   await Promise.all(
-    Array.from({ length: workerCount }, async () => {
-      while (queue.length > 0) {
-        const nextGroup = queue.shift()
-        if (nextGroup) {
-          try {
-            await task(nextGroup)
-          } catch (reason: unknown) {
-            failures.push(reason)
-          }
-        }
-      }
-    })
+    Array.from({ length: workerCount }, () =>
+      runQueueWorker(queue, task, failures)
+    )
   )
   if (failures.length) {
     throw new AggregateError(failures)

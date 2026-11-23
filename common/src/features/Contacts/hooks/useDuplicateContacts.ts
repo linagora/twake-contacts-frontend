@@ -229,19 +229,20 @@ function useBatchGroupMerge(
   return { isMergingAll, mergeAll }
 }
 
-function useMergeExecution(
+function useGroupActionCallbacks(
   openpaasId: string | undefined,
   personalBooks: AddressBook[],
-  detectedGroups: DuplicateContactGroup[],
   refreshGroup: (id: string, entries: DuplicateContactEntry[]) => void
-): Omit<UseDuplicateContactsResult, 'groups' | 'isLoading' | 'error'> {
+): {
+  mergedIds: Set<string>
+  mergedContacts: Record<string, MergedContactTarget>
+  applyMerge: (group: DuplicateContactGroup) => Promise<void>
+  applyDismissal: (group: DuplicateContactGroup) => Promise<void>
+} {
   const dispatch = useAppDispatch()
   const [mergedIds, setMergedIds] = useState<Set<string>>(() => new Set())
   const [mergedContacts, setMergedContacts] = useState<
     Record<string, MergedContactTarget>
-  >({})
-  const [groupErrors, setGroupErrors] = useState<
-    Record<string, MergeGroupError>
   >({})
 
   const applyMerge = useCallback(
@@ -274,6 +275,22 @@ function useMergeExecution(
     },
     [dispatch, openpaasId, personalBooks, refreshGroup]
   )
+
+  return { mergedIds, mergedContacts, applyMerge, applyDismissal }
+}
+
+function useMergeExecution(
+  openpaasId: string | undefined,
+  personalBooks: AddressBook[],
+  detectedGroups: DuplicateContactGroup[],
+  refreshGroup: (id: string, entries: DuplicateContactEntry[]) => void
+): Omit<UseDuplicateContactsResult, 'groups' | 'isLoading' | 'error'> {
+  const [groupErrors, setGroupErrors] = useState<
+    Record<string, MergeGroupError>
+  >({})
+
+  const { mergedIds, mergedContacts, applyMerge, applyDismissal } =
+    useGroupActionCallbacks(openpaasId, personalBooks, refreshGroup)
 
   const { activeGroupIds: mergingGroupIds, runGroupAction: mergeGroup } =
     useSingleGroupAction(detectedGroups, applyMerge, setGroupErrors)
