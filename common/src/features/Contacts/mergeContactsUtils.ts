@@ -1,6 +1,10 @@
 import { AddressBook, Contact, ContactSocialProfile } from './contactsTypes'
 import { JCalProperty } from './davTypes'
 import {
+  dismissedDuplicatePairs,
+  duplicateContactUrn
+} from './duplicateDismissals'
+import {
   DuplicateContactEntry,
   DuplicateContactGroup
 } from './mergeContactsTypes'
@@ -23,6 +27,9 @@ const normalizeName = (value: string): string =>
 const normalizeEmail = (value: string): string => value.trim().toLowerCase()
 
 const normalizeMatrixId = (value: string): string => value.trim().toLowerCase()
+
+const isMatrixProfile = (profile: ContactSocialProfile): boolean =>
+  profile.type?.trim().toLowerCase() === 'matrix'
 
 export class MergeContactError extends Error {
   constructor(
@@ -61,11 +68,15 @@ interface KeyedIndex {
 
 interface DisjointSet {
   find: (i: number) => number
-  union: (a: number, b: number) => void
+  union: (a: number, b: number) => boolean
 }
 
-const createDisjointSet = (size: number): DisjointSet => {
+const createDisjointSet = (
+  size: number,
+  dismissed: Map<number, Set<number>>
+): DisjointSet => {
   const parent = Array.from({ length: size }, (_, index) => index)
+  const sizes = parent.map(() => 1)
   const find = (i: number): number => {
     let current = i
     while (parent[current] !== current) {
@@ -74,10 +85,29 @@ const createDisjointSet = (size: number): DisjointSet => {
     }
     return current
   }
-  const union = (a: number, b: number): void => {
-    const rootA = find(a)
-    const rootB = find(b)
-    if (rootA !== rootB) parent[rootB] = rootA
+  const union = (a: number, b: number): boolean => {
+    let rootA = find(a)
+    let rootB = find(b)
+    if (rootA === rootB) return true
+    if (dismissed.get(rootA)?.has(rootB)) return false
+    if (sizes[rootA] < sizes[rootB]) [rootA, rootB] = [rootB, rootA]
+    parent[rootB] = rootA
+    sizes[rootA] += sizes[rootB]
+
+    // Carry all rejected links to the surviving root, including indirect links.
+    const movedPeers = dismissed.get(rootB)
+    if (movedPeers) {
+      const keptPeers = dismissed.get(rootA) ?? new Set<number>()
+      for (const peer of movedPeers) {
+        const links = dismissed.get(peer)
+        links?.delete(rootB)
+        links?.add(rootA)
+        keptPeers.add(peer)
+      }
+      dismissed.set(rootA, keptPeers)
+      dismissed.delete(rootB)
+    }
+    return true
   }
   return { find, union }
 }
@@ -120,10 +150,7 @@ const collectKeyedIndices = (
     pushNormalizedKeys(
       contact.socialProfiles,
       index,
-      p =>
-        p.type?.trim().toLowerCase() === 'matrix'
-          ? normalizeMatrixId(p.value)
-          : '',
+      p => (isMatrixProfile(p) ? normalizeMatrixId(p.value) : ''),
       byMatrixId
     )
   })
@@ -131,16 +158,23 @@ const collectKeyedIndices = (
   return [byName, byEmail, byPhone, byMatrixId]
 }
 
-const unionAdjacentEqualKeys = (
+const unionEqualKeys = (
   items: KeyedIndex[],
-  union: (a: number, b: number) => void
+  union: DisjointSet['union']
 ): void => {
   if (items.length < 2) return
   items.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
-  for (let i = 1; i < items.length; i++) {
-    if (items[i].key === items[i - 1].key) {
-      union(items[i - 1].index, items[i].index)
-    }
+  let previousKey: string | undefined
+  let representatives: number[] = []
+  for (const { key, index } of items) {
+    // A rejected link can split contacts sharing a key into separate groups.
+    // Try each still-separate group so the rejection does not mask new matches.
+    representatives =
+      key === previousKey
+        ? representatives.filter(peer => !union(peer, index))
+        : []
+    representatives.push(index)
+    previousKey = key
   }
 }
 
@@ -162,7 +196,7 @@ const groupEntriesByRoot = (
   return [...grouped.values()]
     .filter(groupEntries => groupEntries.length >= 2)
     .map(groupEntries => ({
-      id: groupEntries.map(e => `${e.addressBookId}:${e.contact.id}`).join('|'),
+      id: groupEntries.map(duplicateContactUrn).join('|'),
       entries: groupEntries
     }))
 }
@@ -170,16 +204,20 @@ const groupEntriesByRoot = (
 /**
  * Finds duplicate contacts by sorting and linearly walking ordered lists for
  * display name, email address, phone number, and Matrix ID. Contacts that
- * match in any of the walks are grouped together.
+ * match in any of the walks are grouped together unless a dismissed pair
+ * would end up in the same group.
  */
 export function findDuplicateContactGroups(
   entries: DuplicateContactEntry[]
 ): DuplicateContactGroup[] {
   if (entries.length < 2) return []
 
-  const { find, union } = createDisjointSet(entries.length)
+  const { find, union } = createDisjointSet(
+    entries.length,
+    dismissedDuplicatePairs(entries)
+  )
   for (const list of collectKeyedIndices(entries)) {
-    unionAdjacentEqualKeys(list, union)
+    unionEqualKeys(list, union)
   }
 
   return groupEntriesByRoot(entries, find)
@@ -194,7 +232,7 @@ export interface MergedContactPlan {
 const contactInfoScore = (contact: Contact): number =>
   (contact.phones?.length ?? 0) +
   contact.emails.length +
-  (contact.socialProfiles?.length ?? 0)
+  (contact.socialProfiles?.filter(isMatrixProfile).length ?? 0)
 
 const findMostCompleteIndex = (entries: DuplicateContactEntry[]): number => {
   let primaryIndex = 0
@@ -242,9 +280,10 @@ const ARRAY_MERGE_KEYS = [
 const METADATA_FILL_KEYS = ['name', 'propertyParams'] as const
 
 // RFC 6350 §§6.2.4 and 6.7.5 allow multiple PHOTO and SOUND properties.
-// Other opaque properties (including extensions of unknown cardinality) are
-// conservatively treated as single-valued across candidates.
 const REPEATABLE_OPAQUE_PROPERTIES = new Set(['photo', 'sound'])
+
+// Revision and generating product describe the card, not the person.
+const PRIMARY_CARD_PROPERTIES = new Set(['rev', 'prodid'])
 
 function mergePassthroughProperties(
   target: Contact,
@@ -254,13 +293,18 @@ function mergePassthroughProperties(
   const properties = [...(target.passthroughProps ?? [])]
   for (const incoming of source.passthroughProps ?? []) {
     const name = incoming[0].toLowerCase()
+    if (PRIMARY_CARD_PROPERTIES.has(name)) continue
     const sameName = (target.passthroughProps ?? []).filter(
       prop => prop[0].toLowerCase() === name
     )
     const key = (prop: JCalProperty): string =>
       contactValueKey([prop[0].toLowerCase(), ...prop.slice(1)])
     if (properties.some(prop => key(prop) === key(incoming))) continue
-    if (sameName.length && !REPEATABLE_OPAQUE_PROPERTIES.has(name)) {
+    if (
+      sameName.length &&
+      !name.startsWith('x-') &&
+      !REPEATABLE_OPAQUE_PROPERTIES.has(name)
+    ) {
       conflictFields.add(name.toUpperCase())
       continue
     }

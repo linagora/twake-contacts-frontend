@@ -3,6 +3,11 @@ import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
 import { Contact, RawAddressBook } from './contactsTypes'
 import { JCalProperty } from './davTypes'
 import {
+  duplicateContactUrn,
+  duplicateDismissalProperty
+} from './duplicateDismissals'
+import { DuplicateContactEntry } from './mergeContactsTypes'
+import {
   buildMergedContactPlan,
   findDuplicateContactGroups,
   isPersonalMergeableBook
@@ -154,6 +159,62 @@ describe('mergeContactsUtils', () => {
     expect(groups[0].entries.map(e => e.contact.id)).toEqual(['m1', 'm2'])
   })
 
+  it('keeps a declined cross-book pair separate even through another matching card', () => {
+    const first: DuplicateContactEntry = {
+      addressBookId: 'work',
+      contact: {
+        id: 'copied-id',
+        displayName: 'Alex Work',
+        emails: [{ type: 'work', value: 'alex@example.org' }],
+        phones: [{ type: null, value: '123' }]
+      }
+    }
+    const second = {
+      addressBookId: 'family',
+      contact: {
+        id: 'copied-id',
+        displayName: 'Alex',
+        emails: [{ type: 'home', value: 'alex@example.org' }]
+      }
+    }
+    const bridge = {
+      addressBookId: 'personal',
+      contact: {
+        id: 'bridge',
+        displayName: 'Alex',
+        emails: [],
+        phones: [{ type: null, value: '123' }]
+      }
+    }
+    first.contact.passthroughProps = [
+      duplicateDismissalProperty(duplicateContactUrn(second))
+    ]
+
+    expect(findDuplicateContactGroups([first, second])).toEqual([])
+    expect(
+      findDuplicateContactGroups([first, second, bridge]).map(
+        group => group.entries
+      )
+    ).toEqual([[second, bridge]])
+  })
+
+  it('still suggests a new match for contacts sharing a dismissed key', () => {
+    const entries: DuplicateContactEntry[] = ['first', 'second', 'third'].map(
+      id => ({
+        addressBookId: 'contacts',
+        contact: { id, displayName: 'Same Name', emails: [] }
+      })
+    )
+    const [first, second, third] = entries
+    second.contact.passthroughProps = [
+      duplicateDismissalProperty(duplicateContactUrn(first))
+    ]
+
+    expect(
+      findDuplicateContactGroups(entries).map(group => group.entries)
+    ).toEqual([[first, third]])
+  })
+
   it('picks the most complete contact, keeps its name, merges missing phone/email/matrix ID, and deletes others', () => {
     const plan = buildMergedContactPlan([
       {
@@ -215,6 +276,41 @@ describe('mergeContactsUtils', () => {
     expect(findDuplicateContactGroups(entries)).toEqual([])
   })
 
+  it('scores the primary by email, phone and Matrix while preserving other profiles', () => {
+    const secondaryProfiles = [
+      { type: 'skype', value: 'Alex' },
+      { type: 'twitter', value: 'alex' }
+    ]
+    const matrix = { type: 'Matrix', value: '@alex:example.org' }
+    const plan = buildMergedContactPlan([
+      {
+        addressBookId: 'family',
+        contact: {
+          id: 'secondary',
+          displayName: 'Alex',
+          emails: [],
+          socialProfiles: secondaryProfiles
+        }
+      },
+      {
+        addressBookId: 'work',
+        contact: {
+          id: 'primary',
+          displayName: 'Alex',
+          emails: [],
+          socialProfiles: [matrix]
+        }
+      }
+    ])
+
+    expect(plan.targetAddressBookId).toBe('work')
+    expect(plan.updatedContact.id).toBe('primary')
+    expect(plan.updatedContact.socialProfiles).toEqual([
+      matrix,
+      ...secondaryProfiles
+    ])
+  })
+
   it('preserves profiles from different services and case-sensitive non-Matrix values', () => {
     const profiles = [
       { type: 'skype', value: 'Alex' },
@@ -234,7 +330,10 @@ describe('mergeContactsUtils', () => {
         }
       }))
     )
-    expect(plan.updatedContact.socialProfiles).toEqual(profiles.slice(0, 4))
+    expect(plan.updatedContact.socialProfiles).toEqual([
+      profiles[3],
+      ...profiles.slice(0, 3)
+    ])
   })
 
   it('preserves addresses, notes, arrays, and unedited vCard details from a duplicate', () => {
@@ -365,16 +464,62 @@ describe('mergeContactsUtils', () => {
     ])
   })
 
-  it.each(['rev', 'kind', 'x-custom', 'X-CUSTOM'])(
-    'blocks conflicting opaque %s properties before creating a deletion plan',
-    name => {
-      expectConflict((value, index) => ({
-        passthroughProps: [
-          [index === 0 ? name.toLowerCase() : name, {}, 'text', value]
-        ]
-      }))
-    }
-  )
+  it('keeps the primary REV and PRODID when a source has different metadata', () => {
+    const primaryProps: JCalProperty[] = [
+      ['rev', {}, 'timestamp', '2026-01-01T00:00:00Z'],
+      ['prodid', {}, 'text', 'Primary client']
+    ]
+    const secondaryProps: JCalProperty[] = [
+      ['REV', {}, 'timestamp', '2026-01-02T00:00:00Z'],
+      ['PRODID', {}, 'text', 'Secondary client']
+    ]
+    const entries = ['primary', 'secondary'].map((id, index) => ({
+      addressBookId: 'contacts',
+      contact: {
+        id,
+        displayName: 'Alex',
+        emails: [],
+        passthroughProps: index === 0 ? primaryProps : secondaryProps
+      }
+    }))
+
+    expect(
+      buildMergedContactPlan(entries).updatedContact.passthroughProps
+    ).toEqual(primaryProps)
+    expect(
+      buildMergedContactPlan([
+        {
+          ...entries[0],
+          contact: { ...entries[0].contact, passthroughProps: [] }
+        },
+        entries[1]
+      ]).updatedContact.passthroughProps
+    ).toEqual([])
+  })
+
+  it('keeps distinct dismissal markers from both cards when merging', () => {
+    const properties = ['family', 'work'].map(book =>
+      duplicateDismissalProperty(`urn:twake:contact:${book}:peer`)
+    )
+    const entries = ['primary', 'secondary'].map((id, index) => ({
+      addressBookId: 'contacts',
+      contact: {
+        id,
+        displayName: 'Alex',
+        emails: [],
+        passthroughProps: [properties[index]]
+      }
+    }))
+    expect(
+      buildMergedContactPlan(entries).updatedContact.passthroughProps
+    ).toEqual(properties)
+  })
+
+  it('blocks conflicting KIND properties before creating a deletion plan', () => {
+    expectConflict((value, index) => ({
+      passthroughProps: [[index === 0 ? 'kind' : 'KIND', {}, 'text', value]]
+    }))
+  })
 
   it('preserves distinct opaque properties and repeatable media without mutating candidates', () => {
     const primary: Contact = {
@@ -441,20 +586,35 @@ describe('mergeContactsUtils', () => {
     expect(plan.updatedContact.passthroughProps).toEqual(passthroughProps)
   })
 
-  it('blocks opaque parameter conflicts even when values agree', () => {
-    expect(() =>
-      buildMergedContactPlan(
-        ['en', 'fr'].map(language => ({
-          addressBookId: 'contacts',
-          contact: {
-            id: language,
-            displayName: 'Alex',
-            emails: [],
-            passthroughProps: [['x-custom', { language }, 'text', 'Same']]
-          }
-        }))
-      )
-    ).toThrow('conflict')
+  it('preserves X- properties with distinct values or parameters', () => {
+    const primaryProp: JCalProperty = [
+      'x-custom',
+      { language: 'en' },
+      'text',
+      'First'
+    ]
+    const incoming: JCalProperty[] = [
+      ['X-CUSTOM', { language: 'en' }, 'text', 'First'],
+      ['x-custom', { language: 'fr' }, 'text', 'First'],
+      ['x-custom', { language: 'en' }, 'text', 'Second']
+    ]
+    const plan = buildMergedContactPlan(
+      [[primaryProp], incoming].map((passthroughProps, index) => ({
+        addressBookId: 'contacts',
+        contact: {
+          id: String(index),
+          displayName: 'Alex',
+          emails: [],
+          passthroughProps
+        }
+      }))
+    )
+
+    expect(plan.updatedContact.passthroughProps).toEqual([
+      primaryProp,
+      ...incoming.slice(1)
+    ])
+    expect(plan.toDelete).toHaveLength(1)
   })
 
   it('lists all conflicting fields on MergeContactError', () => {
@@ -490,7 +650,7 @@ describe('mergeContactsUtils', () => {
 
     expect(caught).toMatchObject({
       reason: 'conflict',
-      conflictFields: ['X-CUSTOM', 'org', 'note']
+      conflictFields: ['org', 'note']
     })
   })
 
