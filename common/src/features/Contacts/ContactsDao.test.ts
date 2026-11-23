@@ -18,6 +18,7 @@ import {
   fetchAddressBookDetails,
   fetchContact,
   fetchContactsPage,
+  fetchSavedContact,
   fetchSubscribableAddressBooks,
   moveContact,
   resolveAddressBookMember,
@@ -2601,6 +2602,20 @@ describe('saveContact preconditions (#649)', () => {
       'Content-Type': 'application/vcard+json',
       'If-Match': '"v1"'
     })
+  })
+
+  it('guards an update with the stored ETag of the jCard read (#854)', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      new Response(JSON.stringify(['vcard', [['fn', {}, 'text', 'Teresa']]]), {
+        headers: { ETag: '"v1-json"' }
+      }) as never
+    )
+    const read = await fetchSavedContact('u1', 'book1', 'c1')
+
+    await saveContact('u1', 'book1', read, 'update')
+
+    expect(read.etag).toBe('"v1"')
+    expect(headersOfPut()['If-Match']).toBe('"v1"')
   })
 
   it('updates a contact whose version is unknown without precondition', async () => {

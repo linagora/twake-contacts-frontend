@@ -38,3 +38,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: Benoit Tellier, after the twake-qa security review of twake-calendar-side-service (SEV-1, 2026-11-23); the pipeline of twake-contacts-frontend is the model.
 - Why: the agents are persistent and shared, so code of a pull request that runs before the check can read a credential bound later in the same build, or leave a process behind for a later one. A review is tied to a commit by GitHub, unlike a comment, so a commit pushed after the approval is not built until a member reviews it again.
 - Scope: `Jenkinsfile`: the existing check is kept; it now reads the fork owner of a renamed fork (`CHANGE_FORK` as `owner/repository`).
+
+## 2026-11-23, [Architecture] A contact keeps the ETag of its stored vCard
+
+- Decision: the ETag read with a card is stored on the contact without the `-json` suffix esn-sabre adds to its jCard representation, so `If-Match` on save carries the ETag of the stored vCard.
+- Decided by: agent (PR [#690](https://github.com/linagora/twake-contacts-frontend/pull/690), esn-sabre 2.5.0.7), to be confirmed by chibenwa
+- Why: since esn-sabre 2.5.0.7 (linagora/esn-sabre#854) a jCard GET answers `"<stored>-json"`, while `If-Match` is still evaluated against the stored ETag: every update of a contact read as jCard got HTTP 412.
+- Scope: both, `etagOf` of `common/src/features/Contacts/ContactsDao.ts`.

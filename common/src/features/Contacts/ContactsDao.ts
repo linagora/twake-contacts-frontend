@@ -361,9 +361,17 @@ async function readCard(
   }
 }
 
+// esn-sabre tags the jCard with the ETag of the stored vCard suffixed by
+// -json, but evaluates If-Match against the stored ETag only (#854)
+const JSON_REPRESENTATION_ETAG = /-json("?)$/
+
+// The ETag of the stored card, the one If-Match is evaluated against;
 // undefined when the server sends none, or when CORS does not expose it
 function etagOf(response: Response): string | undefined {
-  return response.headers.get('ETag') ?? undefined
+  return (
+    response.headers.get('ETag')?.replace(JSON_REPRESENTATION_ETAG, '$1') ??
+    undefined
+  )
 }
 
 /** Whether the saved card is a new one, or an update of the version read. */
