@@ -42,14 +42,14 @@
     "twake-calendar-side-service": ">=2.4.7.7"
   },
   "devDependencies": {
-    "@rsbuild/core": "^2.3.2",
+    "@rsbuild/core": "^2.3.3",
     "@rsbuild/plugin-react": "^2.1.1",
     "@rsbuild/plugin-stylus": "^2.0.1",
     "@rsbuild/plugin-svgr": "^2.0.5",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.12",
+    "@testing-library/user-event": "^14.6.13",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -57,7 +57,7 @@
     "rstack": "0.8.6",
     "syncpack": "^15.3.3",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0",
+    "vitest": "^5.1.1",
     "@vitest/coverage-v8": "^5.0.0",
     "jsdom": "^31.0.1"
   },
