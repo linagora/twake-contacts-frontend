@@ -71,6 +71,41 @@ interface DisjointSet {
   union: (a: number, b: number) => boolean
 }
 
+const relinkDismissedPeer = (
+  dismissed: Map<number, Set<number>>,
+  peer: number,
+  fromRoot: number,
+  toRoot: number
+): void => {
+  const links = dismissed.get(peer)
+  if (!links) return
+  links.delete(fromRoot)
+  links.add(toRoot)
+}
+
+// Carry all rejected links to the surviving root, including indirect links.
+const transferDismissedPeers = (
+  dismissed: Map<number, Set<number>>,
+  fromRoot: number,
+  toRoot: number
+): void => {
+  const movedPeers = dismissed.get(fromRoot)
+  if (!movedPeers) return
+  const keptPeers = dismissed.get(toRoot) ?? new Set<number>()
+  for (const peer of movedPeers) {
+    relinkDismissedPeer(dismissed, peer, fromRoot, toRoot)
+    keptPeers.add(peer)
+  }
+  dismissed.set(toRoot, keptPeers)
+  dismissed.delete(fromRoot)
+}
+
+const areRootsDismissed = (
+  dismissed: Map<number, Set<number>>,
+  rootA: number,
+  rootB: number
+): boolean => Boolean(dismissed.get(rootA)?.has(rootB))
+
 const createDisjointSet = (
   size: number,
   dismissed: Map<number, Set<number>>
@@ -89,24 +124,11 @@ const createDisjointSet = (
     let rootA = find(a)
     let rootB = find(b)
     if (rootA === rootB) return true
-    if (dismissed.get(rootA)?.has(rootB)) return false
+    if (areRootsDismissed(dismissed, rootA, rootB)) return false
     if (sizes[rootA] < sizes[rootB]) [rootA, rootB] = [rootB, rootA]
     parent[rootB] = rootA
     sizes[rootA] += sizes[rootB]
-
-    // Carry all rejected links to the surviving root, including indirect links.
-    const movedPeers = dismissed.get(rootB)
-    if (movedPeers) {
-      const keptPeers = dismissed.get(rootA) ?? new Set<number>()
-      for (const peer of movedPeers) {
-        const links = dismissed.get(peer)
-        links?.delete(rootB)
-        links?.add(rootA)
-        keptPeers.add(peer)
-      }
-      dismissed.set(rootA, keptPeers)
-      dismissed.delete(rootB)
-    }
+    transferDismissedPeers(dismissed, rootB, rootA)
     return true
   }
   return { find, union }
@@ -285,6 +307,17 @@ const REPEATABLE_OPAQUE_PROPERTIES = new Set(['photo', 'sound'])
 // Revision and generating product describe the card, not the person.
 const PRIMARY_CARD_PROPERTIES = new Set(['rev', 'prodid'])
 
+const isRepeatablePassthroughProperty = (name: string): boolean =>
+  name.startsWith('x-') || REPEATABLE_OPAQUE_PROPERTIES.has(name)
+
+const passthroughPropertyKey = (prop: JCalProperty): string =>
+  contactValueKey([prop[0].toLowerCase(), ...prop.slice(1)])
+
+const hasPassthroughPropertyNamed = (
+  properties: JCalProperty[] | undefined,
+  name: string
+): boolean => (properties ?? []).some(prop => prop[0].toLowerCase() === name)
+
 function mergePassthroughProperties(
   target: Contact,
   source: Contact,
@@ -294,16 +327,13 @@ function mergePassthroughProperties(
   for (const incoming of source.passthroughProps ?? []) {
     const name = incoming[0].toLowerCase()
     if (PRIMARY_CARD_PROPERTIES.has(name)) continue
-    const sameName = (target.passthroughProps ?? []).filter(
-      prop => prop[0].toLowerCase() === name
-    )
-    const key = (prop: JCalProperty): string =>
-      contactValueKey([prop[0].toLowerCase(), ...prop.slice(1)])
-    if (properties.some(prop => key(prop) === key(incoming))) continue
+    const incomingKey = passthroughPropertyKey(incoming)
+    if (properties.some(prop => passthroughPropertyKey(prop) === incomingKey)) {
+      continue
+    }
     if (
-      sameName.length &&
-      !name.startsWith('x-') &&
-      !REPEATABLE_OPAQUE_PROPERTIES.has(name)
+      hasPassthroughPropertyNamed(target.passthroughProps, name) &&
+      !isRepeatablePassthroughProperty(name)
     ) {
       conflictFields.add(name.toUpperCase())
       continue
