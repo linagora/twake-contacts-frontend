@@ -157,22 +157,35 @@ URL, or read back after a save, has no known ETag. Contacts from listings carry
 theirs in the JSON body.
 
 Duplicate merges reread each candidate with `fetchContactForMerge`, require a
-strong ETag, and compare all contact fields with the scanned candidates. Changed
-candidates refresh the group and require another explicit merge action. The
+strong ETag, and compare the user-visible contact fields with the scanned
+candidates. Changed candidates refresh the group and require another explicit
+merge action. The
 update (via `contact.etag` without `edits`, so it never rebases) and deletes
 carry `If-Match` through the thunks to avoid overwriting or deleting a
 concurrent edit after the reread. Before deleting any sources, the merge reads
 the saved target again and requires a strong ETag; a missing or unreadable target
 leaves all sources in place. The read is not a transaction: a later deletion of
-the target by another client remains possible. A merge can finish only partially; retries
-reread the candidates, and a delete returning 404 is already complete.
-Conflicting single-valued or opaque vCard details block deletion until the user
-reconciles them. Opaque properties are preserved by name and exact content
-(including parameters); PHOTO and SOUND may have multiple values per RFC 6350
-§§6.2.4 and 6.7.5. Other opaque properties, including unknown extensions, block
-the merge when the same name has different content across candidates. Carried
-group names are unioned. The form does not edit arbitrary opaque properties:
-those conflicts need a vCard-capable client or import workflow to reconcile.
+the target by another client remains possible. A merge can finish only
+partially. Retries reread the candidates, and a delete returning 404 is already
+complete. Conflicting single-valued or opaque vCard details block deletion.
+The merge keeps REV and PRODID from the primary card when present. It preserves
+other opaque properties by name and exact content (including parameters).
+The merge keeps distinct occurrences of X-* properties, PHOTO and SOUND.
+Same-name conflicts on other opaque properties, such as KIND, block the merge.
+Carried group names are unioned. A vCard editor or import workflow can reconcile
+conflicts involving properties the contact form cannot edit.
+
+The scan matches name, email, phone or Matrix ID within and across personal
+books. Merge all requires confirmation before writing. Dismissing a group
+records each declined pair on both cards with repeatable
+`X-Twake-Duplicated-with` properties. The URN identifies the peer by its
+address book and file ID, so copies with the same UID can be distinguished.
+Moving a card to another book, or changing its file ID, changes this reference.
+A marker in either direction prevents the pair from appearing together,
+including through transitive matches. Merges also check fresh card reads for
+dismissals and preserve unrelated markers on the survivor. Dismissal uses
+conditional updates, can finish partially, and retries skip markers that are
+already saved.
 
 ## Authentication
 

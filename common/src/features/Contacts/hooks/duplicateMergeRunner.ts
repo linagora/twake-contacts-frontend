@@ -4,6 +4,12 @@ import { fetchContactForMerge, fetchContactsPage } from '../ContactsDao'
 import { deleteContact, updateContact } from '../ContactsSlice'
 import { AddressBook, Contact } from '../contactsTypes'
 import {
+  dismissedDuplicatePairs,
+  dismissedDuplicateUrns,
+  duplicateContactUrn,
+  duplicateDismissalProperty
+} from '../duplicateDismissals'
+import {
   DuplicateContactEntry,
   DuplicateContactGroup
 } from '../mergeContactsTypes'
@@ -22,7 +28,7 @@ export interface MergedContactTarget {
 interface ContactSnapshot {
   addressBookId: string
   contact: Contact
-  etag: string | undefined
+  etag: string
 }
 
 async function fetchAllBookContacts(
@@ -43,7 +49,7 @@ async function fetchAllBookContacts(
       { cache: 'no-store' }
     )
     for (const entry of page.entries) {
-      const key = `${entry.addressBookId}:${entry.contact.id}`
+      const key = duplicateContactUrn(entry)
       if (!seenIds.has(key)) {
         seenIds.add(key)
         entries.push(entry)
@@ -138,6 +144,62 @@ export interface ExecuteGroupMergeParams {
   refreshGroup: (entries: DuplicateContactEntry[]) => void
 }
 
+async function readGroupSnapshots(
+  group: DuplicateContactGroup,
+  books: AddressBook[],
+  refreshGroup: ExecuteGroupMergeParams['refreshGroup']
+): Promise<ContactSnapshot[]> {
+  const results = await Promise.all(
+    group.entries.map(entry => fetchEntrySnapshot(entry, books))
+  )
+  const snapshots = results.filter(
+    (entry): entry is ContactSnapshot => entry !== null
+  )
+  if (hasGroupChanged(group, snapshots)) {
+    refreshGroup(snapshots)
+    throw new MergeContactError('changed')
+  }
+  return snapshots
+}
+
+export async function executeGroupDismissal({
+  dispatch,
+  userId,
+  group,
+  books,
+  refreshGroup
+}: ExecuteGroupMergeParams): Promise<void> {
+  const snapshots = await readGroupSnapshots(group, books, refreshGroup)
+  const urns = snapshots.map(duplicateContactUrn)
+
+  for (const [index, { addressBookId, contact, etag }] of snapshots.entries()) {
+    const existing = dismissedDuplicateUrns(contact)
+    const additions = urns.filter(
+      (urn, peer) => peer !== index && !existing.has(urn)
+    )
+    if (additions.length === 0) continue
+
+    const saved = await dispatch(
+      updateContact({
+        userId,
+        addressBookId,
+        contact: {
+          ...contact,
+          etag,
+          passthroughProps: [
+            ...(contact.passthroughProps ?? []),
+            ...additions.map(duplicateDismissalProperty)
+          ]
+        }
+      })
+    ).unwrap()
+    const stored = dismissedDuplicateUrns(saved.contact)
+    if (!additions.every(urn => stored.has(urn))) {
+      throw new Error('Missing saved duplicate dismissal')
+    }
+  }
+}
+
 export async function executeGroupMerge({
   dispatch,
   userId,
@@ -145,22 +207,14 @@ export async function executeGroupMerge({
   books,
   refreshGroup
 }: ExecuteGroupMergeParams): Promise<MergedContactTarget> {
-  const results = await Promise.all(
-    group.entries.map(entry => fetchEntrySnapshot(entry, books))
-  )
-  const snapshots = results.filter(
-    (entry): entry is ContactSnapshot => entry !== null
-  )
-  const snapshotEntries = snapshots.map(({ addressBookId, contact }) => ({
-    addressBookId,
-    contact
-  }))
-  if (hasGroupChanged(group, snapshots)) {
-    refreshGroup(snapshotEntries)
+  const snapshots = await readGroupSnapshots(group, books, refreshGroup)
+  // A dismissal may have been saved since the scan, including on another client.
+  if (dismissedDuplicatePairs(snapshots).size > 0) {
+    refreshGroup(snapshots)
     throw new MergeContactError('changed')
   }
 
-  const plan = buildMergedContactPlan(snapshotEntries)
+  const plan = buildMergedContactPlan(snapshots)
   await dispatch(
     updateContact({
       userId,

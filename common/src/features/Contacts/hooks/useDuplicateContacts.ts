@@ -12,10 +12,12 @@ import {
   DuplicateContactGroup
 } from '../mergeContactsTypes'
 import {
+  findDuplicateContactGroups,
   isPersonalMergeableBook,
   MergeContactError
 } from '../mergeContactsUtils'
 import {
+  executeGroupDismissal,
   executeGroupMerge,
   loadPersonalBookDuplicates,
   MergedContactTarget,
@@ -26,15 +28,18 @@ export type { MergedContactTarget }
 
 const MERGE_ALL_QUEUE_LIMIT = 5
 
-export type MergeErrorReason = 'changed' | 'conflict' | 'error'
+export type MergeErrorReason = 'changed' | 'conflict' | 'error' | 'dismiss'
 
 export interface MergeGroupError {
   reason: MergeErrorReason
   conflictFields?: string[]
 }
 
-const toMergeGroupError = (error: unknown): MergeGroupError => {
-  if (!(error instanceof MergeContactError)) return { reason: 'error' }
+const toMergeGroupError = (
+  error: unknown,
+  fallback: 'error' | 'dismiss' = 'error'
+): MergeGroupError => {
+  if (!(error instanceof MergeContactError)) return { reason: fallback }
   return error.conflictFields.length > 0
     ? { reason: error.reason, conflictFields: error.conflictFields }
     : { reason: error.reason }
@@ -65,7 +70,7 @@ const updateRefreshedGroup = (
   entries: DuplicateContactEntry[]
 ): DuplicateContactGroup[] => {
   if (group.id !== id) return [group]
-  return entries.length >= 2 ? [{ ...group, entries }] : []
+  return findDuplicateContactGroups(entries)
 }
 
 function usePersonalDuplicateScan(
@@ -135,42 +140,43 @@ function usePersonalDuplicateScan(
   return { detectedGroups, isLoading, error, refreshGroup }
 }
 
-function useSingleGroupMerge(
+function useSingleGroupAction(
   detectedGroups: DuplicateContactGroup[],
-  applyMerge: (group: DuplicateContactGroup) => Promise<void>,
+  applyAction: (group: DuplicateContactGroup) => Promise<void>,
   setGroupErrors: React.Dispatch<
     React.SetStateAction<Record<string, MergeGroupError>>
-  >
+  >,
+  fallback?: 'dismiss'
 ): {
-  mergingGroupIds: Set<string>
-  mergeGroup: (groupId: string) => Promise<void>
+  activeGroupIds: Set<string>
+  runGroupAction: (groupId: string) => Promise<void>
 } {
-  const [mergingGroupIds, setMergingGroupIds] = useState<Set<string>>(
+  const [activeGroupIds, setActiveGroupIds] = useState<Set<string>>(
     () => new Set()
   )
 
-  const mergeGroup = useCallback(
+  const runGroupAction = useCallback(
     async (groupId: string): Promise<void> => {
       const group = detectedGroups.find(g => g.id === groupId)
       if (!group) return
       setGroupErrors(prev => omitGroupErrors(prev, [groupId]))
-      setMergingGroupIds(prev => addSetItem(prev, groupId))
+      setActiveGroupIds(prev => addSetItem(prev, groupId))
       try {
-        await applyMerge(group)
+        await applyAction(group)
       } catch (err) {
         setGroupErrors(prev => ({
           ...prev,
-          [groupId]: toMergeGroupError(err)
+          [groupId]: toMergeGroupError(err, fallback)
         }))
         throw err
       } finally {
-        setMergingGroupIds(prev => deleteSetItem(prev, groupId))
+        setActiveGroupIds(prev => deleteSetItem(prev, groupId))
       }
     },
-    [detectedGroups, applyMerge, setGroupErrors]
+    [detectedGroups, applyAction, setGroupErrors, fallback]
   )
 
-  return { mergingGroupIds, mergeGroup }
+  return { activeGroupIds, runGroupAction }
 }
 
 function useBatchGroupMerge(
@@ -254,11 +260,30 @@ function useMergeExecution(
     [dispatch, openpaasId, personalBooks, refreshGroup]
   )
 
-  const { mergingGroupIds, mergeGroup } = useSingleGroupMerge(
-    detectedGroups,
-    applyMerge,
-    setGroupErrors
+  const applyDismissal = useCallback(
+    async (group: DuplicateContactGroup): Promise<void> => {
+      if (!openpaasId) return
+      await executeGroupDismissal({
+        dispatch,
+        userId: openpaasId,
+        group,
+        books: personalBooks,
+        refreshGroup: entries => refreshGroup(group.id, entries)
+      })
+      refreshGroup(group.id, [])
+    },
+    [dispatch, openpaasId, personalBooks, refreshGroup]
   )
+
+  const { activeGroupIds: mergingGroupIds, runGroupAction: mergeGroup } =
+    useSingleGroupAction(detectedGroups, applyMerge, setGroupErrors)
+  const { activeGroupIds: dismissingGroupIds, runGroupAction: dismissGroup } =
+    useSingleGroupAction(
+      detectedGroups,
+      applyDismissal,
+      setGroupErrors,
+      'dismiss'
+    )
   const { isMergingAll, mergeAll } = useBatchGroupMerge(
     detectedGroups,
     mergedIds,
@@ -272,7 +297,9 @@ function useMergeExecution(
     isMerging: isMergingAll || mergingGroupIds.size > 0,
     isMergingAll,
     mergingGroupIds,
+    dismissingGroupIds,
     groupErrors,
+    dismissGroup,
     mergeGroup,
     mergeAll
   }
@@ -287,9 +314,11 @@ export interface UseDuplicateContactsResult {
   isMerging: boolean
   isMergingAll: boolean
   mergingGroupIds: Set<string>
+  dismissingGroupIds: Set<string>
   groupErrors: Record<string, MergeGroupError>
   mergeGroup: (groupId: string) => Promise<void>
   mergeAll: () => Promise<void>
+  dismissGroup: (groupId: string) => Promise<void>
 }
 
 /**
