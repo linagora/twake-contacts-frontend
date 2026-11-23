@@ -10,3 +10,11 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#679](https://github.com/linagora/twake-contacts-frontend/issues/679)), to be confirmed by chibenwa
 - Why: a save with the form unchanged must not delete what another CardDAV client wrote; a companion is only dropped when the user deleted the property of its group.
 - Scope: both, `normalizeContact` / `denormalizeContact` of @contacts/common.
+
+## 2026-11-21, [Architecture] A card id round-trips to the file name the server listed
+
+- Decision: `cardIdOf` strips ".vcf" only when the stem left is not empty and does not end with the verbatim mark "/"; any other file name (`.vcf`, `/.vcf`, `a/.vcf`, `x.VCF`) becomes its id followed by "/". `cardFileName` throws for the empty id, an empty name, "." and "..", so no id ever addresses the book or another card.
+- Decided by: agent (session for [#678](https://github.com/linagora/twake-contacts-frontend/issues/678)), to be confirmed by chibenwa
+- Why: decoded file names can hold a "/" (href `%2F.vcf`), which collided with the mark, so DELETE reached the address book itself.
+- Scope: desktop and mobile, every request that addresses a card (`common/src/api/davPaths.ts`).
+
