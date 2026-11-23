@@ -20,6 +20,14 @@ import en from '@common/locales/en.json'
 import { ShareAddressBookDialog } from './ShareAddressBookDialog'
 
 vi.mock('@common/features/Contacts/ContactsDao')
+vi.mock('@common/config', async () => {
+  const actual =
+    await vi.importActual<typeof import('@common/config')>('@common/config')
+  return {
+    ...actual,
+    config: { ...actual.config, CONTRAST_TOGGLE: true }
+  }
+})
 vi.mock('@common/features/User/UserDao', () => ({
   searchUsers: vi.fn()
 }))

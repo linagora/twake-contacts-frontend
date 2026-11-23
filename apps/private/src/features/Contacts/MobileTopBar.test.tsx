@@ -10,6 +10,15 @@ import { UserState } from '@common/features/User/UserSlice'
 import en from '@common/locales/en.json'
 import { MobileTopBar, MobileTopBarProps } from './MobileTopBar'
 
+vi.mock('@common/config', async () => {
+  const actual =
+    await vi.importActual<typeof import('@common/config')>('@common/config')
+  return {
+    ...actual,
+    config: { ...actual.config, CONTRAST_TOGGLE: true }
+  }
+})
+
 vi.mock('@linagora/twake-mui', async () => {
   const actual = await vi.importActual<typeof import('@linagora/twake-mui')>(
     '@linagora/twake-mui'
