@@ -70,11 +70,39 @@ describe('davPaths', () => {
     ['x.vcfy.vcf', 'x.vcfy'],
     ['x.VCF', 'x.VCF/'],
     ['abc', 'abc/'],
+    ['abc/', 'abc//'],
+    ['.vcf', '.vcf/'],
+    ['/.vcf', '/.vcf/'],
+    ['a/.vcf', 'a/.vcf/'],
+    ['./.vcf', './.vcf/'],
+    ['a/b.vcf', 'a/b'],
     ['', '']
   ])('round trips the card file name %s through its id', (fileName, id) => {
     expect(cardIdOf(fileName)).toBe(id)
     if (fileName) expect(cardFileName(id)).toBe(fileName)
   })
+
+  it.each([
+    ['/.vcf', '%2F.vcf'],
+    ['a/.vcf', 'a%2F.vcf'],
+    ['./.vcf', '.%2F.vcf'],
+    ['.vcf', '.vcf']
+  ])(
+    'addresses the card named %s by its own file name (#678)',
+    (fileName, encoded) => {
+      expect(cardPath(book, cardIdOf(fileName))).toBe(
+        `dav/addressbooks/user-1/book-1/${encoded}`
+      )
+    }
+  )
+
+  it.each([[''], ['/']])(
+    'refuses to address the id "%s", which would reach the book (#678)',
+    id => {
+      expect(() => cardFileName(id)).toThrow()
+      expect(() => cardPath(book, id)).toThrow()
+    }
+  )
 
   it('addresses a card whose file name does not end in ".vcf" by it (#623)', () => {
     expect(cardPath(book, cardIdOf('x.VCF'))).toBe(

@@ -50,8 +50,9 @@ export function bookJsonHref(book: DavBookRef): string {
 const CARD_EXTENSION = '.vcf'
 
 /**
- * Ends the id of a card whose file name is not `<id>.vcf`. A resource name
- * cannot hold a "/", so no `<id>.vcf` card has an id ending with it.
+ * Ends the id of a card kept under its verbatim file name. A decoded file name
+ * may hold a "/" (href `a%2F.vcf`), so cardIdOf only strips ".vcf" when what
+ * is left does not end with this mark.
  */
 const VERBATIM_FILE_NAME_MARK = '/'
 
@@ -65,25 +66,33 @@ const DOT_SEGMENTS = new Set(['.', '..'])
  * The id of a card from its decoded file name: `<id>.vcf` for the cards of
  * this app and most clients, the file name itself otherwise (`x.VCF`, `abc`),
  * marked so that the card is addressed back under that very name (CardDAV
- * resource names are case-sensitive: `x.VCF` is not `x.vcf`). A card named
- * "." or ".." has no id: no request can address it.
+ * resource names are case-sensitive: `x.VCF` is not `x.vcf`). A name whose
+ * stem would be empty or end with the mark (`.vcf`, `/.vcf`, `a/.vcf`) is kept
+ * verbatim too, so that cardFileName gives it back. A card named "." or ".."
+ * has no id: no request can address it.
  */
 export function cardIdOf(fileName: string): string {
   if (fileName === '' || DOT_SEGMENTS.has(fileName)) return ''
-  return fileName.endsWith(CARD_EXTENSION)
-    ? fileName.slice(0, -CARD_EXTENSION.length)
+  const stem = fileName.slice(0, -CARD_EXTENSION.length)
+  return fileName.endsWith(CARD_EXTENSION) && isPlainStem(stem)
+    ? stem
     : `${fileName}${VERBATIM_FILE_NAME_MARK}`
 }
 
+const isPlainStem = (stem: string): boolean =>
+  stem !== '' && !stem.endsWith(VERBATIM_FILE_NAME_MARK)
+
 /**
- * The decoded file name of a card from its id, see cardIdOf. Throws for a
- * name no request can address, so that no call reaches another resource.
+ * The decoded file name of a card from its id, see cardIdOf. Throws for the
+ * empty id (a card with no id) and for a name no request can address (empty,
+ * "." or ".."), so that no call reaches the book or another resource.
  */
 export function cardFileName(cardId: string): string {
+  if (cardId === '') throw new Error('No card can be addressed without an id')
   const fileName = cardId.endsWith(VERBATIM_FILE_NAME_MARK)
     ? cardId.slice(0, -VERBATIM_FILE_NAME_MARK.length)
     : `${cardId}${CARD_EXTENSION}`
-  if (DOT_SEGMENTS.has(fileName)) {
+  if (fileName === '' || DOT_SEGMENTS.has(fileName)) {
     throw new Error(`No card can be addressed by the name "${fileName}"`)
   }
   return fileName
