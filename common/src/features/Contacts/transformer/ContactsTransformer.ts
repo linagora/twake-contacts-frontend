@@ -653,10 +653,24 @@ export function normalizeAddressBook(raw: DavAddressBookItem): RawAddressBook {
   }
 }
 
-// N as a plain string (non-conformant writers) holds the family name only
+// N components (RFC 6350 §6.2.2) in reading order: prefix, given, additional,
+// family, suffix
+const N_READING_ORDER = [3, 1, 2, 0, 4]
+
+function readingOrderText(components: readonly JCalValue[]): string {
+  return N_READING_ORDER.map(index => componentText(components[index]).trim())
+    .filter(Boolean)
+    .join(' ')
+}
+
+// N as a plain string (non-conformant writers) holds the family name only;
+// with no given nor family name, the other components still name the card
 function nameText(card: JCalCard, name: ContactName | null): string {
-  if (name) return [name.givenName, name.familyName].join(' ')
-  return getCardProperty(card, 'n') ?? ''
+  if (!name) return getCardProperty(card, 'n') ?? ''
+  const givenAndFamily = [name.givenName, name.familyName].join(' ')
+  return givenAndFamily.trim()
+    ? givenAndFamily
+    : readingOrderText(name.components ?? [])
 }
 
 /**
