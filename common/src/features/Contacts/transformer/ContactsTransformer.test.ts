@@ -746,4 +746,75 @@ describe('group companions already alone in the card', () => {
 
     expect(saved[1]).not.toContainEqual(label)
   })
+
+  it('keeps the X-ABLabel of a blank ADR it does not show', () => {
+    const blankAdr: JCalProperty = [
+      'adr',
+      { group: 'item1' },
+      'text',
+      ['', '', '', '', '', '', '']
+    ]
+
+    const saved = denormalizeContact(readCard([blankAdr, label]))
+
+    expect(saved[1]).toContainEqual(label)
+    expect(saved[1]).toContainEqual(blankAdr)
+  })
+
+  it('keeps a whitespace-only grouped ADR and its X-ABLabel', () => {
+    const blankAdr: JCalProperty = [
+      'adr',
+      { group: 'item1' },
+      'text',
+      ['', '', ' ', '', '', '', ' ', ' ']
+    ]
+    const other: JCalProperty = [
+      'x-ablabel',
+      { type: ['HOME', 'pref'], group: 'item2' },
+      'unknown',
+      'Mine'
+    ]
+
+    const contact = readCard([blankAdr, label, other])
+    const saved = denormalizeContact(contact)
+
+    expect(contact.addresses).toBeUndefined()
+    expect(saved[1]).toContainEqual(blankAdr)
+    expect(saved[1]).toContainEqual(label)
+    expect(saved[1]).toContainEqual(other)
+  })
+
+  it.each<[string, JCalProperty]>([
+    ['EMAIL', ['email', { group: 'item1' }, 'text', '']],
+    ['TEL', ['tel', { group: 'item1' }, 'uri', 'tel:']],
+    ['URL', ['url', { group: 'item1' }, 'uri', '']],
+    ['SOCIALPROFILE', ['socialprofile', { group: 'item1' }, 'uri', '']]
+  ])('keeps a blank grouped %s and its X-ABLabel', (_, blank) => {
+    const saved = denormalizeContact(readCard([blank, label]))
+
+    expect(saved[1]).toContainEqual(blank)
+    expect(saved[1]).toContainEqual(label)
+  })
+
+  it('writes a blank ADR back once, next to the addresses it shows', () => {
+    const blankAdr: JCalProperty = [
+      'adr',
+      {},
+      'text',
+      ['', '', '', '', '', '', '']
+    ]
+    const home: JCalProperty = [
+      'adr',
+      { type: 'home' },
+      'text',
+      ['', '', '1 rue', 'Paris', '', '75001', 'France']
+    ]
+
+    const contact = readCard([home, blankAdr])
+    const saved = denormalizeContact(contact)
+
+    expect(contact.addresses).toHaveLength(1)
+    expect(saved[1].filter(prop => prop[0] === 'adr')).toHaveLength(2)
+    expect(saved[1]).toContainEqual(blankAdr)
+  })
 })
