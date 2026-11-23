@@ -120,6 +120,9 @@ services:
       interval: 3s
       timeout: 10s
       retries: 10
+      # OpenSearch boots in well over 30s on a busy CI agent: without a grace period the
+      # 10 failed probes above mark it unhealthy and start.sh gives up on the side service
+      start_period: 3m
     networks:
       - tcalendar-e2e
 
