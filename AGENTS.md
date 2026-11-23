@@ -1,4 +1,4 @@
-- Decisions: each package keeps its own `<package>/docs/decisions.md`, mandatory. Search it before asking a question or proposing a change; record every decision there, in the commit that applies it (skill `twake-decisions`).
+- Decisions: `docs/decisions.md`, mandatory. Search it before asking a question or proposing a change; record every decision there, in the commit that applies it (skill `twake-decisions`).
 - Read docs/ARCHITECTURE.md before changing the store, the listings or the data access
 - Dictionary-based data structure mapping address books to their contacts
 - Shared addressbooks User ID persisted in the addressbooks dictonary 
