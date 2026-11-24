@@ -44,7 +44,7 @@ export const SharedSectionHeader: React.FC<SharedSectionHeaderProps> = ({
         <DropdownText
           variant="caption"
           color="textSecondary"
-          innerIconContainerProps={{ className: 'u-dn' }}
+          innerIconContainerProps={{ className: 'u-hide' }}
         >
           {t('contacts.shared')}
         </DropdownText>
