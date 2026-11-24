@@ -134,6 +134,13 @@ version it was opened on, even when a realtime refresh replaced it meanwhile,
 then against the version it saved itself when it stays open, as after a failed
 move. A contact with no known ETag is updated without precondition.
 
+The ETag kept is the one of the stored vCard, the one esn-sabre evaluates
+`If-Match` against. Since esn-sabre 2.5.0.7 the `ETag` header of a single card
+read as jCard is that ETag suffixed by `-json` (`"<stored>-json"`): `etagOf` in
+[`ContactsDao.ts`](../common/src/features/Contacts/ContactsDao.ts) strips the
+suffix, otherwise every update of a contact read this way is refused with
+`412`.
+
 Refused with `412`, the edit form does not give up at once: it reads the card
 saved meanwhile and, when that version changed none of the fields the form
 edited, saves the edited fields over it, once, against its ETag
