@@ -168,26 +168,51 @@ pipeline {
     }
 }
 
-// A fork pull request is built only when its owner is a linagora member, or when a member reviewed
-// its head commit. GitHub ties the review to that commit (commit_id), so a commit pushed after the
-// approval is not built until a member reviews it again.
+def githubRepository() {
+  return 'linagora/twake-contacts-frontend'
+}
+
+// ---- Fork authorization and credentials. The same block is in the Jenkinsfiles of
+// twake-contacts-frontend, twake-calendar-frontend, twake-calendar-side-service, webadmin-proxy,
+// tmail-flutter, esn-sabre, tmail-backend and twake-mail-admin: change it in all of them. Only
+// githubRepository() differs.
+//
+// No credential is bound at pipeline level: every stage runs code of the checked out sources (build
+// plugins, package scripts, tests, scripts/), so secrets are bound only around the steps that need
+// them, see withGithubCredential and withDockerHubLogin.
+
+// A fork pull request runs no code of its own before an org member vouches for its head commit: the
+// owner of the fork is a linagora member, or a member approved that very commit (see
+// memberReviewerOf). An approval names one commit, so a commit pushed after it is not built until a
+// member approves it again.
 def authorizeFork() {
   withGithubCredential {
-    def forkOwner = env.CHANGE_FORK
-    if (isOrgMember(forkOwner)) {
+    // CHANGE_FORK is 'owner', or 'owner/repository' for a fork renamed on GitHub
+    def forkOwner = env.CHANGE_FORK.tokenize('/')[0]
+    // Jenkins may set CHANGE_FORK to 'linagora' for a branch of the repository itself: only someone
+    // with write access pushes there, and an organization is not a member of itself.
+    if (forkOwner == 'linagora' || isOrgMember(forkOwner)) {
       echo "Fork owner '${forkOwner}' is a linagora org member, proceeding."
+      env.FORK_AUTHORIZED = 'true'
       return
     }
     def headSha = checkedOutPullRequestHead()
     def approver = memberReviewerOf(headSha)
     if (approver) {
       echo "Commit ${headSha} approved by linagora member '${approver}', proceeding."
+      env.FORK_AUTHORIZED = 'true'
       return
     }
     error("Fork owner '${forkOwner}' is not a linagora org member and no member reviewed commit ${headSha}. " +
-      "A linagora member must approve the pull request, or submit a review 'Build this please', " +
-      "on this commit, then re-run the build.")
+      "A linagora member must approve the pull request on this commit, or comment 'Build this please ${headSha}', " +
+      "then re-run the build.")
   }
+}
+
+// Whether the build may run code of the checked out sources, for the post actions that run even
+// when the fork authorization failed
+def mayRunChangeCode() {
+  return env.CHANGE_FORK == null || env.FORK_AUTHORIZED == 'true'
 }
 
 // The head commit of the pull request, checked against the sources Jenkins checked out: HEAD itself,
@@ -202,17 +227,41 @@ def checkedOutPullRequestHead() {
   return headSha
 }
 
-// The login of a linagora member who approved the given commit, or reviewed it with 'Build this please'
+// The login of a linagora member who vouched for the given commit: an approving review of it, a review
+// 'Build this please' of it, or a comment 'Build this please <sha>' naming its full id. A prefix is not
+// accepted: the contributor writes the commits, and can craft one sharing a short prefix with the
+// reviewed one. GitHub lists reviews and comments oldest first, 100 per page at most: every page is read.
 def memberReviewerOf(String sha) {
-  def reviews = githubApi("pulls/${env.CHANGE_ID}/reviews?per_page=100")
-  for (review in reviews) {
-    def approves = review.state == 'APPROVED' ||
-      (review.state != 'DISMISSED' && "${review.body}".trim() == 'Build this please')
-    if (review.commit_id == sha && approves && isOrgMember(review.user.login)) {
-      return review.user.login
+  def page = 1
+  while (true) {
+    def reviews = githubApi("pulls/${env.CHANGE_ID}/reviews?per_page=100&page=${page}")
+    for (review in reviews) {
+      def approves = review.state == 'APPROVED' ||
+        (review.state != 'DISMISSED' && "${review.body}".trim() == 'Build this please')
+      if (review.commit_id == sha && approves && isOrgMember(review.user.login)) {
+        return review.user.login
+      }
     }
+    if (reviews.size() < 100) {
+      break
+    }
+    page++
   }
-  return null
+  def approval = "build this please ${sha}".toString()
+  page = 1
+  while (true) {
+    def comments = githubApi("issues/${env.CHANGE_ID}/comments?per_page=100&page=${page}")
+    for (comment in comments) {
+      def body = "${comment.body}".trim().toLowerCase().replaceAll('\\s+', ' ')
+      if (body == approval && isOrgMember(comment.user.login)) {
+        return comment.user.login
+      }
+    }
+    if (comments.size() < 100) {
+      return null
+    }
+    page++
+  }
 }
 
 def isOrgMember(String login) {
@@ -236,10 +285,10 @@ def isOrgMember(String login) {
 
 def githubApi(String path) {
   def json
-  withEnv(["GITHUB_API_PATH=${path}"]) {
+  withEnv(["GITHUB_API_PATH=${path}", "GITHUB_API_REPOSITORY=${githubRepository()}"]) {
     json = sh(
       script: 'curl -sf -H "Authorization: token $GITHUB_CREDENTIAL_PSW" ' +
-        '"https://api.github.com/repos/linagora/twake-contacts-frontend/$GITHUB_API_PATH"',
+        '"https://api.github.com/repos/$GITHUB_API_REPOSITORY/$GITHUB_API_PATH"',
       returnStdout: true
     )
   }
@@ -261,7 +310,7 @@ def withDockerHubLogin(Closure body) {
     try {
       withCredentials([usernamePassword(credentialsId: 'dockerHub',
           usernameVariable: 'DOCKER_HUB_CREDENTIAL_USR', passwordVariable: 'DOCKER_HUB_CREDENTIAL_PSW')]) {
-        sh 'mkdir -p "$DOCKER_CONFIG" && echo "$DOCKER_HUB_CREDENTIAL_PSW" | docker login -u "$DOCKER_HUB_CREDENTIAL_USR" --password-stdin'
+        sh 'mkdir -p "$DOCKER_CONFIG" && printf \'%s\' "$DOCKER_HUB_CREDENTIAL_PSW" | docker login -u "$DOCKER_HUB_CREDENTIAL_USR" --password-stdin'
       }
       body()
     } finally {
