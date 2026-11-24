@@ -139,24 +139,45 @@ describe('ContactRowActions tooltip', () => {
     const moreButton = screen.getByRole('button', { name: 'More actions' })
     // revealed on row hover only, hence out of the accessibility tree
     const editButton = screen.getByLabelText(en.contacts.menu.edit)
+    const editLeft = 600
     const rects = new Map<Element | null, DOMRect>([
-      [moreButton.parentElement, new DOMRect(1300, 260, 88, 40)],
-      [editButton, new DOMRect(1300, 260, 40, 40)],
-      [moreButton, new DOMRect(1348, 260, 40, 40)]
+      [moreButton.parentElement, new DOMRect(editLeft, 260, 88, 40)],
+      [editButton, new DOMRect(editLeft, 260, 40, 40)],
+      [moreButton, new DOMRect(editLeft + 48, 260, 40, 40)]
     ])
+    const tooltipWidth = 100
+    const isPopper = (element: Element): boolean =>
+      element.classList.contains('MuiTooltip-popper')
     const getRect = vi
       .spyOn(Element.prototype, 'getBoundingClientRect')
       .mockImplementation(function (this: Element) {
-        return rects.get(this) ?? new DOMRect(0, 0, 0, 0)
+        return isPopper(this)
+          ? new DOMRect(0, 0, tooltipWidth, 32)
+          : (rects.get(this) ?? new DOMRect(0, 0, 0, 0))
+      })
+    // Popper sizes the tooltip with offsetWidth, always 0 in jsdom
+    const offsetWidth = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return isPopper(this) ? tooltipWidth : 0
       })
 
     const tooltip = await showMoreActionsTooltip()
     const popper = tooltip.closest<HTMLElement>('.MuiTooltip-popper')
-    const popperLeft = (): number =>
-      Number(/^translate\((\d+)px/.exec(popper?.style.transform ?? '')?.[1])
+    // Popper translates the tooltip from the left edge of the page, or from
+    // its right edge when it sets `right`, as it does for a left placement
+    const popperRight = (): number => {
+      const translateX = Number(
+        /^translate\((-?\d+)px/.exec(popper?.style.transform ?? '')?.[1]
+      )
+      return popper?.style.right
+        ? document.documentElement.clientWidth + translateX
+        : translateX + tooltipWidth
+    }
 
-    await waitFor(() => expect(popperLeft()).toBeLessThanOrEqual(1300))
+    await waitFor(() => expect(popperRight()).toBeLessThanOrEqual(editLeft))
     getRect.mockRestore()
+    offsetWidth.mockRestore()
   })
 
   it('closes on Escape', async () => {
