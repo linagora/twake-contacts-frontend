@@ -45,3 +45,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR [#690](https://github.com/linagora/twake-contacts-frontend/pull/690), esn-sabre 2.5.0.7), to be confirmed by chibenwa
 - Why: since esn-sabre 2.5.0.7 (linagora/esn-sabre#854) a jCard GET answers `"<stored>-json"`, while `If-Match` is still evaluated against the stored ETag: every update of a contact read as jCard got HTTP 412.
 - Scope: both, `etagOf` of `common/src/features/Contacts/ContactsDao.ts`.
+
+## 2026-11-24, [UI] A hoverable tooltip never sits over another control of its row
+
+- Decision: an interactive (hoverable) tooltip is placed where no other control of its row or of the next row lies; when the control ends the row, the tooltip is anchored beside the whole group of controls (`slotProps.popper.anchorEl`) rather than beside the control. The "More actions" tooltip of a contact row sits left of the row actions, not right of its button. Interactive tooltips are kept: `disableInteractive` is not used.
+- Decided by: agent (PR for [#694](https://github.com/linagora/twake-contacts-frontend/issues/694)), to be confirmed by chibenwa
+- Why: with no room on its right, Popper flipped the "More actions" tooltip onto the Edit pencil, and a tooltip kept open by the focus returned on Escape caught the pencil's click. Hoverable tooltips are required for accessibility (WCAG 1.4.13).
+- Scope: @contacts/private, desktop contact list row actions (`ContactRowActions.tsx`); the sidebar book name tooltip already follows it.

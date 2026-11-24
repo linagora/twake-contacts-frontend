@@ -134,6 +134,31 @@ describe('ContactRowActions tooltip', () => {
     )
   })
 
+  it('sits left of the Edit button, not over it', async () => {
+    renderRowActions()
+    const moreButton = screen.getByRole('button', { name: 'More actions' })
+    // revealed on row hover only, hence out of the accessibility tree
+    const editButton = screen.getByLabelText(en.contacts.menu.edit)
+    const rects = new Map<Element | null, DOMRect>([
+      [moreButton.parentElement, new DOMRect(1300, 260, 88, 40)],
+      [editButton, new DOMRect(1300, 260, 40, 40)],
+      [moreButton, new DOMRect(1348, 260, 40, 40)]
+    ])
+    const getRect = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: Element) {
+        return rects.get(this) ?? new DOMRect(0, 0, 0, 0)
+      })
+
+    const tooltip = await showMoreActionsTooltip()
+    const popper = tooltip.closest<HTMLElement>('.MuiTooltip-popper')
+    const popperLeft = (): number =>
+      Number(/^translate\((\d+)px/.exec(popper?.style.transform ?? '')?.[1])
+
+    await waitFor(() => expect(popperLeft()).toBeLessThanOrEqual(1300))
+    getRect.mockRestore()
+  })
+
   it('closes on Escape', async () => {
     renderRowActions()
     await showMoreActionsTooltip()
