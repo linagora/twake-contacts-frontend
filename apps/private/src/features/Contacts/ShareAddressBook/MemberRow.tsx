@@ -34,6 +34,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
 
   const displayName = isCurrentUser ? t('contacts.share.you') : member.name
   const roleKey = getRoleTranslationKey(member.role)
+  const removeLabel = t('contacts.share.removeInvitee', {
+    name: member.name || member.email
+  })
 
   return (
     <ListItem dense disableGutters>
@@ -58,8 +61,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             // read-only, not disabled: a disabled button would drop its focus
             readOnly={isUpdating}
           />
-          <Tooltip title={t('contacts.form.remove')}>
+          <Tooltip title={removeLabel}>
             <IconButton
+              aria-label={removeLabel}
               size="small"
               onClick={() =>
                 onUpdateMember?.(member, AddressBookAccessLevel.None)
