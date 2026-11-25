@@ -40,6 +40,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   const deleteContact = useDeleteContact(addressBookId, contact)
   const [exportError, setExportError] = useState<string | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [actions, setActions] = useState<HTMLDivElement | null>(null)
 
   const isMenuOpen = Boolean(anchorEl)
   const isReadOnly = !book?.capabilities.editContacts
@@ -79,6 +80,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   return (
     <>
       <Stack
+        ref={setActions}
         direction="row"
         spacing={1}
         className="u-flex-justify-end"
@@ -105,7 +107,14 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip placement="right" title={t('contacts.menu.more')}>
+        {/* left of the whole group, not of the button: the button ends the
+            row, a tooltip on its right flips onto the Edit pencil and catches
+            its click */}
+        <Tooltip
+          placement="left"
+          title={t('contacts.menu.more')}
+          slotProps={actions ? { popper: { anchorEl: actions } } : undefined}
+        >
           <IconButton
             size="medium"
             aria-label={t('contacts.menu.more')}
