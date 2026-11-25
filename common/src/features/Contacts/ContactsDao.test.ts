@@ -1954,6 +1954,19 @@ describe('searchContacts', () => {
       'contacts'
     ])
   })
+
+  it('passes the abort signal to the request', async () => {
+    vi.mocked(api.post).mockReturnValue({
+      json: () => Promise.resolve({})
+    } as unknown as ReturnType<typeof api.post>)
+    const { signal } = new AbortController()
+
+    await searchContacts([book('contacts', 'me-id')], 'a', signal)
+
+    expect(vi.mocked(api.post).mock.lastCall?.[1]).toEqual(
+      expect.objectContaining({ signal })
+    )
+  })
 })
 
 describe('fetchSubscribableAddressBooks', () => {

@@ -145,6 +145,7 @@
       "placeholder": "Search contacts...",
       "loading": "Loading...",
       "noResults": "No contacts found",
+      "failed": "Search is unavailable, try again",
       "resultsCount": "%{smart_count} contact found |||| %{smart_count} contacts found"
     },
     "nav": {

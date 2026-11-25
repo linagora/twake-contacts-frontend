@@ -52,3 +52,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#694](https://github.com/linagora/twake-contacts-frontend/issues/694)), to be confirmed by chibenwa
 - Why: with no room on its right, Popper flipped the "More actions" tooltip onto the Edit pencil, and a tooltip kept open by the focus returned on Escape caught the pencil's click. Hoverable tooltips are required for accessibility (WCAG 1.4.13).
 - Scope: @contacts/private, desktop contact list row actions (`ContactRowActions.tsx`); the sidebar book name tooltip already follows it.
+
+## 2026-11-25, [UX] A failed contact search says so, and a new query cancels the previous one
+
+- Decision: when the contact search request fails (network, 5xx, expired session), the search bar shows and announces "Search is unavailable, try again" (`contacts.search.failed`) instead of "No contacts found". Each new query aborts the search request of the previous one, whose answer or failure is then ignored.
+- Decided by: agent (PR for [#707](https://github.com/linagora/twake-contacts-frontend/issues/707)), to be confirmed by chibenwa
+- Why: a failure shown as an empty result tells the user that contacts they have do not exist, and may lead them to create a duplicate; without cancellation, a late answer to an old query could overwrite the results of the newer one.
+- Scope: @contacts/private search bar (`ContactSearchBar.tsx`); @contacts/common `searchContacts` and `useContactSearch` take an optional `AbortSignal`.

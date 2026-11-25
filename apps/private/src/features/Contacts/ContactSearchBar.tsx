@@ -42,37 +42,50 @@ export const ContactSearchBar: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<SearchOption[]>([])
   const [loading, setLoading] = useState(false)
+  // the last search failed: its empty options are not an empty result
+  const [failed, setFailed] = useState(false)
   const [open, setOpen] = useState(false)
   // number of results to announce, null while there is nothing to announce
   const [announcedCount, setAnnouncedCount] = useState<number | null>(null)
 
   const fetchSearchResults = useCallback(
-    async (search: string) => {
+    async (search: string, signal: AbortSignal) => {
       if (!search.trim()) {
         setOptions([])
+        setFailed(false)
         setLoading(false)
         return
       }
 
       setLoading(true)
+      setFailed(false)
       try {
-        const entries = await searchContacts(search)
+        const entries = await searchContacts(search, signal)
+        if (signal.aborted) return
         setOptions(buildSearchOptions(entries))
       } catch {
+        // a superseded search leaves the state to the search replacing it
+        if (signal.aborted) return
         setOptions([])
-      } finally {
-        setLoading(false)
+        setFailed(true)
       }
+      setLoading(false)
     },
     [searchContacts]
   )
 
+  // Each new input aborts the search of the previous one, so a late answer
+  // never overwrites the results of a newer query
   useEffect(() => {
+    const controller = new AbortController()
     const timeoutId = setTimeout(() => {
-      void fetchSearchResults(inputValue)
+      void fetchSearchResults(inputValue, controller.signal)
     }, 300)
 
-    return (): void => clearTimeout(timeoutId)
+    return (): void => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [inputValue, fetchSearchResults])
 
   // Emptied while searching so that an identical count is announced again
@@ -88,11 +101,15 @@ export const ContactSearchBar: React.FC = () => {
     return (): void => clearTimeout(timeoutId)
   }, [loading, inputValue, options])
 
+  const noOptionsText = failed
+    ? t('contacts.search.failed')
+    : t('contacts.search.noResults')
+
   const resultsStatus =
     announcedCount === null
       ? ''
       : announcedCount === 0
-        ? t('contacts.search.noResults')
+        ? noOptionsText
         : t('contacts.search.resultsCount', { smart_count: announcedCount })
 
   const handleChange = (_event: unknown, value: SearchOption | null): void => {
@@ -125,7 +142,7 @@ export const ContactSearchBar: React.FC = () => {
         }}
         onChange={handleChange}
         loading={loading}
-        noOptionsText={t('contacts.search.noResults')}
+        noOptionsText={noOptionsText}
         loadingText={t('contacts.search.loading')}
         renderInput={params => (
           <SearchBar

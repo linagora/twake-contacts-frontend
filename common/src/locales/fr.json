@@ -115,6 +115,7 @@
       "placeholder": "Rechercher des contacts...",
       "loading": "Chargement...",
       "noResults": "Aucun contact trouvé",
+      "failed": "La recherche est indisponible, réessayez",
       "resultsCount": "%{smart_count} contact trouvé |||| %{smart_count} contacts trouvés"
     },
     "nav": {
