@@ -25,8 +25,10 @@ export function WebSocketGate(): React.JSX.Element | null {
     delayedRefreshTimersRef.current.clear()
   }, [])
 
+  // Without WEBSOCKET_URL live updates are off (README): ask no ticket for a
+  // socket that has nowhere to connect
   const connection = useWebSocketConnection({
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && config.WEBSOCKET_URL !== undefined,
     url: config.WEBSOCKET_URL ?? '',
     api,
     onMessage: onMessage,
