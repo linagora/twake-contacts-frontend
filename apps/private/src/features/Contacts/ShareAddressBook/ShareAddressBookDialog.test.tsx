@@ -240,6 +240,30 @@ describe('ShareAddressBookDialog', () => {
     )
   })
 
+  it("names each member's remove button after the member", async () => {
+    const carol = {
+      openpaasId: 'carol',
+      name: 'carol carol',
+      email: 'carol@open-paas.org',
+      role: AddressBookAccessLevel.Viewer
+    } as userData
+    mockedFetchDetails.mockResolvedValue({
+      members: [bob, carol],
+      isPublic: false
+    })
+    renderDialog()
+
+    expect(
+      await screen.findByRole('button', { name: 'Remove bob bob' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Remove carol carol' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Remove' })
+    ).not.toBeInTheDocument()
+  })
+
   it('lists a member shared again right after being removed', async () => {
     const user = userEvent.setup()
     mockedFetchDetails
@@ -257,7 +281,9 @@ describe('ShareAddressBookDialog', () => {
     ])
     renderDialog()
 
-    await user.click(await screen.findByRole('button', { name: 'Remove' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'Remove bob bob' })
+    )
     await waitFor(() => expect(mockedFetchDetails).toHaveBeenCalledTimes(2))
     expect(screen.queryByText('bob bob')).not.toBeInTheDocument()
 
@@ -313,7 +339,9 @@ describe('ShareAddressBookDialog', () => {
     mockedUpdateShares.mockResolvedValue(undefined)
     const onClose = renderDialog()
 
-    const removeButton = await screen.findByRole('button', { name: 'Remove' })
+    const removeButton = await screen.findByRole('button', {
+      name: 'Remove bob bob'
+    })
     removeButton.focus()
     await user.click(removeButton)
 
@@ -339,7 +367,9 @@ describe('ShareAddressBookDialog', () => {
     mockedUpdateShares.mockResolvedValue(undefined)
     renderDialog()
 
-    await user.click(await screen.findByRole('button', { name: 'Remove' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'Remove ext@x.example' })
+    )
 
     await waitFor(() =>
       expect(mockedUpdateShares).toHaveBeenCalledWith(
