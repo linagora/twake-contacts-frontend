@@ -190,6 +190,36 @@
         "description": "Permettre aux autres de trouver et d'ajouter ce carnet d'adresses via la recherche.",
         "toggleTooltip": "Activer/désactiver la découverte publique"
       }
+    },
+    "merge": {
+      "sectionTitle": "Corriger et fusionner",
+      "navLabel": "Fusionner",
+      "title": "Fusionner les doublons",
+      "headingWithCount": "Fusionner les doublons (%{count})",
+      "mergeAll": "Tout fusionner",
+      "mergeAllDescription": "La fusion conserve un contact par groupe et supprime les autres copies, y compris celles des autres carnets d’adresses.",
+      "dismiss": "Ignorer",
+      "dismissSuccess": "Suggestion ignorée",
+      "dismissError": "Impossible de terminer l’exclusion de ces contacts. Veuillez réessayer.",
+      "merge": "Fusionner",
+      "merged": "Fusionné",
+      "viewContact": "Voir le contact",
+      "emptyTitle": "Aucun contact en double",
+      "emptySubtitle": "Tous vos contacts personnels sont déjà à jour.",
+      "mergeSuccess": "Contacts fusionnés",
+      "mergeAllSuccess": "Tous les doublons ont été fusionnés",
+      "mergeError": "Impossible de fusionner les contacts. Veuillez réessayer.",
+      "changedError": "Les contacts ont changé depuis la recherche. Vérifiez les contacts actualisés avant de relancer la fusion.",
+      "conflictError": "Certaines informations sont incompatibles. Modifiez les contacts pour les harmoniser avant de les fusionner. Utilisez un éditeur de vCards pour les informations qui ne figurent pas dans le formulaire de contact.",
+      "conflictErrorWithFields": "Certaines informations sont incompatibles (%{fields}). Modifiez les contacts pour les harmoniser avant de les fusionner. Utilisez un éditeur de vCards pour les informations qui ne figurent pas dans le formulaire de contact.",
+      "fields": {
+        "birthday": "Date de naissance",
+        "org": "Organisation",
+        "title": "Fonction",
+        "role": "Rôle",
+        "note": "Note"
+      },
+      "loadError": "Échec du chargement des contacts pour la déduplication."
     }
   },
   "error": {

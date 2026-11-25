@@ -190,6 +190,36 @@
         "description": "Allow others to find and add this address book through search.",
         "toggleTooltip": "Toggle public discovery"
       }
+    },
+    "merge": {
+      "sectionTitle": "Fix and merge",
+      "navLabel": "Merge",
+      "title": "Merge duplicates",
+      "headingWithCount": "Merge duplicates (%{count})",
+      "mergeAll": "Merge all",
+      "mergeAllDescription": "Merging keeps one contact in each group and deletes the other copies, including copies in different address books.",
+      "dismiss": "Dismiss",
+      "dismissSuccess": "Suggestion dismissed",
+      "dismissError": "Could not finish dismissing these contacts. Please try again.",
+      "merge": "Merge",
+      "merged": "Merged",
+      "viewContact": "View contact",
+      "emptyTitle": "No duplicate contacts",
+      "emptySubtitle": "All your personal contacts are already up to date.",
+      "mergeSuccess": "Contacts merged",
+      "mergeAllSuccess": "All duplicate contacts merged",
+      "mergeError": "Failed to merge contacts. Please try again.",
+      "changedError": "Contacts changed since the scan. Review the refreshed candidates before merging again.",
+      "conflictError": "Conflicting contact details cannot be merged safely. Edit the contacts to reconcile these details before merging. Use a vCard editor for details that the contact form does not show.",
+      "conflictErrorWithFields": "Conflicting contact details (%{fields}) cannot be merged safely. Edit the contacts to reconcile these details before merging. Use a vCard editor for details that the contact form does not show.",
+      "fields": {
+        "birthday": "Birthday",
+        "org": "Organization",
+        "title": "Title",
+        "role": "Role",
+        "note": "Note"
+      },
+      "loadError": "Failed to load contacts for deduplication."
     }
   },
   "error": {
