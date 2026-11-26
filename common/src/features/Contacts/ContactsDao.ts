@@ -640,7 +640,8 @@ function extractAddressBookIdFromHref(href: unknown): AddressBookId {
 
 export async function searchContacts(
   addressBooks: AddressBook[],
-  search: SearchQuery
+  search: SearchQuery,
+  signal?: AbortSignal
 ): Promise<ContactEntry[]> {
   const requestBody: MultiAddressBookSearchRequest = {
     query: search,
@@ -655,7 +656,8 @@ export async function searchContacts(
       limit: String(SEARCH_LIMIT),
       offset: '0'
     },
-    json: requestBody
+    json: requestBody,
+    signal
   })
   const data: DavContactsResponse = await response.json()
 

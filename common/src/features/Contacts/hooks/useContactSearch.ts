@@ -6,10 +6,11 @@ import { AddressBook, ContactEntry } from '../contactsTypes'
 /**
  * Searches `search` across every address book of the store. Resolves to no
  * entry for a blank search or when no book is loaded. Result entries carry the
- * store's book id.
+ * store's book id. `signal` aborts the request.
  */
 export function useContactSearch(): (
-  search: string
+  search: string,
+  signal?: AbortSignal
 ) => Promise<ContactEntry[]> {
   const addressBooksRecord = useAppSelector(
     state => state.contacts.addressBooks
@@ -20,9 +21,9 @@ export function useContactSearch(): (
   )
 
   return useCallback(
-    async (search: string): Promise<ContactEntry[]> => {
+    async (search: string, signal?: AbortSignal): Promise<ContactEntry[]> => {
       if (addressBooks.length === 0 || !search.trim()) return []
-      return searchContacts(addressBooks, search)
+      return searchContacts(addressBooks, search, signal)
     },
     [addressBooks]
   )

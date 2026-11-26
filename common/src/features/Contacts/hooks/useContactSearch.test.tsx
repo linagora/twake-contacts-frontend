@@ -29,7 +29,7 @@ const book = (id: string, userId: string): AddressBookWithContacts =>
 
 function renderSearch(
   addressBooks: Record<string, AddressBookWithContacts>
-): (search: string) => Promise<unknown> {
+): (search: string, signal?: AbortSignal) => Promise<unknown> {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
     contacts: {
@@ -73,7 +73,23 @@ describe('useContactSearch', () => {
     await expect(search('alice')).resolves.toEqual(entries)
     expect(mockedSearchContacts).toHaveBeenCalledWith(
       [domainBook, ownBook],
-      'alice'
+      'alice',
+      undefined
+    )
+  })
+
+  it('passes the abort signal to the DAO', async () => {
+    mockedSearchContacts.mockResolvedValue([])
+    const ownBook = book('contacts', 'u1')
+    const search = renderSearch({ contacts: ownBook })
+    const { signal } = new AbortController()
+
+    await search('alice', signal)
+
+    expect(mockedSearchContacts).toHaveBeenCalledWith(
+      [ownBook],
+      'alice',
+      signal
     )
   })
 })

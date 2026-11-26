@@ -128,7 +128,8 @@ describe('ContactSearchBar', () => {
           expect.objectContaining({ userId: 'u1', id: 'collected' }),
           expect.objectContaining({ userId: 'd1', id: 'dab' })
         ],
-        'alice'
+        'alice',
+        expect.any(AbortSignal)
       )
     })
   })
@@ -246,6 +247,18 @@ describe('ContactSearchBar', () => {
       expect(resultsStatus()).toBeEmptyDOMElement()
     })
 
+    it('announces that the search failed rather than no contact', async () => {
+      mockedSearchContacts.mockRejectedValue(new Error('Network error'))
+      renderSearchBar(collectedBook)
+
+      await searchAndWaitForAnnouncement('Moreau')
+
+      expect(resultsStatus()).toHaveTextContent(
+        'Search is unavailable, try again'
+      )
+      expect(resultsStatus()).not.toHaveTextContent('No contacts found')
+    })
+
     it('announces nothing once the field is cleared', async () => {
       mockedSearchContacts.mockResolvedValue([])
       renderSearchBar(collectedBook)
@@ -254,6 +267,143 @@ describe('ContactSearchBar', () => {
       await searchAndWaitForAnnouncement('')
 
       expect(resultsStatus()).toBeEmptyDOMElement()
+    })
+  })
+
+  describe('search failure', () => {
+    const collectedBook = {
+      addressBooks: classifyAddressBooks({
+        collected: {
+          id: 'collected',
+          userId: 'u1',
+          name: 'Collected',
+          contactsCount: 1,
+          acl: [],
+          canWrite: false,
+          contacts: []
+        }
+      })
+    }
+
+    it('shows that the search failed instead of no contact found', async () => {
+      mockedSearchContacts.mockRejectedValue(new Error('Server error'))
+      renderSearchBar(collectedBook)
+
+      await typeSearchQuery('Moreau')
+
+      expect(
+        await screen.findByText('Search is unavailable, try again')
+      ).toBeInTheDocument()
+      expect(screen.queryByText('No contacts found')).not.toBeInTheDocument()
+    })
+
+    it('shows the results again once a later search succeeds', async () => {
+      mockedSearchContacts
+        .mockRejectedValueOnce(new Error('Server error'))
+        .mockResolvedValue([
+          {
+            addressBookId: 'collected',
+            contact: { id: 'c1', displayName: 'Amélie Moreau', emails: [] }
+          }
+        ])
+      renderSearchBar(collectedBook)
+      const input = screen.getByPlaceholderText('Search contacts...')
+      fireEvent.focus(input)
+      fireEvent.input(input, { target: { value: 'Moreau' } })
+      await act(() => vi.advanceTimersByTimeAsync(300))
+      expect(
+        screen.getByText('Search is unavailable, try again')
+      ).toBeInTheDocument()
+
+      await typeSearchQuery('Amélie')
+
+      expect(await screen.findByText('Amélie Moreau')).toBeInTheDocument()
+      expect(
+        screen.queryByText('Search is unavailable, try again')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  describe('superseded search', () => {
+    const collectedBook = {
+      addressBooks: classifyAddressBooks({
+        collected: {
+          id: 'collected',
+          userId: 'u1',
+          name: 'Collected',
+          contactsCount: 1,
+          acl: [],
+          canWrite: false,
+          contacts: []
+        }
+      })
+    }
+
+    function pendingSearch(): {
+      settle: (entries: unknown[]) => void
+      promise: Promise<unknown[]>
+    } {
+      let settle: (entries: unknown[]) => void = () => undefined
+      const promise = new Promise<unknown[]>(resolve => {
+        settle = resolve
+      })
+      return { settle, promise }
+    }
+
+    it('aborts the previous request and ignores its late answer', async () => {
+      const chevalier = {
+        addressBookId: 'collected',
+        contact: { id: 'c1', displayName: 'Camille Chevalier', emails: [] }
+      }
+      const dupont = {
+        addressBookId: 'collected',
+        contact: { id: 'c2', displayName: 'Camille Dupont', emails: [] }
+      }
+      const first = pendingSearch()
+      mockedSearchContacts
+        .mockReturnValueOnce(first.promise)
+        .mockResolvedValue([chevalier, dupont])
+      renderSearchBar(collectedBook)
+      const input = screen.getByPlaceholderText('Search contacts...')
+      fireEvent.focus(input)
+      fireEvent.input(input, { target: { value: 'Camille C' } })
+      await act(() => vi.advanceTimersByTimeAsync(300))
+      const firstSignal = mockedSearchContacts.mock.calls[0][2] as AbortSignal
+
+      await typeSearchQuery('Camille')
+      expect(await screen.findByText('Camille Dupont')).toBeInTheDocument()
+      await act(async () => {
+        first.settle([chevalier])
+        await first.promise
+      })
+
+      expect(firstSignal.aborted).toBe(true)
+      expect(screen.getByText('Camille Chevalier')).toBeInTheDocument()
+      expect(screen.getByText('Camille Dupont')).toBeInTheDocument()
+    })
+
+    it('does not show an aborted request as a failure', async () => {
+      mockedSearchContacts.mockImplementationOnce(
+        (_books: unknown, _search: string, signal: AbortSignal) =>
+          new Promise((_resolve, reject) =>
+            signal.addEventListener('abort', () =>
+              reject(new DOMException('Aborted', 'AbortError'))
+            )
+          )
+      )
+      mockedSearchContacts.mockResolvedValue([])
+      renderSearchBar(collectedBook)
+      const input = screen.getByPlaceholderText('Search contacts...')
+      fireEvent.focus(input)
+      fireEvent.input(input, { target: { value: 'Moreau' } })
+      await act(() => vi.advanceTimersByTimeAsync(300))
+
+      await typeSearchQuery('Nobody')
+
+      expect(await screen.findByText('No contacts found')).toBeInTheDocument()
+      expect(
+        screen.queryByText('Search is unavailable, try again')
+      ).not.toBeInTheDocument()
     })
   })
 
