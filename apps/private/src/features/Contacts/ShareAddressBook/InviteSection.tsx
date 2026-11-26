@@ -86,6 +86,8 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
         <Box className="u-flex-auto">
           <UserSearch
             multiple
+            disableClearable
+            forcePopupIcon={false}
             fetchOptions={fetchOptions}
             getOptionLabel={option => option.name || option.email || ''}
             value={selectedUsers}
@@ -148,10 +150,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                   input: {
                     ...params.slotProps?.input,
                     endAdornment: (
-                      <InputAdornment
-                        position="end"
-                        style={{ position: 'absolute', right: 8 }}
-                      >
+                      <InputAdornment position="end">
                         <RoleSelector
                           ariaLabel={t('contacts.share.role')}
                           value={selectedRole}
