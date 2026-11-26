@@ -115,6 +115,7 @@
       "placeholder": "Tìm kiếm liên hệ...",
       "loading": "Đang tải...",
       "noResults": "Không tìm thấy liên hệ",
+      "failed": "Không thể tìm kiếm lúc này, vui lòng thử lại",
       "resultsCount": "Tìm thấy %{smart_count} liên hệ"
     },
     "nav": {

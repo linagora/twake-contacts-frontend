@@ -59,3 +59,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#716](https://github.com/linagora/twake-contacts-frontend/issues/716)), to be confirmed by chibenwa
 - Why: the most complete copy used to win, so a merge copied the details of a private contact into a book shared or published with others, and a sharee with write rights could plant the richest card to receive them.
 - Scope: @contacts/common (`buildMergedContactPlan`, `executeGroupMerge`, `bookAudience.ts`) and the merge page of @contacts/private.
+  
+## 2026-11-25, [UX] A failed contact search says so, and a new query cancels the previous one
+
+- Decision: when the contact search request fails (network, 5xx, expired session), the search bar shows and announces "Search is unavailable, try again" (`contacts.search.failed`) instead of "No contacts found". Each new query aborts the search request of the previous one, whose answer or failure is then ignored.
+- Decided by: agent (PR for [#707](https://github.com/linagora/twake-contacts-frontend/issues/707)), to be confirmed by chibenwa
+- Why: a failure shown as an empty result tells the user that contacts they have do not exist, and may lead them to create a duplicate; without cancellation, a late answer to an old query could overwrite the results of the newer one.
+- Scope: @contacts/private search bar (`ContactSearchBar.tsx`); @contacts/common `searchContacts` and `useContactSearch` take an optional `AbortSignal`.
