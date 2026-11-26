@@ -212,7 +212,7 @@
       "changedError": "Các liên hệ đã thay đổi kể từ khi quét. Hãy xem lại các liên hệ đã cập nhật trước khi hợp nhất lại.",
       "conflictError": "Không thể hợp nhất an toàn các thông tin xung đột. Hãy chỉnh sửa các liên hệ để giải quyết xung đột trước khi hợp nhất. Dùng trình chỉnh sửa vCard cho những thông tin không hiển thị trong biểu mẫu liên hệ.",
       "conflictErrorWithFields": "Không thể hợp nhất an toàn các thông tin xung đột (%{fields}). Hãy chỉnh sửa các liên hệ để giải quyết xung đột trước khi hợp nhất. Dùng trình chỉnh sửa vCard cho những thông tin không hiển thị trong biểu mẫu liên hệ.",
-      "audienceError": "Các liên hệ này nằm trong những sổ địa chỉ được chia sẻ với những người khác nhau: hợp nhất chúng sẽ cho phép một số người đọc được thông tin mà hiện họ không đọc được. Hãy hợp nhất thủ công, hoặc chia sẻ các sổ địa chỉ đó với cùng những người.",
+      "audienceError": "Các liên hệ này nằm trong những sổ địa chỉ được chia sẻ với những người khác nhau: hợp nhất chúng sẽ cho phép một số người đọc được thông tin mà hiện họ không đọc được. Hãy hợp nhất thủ công, hoặc chia sẻ các sổ địa chỉ đó với cùng những người: khi đó những người này sẽ đọc được mọi liên hệ trong các sổ địa chỉ đó, không chỉ các liên hệ trùng lặp này.",
       "fields": {
         "birthday": "Ngày sinh",
         "org": "Tổ chức",
