@@ -638,17 +638,36 @@ function extractAddressBookIdFromHref(href: unknown): AddressBookId {
   return decodeDavSegment(readHref(href)?.split('/').at(-2) ?? '')
 }
 
+/**
+ * The ids the search service accepts in a book reference (unreserved URI
+ * characters). It rejects the whole request for a single other id.
+ */
+const SEARCHABLE_ID = /^[a-zA-Z0-9._~-]+$/
+
+function toSearchRef(book: AddressBook): AddressBookRef {
+  return { userId: book.userId, addressBookId: toServerBookId(book.id) }
+}
+
+function isSearchable(ref: AddressBookRef): boolean {
+  return SEARCHABLE_ID.test(ref.userId) && SEARCHABLE_ID.test(ref.addressBookId)
+}
+
+/**
+ * Searches `search` in the given books. A book whose id the search service
+ * refuses (a space, a quote...) is left out, so that it does not fail the
+ * search of the other books.
+ */
 export async function searchContacts(
   addressBooks: AddressBook[],
   search: SearchQuery,
   signal?: AbortSignal
 ): Promise<ContactEntry[]> {
+  const searchableBooks = addressBooks.map(toSearchRef).filter(isSearchable)
+  if (searchableBooks.length === 0) return []
+
   const requestBody: MultiAddressBookSearchRequest = {
     query: search,
-    addressBooks: addressBooks.map(book => ({
-      userId: book.userId,
-      addressBookId: toServerBookId(book.id)
-    }))
+    addressBooks: searchableBooks
   }
 
   const response = api.post('contacts/api/contacts/search', {

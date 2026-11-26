@@ -66,3 +66,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#707](https://github.com/linagora/twake-contacts-frontend/issues/707)), to be confirmed by chibenwa
 - Why: a failure shown as an empty result tells the user that contacts they have do not exist, and may lead them to create a duplicate; without cancellation, a late answer to an old query could overwrite the results of the newer one.
 - Scope: @contacts/private search bar (`ContactSearchBar.tsx`); @contacts/common `searchContacts` and `useContactSearch` take an optional `AbortSignal`.
+
+## 2026-11-25, [Architecture] The search leaves out the books the search service refuses
+
+- Decision: `searchContacts` sends only the book references whose user and book ids match `[a-zA-Z0-9._~-]+`, the ids the side service accepts; a book with another id (a space, a quote, a nul byte) is not searched, and no request is sent when no book is left. A search that still fails is reported as such (see the decision of #707).
+- Decided by: agent (PR for [#703](https://github.com/linagora/twake-contacts-frontend/issues/703)), to be confirmed by chibenwa
+- Why: the side service rejects the whole multi-book request for one invalid reference, so one book created by another CardDAV client broke the search of every book, silently.
+- Scope: @contacts/common (`ContactsDao.searchContacts`, used by the search bar and the duplicate email warning).
