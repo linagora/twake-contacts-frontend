@@ -197,7 +197,7 @@
       "title": "Merge duplicates",
       "headingWithCount": "Merge duplicates (%{count})",
       "mergeAll": "Merge all",
-      "mergeAllDescription": "Merging keeps one contact in each group and deletes the other copies, including copies in different address books.",
+      "mergeAllDescription": "Merging keeps one contact in each group and deletes the other copies, including copies in different address books. The merged contact is kept in the least shared of its address books.",
       "dismiss": "Dismiss",
       "dismissSuccess": "Suggestion dismissed",
       "dismissError": "Could not finish dismissing these contacts. Please try again.",
@@ -212,6 +212,7 @@
       "changedError": "Contacts changed since the scan. Review the refreshed candidates before merging again.",
       "conflictError": "Conflicting contact details cannot be merged safely. Edit the contacts to reconcile these details before merging. Use a vCard editor for details that the contact form does not show.",
       "conflictErrorWithFields": "Conflicting contact details (%{fields}) cannot be merged safely. Edit the contacts to reconcile these details before merging. Use a vCard editor for details that the contact form does not show.",
+      "audienceError": "These contacts are in address books shared with different people: merging them would let some of these people read details they cannot read now. Merge them by hand, or share their address books with the same people.",
       "fields": {
         "birthday": "Birthday",
         "org": "Organization",

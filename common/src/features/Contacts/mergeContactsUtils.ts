@@ -1,3 +1,8 @@
+import {
+  BookAudience,
+  isAudienceWithin,
+  PRIVATE_AUDIENCE
+} from './bookAudience'
 import { AddressBook, Contact, ContactSocialProfile } from './contactsTypes'
 import { JCalProperty } from './davTypes'
 import {
@@ -33,7 +38,7 @@ const isMatrixProfile = (profile: ContactSocialProfile): boolean =>
 
 export class MergeContactError extends Error {
   constructor(
-    public readonly reason: 'changed' | 'conflict',
+    public readonly reason: 'changed' | 'conflict' | 'audience',
     public readonly conflictFields: string[] = []
   ) {
     super(reason)
@@ -256,17 +261,47 @@ const contactInfoScore = (contact: Contact): number =>
   contact.emails.length +
   (contact.socialProfiles?.filter(isMatrixProfile).length ?? 0)
 
-const findMostCompleteIndex = (entries: DuplicateContactEntry[]): number => {
-  let primaryIndex = 0
-  let bestScore = contactInfoScore(entries[0].contact)
-  for (let i = 1; i < entries.length; i++) {
-    const score = contactInfoScore(entries[i].contact)
-    if (score > bestScore) {
-      bestScore = score
-      primaryIndex = i
-    }
-  }
-  return primaryIndex
+const findMostCompleteIndex = (
+  entries: DuplicateContactEntry[],
+  candidates: number[]
+): number =>
+  candidates.reduce((best, index) =>
+    contactInfoScore(entries[index].contact) >
+    contactInfoScore(entries[best].contact)
+      ? index
+      : best
+  )
+
+/**
+ * The merged card may only be written where no one can read it who could not
+ * already read every copy: the candidates are the copies whose book audience
+ * is within the audience of the book of every other copy.
+ */
+const findNarrowestAudienceIndices = (
+  entries: DuplicateContactEntry[],
+  audienceOf: (addressBookId: string) => BookAudience
+): number[] =>
+  entries
+    .map((_, index) => index)
+    .filter(index =>
+      entries.every(other =>
+        isAudienceWithin(
+          audienceOf(entries[index].addressBookId),
+          audienceOf(other.addressBookId)
+        )
+      )
+    )
+
+const findTargetIndex = (
+  entries: DuplicateContactEntry[],
+  audiences: ReadonlyMap<string, BookAudience>
+): number => {
+  const candidates = findNarrowestAudienceIndices(
+    entries,
+    addressBookId => audiences.get(addressBookId) ?? PRIVATE_AUDIENCE
+  )
+  if (candidates.length === 0) throw new MergeContactError('audience')
+  return findMostCompleteIndex(entries, candidates)
 }
 
 const mergeUniqueEntries = <T>(
@@ -388,16 +423,22 @@ function mergeSingleValuedFields(
 }
 
 /**
- * Picks the most complete contact (most phone, email, and Matrix ID entries)
- * to update, keeps its name and existing details, appends any non-duplicate
+ * Picks, among the copies whose book has the narrowest audience, the most
+ * complete contact (most phone, email, and Matrix ID entries) to update, keeps
+ * its name and existing details, appends any non-duplicate
  * phones/emails/social profiles and other compatible fields from the other
  * contacts. Conflicting single-valued fields require manual reconciliation
- * before any contact can be marked for deletion.
+ * before any contact can be marked for deletion. A group whose books have no
+ * narrowest audience (two books shared with different users) is not merged.
+ *
+ * @param audiences who can read each book of the group; a book missing from
+ * it is private to its owner
  */
 export function buildMergedContactPlan(
-  entries: DuplicateContactEntry[]
+  entries: DuplicateContactEntry[],
+  audiences: ReadonlyMap<string, BookAudience> = new Map()
 ): MergedContactPlan {
-  const primaryIndex = findMostCompleteIndex(entries)
+  const primaryIndex = findTargetIndex(entries, audiences)
   const primary = entries[primaryIndex]
   const duplicates = entries.filter((_, index) => index !== primaryIndex)
 

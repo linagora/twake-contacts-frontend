@@ -1,6 +1,11 @@
 import { toOperationError } from '@common/utils/errorUtils'
 import { AppDispatch } from '@common/app/store'
-import { fetchContactForMerge, fetchContactsPage } from '../ContactsDao'
+import { BookAudience, toBookAudience } from '../bookAudience'
+import {
+  fetchAddressBookDetails,
+  fetchContactForMerge,
+  fetchContactsPage
+} from '../ContactsDao'
 import { deleteContact, updateContact } from '../ContactsSlice'
 import { AddressBook, Contact } from '../contactsTypes'
 import {
@@ -79,12 +84,43 @@ export async function loadPersonalBookDuplicates(
   return findDuplicateContactGroups(bookEntries.flat())
 }
 
+const findGroupBook = (
+  books: AddressBook[],
+  addressBookId: string
+): AddressBook => {
+  const book = books.find(b => b.id === addressBookId)
+  if (!book) throw new MergeContactError('changed')
+  return book
+}
+
+async function fetchBookAudience(book: AddressBook): Promise<BookAudience> {
+  return toBookAudience(await fetchAddressBookDetails(book.userId, book.id))
+}
+
+/**
+ * Reads, at merge time, who can read each book of the group: a book may have
+ * been shared or published since the scan. A group in one book needs none.
+ */
+async function fetchGroupAudiences(
+  snapshots: ContactSnapshot[],
+  books: AddressBook[]
+): Promise<Map<string, BookAudience>> {
+  const bookIds = [...new Set(snapshots.map(entry => entry.addressBookId))]
+  if (bookIds.length < 2) return new Map()
+  const audiences = await Promise.all(
+    bookIds.map(
+      async id =>
+        [id, await fetchBookAudience(findGroupBook(books, id))] as const
+    )
+  )
+  return new Map(audiences)
+}
+
 async function fetchEntrySnapshot(
   entry: DuplicateContactEntry,
   books: AddressBook[]
 ): Promise<ContactSnapshot | null> {
-  const book = books.find(b => b.id === entry.addressBookId)
-  if (!book) throw new MergeContactError('changed')
+  const book = findGroupBook(books, entry.addressBookId)
   try {
     const fetched = await fetchContactForMerge(book, entry.contact.id)
     return { addressBookId: entry.addressBookId, ...fetched }
@@ -248,7 +284,10 @@ export async function executeGroupMerge({
     throw new MergeContactError('changed')
   }
 
-  const plan = buildMergedContactPlan(snapshots)
+  const plan = buildMergedContactPlan(
+    snapshots,
+    await fetchGroupAudiences(snapshots, books)
+  )
   await dispatch(
     updateContact({
       userId,

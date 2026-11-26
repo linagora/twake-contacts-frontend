@@ -197,7 +197,7 @@
       "title": "Fusionner les doublons",
       "headingWithCount": "Fusionner les doublons (%{count})",
       "mergeAll": "Tout fusionner",
-      "mergeAllDescription": "La fusion conserve un contact par groupe et supprime les autres copies, y compris celles des autres carnets d’adresses.",
+      "mergeAllDescription": "La fusion conserve un contact par groupe et supprime les autres copies, y compris celles des autres carnets d’adresses. Le contact fusionné est conservé dans le moins partagé de ses carnets d’adresses.",
       "dismiss": "Ignorer",
       "dismissSuccess": "Suggestion ignorée",
       "dismissError": "Impossible de terminer l’exclusion de ces contacts. Veuillez réessayer.",
@@ -212,6 +212,7 @@
       "changedError": "Les contacts ont changé depuis la recherche. Vérifiez les contacts actualisés avant de relancer la fusion.",
       "conflictError": "Certaines informations sont incompatibles. Modifiez les contacts pour les harmoniser avant de les fusionner. Utilisez un éditeur de vCards pour les informations qui ne figurent pas dans le formulaire de contact.",
       "conflictErrorWithFields": "Certaines informations sont incompatibles (%{fields}). Modifiez les contacts pour les harmoniser avant de les fusionner. Utilisez un éditeur de vCards pour les informations qui ne figurent pas dans le formulaire de contact.",
+      "audienceError": "Ces contacts sont dans des carnets d’adresses partagés avec des personnes différentes : les fusionner permettrait à certaines d’entre elles de lire des informations qu’elles ne voient pas aujourd’hui. Fusionnez-les à la main, ou partagez leurs carnets d’adresses avec les mêmes personnes.",
       "fields": {
         "birthday": "Date de naissance",
         "org": "Organisation",

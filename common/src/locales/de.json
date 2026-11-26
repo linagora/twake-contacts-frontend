@@ -197,7 +197,7 @@
       "title": "Duplikate zusammenführen",
       "headingWithCount": "Duplikate zusammenführen (%{count})",
       "mergeAll": "Alle zusammenführen",
-      "mergeAllDescription": "Beim Zusammenführen bleibt ein Kontakt pro Gruppe erhalten. Alle anderen Kopien werden gelöscht, auch in anderen Adressbüchern.",
+      "mergeAllDescription": "Beim Zusammenführen bleibt ein Kontakt pro Gruppe erhalten. Alle anderen Kopien werden gelöscht, auch in anderen Adressbüchern. Der zusammengeführte Kontakt bleibt im am wenigsten geteilten seiner Adressbücher.",
       "dismiss": "Verwerfen",
       "dismissSuccess": "Vorschlag verworfen",
       "dismissError": "Der Vorschlag für diese Kontakte konnte nicht vollständig verworfen werden. Bitte versuche es erneut.",
@@ -212,6 +212,7 @@
       "changedError": "Kontakte wurden seit der Suche geändert. Prüfen Sie die aktualisierten Kontakte vor dem erneuten Zusammenführen.",
       "conflictError": "Widersprüchliche Kontaktdaten können nicht sicher zusammengeführt werden. Bearbeiten Sie die Kontakte, um die Konflikte vorher zu lösen. Verwende für Angaben, die im Kontaktformular fehlen, einen vCard-Editor.",
       "conflictErrorWithFields": "Widersprüchliche Kontaktdaten (%{fields}) können nicht sicher zusammengeführt werden. Bearbeiten Sie die Kontakte, um die Konflikte vorher zu lösen. Verwende für Angaben, die im Kontaktformular fehlen, einen vCard-Editor.",
+      "audienceError": "Diese Kontakte liegen in Adressbüchern, die mit unterschiedlichen Personen geteilt sind: Beim Zusammenführen könnten einige dieser Personen Angaben lesen, die sie jetzt nicht lesen können. Führen Sie sie von Hand zusammen oder teilen Sie ihre Adressbücher mit denselben Personen.",
       "fields": {
         "birthday": "Geburtstag",
         "org": "Organisation",

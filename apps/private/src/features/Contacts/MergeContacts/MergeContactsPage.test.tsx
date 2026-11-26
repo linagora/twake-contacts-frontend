@@ -2,6 +2,7 @@ import { setupStore } from '@common/app/store'
 import { classifyAddressBooks } from '@common/features/Contacts/addressBookModel'
 import {
   deleteContact,
+  fetchAddressBookDetails,
   fetchContactsPage,
   fetchContactForMerge,
   saveContact
@@ -18,6 +19,7 @@ import {
   normalizeContact
 } from '@common/features/Contacts/transformer/ContactsTransformer'
 import { UserState } from '@common/features/User/UserSlice'
+import { userData as UserData } from '@common/features/User/userDataTypes'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import {
@@ -36,12 +38,14 @@ vi.mock('@common/features/Contacts/ContactsDao', async () => ({
   ...(await vi.importActual<
     typeof import('@common/features/Contacts/ContactsDao')
   >('@common/features/Contacts/ContactsDao')),
+  fetchAddressBookDetails: vi.fn(),
   fetchContactsPage: vi.fn(),
   fetchContactForMerge: vi.fn(),
   saveContact: vi.fn(),
   deleteContact: vi.fn()
 }))
 
+const mockFetchAddressBookDetails = vi.mocked(fetchAddressBookDetails)
 const mockFetchContactsPage = vi.mocked(fetchContactsPage)
 const mockFetchContactForMerge = vi.mocked(fetchContactForMerge)
 const mockSaveContact = vi.mocked(saveContact)
@@ -209,6 +213,9 @@ describe('MergeContactsPage', () => {
         Promise.resolve(contact)
       )
     mockDeleteContact.mockReset().mockResolvedValue(undefined)
+    mockFetchAddressBookDetails
+      .mockReset()
+      .mockResolvedValue({ members: [], isPublic: false })
     mockFetchContactForMerge
       .mockReset()
       .mockImplementation(readMockContactForMerge)
@@ -336,6 +343,51 @@ describe('MergeContactsPage', () => {
       screen.getByText('All duplicate contacts merged')
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Merge all' })).toBeDisabled()
+  })
+
+  it('merges all into the book shared with no one, never into a shared one', async () => {
+    const sharee = { openpaasId: 'mallory' } as UserData
+    mockFetchAddressBookDetails.mockImplementation((_userId, bookId) =>
+      Promise.resolve({
+        members: bookId === DEFAULT_ADDRESS_BOOK_ID ? [sharee] : [],
+        isPublic: false
+      })
+    )
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+
+    confirmMergeAll()
+
+    await waitFor(() => {
+      expect(screen.getAllByLabelText('Merged')).toHaveLength(2)
+    })
+    expect(mockSaveContact.mock.calls.map(([, bookId]) => bookId)).toEqual([
+      'personal1',
+      'personal1'
+    ])
+    expect(mockDeleteContact.mock.calls.map(([, bookId]) => bookId)).toEqual([
+      DEFAULT_ADDRESS_BOOK_ID,
+      DEFAULT_ADDRESS_BOOK_ID
+    ])
+  })
+
+  it('does not merge copies of books shared with different users', async () => {
+    mockFetchAddressBookDetails.mockImplementation((_userId, bookId) =>
+      Promise.resolve({
+        members: [{ openpaasId: `sharee-of-${bookId}` } as UserData],
+        isPublic: false
+      })
+    )
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+
+    confirmMergeAll()
+
+    expect(
+      await screen.findAllByText(en.contacts.merge.audienceError)
+    ).toHaveLength(2)
+    expect(mockSaveContact).not.toHaveBeenCalled()
+    expect(mockDeleteContact).not.toHaveBeenCalled()
   })
 
   it.each(['single', 'all'])(

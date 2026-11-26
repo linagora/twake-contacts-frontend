@@ -52,3 +52,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#694](https://github.com/linagora/twake-contacts-frontend/issues/694)), to be confirmed by chibenwa
 - Why: with no room on its right, Popper flipped the "More actions" tooltip onto the Edit pencil, and a tooltip kept open by the focus returned on Escape caught the pencil's click. Hoverable tooltips are required for accessibility (WCAG 1.4.13).
 - Scope: @contacts/private, desktop contact list row actions (`ContactRowActions.tsx`); the sidebar book name tooltip already follows it.
+
+## 2026-11-26, [Product] A merged contact is written into the least shared book of its copies
+
+- Decision: merging duplicates writes the merged card into a book whose audience (its sharees, and everyone when it is published) is within the audience of the book of every other copy; among those books, the most complete copy is kept. A group with no such book (copies in books shared with different users) is not merged, by "Merge" or by "Merge all", and says why. Who can read each book is read from the server (`{DAV:}invite` and ACL) when the merge runs, not taken from the scan.
+- Decided by: agent (PR for [#716](https://github.com/linagora/twake-contacts-frontend/issues/716)), to be confirmed by chibenwa
+- Why: the most complete copy used to win, so a merge copied the details of a private contact into a book shared or published with others, and a sharee with write rights could plant the richest card to receive them.
+- Scope: @contacts/common (`buildMergedContactPlan`, `executeGroupMerge`, `bookAudience.ts`) and the merge page of @contacts/private.
