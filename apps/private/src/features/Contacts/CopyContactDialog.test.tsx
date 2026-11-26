@@ -50,7 +50,9 @@ const LocationDisplay = (): React.ReactElement => (
 const renderDialog = (
   mode: 'copy' | 'move' = 'copy',
   sourceCanWrite = true,
-  sourceContact = contact
+  sourceContact = contact,
+  sourceBookId = 'source',
+  extraBooks: Record<string, AddressBookWithContacts> = {}
 ): {
   store: ReturnType<typeof setupStore>
   onClose: Mock
@@ -74,7 +76,8 @@ const renderDialog = (
           name: 'Alpha Shared',
           ownerId: 'u2',
           ownerDisplayName: 'Bob Owner'
-        }
+        },
+        ...extraBooks
       }),
       listings: {},
       sort: DEFAULT_CONTACT_SORT,
@@ -91,7 +94,7 @@ const renderDialog = (
           <ContactTransferDialog
             mode={mode}
             contact={sourceContact}
-            addressBookId="source"
+            addressBookId={sourceBookId}
             onClose={() => {
               onClose()
               setOpen(false)
@@ -360,5 +363,50 @@ it.each([
     await waitFor(() => expect(onClose).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: 'Open' }))
     expect(screen.getByTestId('location')).toHaveTextContent(path)
+  }
+)
+
+it('shows no warning before selecting a destination or when selecting a private destination', () => {
+  renderDialog('copy')
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+  selectDestination('target')
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+it.each(['copy', 'move'] as const)(
+  'warns when %s from a private address book to a shared address book',
+  mode => {
+    renderDialog(mode)
+
+    fireEvent.mouseDown(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: /Alpha Shared/ }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This private contact will be visible to everyone in Alpha Shared.'
+    )
+  }
+)
+
+it.each(['copy', 'move'] as const)(
+  'warns when %s from a shared address book to another shared address book',
+  mode => {
+    renderDialog(mode, true, contact, 'shared', {
+      otherShared: {
+        ...book('otherShared'),
+        name: 'Beta Shared',
+        ownerId: 'u3',
+        ownerDisplayName: 'Carol Owner'
+      }
+    })
+
+    fireEvent.mouseDown(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: /Beta Shared/ }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Visible to everyone in Beta Shared.'
+    )
   }
 )

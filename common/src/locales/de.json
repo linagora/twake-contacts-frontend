@@ -8,7 +8,9 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · derzeit in %{book}",
-      "open": "Öffnen"
+      "open": "Öffnen",
+      "sharedToSharedWarning": "Sichtbar für alle in %{book}.",
+      "privateToSharedWarning": "Dieser private Kontakt wird für alle in %{book} sichtbar."
     },
     "copyContact": {
       "success": "„%{name}“ nach %{book} kopiert",

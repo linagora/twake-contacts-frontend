@@ -8,7 +8,9 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · hiện ở %{book}",
-      "open": "Mở"
+      "open": "Mở",
+      "sharedToSharedWarning": "Hiển thị với mọi người trong %{book}.",
+      "privateToSharedWarning": "Liên hệ riêng tư này sẽ hiển thị với mọi người trong %{book}."
     },
     "copyContact": {
       "success": "Đã sao chép “%{name}” vào %{book}",

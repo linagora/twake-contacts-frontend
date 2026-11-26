@@ -8,7 +8,9 @@
     },
     "transfer": {
       "currentlyIn": "%{name} · сейчас в «%{book}»",
-      "open": "Открыть"
+      "open": "Открыть",
+      "sharedToSharedWarning": "Видно всем участникам «%{book}».",
+      "privateToSharedWarning": "Этот личный контакт станет виден всем участникам «%{book}»."
     },
     "copyContact": {
       "success": "«%{name}» скопирован в «%{book}»",
