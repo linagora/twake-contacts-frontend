@@ -198,7 +198,7 @@
       "title": "Combinar duplicados",
       "headingWithCount": "Combinar duplicados (%{count})",
       "mergeAll": "Combinar todos",
-      "mergeAllDescription": "Al combinar, se conserva un contacto de cada grupo y se eliminan las demás copias, incluidas las de otras libretas de direcciones.",
+      "mergeAllDescription": "Al combinar, se conserva un contacto de cada grupo y se eliminan las demás copias, incluidas las de otras libretas de direcciones. El contacto combinado se conserva en la menos compartida de sus libretas de direcciones.",
       "dismiss": "Descartar",
       "dismissSuccess": "Sugerencia descartada",
       "dismissError": "No se pudo terminar de descartar la sugerencia para estos contactos. Inténtalo de nuevo.",
@@ -213,6 +213,7 @@
       "changedError": "Los contactos han cambiado desde la búsqueda. Revise los contactos actualizados antes de volver a combinarlos.",
       "conflictError": "Los datos en conflicto no se pueden combinar de forma segura. Edite los contactos para resolver los conflictos antes de combinarlos. Usa un editor de vCard para los datos que no aparecen en el formulario de contacto.",
       "conflictErrorWithFields": "Los datos en conflicto (%{fields}) no se pueden combinar de forma segura. Edite los contactos para resolver los conflictos antes de combinarlos. Usa un editor de vCard para los datos que no aparecen en el formulario de contacto.",
+      "audienceError": "Estos contactos están en libretas de direcciones compartidas con personas distintas: combinarlos permitiría a algunas de ellas leer datos que ahora no pueden leer. Combínelos a mano o comparta sus libretas de direcciones con las mismas personas: estas personas podrán leer entonces todos los contactos de esas libretas de direcciones, no solo estos duplicados.",
       "fields": {
         "birthday": "Cumpleaños",
         "org": "Organización",

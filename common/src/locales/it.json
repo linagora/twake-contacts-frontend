@@ -198,7 +198,7 @@
       "title": "Unisci duplicati",
       "headingWithCount": "Unisci duplicati (%{count})",
       "mergeAll": "Unisci tutto",
-      "mergeAllDescription": "L’unione conserva un contatto per gruppo ed elimina le altre copie, comprese quelle in altre rubriche.",
+      "mergeAllDescription": "L’unione conserva un contatto per gruppo ed elimina le altre copie, comprese quelle in altre rubriche. Il contatto unito viene conservato nella meno condivisa delle sue rubriche.",
       "dismiss": "Ignora",
       "dismissSuccess": "Suggerimento ignorato",
       "dismissError": "Impossibile completare l’esclusione di questi contatti. Riprova.",
@@ -213,6 +213,7 @@
       "changedError": "I contatti sono cambiati dopo la ricerca. Controlla i contatti aggiornati prima di unirli di nuovo.",
       "conflictError": "I dati in conflitto non possono essere uniti in sicurezza. Modifica i contatti per risolvere i conflitti prima di unirli. Usa un editor vCard per i dati che non compaiono nel modulo del contatto.",
       "conflictErrorWithFields": "I dati in conflitto (%{fields}) non possono essere uniti in sicurezza. Modifica i contatti per risolvere i conflitti prima di unirli. Usa un editor vCard per i dati che non compaiono nel modulo del contatto.",
+      "audienceError": "Questi contatti si trovano in rubriche condivise con persone diverse: unirli permetterebbe ad alcune di loro di leggere dati che ora non possono leggere. Uniscili a mano, oppure condividi le loro rubriche con le stesse persone: queste persone potranno allora leggere tutti i contatti di quelle rubriche, non solo questi duplicati.",
       "fields": {
         "birthday": "Compleanno",
         "org": "Organizzazione",

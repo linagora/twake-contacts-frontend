@@ -1,4 +1,9 @@
 import { classifyAddressBooks } from './addressBookModel'
+import {
+  BookAudience,
+  isAudienceWithin,
+  PRIVATE_AUDIENCE
+} from './bookAudience'
 import { DEFAULT_ADDRESS_BOOK_ID } from './constants'
 import { Contact, RawAddressBook } from './contactsTypes'
 import { JCalProperty } from './davTypes'
@@ -10,7 +15,8 @@ import { DuplicateContactEntry } from './mergeContactsTypes'
 import {
   buildMergedContactPlan,
   findDuplicateContactGroups,
-  isPersonalMergeableBook
+  isPersonalMergeableBook,
+  MergeContactError
 } from './mergeContactsUtils'
 
 const makeBook = (overrides: Partial<RawAddressBook>): RawAddressBook => ({
@@ -704,5 +710,100 @@ describe('mergeContactsUtils', () => {
       .map(book => book.id)
 
     expect(mergeableIds).toEqual([DEFAULT_ADDRESS_BOOK_ID, 'personal1'])
+  })
+})
+
+describe('buildMergedContactPlan target book', () => {
+  const sparseInDefault: DuplicateContactEntry = {
+    addressBookId: DEFAULT_ADDRESS_BOOK_ID,
+    contact: {
+      id: 'private',
+      displayName: 'John Smith',
+      emails: [],
+      phones: [{ type: 'cell', value: '+3365024491' }],
+      note: 'Private note'
+    }
+  }
+  const richInShared: DuplicateContactEntry = {
+    addressBookId: 'team',
+    contact: {
+      id: 'planted',
+      displayName: 'John Smith',
+      emails: [
+        { type: 'work', value: 'john@attacker.example' },
+        { type: 'home', value: 'john@home.example' }
+      ]
+    }
+  }
+  const sharedWith = (...members: string[]): BookAudience => ({
+    isPublic: false,
+    members
+  })
+
+  it('writes the merged card into the private book, not a richer shared copy', () => {
+    const plan = buildMergedContactPlan(
+      [sparseInDefault, richInShared],
+      new Map([
+        [DEFAULT_ADDRESS_BOOK_ID, PRIVATE_AUDIENCE],
+        ['team', sharedWith('mallory')]
+      ])
+    )
+
+    expect(plan.targetAddressBookId).toBe(DEFAULT_ADDRESS_BOOK_ID)
+    expect(plan.updatedContact.id).toBe('private')
+    expect(plan.toDelete).toEqual([
+      { addressBookId: 'team', contactId: 'planted' }
+    ])
+  })
+
+  it('writes the merged card into an unpublished book rather than a published one', () => {
+    const plan = buildMergedContactPlan(
+      [sparseInDefault, richInShared],
+      new Map([
+        [DEFAULT_ADDRESS_BOOK_ID, sharedWith('bob')],
+        ['team', { isPublic: true, members: [] }]
+      ])
+    )
+
+    expect(plan.targetAddressBookId).toBe(DEFAULT_ADDRESS_BOOK_ID)
+  })
+
+  it('picks the most complete copy among books with the same audience', () => {
+    const plan = buildMergedContactPlan(
+      [sparseInDefault, richInShared],
+      new Map([
+        [DEFAULT_ADDRESS_BOOK_ID, sharedWith('bob')],
+        ['team', sharedWith('bob')]
+      ])
+    )
+
+    expect(plan.targetAddressBookId).toBe('team')
+  })
+
+  it('refuses to merge copies of books shared with different users', () => {
+    expect(() =>
+      buildMergedContactPlan(
+        [sparseInDefault, richInShared],
+        new Map([
+          [DEFAULT_ADDRESS_BOOK_ID, sharedWith('bob')],
+          ['team', sharedWith('mallory')]
+        ])
+      )
+    ).toThrow(new MergeContactError('audience'))
+  })
+})
+
+describe('isAudienceWithin', () => {
+  it('nests a private book in any audience, and any audience in a published one', () => {
+    const shared = { isPublic: false, members: ['bob'] }
+    const published = { isPublic: true, members: [] }
+
+    expect(isAudienceWithin(PRIVATE_AUDIENCE, shared)).toBe(true)
+    expect(isAudienceWithin(shared, PRIVATE_AUDIENCE)).toBe(false)
+    expect(isAudienceWithin(shared, published)).toBe(true)
+    expect(isAudienceWithin(published, shared)).toBe(false)
+    expect(
+      isAudienceWithin(shared, { isPublic: false, members: ['bob', 'eve'] })
+    ).toBe(true)
   })
 })

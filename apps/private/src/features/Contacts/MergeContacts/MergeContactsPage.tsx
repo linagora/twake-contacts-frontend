@@ -35,6 +35,7 @@ const formatMergeError = (
   if (!error) return null
   if (error.reason === 'changed') return t('contacts.merge.changedError')
   if (error.reason === 'dismiss') return t('contacts.merge.dismissError')
+  if (error.reason === 'audience') return t('contacts.merge.audienceError')
   if (error.reason === 'conflict') {
     if (error.conflictFields?.length) {
       const fields = error.conflictFields

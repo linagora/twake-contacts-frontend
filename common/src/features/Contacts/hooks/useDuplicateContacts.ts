@@ -28,7 +28,8 @@ export type { MergedContactTarget }
 
 const MERGE_ALL_QUEUE_LIMIT = 5
 
-export type MergeErrorReason = 'changed' | 'conflict' | 'error' | 'dismiss'
+export type MergeErrorReason =
+  'changed' | 'conflict' | 'audience' | 'error' | 'dismiss'
 
 export interface MergeGroupError {
   reason: MergeErrorReason
