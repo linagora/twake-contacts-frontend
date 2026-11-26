@@ -73,3 +73,17 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (PR for [#703](https://github.com/linagora/twake-contacts-frontend/issues/703)), to be confirmed by chibenwa
 - Why: the side service rejects the whole multi-book request for one invalid reference, so one book created by another CardDAV client broke the search of every book, silently.
 - Scope: @contacts/common (`ContactsDao.searchContacts`, used by the search bar and the duplicate email warning).
+
+## 2026-11-26, [Product] The domain address book menu offers export
+
+- Decision: the domain address book's actions menu offers Export as its only action.
+- Decided by: agent (review of [PR #700](https://github.com/linagora/twake-contacts-frontend/pull/700#discussion_r4692195824)), to be confirmed by chibenwa
+- Why: exporting reads the directory and is compatible with its read-only access.
+- Scope: desktop and mobile, address book actions in @contacts/private.
+
+## 2026-11-26, [UI] The no-contacts state centers within the page content
+
+- Decision: the no-contacts state centers in the available page space when it fits and scrolls with the page when it overflows.
+- Decided by: agent (review of [PR #700](https://github.com/linagora/twake-contacts-frontend/pull/700#discussion_r4692195847)), to be confirmed by chibenwa
+- Why: the empty-state action stays reachable on short screens and with enlarged text.
+- Scope: desktop and mobile, empty address-book pages in @contacts/private.

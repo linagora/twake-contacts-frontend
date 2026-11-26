@@ -148,14 +148,16 @@ export const useAddressBookActions = ({
         </ListItemIcon>
         <ListItemText>{t('contacts.menu.export')}</ListItemText>
       </ActionsMenuItem>
-      <ActionsMenuItem onClick={openDeleteDialog}>
-        <ListItemIcon>
-          <Icon icon={Trash} />
-        </ListItemIcon>
-        <ListItemText>
-          {t(isCopy ? 'contacts.menu.remove' : 'contacts.menu.delete')}
-        </ListItemText>
-      </ActionsMenuItem>
+      {book.kind !== 'domain' && (
+        <ActionsMenuItem onClick={openDeleteDialog}>
+          <ListItemIcon>
+            <Icon icon={Trash} />
+          </ListItemIcon>
+          <ListItemText>
+            {t(isCopy ? 'contacts.menu.remove' : 'contacts.menu.delete')}
+          </ListItemText>
+        </ActionsMenuItem>
+      )}
     </ActionsMenu>
   )
 

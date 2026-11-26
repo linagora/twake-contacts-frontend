@@ -1,4 +1,9 @@
-import { byId, theDefaultBook } from '@common/test/builders'
+import {
+  aDomainBook,
+  anAddressBook,
+  byId,
+  theDefaultBook
+} from '@common/test/builders'
 import { DEFAULT_CONTACT_SORT } from '@common/features/Contacts/constants'
 import { fireEvent, render, RenderResult, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -139,5 +144,54 @@ describe('MobileTopBar', () => {
 
     fireEvent.click(searchButton)
     expect(onToggleSearch).toHaveBeenCalledTimes(1)
+  })
+
+  it('offers export and delete for a personal address book', () => {
+    const book = anAddressBook()
+    renderMobileTopBar(
+      { addressBookId: book.id },
+      {
+        ...defaultPreloadedState,
+        contacts: {
+          ...defaultPreloadedState.contacts,
+          addressBooks: byId(book)
+        }
+      }
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: en.contacts.menu.more }))
+    expect(
+      screen.getByRole('menuitem', { name: en.contacts.menu.export })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: en.contacts.menu.delete })
+    ).toBeInTheDocument()
+  })
+
+  it('offers only export for the domain address book', () => {
+    const domainBook = aDomainBook()
+    renderMobileTopBar(
+      {
+        isAddressBookPage: true,
+        title: en.contacts.domainAddressBook,
+        addressBookId: domainBook.id
+      },
+      {
+        ...defaultPreloadedState,
+        contacts: {
+          ...defaultPreloadedState.contacts,
+          addressBooks: byId(domainBook)
+        }
+      }
+    )
+
+    expect(
+      screen.getByRole('heading', { name: en.contacts.domainAddressBook })
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: en.contacts.menu.more }))
+    expect(
+      screen.getByRole('menuitem', { name: en.contacts.menu.export })
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('menuitem')).toHaveLength(1)
   })
 })
