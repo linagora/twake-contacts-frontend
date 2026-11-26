@@ -1482,7 +1482,7 @@ describe('searchContacts', () => {
         })
     } as never)
 
-    const entries = await searchContacts([], 'jane')
+    const entries = await searchContacts([searchBook('book1')], 'jane')
 
     expect(
       entries.map(entry => [entry.contact.id, entry.contact.displayName])
@@ -1492,7 +1492,54 @@ describe('searchContacts', () => {
       ['c3', 'Jane Doe']
     ])
   })
+
+  it('leaves out the books whose id the search service refuses', async () => {
+    vi.mocked(api.post).mockReturnValue({
+      json: () => Promise.resolve({})
+    } as never)
+
+    await searchContacts(
+      [
+        searchBook('contacts'),
+        searchBook("' OR '1'='1"),
+        searchBook('My Book'),
+        searchBook('a\u0000b'),
+        searchBook(''),
+        searchBook('dab', 'd1'),
+        searchBook('book~1.a_b-c')
+      ],
+      'anna'
+    )
+
+    expect(api.post).toHaveBeenCalledWith('contacts/api/contacts/search', {
+      searchParams: { limit: '30', offset: '0' },
+      json: {
+        query: 'anna',
+        addressBooks: [
+          { userId: 'u1', addressBookId: 'contacts' },
+          { userId: 'd1', addressBookId: 'domain-members' },
+          { userId: 'u1', addressBookId: 'book~1.a_b-c' }
+        ]
+      }
+    })
+  })
+
+  it('sends no request when no book can be searched', async () => {
+    vi.mocked(api.post).mockClear()
+
+    const entries = await searchContacts([searchBook('My Book')], 'anna')
+
+    expect(entries).toStrictEqual([])
+    expect(api.post).not.toHaveBeenCalled()
+  })
 })
+
+function searchBook(id: string, userId = 'u1'): AddressBook {
+  return classifyAddressBook(
+    { id, userId, name: id, contactsCount: 0, acl: [], canWrite: true },
+    'u1'
+  )
+}
 
 describe('getCardProperty', () => {
   it('returns null for a malformed card', () => {
