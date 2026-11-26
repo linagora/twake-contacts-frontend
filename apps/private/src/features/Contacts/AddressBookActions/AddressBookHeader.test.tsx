@@ -122,7 +122,7 @@ describe('AddressBookHeader', () => {
 
   afterEach(() => vi.clearAllMocks())
 
-  it('shows the name, Share and More actions, and no status, on a private book', async () => {
+  it('shows the name, Share and More actions, and no status, on a private book', () => {
     renderHeader(aliceBook)
 
     expect(screen.getByRole('heading', { name: 'Clients' })).toBeInTheDocument()
@@ -130,29 +130,22 @@ describe('AddressBookHeader', () => {
     expect(
       screen.getByRole('button', { name: 'More actions' })
     ).toBeInTheDocument()
-    await vi.waitFor(() =>
-      expect(fetchAddressBookDetails).toHaveBeenCalledWith(
-        'alice',
-        'book1',
-        undefined
-      )
-    )
+    expect(fetchAddressBookDetails).not.toHaveBeenCalled()
     expect(screen.queryByText(/Shared/)).not.toBeInTheDocument()
   })
 
-  it('tells with how many people the book is shared, and opens the Share dialog from it', async () => {
-    vi.mocked(fetchAddressBookDetails).mockResolvedValue({
-      members: [bob],
+  it('does not show the sharing status subtitle on a shared own book', () => {
+    renderHeader({
+      ...aliceBook,
+      invitedMembers: [bob],
       isPublic: true
     })
-    renderHeader(aliceBook)
 
-    const status = await screen.findByRole('button', {
-      name: 'Shared with 1 person · Visible to your organization'
-    })
-    fireEvent.click(status)
-
-    expect(await screen.findByRole('dialog')).toHaveTextContent('Share Clients')
+    expect(screen.getByRole('heading', { name: 'Clients' })).toBeInTheDocument()
+    expect(screen.queryByText(/Shared with/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/Visible to your organization/)
+    ).not.toBeInTheDocument()
   })
 
   it('tells the owner and the role on a book shared with the user, without Share', () => {

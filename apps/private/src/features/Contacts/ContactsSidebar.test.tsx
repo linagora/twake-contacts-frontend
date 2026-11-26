@@ -13,13 +13,19 @@ import {
   RawAddressBook
 } from '@common/features/Contacts/contactsTypes'
 import { UserState } from '@common/features/User/UserSlice'
+import { userData } from '@common/features/User/userDataTypes'
 import en from '@common/locales/en.json'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import I18n from 'twake-i18n'
-import { exportAddressBook } from '@common/features/Contacts/ContactsDao'
+import {
+  exportAddressBook,
+  fetchAddressBookDetails,
+  resolveAddressBookMember
+} from '@common/features/Contacts/ContactsDao'
+import { AddressBookAccessLevel } from '@common/features/Contacts/davTypes'
 import { downloadFile } from '@common/utils/downloadFile'
 import { ContactsSidebar } from './ContactsSidebar'
 
@@ -27,7 +33,11 @@ vi.mock('@common/features/Contacts/ContactsDao', async () => ({
   ...(await vi.importActual<
     typeof import('@common/features/Contacts/ContactsDao')
   >('@common/features/Contacts/ContactsDao')),
-  exportAddressBook: vi.fn()
+  exportAddressBook: vi.fn(),
+  fetchAddressBookDetails: vi.fn(() =>
+    Promise.resolve({ members: [], isPublic: false })
+  ),
+  resolveAddressBookMember: vi.fn(member => Promise.resolve(member))
 }))
 vi.mock('@common/utils/downloadFile', async () => ({
   ...(await vi.importActual<typeof import('@common/utils/downloadFile')>(
@@ -676,6 +686,89 @@ describe('ContactsSidebar', () => {
       expect(
         screen.getByRole('button', { name: en.contacts.myContacts })
       ).not.toHaveAttribute('aria-current', 'page')
+    })
+  })
+
+  describe('sharing indicator', () => {
+    const member = (id: string, role: AddressBookAccessLevel): userData => ({
+      openpaasId: id,
+      role,
+      email: `${id}@example.com`,
+      given_name: id,
+      family_name: '',
+      name: id,
+      sid: id,
+      sub: id
+    })
+
+    beforeEach(() => {
+      vi.mocked(fetchAddressBookDetails).mockResolvedValue({
+        members: [],
+        isPublic: false
+      })
+      vi.mocked(resolveAddressBookMember).mockImplementation(m =>
+        Promise.resolve(m)
+      )
+    })
+
+    it('shows no share icon on a private book', () => {
+      renderSidebar('/contacts')
+
+      expect(screen.queryByLabelText(/Shared with/)).not.toBeInTheDocument()
+      expect(
+        screen.queryByLabelText(en.contacts.addressBook.public)
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows a share icon on a shared own book and its count tooltip on hover', async () => {
+      vi.mocked(fetchAddressBookDetails).mockResolvedValueOnce({
+        members: [member('bob', AddressBookAccessLevel.Viewer)],
+        isPublic: true
+      })
+
+      renderSidebar('/contacts')
+
+      const shareIcon = await screen.findByLabelText('Shared with 1 person')
+      fireEvent.mouseOver(shareIcon)
+
+      const tooltip = await screen.findByRole('tooltip')
+      expect(tooltip).toHaveTextContent('Shared with 1 person')
+      expect(tooltip).toHaveAttribute('data-popper-placement', 'top')
+    })
+
+    it('shows the organization visibility tooltip when public without invited members', async () => {
+      vi.mocked(fetchAddressBookDetails).mockResolvedValueOnce({
+        members: [],
+        isPublic: true
+      })
+
+      renderSidebar('/contacts')
+
+      const shareIcon = await screen.findByLabelText(
+        en.contacts.addressBook.public
+      )
+      fireEvent.mouseOver(shareIcon)
+
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(
+        en.contacts.addressBook.public
+      )
+    })
+
+    it('does not show the share icon on a book shared with the user', () => {
+      renderSidebar('/contacts', {
+        [DEFAULT_ADDRESS_BOOK_ID]: makeBook(
+          DEFAULT_ADDRESS_BOOK_ID,
+          'My contacts'
+        ),
+        shared: {
+          ...makeBook('shared', 'Shared book'),
+          ownerId: 'bob',
+          ownerDisplayName: 'Bob',
+          shareAccess: AddressBookAccessLevel.Viewer
+        }
+      })
+
+      expect(screen.queryByLabelText(/Shared with/)).not.toBeInTheDocument()
     })
   })
 })

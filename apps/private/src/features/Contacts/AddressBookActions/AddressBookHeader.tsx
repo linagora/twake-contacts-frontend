@@ -1,9 +1,6 @@
-import React, { useEffect } from 'react'
-import { isOwnAddressBook } from '@common/features/Contacts/addressBookModel'
+import React from 'react'
 import { AddressBook } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
-import { fetchAddressBookDetail } from '@common/features/Contacts/ContactsSlice'
-import { useAppDispatch } from '@common/app/hooks'
 import { Icon, ShareExternal } from '@linagora/twake-icons'
 import { Button, Stack, Typography } from '@linagora/twake-mui'
 import { useNavigate } from 'react-router'
@@ -21,25 +18,6 @@ export interface AddressBookHeaderProps {
   headingRef?: React.Ref<HTMLHeadingElement>
 }
 
-// the members of a book of the user are only listed with its details: they
-// are read on the page of the book to tell with how many people it is shared
-const useOwnBookMembers = (book: AddressBook): void => {
-  const dispatch = useAppDispatch()
-  const isOwnBook = isOwnAddressBook(book)
-  useEffect(() => {
-    if (!isOwnBook) return
-    void dispatch(
-      fetchAddressBookDetail({
-        userId: book.userId,
-        addressBookId: book.id,
-        silent: true
-      })
-    )
-      .unwrap()
-      .catch(() => undefined)
-  }, [dispatch, isOwnBook, book.userId, book.id])
-}
-
 /** The title of the page of a book, who can read it and its actions. */
 export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
   book,
@@ -53,7 +31,6 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
     onRemoved: () => void navigate('/contacts', { state: FOCUS_HEADING_STATE })
   })
   const canShare = book.capabilities.share
-  useOwnBookMembers(book)
 
   return (
     <Stack
@@ -71,10 +48,7 @@ export const AddressBookHeader: React.FC<AddressBookHeaderProps> = ({
         >
           {getAddressBookDisplayName(book, t)}
         </Typography>
-        <AddressBookSharingStatus
-          book={book}
-          onOpenShare={canShare ? actions.openShareDialog : undefined}
-        />
+        <AddressBookSharingStatus book={book} />
       </Stack>
       <Stack direction="row" spacing={1} className="u-flex-items-center">
         {canShare && (
