@@ -176,9 +176,13 @@ export const AddressBookPage: React.FC = () => {
     <ImportContactsButton addressBookId={addressBookId} />
   )
 
+  // Let the page's Content scroll the empty state when it outgrows the pane.
+  const pageClassName =
+    showTable || loadFailed ? 'u-flex-auto u-ov-hidden' : 'u-flex-auto'
+
   if (book && addressBookId && !(isMobile || isTablet) && !loading) {
     return (
-      <Stack spacing={2} className="u-flex-auto u-ov-hidden">
+      <Stack spacing={2} className={pageClassName}>
         <AddressBookHeader book={book} headingRef={headingRef}>
           {importButton}
         </AddressBookHeader>
@@ -188,7 +192,7 @@ export const AddressBookPage: React.FC = () => {
   }
 
   return (
-    <Stack spacing={2} className="u-flex-auto u-ov-hidden">
+    <Stack spacing={2} className={pageClassName}>
       <Stack
         direction="row"
         className="u-flex-justify-between u-flex-items-center"
