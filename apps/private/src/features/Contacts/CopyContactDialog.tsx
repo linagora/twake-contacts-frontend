@@ -12,11 +12,13 @@ import {
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
+import { isSharedAddressBook } from '@common/features/Contacts/addressBookModel'
 import {
   copyContact,
   moveContact
 } from '@common/features/Contacts/ContactsSlice'
 import {
+  AddressBook,
   AddressBookWithContacts,
   Contact
 } from '@common/features/Contacts/contactsTypes'
@@ -28,6 +30,7 @@ import {
   addressBookMenuProps,
   useAddressBookOptions
 } from './AddressBookOptions'
+import { getSharingStatus } from './AddressBookActions/sharingStatus'
 
 const TRANSLATION_KEYS = {
   copy: {
@@ -110,6 +113,25 @@ const useContactTransfer = ({
   }
 }
 
+const isBookShared = (book: AddressBook | undefined): boolean =>
+  Boolean(
+    book &&
+    (isSharedAddressBook(book) || getSharingStatus(book)?.kind === 'owned')
+  )
+
+const getTransferWarningKey = (
+  sourceBook: AddressBook | undefined,
+  destinationBook: AddressBook | undefined
+):
+  | 'contacts.transfer.sharedToSharedWarning'
+  | 'contacts.transfer.privateToSharedWarning'
+  | undefined => {
+  if (!isBookShared(destinationBook)) return undefined
+  return isBookShared(sourceBook)
+    ? 'contacts.transfer.sharedToSharedWarning'
+    : 'contacts.transfer.privateToSharedWarning'
+}
+
 export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
   contact,
   addressBookId,
@@ -132,6 +154,8 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
   const sourceBook = useAppSelector(
     state => state.contacts.addressBooks[addressBookId]
   )
+  const destinationBook = books.find(book => book.id === destinationId)
+  const warningKey = getTransferWarningKey(sourceBook, destinationBook)
 
   return (
     <Dialog
@@ -168,6 +192,13 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
             >
               {options}
             </TextField>
+          )}
+          {warningKey && destinationBook && (
+            <Alert severity="info">
+              {t(warningKey, {
+                book: getAddressBookDisplayName(destinationBook, t)
+              })}
+            </Alert>
           )}
         </Stack>
       </DialogContent>
