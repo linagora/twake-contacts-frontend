@@ -50,6 +50,12 @@ const mockFetchContactsPage = vi.mocked(fetchContactsPage)
 const mockFetchContactForMerge = vi.mocked(fetchContactForMerge)
 const mockSaveContact = vi.mocked(saveContact)
 const mockDeleteContact = vi.mocked(deleteContact)
+const savedContacts = new Map<string, Contact>()
+
+const rememberSavedContact = (bookId: string, contact: Contact): Contact => {
+  savedContacts.set(JSON.stringify([bookId, contact.id]), contact)
+  return contact
+}
 
 function openMergeAllConfirmation(): HTMLElement {
   fireEvent.click(screen.getByRole('button', { name: 'Merge all' }))
@@ -134,6 +140,9 @@ const readMockContactForMerge = async (
   book: { id: string },
   contactId: string
 ): ReturnType<typeof fetchContactForMerge> => {
+  const saved = savedContacts.get(JSON.stringify([book.id, contactId]))
+  if (saved) return { contact: saved, etag: `"${contactId}-v2"` }
+
   const pages = await Promise.all(
     mockFetchContactsPage.mock.results.map(
       result => result.value as ReturnType<typeof fetchContactsPage>
@@ -207,10 +216,11 @@ const DEFAULT_MOCK_PAGES: Record<
 
 describe('MergeContactsPage', () => {
   beforeEach(() => {
+    savedContacts.clear()
     mockSaveContact
       .mockReset()
-      .mockImplementation((_userId, _bookId, contact) =>
-        Promise.resolve(contact)
+      .mockImplementation((_userId, bookId, contact) =>
+        Promise.resolve(rememberSavedContact(bookId, contact))
       )
     mockDeleteContact.mockReset().mockResolvedValue(undefined)
     mockFetchAddressBookDetails
@@ -288,9 +298,9 @@ describe('MergeContactsPage', () => {
   it('shows loading state only on the selected group when merging a single group', async () => {
     let finishSave: (() => void) | undefined
     mockSaveContact.mockImplementation(
-      (_userId, _bookId, contact) =>
+      (_userId, bookId, contact) =>
         new Promise(resolve => {
-          finishSave = () => resolve(contact)
+          finishSave = () => resolve(rememberSavedContact(bookId, contact))
         })
     )
 
@@ -630,9 +640,9 @@ describe('MergeContactsPage', () => {
     mockSaveContact
       .mockRejectedValueOnce(new Error('failed'))
       .mockImplementationOnce(
-        (_userId, _bookId, contact) =>
+        (_userId, bookId, contact) =>
           new Promise(resolve => {
-            finishSave = () => resolve(contact)
+            finishSave = () => resolve(rememberSavedContact(bookId, contact))
           })
       )
     renderMergePage()
@@ -726,6 +736,22 @@ describe('MergeContactsPage', () => {
     }
   )
 
+  it('keeps duplicate cards when read-back no longer contains a merged field', async () => {
+    mockSaveContact.mockImplementation((_userId, bookId, contact) => {
+      rememberSavedContact(bookId, { ...contact, emails: [] })
+      return Promise.resolve(contact)
+    })
+    renderMergePage()
+    await screen.findByText('Isabella Martinez')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Merge' })[0])
+
+    await screen.findByText(en.contacts.merge.changedError)
+    expect(mockSaveContact).toHaveBeenCalledTimes(1)
+    expect(mockDeleteContact).not.toHaveBeenCalled()
+    expect(screen.getByText('Isabella Work')).toBeInTheDocument()
+  })
+
   it('refreshes a partially merged group when a candidate has disappeared', async () => {
     renderMergePage()
     await screen.findByText('Isabella Martinez')
@@ -814,13 +840,13 @@ describe('MergeContactsPage', () => {
     const resolvers: (() => void)[] = []
 
     mockSaveContact.mockImplementation(
-      (_userId, _bookId, contact) =>
+      (_userId, bookId, contact) =>
         new Promise(resolve => {
           activeSaves += 1
           maxConcurrentSaves = Math.max(maxConcurrentSaves, activeSaves)
           resolvers.push(() => {
             activeSaves -= 1
-            resolve(contact)
+            resolve(rememberSavedContact(bookId, contact))
           })
         })
     )

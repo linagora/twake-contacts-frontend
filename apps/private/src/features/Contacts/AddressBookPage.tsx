@@ -172,7 +172,14 @@ export const AddressBookPage: React.FC = () => {
     )
   }
 
-  const importButton = (isDesktop || isExtraLarge) && showTable && (
+  const isWideScreen = isDesktop || isExtraLarge
+  const isCompactScreen = isMobile || isTablet
+  const canShowImport = isWideScreen && showTable
+  const canShowBookHeader = Boolean(
+    book && addressBookId && !isCompactScreen && !loading
+  )
+
+  const importButton = canShowImport && (
     <ImportContactsButton addressBookId={addressBookId} />
   )
 
@@ -180,7 +187,7 @@ export const AddressBookPage: React.FC = () => {
   const pageClassName =
     showTable || loadFailed ? 'u-flex-auto u-ov-hidden' : 'u-flex-auto'
 
-  if (book && addressBookId && !(isMobile || isTablet) && !loading) {
+  if (canShowBookHeader && book) {
     return (
       <Stack spacing={2} className={pageClassName}>
         <AddressBookHeader book={book} headingRef={headingRef}>
@@ -205,7 +212,7 @@ export const AddressBookPage: React.FC = () => {
             className="u-flex-items-center u-w-100"
             spacing={2}
           >
-            {(isDesktop || isExtraLarge) && (
+            {isWideScreen && (
               <Typography
                 variant="h4"
                 component="h1"
