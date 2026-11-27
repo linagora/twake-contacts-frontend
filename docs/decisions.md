@@ -136,3 +136,17 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: user request.
 - Why: prevents leaking private contact details into a wider-audience book while avoiding a dead "Merge" button and keeping a single clear confirmation action.
 - Scope: @contacts/common (`canMergeIntoDestinationBook`) and @contacts/private (`DuplicateTransferDialog`, `useContactTransfer`).
+
+## 2026-11-27, [UX] Transfer errors preserve an audience block
+
+- Decision: a failed Copy or Move anyway attempt keeps the audience warning and non-merge action available until the user goes back and checks the destination again.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4717008588)), to be confirmed by chibenwa.
+- Why: retrying an ordinary transfer cannot establish that merging into the same book is safe.
+- Scope: @contacts/private, the copy and move duplicate confirmation dialogs on desktop and mobile.
+
+## 2026-11-27, [Product] Copy and move remain available when the merge audience is unknown
+
+- Decision: when a transfer merge cannot verify who can read either book before offering Merge or at confirmation, the dialog explains the failed check and offers only Copy or Move without merging.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4717008592)), to be confirmed by chibenwa.
+- Why: copying or moving the selected card does not require combining it with data from another book.
+- Scope: @contacts/common transfer merge audience checks and @contacts/private copy and move dialogs on desktop and mobile.

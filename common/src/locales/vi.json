@@ -13,6 +13,7 @@
       "privateToSharedWarning": "Liên hệ riêng tư này sẽ hiển thị với mọi người trong %{book}.",
       "duplicateTitle": "Phát hiện liên hệ trùng lặp",
       "audienceError": "Đã có liên hệ trùng %{fields} trong sổ chia sẻ này. Tiếp tục sẽ không hợp nhất.",
+      "audienceUnavailable": "Không thể xác minh ai có quyền truy cập các sổ địa chỉ này. Bạn có thể tiếp tục mà không hợp nhất.",
       "matchFields": {
         "name": "tên",
         "phone": "số điện thoại",

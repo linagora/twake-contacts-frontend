@@ -9,6 +9,9 @@ export const formatMergeError = (
   if (error.reason === 'changed') return t('contacts.merge.changedError')
   if (error.reason === 'dismiss') return t('contacts.merge.dismissError')
   if (error.reason === 'audience') return t('contacts.merge.audienceError')
+  if (error.reason === 'audienceUnavailable') {
+    return t('contacts.transfer.audienceUnavailable')
+  }
   if (error.reason === 'conflict') {
     if (error.conflictFields?.length) {
       const fields = error.conflictFields

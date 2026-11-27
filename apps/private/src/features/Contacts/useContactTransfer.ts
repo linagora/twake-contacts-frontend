@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from 'react'
+import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import {
   copyContact,
@@ -6,9 +6,9 @@ import {
   setTransferSuccess
 } from '@common/features/Contacts/ContactsSlice'
 import {
-  canMergeIntoDestinationBook,
   executeTransferMerge,
-  findDestinationDuplicates
+  findDestinationDuplicates,
+  getTransferMergeAudienceBlock
 } from '@common/features/Contacts/hooks/duplicateMergeRunner'
 import {
   MergeGroupError,
@@ -23,7 +23,10 @@ import {
   DuplicateContactEntry,
   DuplicateContactGroup
 } from '@common/features/Contacts/mergeContactsTypes'
-import { findDuplicatesOfContactInBook } from '@common/features/Contacts/mergeContactsUtils'
+import {
+  findDuplicatesOfContactInBook,
+  TransferMergeAudienceBlock
+} from '@common/features/Contacts/mergeContactsUtils'
 
 export interface UseContactTransferParams {
   contact: Contact
@@ -38,10 +41,11 @@ export interface UseContactTransferResult {
   sourceBook: AddressBookWithContacts | undefined
   destination: AddressBookWithContacts | undefined
   destinationId: string
-  setDestinationId: Dispatch<SetStateAction<string>>
+  selectDestination: (id: string) => void
   transferring: boolean
   error: boolean
   mergeError: MergeGroupError | null
+  mergeAudienceBlock: TransferMergeAudienceBlock | null
   duplicateGroup: DuplicateContactGroup | null
   canTransfer: boolean
   transfer: () => Promise<void>
@@ -99,6 +103,8 @@ export const useContactTransfer = ({
   const [transferring, setTransferring] = useState(false)
   const [error, setError] = useState(false)
   const [mergeError, setMergeError] = useState<MergeGroupError | null>(null)
+  const [mergeAudienceBlock, setMergeAudienceBlock] =
+    useState<TransferMergeAudienceBlock | null>(null)
   const [duplicateGroup, setDuplicateGroup] =
     useState<DuplicateContactGroup | null>(null)
   const [refreshedSource, setRefreshedSource] = useState<RefreshedSourceState>()
@@ -174,12 +180,12 @@ export const useContactTransfer = ({
           await executeTransfer(sourceBook)
           return
         }
-        const canMerge = await canMergeIntoDestinationBook(
+        const audienceBlock = await getTransferMergeAudienceBlock(
           sourceBook,
           destination
         )
+        setMergeAudienceBlock(audienceBlock)
         setDuplicateGroup(duplicates)
-        if (!canMerge) setMergeError({ reason: 'audience' })
       },
       () => setError(true)
     )
@@ -221,10 +227,27 @@ export const useContactTransfer = ({
   }
 
   const confirmMerge = async (): Promise<void> => {
-    if (!canTransfer || !sourceBook || !destination || !duplicateGroup) return
+    if (
+      !canTransfer ||
+      !sourceBook ||
+      !destination ||
+      !duplicateGroup ||
+      mergeAudienceBlock
+    )
+      return
     await runWithStatus(
       () => runMerge(sourceBook, destination, duplicateGroup),
-      err => setMergeError(toMergeGroupError(err))
+      err => {
+        const failure = toMergeGroupError(err)
+        if (
+          failure.reason === 'audience' ||
+          failure.reason === 'audienceUnavailable'
+        ) {
+          setMergeAudienceBlock(failure.reason)
+        } else {
+          setMergeError(failure)
+        }
+      }
     )
   }
 
@@ -232,6 +255,12 @@ export const useContactTransfer = ({
     setDuplicateGroup(null)
     setError(false)
     setMergeError(null)
+    setMergeAudienceBlock(null)
+  }
+
+  const selectDestination = (id: string): void => {
+    backToTransfer()
+    setDestinationId(id)
   }
 
   return {
@@ -239,10 +268,11 @@ export const useContactTransfer = ({
     sourceBook,
     destination,
     destinationId,
-    setDestinationId,
+    selectDestination,
     transferring,
     error,
     mergeError,
+    mergeAudienceBlock,
     duplicateGroup,
     canTransfer,
     transfer,

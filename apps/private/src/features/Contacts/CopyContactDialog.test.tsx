@@ -664,8 +664,8 @@ describe('duplicate detection during copy and move', () => {
   })
 
   it.each(transferCases)(
-    'shows audience warning and Copy/Move anyway (without merging) when the delegated destination has a wider audience for $mode',
-    async ({ mode, dao, label }) => {
+    'keeps the wider-audience warning and Copy/Move anyway after a failed $mode',
+    async ({ mode, dao, label, messages }) => {
       setupDuplicateInTarget()
       vi.mocked(fetchContactsPage).mockResolvedValue({
         entries: [{ addressBookId: 'shared', contact: destDuplicate }],
@@ -683,7 +683,10 @@ describe('duplicate detection during copy and move', () => {
 
       const expectedAlert = en.contacts.transfer.audienceError.replace(
         '%{fields}',
-        en.contacts.transfer.matchFields.name
+        [
+          en.contacts.transfer.matchFields.name,
+          en.contacts.transfer.matchFields.email
+        ].join(', ')
       )
       await screen.findByText(expectedAlert)
       expect(screen.getByRole('alert')).toHaveTextContent(expectedAlert)
@@ -717,13 +720,87 @@ describe('duplicate detection during copy and move', () => {
       expect(dao).not.toHaveBeenCalled()
       expect(onClose).not.toHaveBeenCalled()
 
+      vi.mocked(dao).mockRejectedValueOnce({ response: { status: 409 } })
       fireEvent.click(transferAnyway)
+      await screen.findByText(messages.error)
+      expect(screen.getByText(expectedAlert)).toBeInTheDocument()
+      expect(transferAnyway).toBeEnabled()
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(onClose).not.toHaveBeenCalled()
+
+      fireEvent.click(transferAnyway)
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      expect(dao).toHaveBeenCalledTimes(2)
+      expect(fetchAddressBookDetails).toHaveBeenCalledTimes(2)
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(transferCases)(
+    'allows $mode without merging when the initial audience lookup fails',
+    async ({ mode, dao, label, messages }) => {
+      setupDuplicateInTarget()
+      vi.mocked(fetchAddressBookDetails).mockRejectedValueOnce({
+        response: { status: 503 }
+      })
+      const { onClose } = renderDialog(mode, true, sourceContact)
+      selectDestination()
+      fireEvent.click(screen.getByRole('button', { name: label }))
+
+      await screen.findByText(en.contacts.transfer.audienceUnavailable)
+      expect(screen.getByText('+123456789')).toBeInTheDocument()
+      expect(screen.queryByText(messages.error)).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(dao).not.toHaveBeenCalled()
+      expect(onClose).not.toHaveBeenCalled()
+
+      const withoutMergeLabel =
+        mode === 'copy'
+          ? en.contacts.transfer.copyWithoutMerge
+          : en.contacts.transfer.moveWithoutMerge
+      fireEvent.click(screen.getByRole('button', { name: withoutMergeLabel }))
       await waitFor(() => expect(onClose).toHaveBeenCalled())
       expect(dao).toHaveBeenCalledTimes(1)
       expect(saveContact).not.toHaveBeenCalled()
       expect(deleteContact).not.toHaveBeenCalled()
     }
   )
+
+  it('stops a merge before writes if the audience recheck fails', async () => {
+    setupDuplicateInTarget()
+    const { onClose } = renderDialog('move', true, sourceContact)
+    selectDestination()
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    )
+    const merge = await screen.findByRole('button', {
+      name: en.contacts.merge.merge
+    })
+    vi.mocked(fetchAddressBookDetails).mockRejectedValueOnce({
+      response: { status: 403 }
+    })
+
+    fireEvent.click(merge)
+    await screen.findByText(en.contacts.transfer.audienceUnavailable)
+    expect(merge).not.toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(moveContact).not.toHaveBeenCalled()
+    expect(saveContact).not.toHaveBeenCalled()
+    expect(deleteContact).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: en.contacts.transfer.moveWithoutMerge
+      })
+    )
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(moveContact).toHaveBeenCalledTimes(1)
+  })
 
   it('keeps the move source when the saved destination is missing a merged phone', async () => {
     setupDuplicateInTarget()

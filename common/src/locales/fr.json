@@ -13,6 +13,7 @@
       "privateToSharedWarning": "Ce contact privé sera visible par tous les membres de %{book}.",
       "duplicateTitle": "Contact en double détecté",
       "audienceError": "Un contact avec le même %{fields} existe déjà dans ce carnet partagé. Continuer ne fusionnera pas.",
+      "audienceUnavailable": "Impossible de vérifier qui a accès à ces carnets d’adresses. Vous pouvez continuer sans fusionner.",
       "matchFields": {
         "name": "nom",
         "phone": "téléphone",

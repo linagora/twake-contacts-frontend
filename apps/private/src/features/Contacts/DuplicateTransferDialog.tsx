@@ -12,7 +12,10 @@ import { MergeGroupError } from '@common/features/Contacts/hooks/useDuplicateCon
 import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
 import { getAddressBookDisplayName } from '@common/features/Contacts/contactsUtils'
 import { DuplicateContactGroup } from '@common/features/Contacts/mergeContactsTypes'
-import { DuplicateMatchField } from '@common/features/Contacts/mergeContactsUtils'
+import {
+  DuplicateMatchField,
+  TransferMergeAudienceBlock
+} from '@common/features/Contacts/mergeContactsUtils'
 import { DuplicateGroupCard } from './MergeContacts/DuplicateGroupCard'
 import { formatMergeError } from './MergeContacts/formatMergeError'
 
@@ -24,6 +27,7 @@ interface DuplicateTransferDialogProps {
   transferring: boolean
   errorMessage: string | null
   mergeError: MergeGroupError | null
+  mergeAudienceBlock: TransferMergeAudienceBlock | null
   onBack: () => void
   onClose: () => void
   onConfirmWithoutMerge: () => void
@@ -67,7 +71,6 @@ interface DuplicateTransferActionsProps {
   audienceBlocked: boolean
   transferring: boolean
   withoutMergeLabel: string
-  anywayLabel: string
   onBack: () => void
   onConfirmWithoutMerge: () => void
   onConfirmMerge: () => void
@@ -77,7 +80,6 @@ const DuplicateTransferActions: React.FC<DuplicateTransferActionsProps> = ({
   audienceBlocked,
   transferring,
   withoutMergeLabel,
-  anywayLabel,
   onBack,
   onConfirmWithoutMerge,
   onConfirmMerge
@@ -95,7 +97,7 @@ const DuplicateTransferActions: React.FC<DuplicateTransferActionsProps> = ({
           disabled={transferring}
           onClick={onConfirmWithoutMerge}
         >
-          {anywayLabel}
+          {withoutMergeLabel}
         </Button>
       </Stack>
     )
@@ -137,6 +139,7 @@ export const DuplicateTransferDialog: React.FC<
   transferring,
   errorMessage,
   mergeError,
+  mergeAudienceBlock,
   onBack,
   onClose,
   onConfirmWithoutMerge,
@@ -144,10 +147,13 @@ export const DuplicateTransferDialog: React.FC<
 }) => {
   const { t } = useI18n()
   const keys = MODE_KEYS[mode]
-  const audienceBlocked = mergeError?.reason === 'audience'
-  const mergeErrorMessage = audienceBlocked
-    ? formatAudienceMessage(matchedFields, t)
-    : formatMergeError(mergeError, t)
+  const mergeErrorMessage =
+    mergeAudienceBlock === 'audience'
+      ? formatAudienceMessage(matchedFields, t)
+      : formatMergeError(
+          mergeAudienceBlock ? { reason: mergeAudienceBlock } : mergeError,
+          t
+        )
 
   return (
     <Dialog
@@ -163,7 +169,7 @@ export const DuplicateTransferDialog: React.FC<
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
-          {!audienceBlocked && (
+          {!mergeAudienceBlock && (
             <Alert severity="info">
               {t(keys.alert, {
                 book: getAddressBookDisplayName(destination, t)
@@ -172,7 +178,7 @@ export const DuplicateTransferDialog: React.FC<
           )}
           {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           {mergeErrorMessage && (
-            <Alert severity={audienceBlocked ? 'info' : 'error'}>
+            <Alert severity={mergeAudienceBlock ? 'info' : 'error'}>
               {mergeErrorMessage}
             </Alert>
           )}
@@ -187,10 +193,11 @@ export const DuplicateTransferDialog: React.FC<
       </DialogContent>
       <DialogActions>
         <DuplicateTransferActions
-          audienceBlocked={audienceBlocked}
+          audienceBlocked={Boolean(mergeAudienceBlock)}
           transferring={transferring}
-          withoutMergeLabel={t(keys.withoutMerge)}
-          anywayLabel={t(keys.anyway)}
+          withoutMergeLabel={t(
+            mergeAudienceBlock === 'audience' ? keys.anyway : keys.withoutMerge
+          )}
           onBack={onBack}
           onConfirmWithoutMerge={onConfirmWithoutMerge}
           onConfirmMerge={onConfirmMerge}

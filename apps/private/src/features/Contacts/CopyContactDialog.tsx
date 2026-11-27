@@ -77,10 +77,11 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
     sourceBook,
     destination,
     destinationId,
-    setDestinationId,
+    selectDestination,
     transferring,
     error,
     mergeError,
+    mergeAudienceBlock,
     duplicateGroup,
     canTransfer,
     transfer,
@@ -113,6 +114,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
         transferring={transferring}
         errorMessage={error ? t(keys.error) : null}
         mergeError={mergeError}
+        mergeAudienceBlock={mergeAudienceBlock}
         onBack={backToTransfer}
         onClose={onClose}
         onConfirmWithoutMerge={() => void confirmWithoutMerge()}
@@ -153,7 +155,7 @@ export const ContactTransferDialog: React.FC<ContactTransferDialogProps> = ({
               label={t('contacts.copyContact.destination')}
               value={destinationId}
               disabled={transferring}
-              onChange={event => setDestinationId(event.target.value)}
+              onChange={event => selectDestination(event.target.value)}
               slotProps={{ select: { MenuProps: addressBookMenuProps } }}
             >
               {options}

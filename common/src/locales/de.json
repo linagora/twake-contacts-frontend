@@ -13,6 +13,7 @@
       "privateToSharedWarning": "Dieser private Kontakt wird für alle in %{book} sichtbar.",
       "duplicateTitle": "Doppelter Kontakt gefunden",
       "audienceError": "Ein Kontakt mit demselben %{fields} existiert bereits in diesem geteilten Buch. Fortfahren führt nicht zusammen.",
+      "audienceUnavailable": "Es konnte nicht geprüft werden, wer auf diese Adressbücher zugreifen kann. Sie können ohne Zusammenführen fortfahren.",
       "matchFields": {
         "name": "Namen",
         "phone": "Telefon",

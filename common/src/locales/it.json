@@ -13,6 +13,7 @@
       "privateToSharedWarning": "Questo contatto privato sarà visibile a tutti in %{book}.",
       "duplicateTitle": "Contatto duplicato trovato",
       "audienceError": "Esiste già un contatto con lo stesso %{fields} in questa rubrica condivisa. Continuando non verrà unito.",
+      "audienceUnavailable": "Impossibile verificare chi ha accesso a queste rubriche. Puoi continuare senza unire i contatti.",
       "matchFields": {
         "name": "nome",
         "phone": "telefono",
