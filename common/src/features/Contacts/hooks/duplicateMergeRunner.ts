@@ -25,7 +25,8 @@ import {
   findDuplicateContactGroups,
   findDuplicatesOfContactInBook,
   MergeContactError,
-  MergedContactPlan
+  MergedContactPlan,
+  TransferMergeAudienceBlock
 } from '../mergeContactsUtils'
 
 export interface MergedContactTarget {
@@ -137,21 +138,20 @@ export async function findDestinationDuplicates(
   return findDuplicatesOfContactInBook(sourceEntry, destinationEntries)
 }
 
-export async function canMergeIntoDestinationBook(
+export async function getTransferMergeAudienceBlock(
   sourceBook: AddressBook,
   destinationBook: AddressBook
-): Promise<boolean> {
+): Promise<TransferMergeAudienceBlock | null> {
   try {
     const [sourceAudience, destinationAudience] = await Promise.all([
       fetchBookAudience(sourceBook),
       fetchBookAudience(destinationBook)
     ])
     return isAudienceWithin(destinationAudience, sourceAudience)
-  } catch (err) {
-    if (err instanceof MergeContactError && err.reason === 'audience') {
-      return false
-    }
-    throw err
+      ? null
+      : 'audience'
+  } catch {
+    return 'audienceUnavailable'
   }
 }
 
@@ -475,7 +475,9 @@ async function assertDestinationAudienceWithinGroup(
   books: AddressBook[],
   destinationAddressBookId: string
 ): Promise<void> {
-  const audiences = await fetchGroupAudiences(snapshots, books)
+  const audiences = await fetchGroupAudiences(snapshots, books).catch(() => {
+    throw new MergeContactError('audienceUnavailable')
+  })
   const destinationAudience = audiences.get(destinationAddressBookId)
   const isWiderThanAnySource =
     !destinationAudience ||

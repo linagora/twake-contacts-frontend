@@ -36,9 +36,11 @@ const normalizeMatrixId = (value: string): string => value.trim().toLowerCase()
 const isMatrixProfile = (profile: ContactSocialProfile): boolean =>
   profile.type?.trim().toLowerCase() === 'matrix'
 
+export type TransferMergeAudienceBlock = 'audience' | 'audienceUnavailable'
+
 export class MergeContactError extends Error {
   constructor(
-    public readonly reason: 'changed' | 'conflict' | 'audience',
+    public readonly reason: 'changed' | 'conflict' | TransferMergeAudienceBlock,
     public readonly conflictFields: string[] = []
   ) {
     super(reason)

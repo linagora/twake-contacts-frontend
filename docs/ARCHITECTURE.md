@@ -193,10 +193,12 @@ transfer merge rereads the cards and checks for dismissals like a merge from
 the duplicates page. If the candidates changed, the transfer dialog recomputes
 the source's duplicate group from the fresh cards and reports the error even
 when the group is gone. Later scans use a refreshed source while the same
-contact prop is current. Transfer merges also read each book's invite and ACL
-at confirmation, using the original book for delegated copies and counting its
-owner as a reader. The destination must be readable only by people who can
-already read every copy. Copy and move without merging remain available.
+contact prop is current. Transfer merges read each book's invite and ACL
+before offering Merge and again at confirmation, using the original book for
+delegated copies and counting its owner as a reader. The destination must be
+readable only by people who can already read every copy. A wider audience or
+an unavailable audience lookup leaves only the non-merge transfer available.
+Its failure leaves the audience warning visible and the transfer retryable.
 A merge during a move deletes other destination
 duplicates before deleting the original card, so a failed destination deletion
 leaves the original available for a retry.
