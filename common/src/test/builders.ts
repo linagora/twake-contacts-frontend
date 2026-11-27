@@ -201,7 +201,6 @@ export const aStoreState = (
   settings: {
     language: 'en',
     themeOverride: null,
-    contrastMode: 'default',
     ...overrides.settings
   },
   loading: { isLoading: false, ...overrides.loading }

@@ -48,7 +48,7 @@ export class ContactsPage {
   /** "+" right of the "Shared" caption */
   readonly addSharedBookButton: Locator
   readonly searchBox: Locator
-  readonly themeToggle: Locator
+  readonly themePicker: Locator
   /** Title of the list: "My contacts" or the name of the book */
   readonly heading: Locator
   readonly mineTab: Locator
@@ -88,9 +88,7 @@ export class ContactsPage {
       exact: true
     })
     this.searchBox = page.getByRole('combobox', { name: 'Search contacts...' })
-    this.themeToggle = page.getByRole('button', {
-      name: /^(Dark mode|Light mode)$/
-    })
+    this.themePicker = page.getByRole('button', { name: 'Theme', exact: true })
     this.heading = this.main.getByRole('heading', { level: 1 })
     this.mineTab = this.main.getByRole('tab', { name: 'My contacts' })
     this.sharedTab = this.main.getByRole('tab', { name: 'Shared with me' })

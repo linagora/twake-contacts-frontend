@@ -1,5 +1,4 @@
 import { createContactPath, useContactRouteParams } from './contactPath'
-import { config } from '@common/config'
 import {
   Content,
   Layout,
@@ -36,8 +35,7 @@ import { ContactSearchBar } from './ContactSearchBar'
 import { CreateAddressBookDialog } from './CreateAddressBookDialog'
 import { SubscribeAddressBookDialog } from './SubscribeAddressBookDialog'
 import { MobileTopBar } from './MobileTopBar'
-import { ThemeToggle } from '@common/components/ThemeToggle/ThemeToggle'
-import { ContrastToggle } from '@common/components/ContrastToggle/ContrastToggle'
+import { ThemePicker } from '@common/components/ThemePicker/ThemePicker'
 import { SkipLink } from './SkipLink'
 
 const MAIN_CONTENT_ID = 'main-content'
@@ -204,8 +202,7 @@ const ContactsSearchHeader: React.FC<{
     >
       <ContactSearchBar />
       <Stack direction="row" className="u-flex-items-center">
-        {isLargeScreen && <ContrastToggle />}
-        {config.DEBUG && <ThemeToggle />}
+        {isLargeScreen && <ThemePicker />}
       </Stack>
     </Stack>
   )

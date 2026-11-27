@@ -25,7 +25,7 @@ vi.mock('@common/config', async () => {
     await vi.importActual<typeof import('@common/config')>('@common/config')
   return {
     ...actual,
-    config: { ...actual.config, CONTRAST_TOGGLE: true }
+    config: { ...actual.config, THEME_PICKER: true }
   }
 })
 vi.mock('@common/features/User/UserDao', () => ({
@@ -57,7 +57,8 @@ function renderDialog(onClose = vi.fn()): Mock {
         openpaasId: 'alice',
         name: 'alice alice',
         email: 'alice@open-paas.org'
-      }
+      },
+      coreConfig: { language: null, datetime: { timeZone: null } }
     } as UserState,
     contacts: {
       addressBooks: {
@@ -98,16 +99,23 @@ describe('ShareAddressBookDialog', () => {
   })
   afterEach(() => vi.resetAllMocks())
 
-  it('offers the high contrast toggle while the dialog is open', async () => {
+  it('offers the theme picker while the dialog is open', async () => {
     mockedFetchDetails.mockResolvedValue({ members: [], isPublic: false })
     renderDialog()
 
-    const toggle = within(screen.getByRole('dialog')).getByRole('button', {
-      name: 'High contrast'
-    })
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
-    await userEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Theme' })
+    )
+    await userEvent.click(
+      screen.getByRole('menuitemradio', { name: 'High contrast' })
+    )
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Theme' })
+    )
+
+    expect(
+      screen.getByRole('menuitemradio', { name: 'High contrast' })
+    ).toHaveAttribute('aria-checked', 'true')
   })
 
   it('lists a member whose profile lookup has not answered yet', async () => {

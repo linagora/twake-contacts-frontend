@@ -246,8 +246,10 @@
     "emailButton": "E-Mail senden"
   },
   "theme": {
-    "darkMode": "Dunkelmodus",
-    "lightMode": "Hellmodus",
+    "title": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "auto": "System",
     "highContrast": "Hoher Kontrast"
   },
   "twakeBar": {

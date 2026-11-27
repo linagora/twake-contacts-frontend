@@ -246,8 +246,10 @@
     "emailButton": "Send email"
   },
   "theme": {
-    "darkMode": "Dark mode",
-    "lightMode": "Light mode",
+    "title": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "System",
     "highContrast": "High contrast"
   },
   "twakeBar": {

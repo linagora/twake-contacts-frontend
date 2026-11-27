@@ -9,11 +9,7 @@ import { NoContactsEmptyState } from './NoContactsEmptyState'
 
 const renderEmptyState = (themeMode: ThemeMode): RenderResult => {
   const store = setupStore({
-    settings: {
-      language: 'en',
-      themeOverride: themeMode,
-      contrastMode: 'default'
-    }
+    settings: { language: 'en', themeOverride: themeMode }
   })
   return render(
     <Provider store={store}>

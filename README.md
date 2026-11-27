@@ -247,8 +247,8 @@ with `npm run config:doc` (a test fails when it drifts).
 | `SENTRY_DSN` | optional | Sentry DSN. Sentry is disabled when omitted |
 | `SENTRY_ENVIRONMENT` | optional | Sentry environment of the reported events (e.g. `production`, `staging`) |
 | `APP_VERSION` | optional | Version of the app, sent to Sentry as the release |
-| `DEBUG` | `false` | Shows the theme toggle and disables the Nginx browser cache when `true` |
-| `CONTRAST_TOGGLE` | `false` | Shows the high-contrast toggle when `true` |
+| `DEBUG` | `false` | Shows the theme picker and disables the Nginx browser cache when `true` |
+| `THEME_PICKER` | `false` | Shows the theme picker (light, dark, system, high contrast) on every screen when `true` |
 | `LANG` | `"en"` | Default language, overridden by the user configuration |
 <!-- config:end -->
 

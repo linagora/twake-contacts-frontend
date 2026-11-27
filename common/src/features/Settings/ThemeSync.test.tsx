@@ -3,7 +3,7 @@ import { aStoreState } from '@common/test/builders'
 import { TwakeMuiThemeProvider, useColorScheme } from '@linagora/twake-mui'
 import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import type { ContrastMode, ThemeMode } from './SettingsSlice'
+import type { ThemeChoice } from './SettingsSlice'
 import { ThemeSync } from './ThemeSync'
 
 function ModeProbe(): React.JSX.Element {
@@ -20,12 +20,10 @@ function ModeProbe(): React.JSX.Element {
 
 const renderSync = ({
   sharedTheme,
-  themeOverride = null,
-  contrastMode = 'default'
+  themeOverride = null
 }: {
   sharedTheme?: unknown
-  themeOverride?: ThemeMode | null
-  contrastMode?: ContrastMode
+  themeOverride?: ThemeChoice | null
 }): void => {
   const store = setupStore(
     aStoreState({
@@ -36,7 +34,7 @@ const renderSync = ({
           theme: sharedTheme
         }
       },
-      settings: { language: 'en', themeOverride, contrastMode }
+      settings: { language: 'en', themeOverride }
     })
   )
   render(
@@ -71,14 +69,14 @@ describe('ThemeSync', () => {
     expect(await screen.findByText('light')).toBeInTheDocument()
   })
 
-  it('lets the debug toggle win over the shared theme', async () => {
+  it('lets the debug theme picker win over the shared theme', async () => {
     renderSync({ sharedTheme: 'dark', themeOverride: 'light' })
 
     expect(await screen.findByText('light')).toBeInTheDocument()
   })
 
   it('applies the twake-mui contrast scheme in high contrast', async () => {
-    renderSync({ sharedTheme: 'dark', contrastMode: 'more' })
+    renderSync({ sharedTheme: 'dark', themeOverride: 'contrast' })
 
     expect(await screen.findByText('contrast')).toBeInTheDocument()
   })

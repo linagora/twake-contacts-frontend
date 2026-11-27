@@ -97,7 +97,14 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 
 ## 2026-11-27, [UI] High contrast is the twake-mui `contrast` scheme, with no override of its own
 
-- Decision: high contrast is the `contrast` scheme of twake-mui 22 as it ships, applied through `useApplyColorScheme`: the app defines no theme options or style overrides of its own (the high-contrast theme options of #527 are removed).
+- Decision: replaces, for the high contrast, the decision of 2026-11-27, "The theme comes from the account, the debug toggles store nothing". High contrast is the `contrast` scheme of twake-mui 22 as it ships, applied through `useApplyColorScheme`: the app defines no theme options or style overrides of its own (the high-contrast theme options of #527 are removed). It is picked in the theme picker, which replaces the high-contrast toggle; with no theme picked on the page, the OS "more contrast" or forced-colors setting still opens the page in it.
 - Decided by: Camille Moussu, in a Claude Code session on branch `ui-improvements`, 2026-11-27
-- Why: the scheme lives in the design system, so every Twake app shows the same high contrast.
-- Scope: both, `ThemeSync` of @contacts/common; `highContrastTheme.ts` is deleted.
+- Why: the contrast scheme belongs to the design system, so every Twake app shows the same one, and the users who need it keep reaching it.
+- Scope: both, `ThemeSync` and `SettingsSlice` of @contacts/common; `highContrastTheme.ts`, `ContrastToggle` and `contrastMode.ts` are deleted.
+
+## 2026-11-27, [UX] The theme picker replaces the theme and high-contrast toggles, and stores nothing
+
+- Decision: a theme picker offering Light, Dark, System and High contrast (the twake-mui schemes `light`, `dark`, `auto`, `contrast`) replaces the debug theme toggle and the high-contrast toggle. It sits where the high-contrast toggle was: next to the search bar on large screens, in the mobile top bar and in the share dialog. It is shown when `THEME_PICKER` (which replaces `CONTRAST_TOGGLE`) or `DEBUG` is `true`. Like the toggles it replaces (decision of 2026-11-27, "The theme comes from the account, the debug toggles store nothing"), it changes the open page only: it never writes the `theme` of the `core` user configuration, nor `localStorage`.
+- Decided by: Camille Moussu, in a Claude Code session on branch `ui-improvements`, 2026-11-27
+- Why: one control reaches every twake-mui scheme, without removing the high contrast the toggle gave, and without changing the theme the user shares with the other Twake apps.
+- Scope: both, `ThemePicker` and `ThemeSync` of @contacts/common, the contacts page, the mobile top bar and the share dialog of @contacts/private; `ThemeToggle` and `ContrastToggle` are deleted.
