@@ -453,7 +453,10 @@ function partitionTransferSnapshots(
   snapshots: ContactSnapshot[],
   sourceEntry: DuplicateContactEntry,
   refreshGroup: ExecuteTransferMergeParams['refreshGroup']
-): { sourceSnapshot: ContactSnapshot; destinationSnapshots: ContactSnapshot[] } {
+): {
+  sourceSnapshot: ContactSnapshot
+  destinationSnapshots: ContactSnapshot[]
+} {
   const sourceSnapshot = snapshots.find(entry =>
     isMatchingEntry(entry, sourceEntry)
   )

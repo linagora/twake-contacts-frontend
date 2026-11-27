@@ -103,10 +103,16 @@ export const useContactTransfer = ({
     useState<DuplicateContactGroup | null>(null)
   const [refreshedSource, setRefreshedSource] = useState<RefreshedSourceState>()
 
-  const sourceEntry = resolveSourceEntry(refreshedSource, addressBookId, contact)
+  const sourceEntry = resolveSourceEntry(
+    refreshedSource,
+    addressBookId,
+    contact
+  )
   const destination = books.find(book => book.id === destinationId)
   const sourceBook = addressBooks[addressBookId]
-  const canTransfer = Boolean(sourceBook?.canWrite && destination && !transferring)
+  const canTransfer = Boolean(
+    sourceBook?.canWrite && destination && !transferring
+  )
 
   const executeTransfer = async (
     source: AddressBookWithContacts
