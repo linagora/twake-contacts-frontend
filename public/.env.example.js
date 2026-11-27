@@ -12,7 +12,7 @@ var DAV_BASE_URL = 'https://dav.example.com'
 var WEBSOCKET_URL = 'wss://openpaas.example.com'
 var CONTACTS_NS = 'http://open-paas.org/contacts'
 var DEBUG = false
-var CONTRAST_TOGGLE = false
+var THEME_PICKER = false
 var LANG = 'en'
 
 // Sentry (optional): omit SENTRY_DSN to disable it

@@ -3,8 +3,6 @@ import { useAppSelector } from '@common/app/hooks'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { Loading } from '@common/components/Loading/Loading'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
-import { highContrastThemeOptions } from '@common/features/Settings/highContrastTheme'
-import { selectIsHighContrast } from '@common/features/Settings/themeSelectors'
 import { ThemeSync } from '@common/features/Settings/ThemeSync'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
 import { Box, Stack, TwakeMuiThemeProvider } from '@linagora/twake-mui'
@@ -22,7 +20,6 @@ export default function App(): React.JSX.Element {
   const appLoading = useAppSelector(state => state.loading.isLoading)
   const userLanguage = useAppSelector(state => state.user.coreConfig.language)
   const settingsLanguage = useAppSelector(state => state.settings.language)
-  const isHighContrast = useAppSelector(selectIsHighContrast)
   const savedLang = localStorage.getItem('lang')
   const defaultLang = config.LANG
 
@@ -38,9 +35,7 @@ export default function App(): React.JSX.Element {
   useInitializeApp()
 
   return (
-    <TwakeMuiThemeProvider
-      themeOptions={isHighContrast ? highContrastThemeOptions : undefined}
-    >
+    <TwakeMuiThemeProvider>
       <ThemeSync />
       <I18n
         dictRequire={(lang: keyof typeof locale) => locale[lang]}

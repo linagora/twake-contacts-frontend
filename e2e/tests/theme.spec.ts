@@ -1,26 +1,47 @@
-import { LoginPage } from '../pages'
+import type { Page } from '@playwright/test'
+import { LoginPage, type ContactsPage } from '../pages'
 import { expect, test } from '../support/fixtures'
 import { SideServiceClient } from '../support/sideService'
 
-test.describe('THEME dark mode', () => {
-  test('THEME-01 toggle dark mode and back', async ({ page, user }) => {
+const pickTheme = async (
+  page: Page,
+  contacts: ContactsPage,
+  name: string
+): Promise<void> => {
+  await contacts.themePicker.click()
+  await page.getByRole('menuitemradio', { name, exact: true }).click()
+}
+
+test.describe('THEME theme picker', () => {
+  test('THEME-01 pick each theme', async ({ page, user }) => {
     const contacts = await new LoginPage(page).loginAs(user)
     const html = page.locator('html')
     await expect(html).toHaveAttribute('data-theme', 'light')
 
-    await contacts.themeToggle.hover()
-    await expect(page.getByRole('tooltip', { name: 'Dark mode' })).toBeVisible()
-    await contacts.themeToggle.click()
+    await contacts.themePicker.hover()
+    await expect(page.getByRole('tooltip', { name: 'Theme' })).toBeVisible()
 
+    await pickTheme(page, contacts, 'Dark')
     await expect(html).toHaveAttribute('data-theme', 'dark')
-    await expect(contacts.themeToggle).toHaveAccessibleName('Light mode')
 
-    await contacts.themeToggle.click()
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await pickTheme(page, contacts, 'System')
+    await expect(html).toHaveAttribute('data-theme', 'dark')
+    await page.emulateMedia({ colorScheme: 'light' })
     await expect(html).toHaveAttribute('data-theme', 'light')
-    await expect(contacts.themeToggle).toHaveAccessibleName('Dark mode')
+
+    await pickTheme(page, contacts, 'High contrast')
+    await expect(html).toHaveAttribute('data-theme', 'contrast')
+
+    await contacts.themePicker.click()
+    await expect(
+      page.getByRole('menuitemradio', { name: 'High contrast' })
+    ).toHaveAttribute('aria-checked', 'true')
+    await page.getByRole('menuitemradio', { name: 'Light' }).click()
+    await expect(html).toHaveAttribute('data-theme', 'light')
   })
 
-  test('THEME-02 the account theme applies, the toggle is not kept after a reload', async ({
+  test('THEME-02 the account theme applies, the picker is not kept after a reload', async ({
     page,
     user
   }) => {
@@ -31,10 +52,9 @@ test.describe('THEME dark mode', () => {
     await contacts.reload()
 
     await expect(html).toHaveAttribute('data-theme', 'dark')
-    await expect(contacts.themeToggle).toHaveAccessibleName('Light mode')
 
     // A debug switch: for this page only, nothing is stored
-    await contacts.themeToggle.click()
+    await pickTheme(page, contacts, 'Light')
     await expect(html).toHaveAttribute('data-theme', 'light')
 
     await contacts.reload()

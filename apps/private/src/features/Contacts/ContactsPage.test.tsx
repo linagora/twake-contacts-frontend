@@ -27,7 +27,7 @@ vi.mock('@common/config', async () => {
     await vi.importActual<typeof import('@common/config')>('@common/config')
   return {
     ...actual,
-    config: { ...actual.config, CONTRAST_TOGGLE: true }
+    config: { ...actual.config, THEME_PICKER: true }
   }
 })
 
@@ -49,7 +49,10 @@ function renderPage(
   book1Overrides: Partial<AddressBookWithContacts> = {}
 ): ReturnType<typeof setupStore> {
   const store = setupStore({
-    user: { userData: {} } as UserState,
+    user: {
+      userData: {},
+      coreConfig: { language: null, datetime: { timeZone: null } }
+    } as UserState,
     contacts: {
       addressBooks: classifyAddressBooks({
         [DEFAULT_ADDRESS_BOOK_ID]: {
@@ -104,12 +107,12 @@ function renderPage(
   return store
 }
 
-describe('ContactsPage high contrast toggle', () => {
-  it('is always rendered next to the search bar', () => {
+describe('ContactsPage theme picker', () => {
+  it('is rendered next to the search bar', () => {
     renderPage()
 
     expect(
-      screen.getByRole('button', { name: en.theme.highContrast })
+      screen.getByRole('button', { name: en.theme.title })
     ).toBeInTheDocument()
   })
 })

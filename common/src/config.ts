@@ -176,12 +176,12 @@ export const CONFIG_SCHEMA = {
   DEBUG: withDefault(
     boolean,
     false,
-    'Shows the theme toggle and disables the Nginx browser cache when `true`'
+    'Shows the theme picker and disables the Nginx browser cache when `true`'
   ),
-  CONTRAST_TOGGLE: withDefault(
+  THEME_PICKER: withDefault(
     boolean,
     false,
-    'Shows the high-contrast toggle when `true`'
+    'Shows the theme picker (light, dark, system, high contrast) on every screen when `true`'
   ),
   LANG: withDefault(
     nonEmptyString,

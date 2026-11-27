@@ -161,8 +161,8 @@ centring of VIEW-09, truncation looks of LIST-12 / VIEW-07, NAV-09), and the Dom
 
 ## Theme
 
-- [x] THEME-01 (P2) Toggle dark mode and back — `theme.spec.ts`
-- [x] THEME-02 (P2) The account theme applies, the toggle is not kept after a reload — `theme.spec.ts`
+- [x] THEME-01 (P2) Pick each theme: light, dark, system and high contrast — `theme.spec.ts`
+- [x] THEME-02 (P2) The account theme applies, the picker is not kept after a reload — `theme.spec.ts`
 - [ ] THEME-03 (P3) Dark mode on every screen
 
 ## Loading states

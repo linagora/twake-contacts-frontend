@@ -1,7 +1,7 @@
 import { config } from '@common/config'
 import { createAppSlice } from '@common/app/createAppSlice'
 import { PayloadAction } from '@reduxjs/toolkit'
-import { type ContrastMode, readInitialContrastMode } from './contrastMode'
+import { prefersMoreContrast } from './systemContrast'
 
 export type ThemeMode = 'light' | 'dark'
 
@@ -11,12 +11,15 @@ export type ThemeSetting = ThemeMode | 'auto'
 export const isThemeSetting = (value: unknown): value is ThemeSetting =>
   value === 'light' || value === 'dark' || value === 'auto'
 
+/** The twake-mui schemes: the shared themes, and the high contrast */
+export const THEME_CHOICES = ['light', 'dark', 'auto', 'contrast'] as const
+
+export type ThemeChoice = (typeof THEME_CHOICES)[number]
+
 export interface SettingsState {
   language: string
-  /** Set by the debug toggle, for this page only: never stored */
-  themeOverride: ThemeMode | null
-  /** Set by the debug toggle, for this page only: never stored */
-  contrastMode: ContrastMode
+  /** Set by the theme picker, for this page only: never stored */
+  themeOverride: ThemeChoice | null
 }
 
 const savedLang = localStorage.getItem('lang')
@@ -24,8 +27,8 @@ const defaultLang = savedLang ?? config.LANG
 
 const initialState: SettingsState = {
   language: defaultLang,
-  themeOverride: null,
-  contrastMode: readInitialContrastMode()
+  // The OS asking for more contrast opens the page in the contrast scheme
+  themeOverride: prefersMoreContrast() ? 'contrast' : null
 }
 
 const SettingsSlice = createAppSlice({
@@ -37,20 +40,12 @@ const SettingsSlice = createAppSlice({
       localStorage.setItem('lang', action.payload)
     }),
     setThemeOverride: create.reducer(
-      (state, action: PayloadAction<ThemeMode>) => {
+      (state, action: PayloadAction<ThemeChoice | null>) => {
         state.themeOverride = action.payload
-      }
-    ),
-    setContrastMode: create.reducer(
-      (state, action: PayloadAction<ContrastMode>) => {
-        state.contrastMode = action.payload
       }
     )
   })
 })
 
-export type { ContrastMode }
-
-export const { setLanguage, setThemeOverride, setContrastMode } =
-  SettingsSlice.actions
+export const { setLanguage, setThemeOverride } = SettingsSlice.actions
 export default SettingsSlice.reducer

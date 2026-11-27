@@ -146,15 +146,14 @@ describe('loadConfig', () => {
     ['true', true],
     [false, false],
     ['false', false]
-  ])('reads CONTRAST_TOGGLE = %j as %j', (raw, expected) => {
+  ])('reads THEME_PICKER = %j as %j', (raw, expected) => {
     expect(
-      loadConfig({ ...VALID_SOURCE, CONTRAST_TOGGLE: raw }).config
-        .CONTRAST_TOGGLE
+      loadConfig({ ...VALID_SOURCE, THEME_PICKER: raw }).config.THEME_PICKER
     ).toBe(expected)
   })
 
-  it('defaults CONTRAST_TOGGLE to false when omitted', () => {
-    expect(loadConfig(VALID_SOURCE).config.CONTRAST_TOGGLE).toBe(false)
+  it('defaults THEME_PICKER to false when omitted', () => {
+    expect(loadConfig(VALID_SOURCE).config.THEME_PICKER).toBe(false)
   })
 
   it('reports an unsupported SSO_RESPONSE_TYPE as invalid', () => {

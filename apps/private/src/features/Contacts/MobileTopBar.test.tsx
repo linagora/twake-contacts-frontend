@@ -20,7 +20,7 @@ vi.mock('@common/config', async () => {
     await vi.importActual<typeof import('@common/config')>('@common/config')
   return {
     ...actual,
-    config: { ...actual.config, CONTRAST_TOGGLE: true }
+    config: { ...actual.config, THEME_PICKER: true }
   }
 })
 
@@ -40,7 +40,10 @@ vi.mock('@linagora/twake-mui', async () => {
 })
 
 const defaultPreloadedState = {
-  user: { userData: { openpaasId: 'u1' } } as UserState,
+  user: {
+    userData: { openpaasId: 'u1' },
+    coreConfig: { language: null, datetime: { timeZone: null } }
+  } as UserState,
   contacts: {
     addressBooks: byId(theDefaultBook({ name: 'My contacts' })),
     listings: {},
@@ -82,13 +85,13 @@ const renderMobileTopBar = (
 
 describe('MobileTopBar', () => {
   it.each([true, false])(
-    'renders the high contrast toggle (address book page: %s)',
+    'renders the theme picker (address book page: %s)',
     isAddressBookPage => {
       renderMobileTopBar({ isAddressBookPage })
 
       expect(
-        screen.getByRole('button', { name: en.theme.highContrast })
-      ).toHaveAttribute('aria-pressed', 'false')
+        screen.getByRole('button', { name: en.theme.title })
+      ).toBeInTheDocument()
     }
   )
 

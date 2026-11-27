@@ -123,23 +123,25 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             <Icon icon={Dots} />
           </IconButton>
         </Tooltip>
-        <ContactRowDropdownMenu
-          contact={contact}
-          anchorEl={anchorEl}
-          onClose={handleMenuClose}
-          onEdit={handleEdit}
-          onOpenCopyDialog={() => {
-            setAnchorEl(null)
-            setOpenDialog('copy')
-          }}
-          onOpenMoveDialog={() => {
-            setAnchorEl(null)
-            setOpenDialog('move')
-          }}
-          onOpenDeleteDialog={handleOpenDeleteDialog}
-          onExport={book ? handleExport : undefined}
-          readOnly={isReadOnly}
-        />
+        {isMenuOpen && (
+          <ContactRowDropdownMenu
+            contact={contact}
+            anchorEl={anchorEl}
+            onClose={handleMenuClose}
+            onEdit={handleEdit}
+            onOpenCopyDialog={() => {
+              setAnchorEl(null)
+              setOpenDialog('copy')
+            }}
+            onOpenMoveDialog={() => {
+              setAnchorEl(null)
+              setOpenDialog('move')
+            }}
+            onOpenDeleteDialog={handleOpenDeleteDialog}
+            onExport={book ? handleExport : undefined}
+            readOnly={isReadOnly}
+          />
+        )}
       </Stack>
       {openDialog === 'copy' && (
         <CopyContactDialog

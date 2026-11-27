@@ -246,8 +246,10 @@
     "emailButton": "Gửi email"
   },
   "theme": {
-    "darkMode": "Chế độ tối",
-    "lightMode": "Chế độ sáng",
+    "title": "Giao diện",
+    "light": "Sáng",
+    "dark": "Tối",
+    "auto": "Theo hệ thống",
     "highContrast": "Độ tương phản cao"
   },
   "twakeBar": {
