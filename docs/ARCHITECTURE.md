@@ -163,9 +163,10 @@ merge action. The
 update (via `contact.etag` without `edits`, so it never rebases) and deletes
 carry `If-Match` through the thunks to avoid overwriting or deleting a
 concurrent edit after the reread. Before deleting any sources, the merge reads
-the saved target again and requires a strong ETag; a missing or unreadable target
-leaves all sources in place. The read is not a transaction: a later deletion of
-the target by another client remains possible. A merge can finish only
+the saved target again, requires a strong ETag, and compares the visible fields
+with the plan, allowing repeated values to be reordered. A missing, unreadable
+or changed target leaves all sources in place. Edits or deletion of the target by
+another client can still occur after this read. A merge can finish only
 partially. Retries reread the candidates, and a delete returning 404 is already
 complete. Conflicting single-valued or opaque vCard details block deletion.
 The merge keeps REV and PRODID from the primary card when present. It preserves
@@ -186,6 +187,19 @@ including through transitive matches. Merges also check fresh card reads for
 dismissals and preserve unrelated markers on the survivor. Dismissal uses
 conditional updates, can finish partially, and retries skip markers that are
 already saved.
+
+Copy and move check for duplicates in the chosen destination. Confirming a
+transfer merge rereads the cards and checks for dismissals like a merge from
+the duplicates page. If the candidates changed, the transfer dialog recomputes
+the source's duplicate group from the fresh cards and reports the error even
+when the group is gone. Later scans use a refreshed source while the same
+contact prop is current. Transfer merges also read each book's invite and ACL
+at confirmation, using the original book for delegated copies and counting its
+owner as a reader. The destination must be readable only by people who can
+already read every copy. Copy and move without merging remain available.
+A merge during a move deletes other destination
+duplicates before deleting the original card, so a failed destination deletion
+leaves the original available for a retry.
 
 ## Authentication
 

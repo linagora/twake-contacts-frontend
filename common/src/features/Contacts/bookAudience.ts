@@ -1,10 +1,10 @@
 import { userData } from '../User/userDataTypes'
 
-/** Who, besides its owner, can read an address book. */
+/** Who can read an address book. A common owner may be omitted when comparing books. */
 export interface BookAudience {
   /** Published: every authenticated user can read it. */
   isPublic: boolean
-  /** Keys of the users the book is shared with. */
+  /** Keys of the users who can read the book. */
   members: string[]
 }
 

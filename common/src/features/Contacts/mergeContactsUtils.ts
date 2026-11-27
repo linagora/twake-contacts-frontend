@@ -250,6 +250,80 @@ export function findDuplicateContactGroups(
   return groupEntriesByRoot(entries, find)
 }
 
+export type DuplicateMatchField = 'name' | 'phone' | 'email' | 'matrixId'
+
+const DUPLICATE_MATCH_FIELDS: readonly DuplicateMatchField[] = [
+  'name',
+  'phone',
+  'email',
+  'matrixId'
+]
+
+const extractNormalizedKeys = <T>(
+  items: T[] | undefined,
+  normalize: (item: T) => string
+): string[] => (items ? items.map(normalize).filter(Boolean) : [])
+
+const collectContactMatchKeys = (
+  contact: Contact
+): Record<DuplicateMatchField, string[]> => {
+  const name = normalizeName(contact.displayName)
+  return {
+    name: name ? [name] : [],
+    phone: extractNormalizedKeys(contact.phones, p => normalizePhone(p.value)),
+    email: extractNormalizedKeys(contact.emails, e => normalizeEmail(e.value)),
+    matrixId: extractNormalizedKeys(contact.socialProfiles, p =>
+      isMatrixProfile(p) ? normalizeMatrixId(p.value) : ''
+    )
+  }
+}
+
+const hasCommonKey = (left: string[], right: string[]): boolean => {
+  if (left.length === 0 || right.length === 0) return false
+  const rightSet = new Set(right)
+  return left.some(key => rightSet.has(key))
+}
+
+/**
+ * Returns the duplicate-matching criteria (name, phone, email, matrixId)
+ * that `source` shares with at least one contact in `others`.
+ */
+export function getDuplicateMatchFields(
+  source: Contact,
+  others: Contact[]
+): DuplicateMatchField[] {
+  const sourceKeys = collectContactMatchKeys(source)
+  const otherKeys = others.map(collectContactMatchKeys)
+  return DUPLICATE_MATCH_FIELDS.filter(field =>
+    otherKeys.some(other => hasCommonKey(sourceKeys[field], other[field]))
+  )
+}
+
+export function findDuplicatesOfContactInBook(
+  sourceEntry: DuplicateContactEntry,
+  destinationEntries: DuplicateContactEntry[]
+): DuplicateContactGroup | null {
+  const candidates = destinationEntries.filter(
+    entry =>
+      !(
+        entry.addressBookId === sourceEntry.addressBookId &&
+        entry.contact.id === sourceEntry.contact.id
+      )
+  )
+  if (candidates.length === 0) return null
+
+  const groups = findDuplicateContactGroups([sourceEntry, ...candidates])
+  return (
+    groups.find(group =>
+      group.entries.some(
+        entry =>
+          entry.addressBookId === sourceEntry.addressBookId &&
+          entry.contact.id === sourceEntry.contact.id
+      )
+    ) ?? null
+  )
+}
+
 export interface MergedContactPlan {
   targetAddressBookId: string
   updatedContact: Contact
@@ -263,7 +337,7 @@ const contactInfoScore = (contact: Contact): number =>
 
 const findMostCompleteIndex = (
   entries: DuplicateContactEntry[],
-  candidates: number[]
+  candidates: number[] = entries.map((_, index) => index)
 ): number =>
   candidates.reduce((best, index) =>
     contactInfoScore(entries[index].contact) >
@@ -422,26 +496,11 @@ function mergeSingleValuedFields(
   }
 }
 
-/**
- * Picks, among the copies whose book has the narrowest audience, the most
- * complete contact (most phone, email, and Matrix ID entries) to update, keeps
- * its name and existing details, appends any non-duplicate
- * phones/emails/social profiles and other compatible fields from the other
- * contacts. Conflicting single-valued fields require manual reconciliation
- * before any contact can be marked for deletion. A group whose books have no
- * narrowest audience (two books shared with different users) is not merged.
- *
- * @param audiences who can read each book of the group; a book missing from
- * it is private to its owner
- */
-export function buildMergedContactPlan(
-  entries: DuplicateContactEntry[],
-  audiences: ReadonlyMap<string, BookAudience> = new Map()
+function mergeEntriesIntoPrimary(
+  primary: DuplicateContactEntry,
+  duplicates: DuplicateContactEntry[],
+  toDeleteEntries: DuplicateContactEntry[]
 ): MergedContactPlan {
-  const primaryIndex = findTargetIndex(entries, audiences)
-  const primary = entries[primaryIndex]
-  const duplicates = entries.filter((_, index) => index !== primaryIndex)
-
   const phones = mergeUniqueEntries(
     primary.contact.phones ?? [],
     duplicates.flatMap(d => d.contact.phones ?? []),
@@ -480,9 +539,55 @@ export function buildMergedContactPlan(
   return {
     targetAddressBookId: primary.addressBookId,
     updatedContact,
-    toDelete: duplicates.map(d => ({
+    toDelete: toDeleteEntries.map(d => ({
       addressBookId: d.addressBookId,
       contactId: d.contact.id
     }))
   }
+}
+
+/**
+ * Picks, among the copies whose book has the narrowest audience, the most
+ * complete contact (most phone, email, and Matrix ID entries) to update, keeps
+ * its name and existing details, appends any non-duplicate
+ * phones/emails/social profiles and other compatible fields from the other
+ * contacts. Conflicting single-valued fields require manual reconciliation
+ * before any contact can be marked for deletion. A group whose books have no
+ * narrowest audience (two books shared with different users) is not merged.
+ *
+ * @param audiences who can read each book of the group; a book missing from
+ * it is private to its owner
+ */
+export function buildMergedContactPlan(
+  entries: DuplicateContactEntry[],
+  audiences: ReadonlyMap<string, BookAudience> = new Map()
+): MergedContactPlan {
+  const primaryIndex = findTargetIndex(entries, audiences)
+  const primary = entries[primaryIndex]
+  const duplicates = entries.filter((_, index) => index !== primaryIndex)
+
+  return mergeEntriesIntoPrimary(primary, duplicates, duplicates)
+}
+
+/**
+ * Merges a transferred (copied or moved) contact into the most complete
+ * duplicate contact in the destination address book. In a move, the source
+ * is deleted last so destination cleanup can be retried if it fails.
+ */
+export function buildMergedContactPlanIntoDestination(
+  sourceEntry: DuplicateContactEntry,
+  destinationEntries: DuplicateContactEntry[],
+  deleteSource: boolean
+): MergedContactPlan {
+  const primaryIndex = findMostCompleteIndex(destinationEntries)
+  const primary = destinationEntries[primaryIndex]
+  const otherDestinations = destinationEntries.filter(
+    (_, index) => index !== primaryIndex
+  )
+  const sourcesToMerge = [sourceEntry, ...otherDestinations]
+  const toDelete = deleteSource
+    ? [...otherDestinations, sourceEntry]
+    : otherDestinations
+
+  return mergeEntriesIntoPrimary(primary, sourcesToMerge, toDelete)
 }

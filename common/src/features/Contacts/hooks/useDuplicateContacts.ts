@@ -36,7 +36,7 @@ export interface MergeGroupError {
   conflictFields?: string[]
 }
 
-const toMergeGroupError = (
+export const toMergeGroupError = (
   error: unknown,
   fallback: 'error' | 'dismiss' = 'error'
 ): MergeGroupError => {
