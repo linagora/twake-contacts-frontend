@@ -212,7 +212,7 @@ test.describe('NAV sidebar and navigation', () => {
       'Merge'
     ])
     await expect(contacts.bookEntry('QA Book')).toContainText(owner.displayName)
-    await contacts.book('QA Book').hover()
+    await contacts.book('QA Book').getByText('QA Book').hover()
     await expect(page.getByRole('tooltip', { name: 'QA Book' })).toBeVisible()
   })
 
