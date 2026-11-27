@@ -10,7 +10,21 @@
       "currentlyIn": "%{name} · actualmente en %{book}",
       "open": "Abrir",
       "sharedToSharedWarning": "Visible para todos en %{book}.",
-      "privateToSharedWarning": "Este contacto privado será visible para todos en %{book}."
+      "privateToSharedWarning": "Este contacto privado será visible para todos en %{book}.",
+      "duplicateTitle": "Contacto duplicado encontrado",
+      "audienceError": "Ya existe un contacto con el mismo %{fields} en esta libreta compartida. Continuar no fusionará.",
+      "matchFields": {
+        "name": "nombre",
+        "phone": "teléfono",
+        "email": "correo",
+        "matrixId": "ID de Matrix"
+      },
+      "duplicateCopyAlert": "El contacto copiado se fusionará con el contacto existente en %{book}.",
+      "duplicateMoveAlert": "El contacto movido se fusionará con el contacto existente en %{book}.",
+      "copyWithoutMerge": "Copiar sin fusionar",
+      "moveWithoutMerge": "Mover sin fusionar",
+      "copyAnyway": "Copiar de todos modos",
+      "moveAnyway": "Mover de todos modos"
     },
     "copyContact": {
       "success": "“%{name}” copiado a %{book}",

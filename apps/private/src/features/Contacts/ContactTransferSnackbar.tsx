@@ -41,7 +41,7 @@ export const ContactTransferSnackbar: React.FC = () => {
         severity="success"
         action={
           <>
-            <Button color="inherit" size="small" onClick={handleOpen}>
+            <Button variant="contained" color="success" size="small" onClick={handleOpen}>
               {t('contacts.transfer.open')}
             </Button>
             <IconButton

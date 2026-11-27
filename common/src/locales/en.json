@@ -10,7 +10,21 @@
       "currentlyIn": "%{name} · currently in %{book}",
       "open": "Open",
       "sharedToSharedWarning": "Visible to everyone in %{book}.",
-      "privateToSharedWarning": "This private contact will be visible to everyone in %{book}."
+      "privateToSharedWarning": "This private contact will be visible to everyone in %{book}.",
+      "duplicateTitle": "Duplicate contact found",
+      "audienceError": "A contact with the same %{fields} already exists in this shared book. Continuing won’t merge.",
+      "matchFields": {
+        "name": "name",
+        "phone": "phone",
+        "email": "email",
+        "matrixId": "Matrix ID"
+      },
+      "duplicateCopyAlert": "The copied contact will be merged into the existing contact in %{book}.",
+      "duplicateMoveAlert": "The moved contact will be merged into the existing contact in %{book}.",
+      "copyWithoutMerge": "Copy without merging",
+      "moveWithoutMerge": "Move without merging",
+      "copyAnyway": "Copy anyway",
+      "moveAnyway": "Move anyway"
     },
     "copyContact": {
       "success": "“%{name}” copied to %{book}",

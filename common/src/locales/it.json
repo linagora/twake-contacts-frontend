@@ -10,7 +10,21 @@
       "currentlyIn": "%{name} · attualmente in %{book}",
       "open": "Apri",
       "sharedToSharedWarning": "Visibile a tutti in %{book}.",
-      "privateToSharedWarning": "Questo contatto privato sarà visibile a tutti in %{book}."
+      "privateToSharedWarning": "Questo contatto privato sarà visibile a tutti in %{book}.",
+      "duplicateTitle": "Contatto duplicato trovato",
+      "audienceError": "Esiste già un contatto con lo stesso %{fields} in questa rubrica condivisa. Continuando non verrà unito.",
+      "matchFields": {
+        "name": "nome",
+        "phone": "telefono",
+        "email": "email",
+        "matrixId": "ID Matrix"
+      },
+      "duplicateCopyAlert": "Il contatto copiato verrà unito al contatto esistente in %{book}.",
+      "duplicateMoveAlert": "Il contatto spostato verrà unito al contatto esistente in %{book}.",
+      "copyWithoutMerge": "Copia senza unire",
+      "moveWithoutMerge": "Sposta senza unire",
+      "copyAnyway": "Copia comunque",
+      "moveAnyway": "Sposta comunque"
     },
     "copyContact": {
       "success": "“%{name}” copiato in %{book}",

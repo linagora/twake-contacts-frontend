@@ -10,7 +10,21 @@
       "currentlyIn": "%{name} · сейчас в «%{book}»",
       "open": "Открыть",
       "sharedToSharedWarning": "Видно всем участникам «%{book}».",
-      "privateToSharedWarning": "Этот личный контакт станет виден всем участникам «%{book}»."
+      "privateToSharedWarning": "Этот личный контакт станет виден всем участникам «%{book}».",
+      "duplicateTitle": "Найден дубликат контакта",
+      "audienceError": "Контакт с таким же %{fields} уже есть в этой общей книге. Продолжение не объединит контакты.",
+      "matchFields": {
+        "name": "именем",
+        "phone": "телефоном",
+        "email": "эл. почтой",
+        "matrixId": "Matrix ID"
+      },
+      "duplicateCopyAlert": "Скопированный контакт будет объединён с существующим контактом в «%{book}».",
+      "duplicateMoveAlert": "Перемещённый контакт будет объединён с существующим контактом в «%{book}».",
+      "copyWithoutMerge": "Копировать без объединения",
+      "moveWithoutMerge": "Переместить без объединения",
+      "copyAnyway": "Всё равно скопировать",
+      "moveAnyway": "Всё равно переместить"
     },
     "copyContact": {
       "success": "«%{name}» скопирован в «%{book}»",
