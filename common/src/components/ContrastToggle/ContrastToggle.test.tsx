@@ -14,7 +14,7 @@ const renderToggle = (
   contrastMode: 'default' | 'more' = 'default'
 ): ReturnType<typeof setupStore> => {
   const store = setupStore({
-    settings: { language: 'en', themeMode: 'light', contrastMode }
+    settings: { language: 'en', themeOverride: null, contrastMode }
   })
   render(
     <Provider store={store}>
@@ -38,13 +38,13 @@ describe('ContrastToggle', () => {
     expect(button).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('switches high contrast on and remembers it', () => {
+  it('switches high contrast on for this page only, without storing it', () => {
     const store = renderToggle()
 
     fireEvent.click(screen.getByRole('button', { name: 'High contrast' }))
 
     expect(store.getState().settings.contrastMode).toBe('more')
-    expect(localStorage.getItem('contrast')).toBe('more')
+    expect(localStorage.getItem('contrast')).toBe(null)
     expect(
       screen.getByRole('button', { name: 'High contrast' })
     ).toHaveAttribute('aria-pressed', 'true')
@@ -56,7 +56,7 @@ describe('ContrastToggle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'High contrast' }))
 
     expect(store.getState().settings.contrastMode).toBe('default')
-    expect(localStorage.getItem('contrast')).toBe('default')
+    expect(localStorage.getItem('contrast')).toBe(null)
   })
 
   it('hides the toggle when CONTRAST_TOGGLE is false', () => {

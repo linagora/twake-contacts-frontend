@@ -1,5 +1,5 @@
-import { useAppSelector } from '@common/app/hooks'
 import { ThemeMode } from '@common/features/Settings/SettingsSlice'
+import { useThemeMode } from '@common/features/Settings/useThemeMode'
 import { Empty, Stack } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 
@@ -16,7 +16,7 @@ export const NoContactsEmptyState: React.FC<NoContactsEmptyStateProps> = ({
   action
 }) => {
   const { t } = useI18n()
-  const themeMode = useAppSelector(state => state.settings.themeMode)
+  const themeMode = useThemeMode()
 
   return (
     <Empty

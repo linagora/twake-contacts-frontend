@@ -95,7 +95,10 @@ const renderPage = (
   loading = false
 ): AppStore => {
   const store = setupStore({
-    user: { userData: { openpaasId: 'u1' } } as UserState,
+    user: {
+      userData: { openpaasId: 'u1' },
+      coreConfig: { language: null, datetime: { timeZone: null } }
+    } as UserState,
     contacts: {
       addressBooks,
       listings,

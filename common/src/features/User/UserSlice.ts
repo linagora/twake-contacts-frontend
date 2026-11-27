@@ -14,6 +14,8 @@ interface DatetimeConfig {
 interface CoreConfig {
   language: string | null
   datetime: DatetimeConfig
+  /** Unchecked: whatever another app or an older client wrote */
+  theme?: unknown
   [key: string]: unknown
 }
 
