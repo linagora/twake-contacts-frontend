@@ -87,3 +87,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: agent (review of [PR #700](https://github.com/linagora/twake-contacts-frontend/pull/700#discussion_r4692195847)), to be confirmed by chibenwa
 - Why: the empty-state action stays reachable on short screens and with enlarged text.
 - Scope: desktop and mobile, empty address-book pages in @contacts/private.
+
+## 2026-11-27, [Product] The theme comes from the account, the debug toggles store nothing
+
+- Decision: the theme is the `theme` of the `core` user configuration, the setting Twake Calendar writes (light when there is none, its `auto` following the system); the theme and high-contrast toggles are debug switches that change the open page only and are saved neither to the account nor to the browser.
+- Decided by: Camille Moussu, [PR #718](https://github.com/linagora/twake-contacts-frontend/pull/718)
+- Why: the toggles are there to debug; the user chooses the theme in the settings of the other Twake apps.
+- Scope: both, `ThemeSync`, `ThemeToggle` and `ContrastToggle` of @contacts/common.

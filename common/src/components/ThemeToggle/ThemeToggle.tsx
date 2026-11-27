@@ -1,26 +1,21 @@
-import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import {
-  setThemeMode,
-  type ThemeMode
-} from '@common/features/Settings/SettingsSlice'
+import { useAppDispatch } from '@common/app/hooks'
+import { setThemeOverride } from '@common/features/Settings/SettingsSlice'
+import { useThemeMode } from '@common/features/Settings/useThemeMode'
 import { Contrast, Icon } from '@linagora/twake-icons'
-import { IconButton, Tooltip, useColorScheme } from '@linagora/twake-mui'
+import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 
+/** A debug switch: the theme changes for this page only and is not stored */
 export const ThemeToggle: React.FC = () => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
-  const { setMode } = useColorScheme()
-  const themeMode = useAppSelector(state => state.settings.themeMode)
+  const current = useThemeMode()
 
   const handleToggle = (): void => {
-    const next: ThemeMode = themeMode === 'light' ? 'dark' : 'light'
-    setMode(next)
-    dispatch(setThemeMode(next))
+    dispatch(setThemeOverride(current === 'light' ? 'dark' : 'light'))
   }
 
-  const isDark = themeMode === 'dark'
-  const label = isDark ? t('theme.lightMode') : t('theme.darkMode')
+  const label = current === 'dark' ? t('theme.lightMode') : t('theme.darkMode')
 
   return (
     <Tooltip title={label}>

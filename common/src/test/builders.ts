@@ -200,7 +200,7 @@ export const aStoreState = (
   },
   settings: {
     language: 'en',
-    themeMode: 'light',
+    themeOverride: null,
     contrastMode: 'default',
     ...overrides.settings
   },

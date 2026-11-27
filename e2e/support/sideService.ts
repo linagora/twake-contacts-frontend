@@ -75,4 +75,18 @@ export class SideServiceClient {
       )
     }
   }
+
+  /** The account theme (`light`, `dark`, `auto`), shared by the Twake apps */
+  async setTheme(theme: 'light' | 'dark' | 'auto'): Promise<void> {
+    const response = await this.request(
+      'PATCH',
+      '/api/configurations?scope=user',
+      [{ name: 'core', configurations: [{ name: 'theme', value: theme }] }]
+    )
+    if (response.status !== 204) {
+      throw new Error(
+        `Setting the theme to ${theme}: ${response.status} ${await response.text()}`
+      )
+    }
+  }
 }

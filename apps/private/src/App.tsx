@@ -1,17 +1,13 @@
 import { config } from '@common/config'
 import { useAppSelector } from '@common/app/hooks'
-import type { RootState } from '@common/app/store'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { Loading } from '@common/components/Loading/Loading'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import { highContrastThemeOptions } from '@common/features/Settings/highContrastTheme'
+import { selectIsHighContrast } from '@common/features/Settings/themeSelectors'
+import { ThemeSync } from '@common/features/Settings/ThemeSync'
 import { useInitializeApp } from '@common/features/User/useInitializeApp'
-import {
-  Box,
-  Stack,
-  TwakeMuiThemeProvider,
-  useColorScheme
-} from '@linagora/twake-mui'
+import { Box, Stack, TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import * as Sentry from '@sentry/react'
 import { Suspense, useEffect } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -21,25 +17,6 @@ import I18n from 'twake-i18n'
 import { WebSocketGate } from '@common/websocket/WebSocketGate'
 import { AppRoutes } from './AppRoutes'
 import { dateLocales, isValidLanguage, locale } from './i18n'
-
-const selectIsHighContrast = (state: RootState): boolean =>
-  state.settings.contrastMode === 'more'
-
-/** The high-contrast scheme is light: it wins over the dark theme. */
-function ThemeSync(): null {
-  const { mode, setMode } = useColorScheme()
-  const themeMode = useAppSelector(state => state.settings.themeMode)
-  const isHighContrast = useAppSelector(selectIsHighContrast)
-  const effectiveMode = isHighContrast ? 'light' : themeMode
-
-  useEffect(() => {
-    if (mode !== effectiveMode) {
-      setMode(effectiveMode)
-    }
-  }, [mode, effectiveMode, setMode])
-
-  return null
-}
 
 export default function App(): React.JSX.Element {
   const appLoading = useAppSelector(state => state.loading.isLoading)

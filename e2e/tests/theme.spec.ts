@@ -1,5 +1,6 @@
 import { LoginPage } from '../pages'
 import { expect, test } from '../support/fixtures'
+import { SideServiceClient } from '../support/sideService'
 
 test.describe('THEME dark mode', () => {
   test('THEME-01 toggle dark mode and back', async ({ page, user }) => {
@@ -19,29 +20,26 @@ test.describe('THEME dark mode', () => {
     await expect(contacts.themeToggle).toHaveAccessibleName('Dark mode')
   })
 
-  test('THEME-02 the chosen theme is kept after a reload, not in a new browser', async ({
+  test('THEME-02 the account theme applies, the toggle is not kept after a reload', async ({
     page,
-    user,
-    loginInNewContext
+    user
   }) => {
     const contacts = await new LoginPage(page).loginAs(user)
-    await contacts.themeToggle.click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    const html = page.locator('html')
+    await SideServiceClient.of(page).setTheme('dark')
 
     await contacts.reload()
 
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(html).toHaveAttribute('data-theme', 'dark')
     await expect(contacts.themeToggle).toHaveAccessibleName('Light mode')
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe(
-      'dark'
-    )
-    await contacts.clickCreate()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
-    const fresh = await loginInNewContext(user)
-    await expect(fresh.page.locator('html')).toHaveAttribute(
-      'data-theme',
-      'light'
-    )
+    // A debug switch: for this page only, nothing is stored
+    await contacts.themeToggle.click()
+    await expect(html).toHaveAttribute('data-theme', 'light')
+
+    await contacts.reload()
+
+    await expect(html).toHaveAttribute('data-theme', 'dark')
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe(null)
   })
 })
