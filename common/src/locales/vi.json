@@ -10,7 +10,22 @@
       "currentlyIn": "%{name} · hiện ở %{book}",
       "open": "Mở",
       "sharedToSharedWarning": "Hiển thị với mọi người trong %{book}.",
-      "privateToSharedWarning": "Liên hệ riêng tư này sẽ hiển thị với mọi người trong %{book}."
+      "privateToSharedWarning": "Liên hệ riêng tư này sẽ hiển thị với mọi người trong %{book}.",
+      "duplicateTitle": "Phát hiện liên hệ trùng lặp",
+      "audienceError": "Đã có liên hệ trùng %{fields} trong sổ chia sẻ này. Tiếp tục sẽ không hợp nhất.",
+      "audienceUnavailable": "Không thể xác minh ai có quyền truy cập các sổ địa chỉ này. Bạn có thể tiếp tục mà không hợp nhất.",
+      "matchFields": {
+        "name": "tên",
+        "phone": "số điện thoại",
+        "email": "email",
+        "matrixId": "Matrix ID"
+      },
+      "duplicateCopyAlert": "Liên hệ được sao chép sẽ được hợp nhất vào liên hệ hiện có trong %{book}.",
+      "duplicateMoveAlert": "Liên hệ được di chuyển sẽ được hợp nhất vào liên hệ hiện có trong %{book}.",
+      "copyWithoutMerge": "Sao chép không hợp nhất",
+      "moveWithoutMerge": "Di chuyển không hợp nhất",
+      "copyAnyway": "Vẫn sao chép",
+      "moveAnyway": "Vẫn di chuyển"
     },
     "copyContact": {
       "success": "Đã sao chép “%{name}” vào %{book}",

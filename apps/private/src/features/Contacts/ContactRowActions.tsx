@@ -26,6 +26,54 @@ interface ContactRowActionsProps {
 
 type OpenDialog = 'delete' | 'copy' | 'move' | null
 
+interface ContactRowDialogsProps {
+  openDialog: OpenDialog
+  contact: Contact
+  addressBookId: string
+  onClose: () => void
+  onDelete: () => Promise<void>
+  onMoveSuccess: (destinationId: string, mergedContactId?: string) => void
+}
+
+const ContactRowDialogs: React.FC<ContactRowDialogsProps> = ({
+  openDialog,
+  contact,
+  addressBookId,
+  onClose,
+  onDelete,
+  onMoveSuccess
+}) => {
+  if (openDialog === 'copy') {
+    return (
+      <CopyContactDialog
+        contact={contact}
+        addressBookId={addressBookId}
+        onClose={onClose}
+      />
+    )
+  }
+  if (openDialog === 'move') {
+    return (
+      <MoveContactDialog
+        contact={contact}
+        addressBookId={addressBookId}
+        onClose={onClose}
+        onSuccess={onMoveSuccess}
+      />
+    )
+  }
+  if (openDialog === 'delete') {
+    return (
+      <DeleteContactDialog
+        contact={contact}
+        onClose={onClose}
+        onConfirm={() => void onDelete()}
+      />
+    )
+  }
+  return null
+}
+
 export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
   contact,
   addressBookId
@@ -44,20 +92,16 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
 
   const isMenuOpen = Boolean(anchorEl)
   const isReadOnly = !book?.capabilities.editContacts
+  const showEditButton = !isReadOnly && !isMobile
 
   const handleCloseDialog = (): void => setOpenDialog(null)
-  const handleOpenDeleteDialog = (): void => {
+  const openMenuDialog = (dialog: OpenDialog): void => {
     setAnchorEl(null)
-    setOpenDialog('delete')
+    setOpenDialog(dialog)
   }
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>): void =>
     setAnchorEl(event.currentTarget)
-  }
-
-  const handleMenuClose = (): void => {
-    setAnchorEl(null)
-  }
+  const handleMenuClose = (): void => setAnchorEl(null)
 
   const handleEdit = (): void => {
     setAnchorEl(null)
@@ -77,6 +121,16 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
     setOpenDialog(null)
   }
 
+  const handleMoveSuccess = (
+    destinationId: string,
+    mergedContactId?: string
+  ): void => {
+    const isViewingMovedContact =
+      params.addressBookId === addressBookId && params.contactId === contact.id
+    if (!isViewingMovedContact) return
+    void navigate(contactPath(destinationId, mergedContactId ?? contact.id))
+  }
+
   return (
     <>
       <Stack
@@ -92,7 +146,7 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
             The menu is portaled, so the row loses :hover while it is open.
             The tooltips sit beside their button, not below: an interactive
             tooltip below would cover the actions of the next row. */}
-        {!isReadOnly && !isMobile && (
+        {showEditButton && (
           <Tooltip placement="left" title={t('contacts.menu.edit')}>
             <IconButton
               size="medium"
@@ -128,48 +182,21 @@ export const ContactRowActions: React.FC<ContactRowActionsProps> = ({
           anchorEl={anchorEl}
           onClose={handleMenuClose}
           onEdit={handleEdit}
-          onOpenCopyDialog={() => {
-            setAnchorEl(null)
-            setOpenDialog('copy')
-          }}
-          onOpenMoveDialog={() => {
-            setAnchorEl(null)
-            setOpenDialog('move')
-          }}
-          onOpenDeleteDialog={handleOpenDeleteDialog}
+          onOpenCopyDialog={() => openMenuDialog('copy')}
+          onOpenMoveDialog={() => openMenuDialog('move')}
+          onOpenDeleteDialog={() => openMenuDialog('delete')}
           onExport={book ? handleExport : undefined}
           readOnly={isReadOnly}
         />
       </Stack>
-      {openDialog === 'copy' && (
-        <CopyContactDialog
-          contact={contact}
-          addressBookId={addressBookId}
-          onClose={handleCloseDialog}
-        />
-      )}
-      {openDialog === 'move' && (
-        <MoveContactDialog
-          contact={contact}
-          addressBookId={addressBookId}
-          onClose={handleCloseDialog}
-          onSuccess={destinationId => {
-            if (
-              params.addressBookId === addressBookId &&
-              params.contactId === contact.id
-            ) {
-              void navigate(contactPath(destinationId, contact.id))
-            }
-          }}
-        />
-      )}
-      {openDialog === 'delete' && (
-        <DeleteContactDialog
-          contact={contact}
-          onClose={handleCloseDialog}
-          onConfirm={() => void handleDelete()}
-        />
-      )}
+      <ContactRowDialogs
+        openDialog={openDialog}
+        contact={contact}
+        addressBookId={addressBookId}
+        onClose={handleCloseDialog}
+        onDelete={handleDelete}
+        onMoveSuccess={handleMoveSuccess}
+      />
       <ErrorSnackbar error={exportError} onClose={() => setExportError(null)} />
     </>
   )

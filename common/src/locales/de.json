@@ -10,7 +10,22 @@
       "currentlyIn": "%{name} · derzeit in %{book}",
       "open": "Öffnen",
       "sharedToSharedWarning": "Sichtbar für alle in %{book}.",
-      "privateToSharedWarning": "Dieser private Kontakt wird für alle in %{book} sichtbar."
+      "privateToSharedWarning": "Dieser private Kontakt wird für alle in %{book} sichtbar.",
+      "duplicateTitle": "Doppelter Kontakt gefunden",
+      "audienceError": "Ein Kontakt mit demselben %{fields} existiert bereits in diesem geteilten Buch. Fortfahren führt nicht zusammen.",
+      "audienceUnavailable": "Es konnte nicht geprüft werden, wer auf diese Adressbücher zugreifen kann. Sie können ohne Zusammenführen fortfahren.",
+      "matchFields": {
+        "name": "Namen",
+        "phone": "Telefon",
+        "email": "E-Mail",
+        "matrixId": "Matrix-ID"
+      },
+      "duplicateCopyAlert": "Der kopierte Kontakt wird mit dem vorhandenen Kontakt in %{book} zusammengeführt.",
+      "duplicateMoveAlert": "Der verschobene Kontakt wird mit dem vorhandenen Kontakt in %{book} zusammengeführt.",
+      "copyWithoutMerge": "Ohne Zusammenführen kopieren",
+      "moveWithoutMerge": "Ohne Zusammenführen verschieben",
+      "copyAnyway": "Trotzdem kopieren",
+      "moveAnyway": "Trotzdem verschieben"
     },
     "copyContact": {
       "success": "„%{name}“ nach %{book} kopiert",

@@ -17,20 +17,49 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import I18n from 'twake-i18n'
 import { setupStore } from '@common/app/store'
-import { copyContact, moveContact } from '@common/features/Contacts/ContactsDao'
+import {
+  copyContact,
+  deleteContact,
+  fetchAddressBookDetails,
+  fetchContactForMerge,
+  fetchContactsPage,
+  moveContact,
+  saveContact
+} from '@common/features/Contacts/ContactsDao'
 import {
   copyContact as copyContactAction,
   moveContact as moveContactAction
 } from '@common/features/Contacts/ContactsSlice'
-import { AddressBookWithContacts } from '@common/features/Contacts/contactsTypes'
+import {
+  AddressBookWithContacts,
+  Contact
+} from '@common/features/Contacts/contactsTypes'
+import {
+  duplicateContactUrn,
+  duplicateDismissalProperty
+} from '@common/features/Contacts/duplicateDismissals'
 import { UserState } from '@common/features/User/UserSlice'
+import { userData } from '@common/features/User/userDataTypes'
 import en from '@common/locales/en.json'
 import { ContactTransferSnackbar } from './ContactTransferSnackbar'
 import { ContactTransferDialog } from './CopyContactDialog'
 
 vi.mock('@common/features/Contacts/ContactsDao')
 
-const contact = { id: 'c1', displayName: 'Alice', emails: [] }
+beforeEach(() => {
+  vi.mocked(fetchContactsPage).mockResolvedValue({ entries: [], next: null })
+  vi.mocked(fetchAddressBookDetails)
+    .mockReset()
+    .mockResolvedValue({
+      members: [
+        { openpaasId: 'owner-source' } as userData,
+        { openpaasId: 'owner-target' } as userData
+      ],
+      isPublic: false
+    })
+})
+
+const contact: Contact = { id: 'c1', displayName: 'Alice', emails: [] }
 const book = (id: string, canWrite = true): AddressBookWithContacts =>
   classifyAddressBook(
     {
@@ -50,12 +79,13 @@ const LocationDisplay = (): React.ReactElement => (
 const renderDialog = (
   mode: 'copy' | 'move' = 'copy',
   sourceCanWrite = true,
-  sourceContact = contact,
+  sourceContact: Contact = contact,
   sourceBookId = 'source',
   extraBooks: Record<string, AddressBookWithContacts> = {}
 ): {
   store: ReturnType<typeof setupStore>
   onClose: Mock
+  rerenderContact: (nextContact: Contact) => void
 } => {
   const store = setupStore({
     user: { userData: { openpaasId: 'u1' } } as UserState,
@@ -75,6 +105,7 @@ const renderDialog = (
           ...book('shared'),
           name: 'Alpha Shared',
           ownerId: 'u2',
+          sourceBookId: 'original-shared',
           ownerDisplayName: 'Bob Owner'
         },
         ...extraBooks
@@ -86,14 +117,18 @@ const renderDialog = (
     }
   })
   const onClose = vi.fn()
-  const DialogHarness = (): React.ReactElement => {
+  const DialogHarness = ({
+    currentContact
+  }: {
+    currentContact: Contact
+  }): React.ReactElement => {
     const [open, setOpen] = useState(true)
     return (
       <>
         {open && (
           <ContactTransferDialog
             mode={mode}
-            contact={sourceContact}
+            contact={currentContact}
             addressBookId={sourceBookId}
             onClose={() => {
               onClose()
@@ -105,13 +140,16 @@ const renderDialog = (
       </>
     )
   }
-  render(
+  const dialog = (currentContact: Contact): React.ReactElement => (
     <Provider store={store}>
       <TwakeMuiThemeProvider>
         <I18n dictRequire={() => en} lang="en">
           <MemoryRouter initialEntries={['/contacts']}>
             <Routes>
-              <Route path="*" element={<DialogHarness />} />
+              <Route
+                path="*"
+                element={<DialogHarness currentContact={currentContact} />}
+              />
             </Routes>
             <LocationDisplay />
           </MemoryRouter>
@@ -119,9 +157,14 @@ const renderDialog = (
       </TwakeMuiThemeProvider>
     </Provider>
   )
-  return { store, onClose }
+  const { rerender } = render(dialog(sourceContact))
+  return {
+    store,
+    onClose,
+    rerenderContact: nextContact => rerender(dialog(nextContact))
+  }
 }
-const selectDestination = (name = 'target'): void => {
+const selectDestination = (name: string | RegExp = 'target'): void => {
   fireEvent.mouseDown(screen.getByRole('combobox'))
   expect(screen.queryByRole('option', { name: 'dab' })).not.toBeInTheDocument()
   expect(
@@ -410,3 +453,664 @@ it.each(['copy', 'move'] as const)(
     )
   }
 )
+
+describe('duplicate detection during copy and move', () => {
+  const sourceContact: Contact = {
+    id: 'c1',
+    displayName: 'Alice',
+    emails: [{ value: 'alice@example.com', type: null }],
+    phones: [{ value: '+123456789', type: null }]
+  }
+  const destDuplicate: Contact = {
+    id: 'd1',
+    displayName: 'Alice',
+    emails: [{ value: 'alice@example.com', type: null }]
+  }
+
+  const setupDuplicateInTarget = (): void => {
+    vi.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [{ addressBookId: 'target', contact: destDuplicate }],
+      next: null
+    })
+    let savedTarget = { contact: destDuplicate, etag: 'etag-dst' }
+    vi.mocked(fetchContactForMerge).mockImplementation((book, id) => {
+      if (book.id === 'source' && id === 'c1') {
+        return Promise.resolve({ contact: sourceContact, etag: 'etag-src' })
+      }
+      if (book.id === 'target' && id === 'd1') {
+        return Promise.resolve(savedTarget)
+      }
+      return Promise.reject(new Error('Unexpected contact'))
+    })
+    vi.mocked(saveContact).mockImplementation((_user, _book, contact) => {
+      const saved = { ...contact, etag: 'etag-dst-2' }
+      savedTarget = { contact: saved, etag: saved.etag }
+      return Promise.resolve(saved)
+    })
+    vi.mocked(deleteContact).mockResolvedValue()
+    vi.mocked(copyContact).mockResolvedValue('new-card-id')
+    vi.mocked(moveContact).mockResolvedValue()
+  }
+
+  it.each([
+    {
+      mode: 'copy' as const,
+      confirmLabel: en.contacts.copy,
+      alertText: en.contacts.transfer.duplicateCopyAlert.replace(
+        '%{book}',
+        'target'
+      ),
+      withoutMergeLabel: en.contacts.transfer.copyWithoutMerge
+    },
+    {
+      mode: 'move' as const,
+      confirmLabel: en.contacts.moveContact.confirm,
+      alertText: en.contacts.transfer.duplicateMoveAlert.replace(
+        '%{book}',
+        'target'
+      ),
+      withoutMergeLabel: en.contacts.transfer.moveWithoutMerge
+    }
+  ])(
+    'shows duplicate modal with alert and duplicate card when %s finds a duplicate',
+    async ({ mode, confirmLabel, alertText, withoutMergeLabel }) => {
+      vi.clearAllMocks()
+      setupDuplicateInTarget()
+      const { onClose } = renderDialog(mode, true, sourceContact)
+
+      selectDestination('target')
+      fireEvent.click(screen.getByRole('button', { name: confirmLabel }))
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(en.contacts.transfer.duplicateTitle)
+        ).toBeInTheDocument()
+      )
+      expect(onClose).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toHaveTextContent(alertText)
+      expect(screen.getByText('+123456789')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: withoutMergeLabel })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: en.contacts.merge.merge })
+      ).toBeInTheDocument()
+    }
+  )
+
+  it.each([
+    {
+      mode: 'copy' as const,
+      confirmLabel: en.contacts.copy,
+      withoutMergeLabel: en.contacts.transfer.copyWithoutMerge,
+      dao: copyContact
+    },
+    {
+      mode: 'move' as const,
+      confirmLabel: en.contacts.moveContact.confirm,
+      withoutMergeLabel: en.contacts.transfer.moveWithoutMerge,
+      dao: moveContact
+    }
+  ])(
+    '$mode without merging when user chooses not to merge',
+    async ({ mode, confirmLabel, withoutMergeLabel, dao }) => {
+      vi.clearAllMocks()
+      setupDuplicateInTarget()
+      const { onClose } = renderDialog(mode, true, sourceContact)
+
+      selectDestination('target')
+      fireEvent.click(screen.getByRole('button', { name: confirmLabel }))
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: withoutMergeLabel })
+        ).toBeInTheDocument()
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: withoutMergeLabel }))
+
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      expect(dao).toHaveBeenCalledTimes(1)
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it('merges copied contact into destination duplicate without deleting source', async () => {
+    vi.clearAllMocks()
+    setupDuplicateInTarget()
+    const { store, onClose } = renderDialog('copy', true, sourceContact)
+
+    selectDestination('target')
+    fireEvent.click(screen.getByRole('button', { name: en.contacts.copy }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: en.contacts.merge.merge })
+      ).toBeInTheDocument()
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.merge.merge })
+    )
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(saveContact).toHaveBeenCalledWith(
+      'owner-target',
+      'target',
+      expect.objectContaining({
+        id: 'd1',
+        phones: [{ value: '+123456789', type: null }],
+        etag: 'etag-dst'
+      }),
+      'update'
+    )
+    expect(deleteContact).not.toHaveBeenCalled()
+    expect(copyContact).not.toHaveBeenCalled()
+    expect(store.getState().contacts.transferSuccess).toEqual(
+      expect.objectContaining({
+        operation: 'copy',
+        contactId: 'd1',
+        destinationId: 'target'
+      })
+    )
+  })
+
+  it('merges moved contact into destination duplicate and deletes source contact', async () => {
+    vi.clearAllMocks()
+    setupDuplicateInTarget()
+    const { store, onClose } = renderDialog('move', true, sourceContact)
+
+    selectDestination('target')
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    )
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: en.contacts.merge.merge })
+      ).toBeInTheDocument()
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.merge.merge })
+    )
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(saveContact).toHaveBeenCalledWith(
+      'owner-target',
+      'target',
+      expect.objectContaining({
+        id: 'd1',
+        phones: [{ value: '+123456789', type: null }],
+        etag: 'etag-dst'
+      }),
+      'update'
+    )
+    expect(deleteContact).toHaveBeenCalledWith(
+      'owner-source',
+      'source',
+      'c1',
+      'etag-src'
+    )
+    expect(moveContact).not.toHaveBeenCalled()
+    expect(store.getState().contacts.transferSuccess).toEqual(
+      expect.objectContaining({
+        operation: 'move',
+        contactId: 'd1',
+        destinationId: 'target'
+      })
+    )
+  })
+
+  it.each(transferCases)(
+    'keeps the wider-audience warning and Copy/Move anyway after a failed $mode',
+    async ({ mode, dao, label, messages }) => {
+      setupDuplicateInTarget()
+      vi.mocked(fetchContactsPage).mockResolvedValue({
+        entries: [{ addressBookId: 'shared', contact: destDuplicate }],
+        next: null
+      })
+      vi.mocked(fetchAddressBookDetails).mockImplementation((_owner, bookId) =>
+        Promise.resolve({
+          members: [],
+          isPublic: bookId === 'original-shared'
+        })
+      )
+      const { onClose } = renderDialog(mode, true, sourceContact)
+      selectDestination(/Alpha Shared/)
+      fireEvent.click(screen.getByRole('button', { name: label }))
+
+      const expectedAlert = en.contacts.transfer.audienceError.replace(
+        '%{fields}',
+        [
+          en.contacts.transfer.matchFields.name,
+          en.contacts.transfer.matchFields.email
+        ].join(', ')
+      )
+      await screen.findByText(expectedAlert)
+      expect(screen.getByRole('alert')).toHaveTextContent(expectedAlert)
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', {
+          name:
+            mode === 'copy'
+              ? en.contacts.transfer.copyWithoutMerge
+              : en.contacts.transfer.moveWithoutMerge
+        })
+      ).not.toBeInTheDocument()
+      const transferAnyway = screen.getByRole('button', {
+        name:
+          mode === 'copy'
+            ? en.contacts.transfer.copyAnyway
+            : en.contacts.transfer.moveAnyway
+      })
+      expect(fetchAddressBookDetails).toHaveBeenCalledWith(
+        'owner-source',
+        'source'
+      )
+      expect(fetchAddressBookDetails).toHaveBeenCalledWith(
+        'u2',
+        'original-shared'
+      )
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+      expect(dao).not.toHaveBeenCalled()
+      expect(onClose).not.toHaveBeenCalled()
+
+      vi.mocked(dao).mockRejectedValueOnce({ response: { status: 409 } })
+      fireEvent.click(transferAnyway)
+      await screen.findByText(messages.error)
+      expect(screen.getByText(expectedAlert)).toBeInTheDocument()
+      expect(transferAnyway).toBeEnabled()
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(onClose).not.toHaveBeenCalled()
+
+      fireEvent.click(transferAnyway)
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      expect(dao).toHaveBeenCalledTimes(2)
+      expect(fetchAddressBookDetails).toHaveBeenCalledTimes(2)
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(transferCases)(
+    'allows $mode without merging when the initial audience lookup fails',
+    async ({ mode, dao, label, messages }) => {
+      setupDuplicateInTarget()
+      vi.mocked(fetchAddressBookDetails).mockRejectedValueOnce({
+        response: { status: 503 }
+      })
+      const { onClose } = renderDialog(mode, true, sourceContact)
+      selectDestination()
+      fireEvent.click(screen.getByRole('button', { name: label }))
+
+      await screen.findByText(en.contacts.transfer.audienceUnavailable)
+      expect(screen.getByText('+123456789')).toBeInTheDocument()
+      expect(screen.queryByText(messages.error)).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(dao).not.toHaveBeenCalled()
+      expect(onClose).not.toHaveBeenCalled()
+
+      const withoutMergeLabel =
+        mode === 'copy'
+          ? en.contacts.transfer.copyWithoutMerge
+          : en.contacts.transfer.moveWithoutMerge
+      fireEvent.click(screen.getByRole('button', { name: withoutMergeLabel }))
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      expect(dao).toHaveBeenCalledTimes(1)
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it('stops a merge before writes if the audience recheck fails', async () => {
+    setupDuplicateInTarget()
+    const { onClose } = renderDialog('move', true, sourceContact)
+    selectDestination()
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    )
+    const merge = await screen.findByRole('button', {
+      name: en.contacts.merge.merge
+    })
+    vi.mocked(fetchAddressBookDetails).mockRejectedValueOnce({
+      response: { status: 403 }
+    })
+
+    fireEvent.click(merge)
+    await screen.findByText(en.contacts.transfer.audienceUnavailable)
+    expect(merge).not.toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(moveContact).not.toHaveBeenCalled()
+    expect(saveContact).not.toHaveBeenCalled()
+    expect(deleteContact).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: en.contacts.transfer.moveWithoutMerge
+      })
+    )
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(moveContact).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the move source when the saved destination is missing a merged phone', async () => {
+    setupDuplicateInTarget()
+    vi.mocked(fetchContactForMerge)
+      .mockResolvedValueOnce({ contact: sourceContact, etag: 'etag-src' })
+      .mockResolvedValueOnce({ contact: destDuplicate, etag: 'etag-dst' })
+      .mockResolvedValueOnce({ contact: destDuplicate, etag: 'etag-dst-3' })
+    const { onClose, store } = renderDialog('move', true, sourceContact)
+    selectDestination()
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    )
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: en.contacts.merge.merge })
+    )
+
+    await screen.findByText(en.contacts.merge.changedError)
+    expect(saveContact).toHaveBeenCalledWith(
+      'owner-target',
+      'target',
+      expect.objectContaining({ phones: sourceContact.phones }),
+      'update'
+    )
+    expect(deleteContact).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(store.getState().contacts.addressBooks.source.contacts).toEqual([
+      sourceContact
+    ])
+  })
+
+  it('shows conflict error in modal when merge fails due to conflicting fields', async () => {
+    vi.clearAllMocks()
+    const conflictingSource: Contact = {
+      ...sourceContact,
+      org: { name: 'Acme', units: [] }
+    }
+    const conflictingDest: Contact = {
+      ...destDuplicate,
+      org: { name: 'Beta', units: [] }
+    }
+    vi.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [{ addressBookId: 'target', contact: conflictingDest }],
+      next: null
+    })
+    vi.mocked(fetchContactForMerge).mockImplementation((book, id) => {
+      if (book.id === 'source' && id === 'c1') {
+        return Promise.resolve({ contact: conflictingSource, etag: 'etag-src' })
+      }
+      if (book.id === 'target' && id === 'd1') {
+        return Promise.resolve({ contact: conflictingDest, etag: 'etag-dst' })
+      }
+      return Promise.reject(new Error('Unexpected contact'))
+    })
+
+    const { onClose } = renderDialog('copy', true, conflictingSource)
+    selectDestination('target')
+    fireEvent.click(screen.getByRole('button', { name: en.contacts.copy }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: en.contacts.merge.merge })
+      ).toBeInTheDocument()
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.merge.merge })
+    )
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          en.contacts.merge.conflictErrorWithFields.replace(
+            '%{fields}',
+            en.contacts.merge.fields.org
+          )
+        )
+      ).toBeInTheDocument()
+    )
+    expect(onClose).not.toHaveBeenCalled()
+    expect(saveContact).not.toHaveBeenCalled()
+  })
+
+  it.each(transferCases)(
+    'shows the merge error in the $mode dialog when the duplicate disappears',
+    async ({ mode, label, messages }) => {
+      setupDuplicateInTarget()
+      const { onClose } = renderDialog(mode, true, sourceContact)
+      selectDestination()
+      fireEvent.click(screen.getByRole('button', { name: label }))
+      const merge = await screen.findByRole('button', {
+        name: en.contacts.merge.merge
+      })
+      vi.mocked(fetchContactForMerge)
+        .mockResolvedValueOnce({ contact: sourceContact, etag: 'etag-src' })
+        .mockRejectedValueOnce({ response: { status: 404 } })
+
+      fireEvent.click(merge)
+
+      const dialog = await screen.findByRole('dialog', { name: messages.title })
+      expect(dialog).toHaveTextContent(en.contacts.merge.changedError)
+      expect(screen.getByRole('combobox')).toHaveTextContent('target')
+      expect(onClose).not.toHaveBeenCalled()
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(['source', 'target'] as const)(
+    'rejects a dismissal newly saved on the %s contact and refreshes duplicate eligibility',
+    async dismissedBook => {
+      setupDuplicateInTarget()
+      const { onClose } = renderDialog('move', true, sourceContact)
+      selectDestination()
+      const moveLabel = en.contacts.moveContact.confirm
+      fireEvent.click(screen.getByRole('button', { name: moveLabel }))
+      const merge = await screen.findByRole('button', {
+        name: en.contacts.merge.merge
+      })
+      const source = { addressBookId: 'source', contact: sourceContact }
+      const target = { addressBookId: 'target', contact: destDuplicate }
+      const withDismissal = (
+        entry: typeof source,
+        peer: typeof source
+      ): Contact => ({
+        ...entry.contact,
+        passthroughProps: [
+          duplicateDismissalProperty(duplicateContactUrn(peer))
+        ]
+      })
+      const freshSource =
+        dismissedBook === 'source'
+          ? withDismissal(source, target)
+          : sourceContact
+      const freshTarget =
+        dismissedBook === 'target'
+          ? withDismissal(target, source)
+          : destDuplicate
+      vi.mocked(fetchContactForMerge)
+        .mockResolvedValueOnce({ contact: freshSource, etag: 'fresh-source' })
+        .mockResolvedValueOnce({ contact: freshTarget, etag: 'fresh-target' })
+      vi.mocked(fetchContactsPage).mockResolvedValue({
+        entries: [{ ...target, contact: freshTarget }],
+        next: null
+      })
+
+      fireEvent.click(merge)
+
+      await screen.findByText(en.contacts.merge.changedError)
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        en.contacts.merge.changedError
+      )
+      expect(
+        screen.queryByRole('button', { name: en.contacts.merge.merge })
+      ).not.toBeInTheDocument()
+      expect(onClose).not.toHaveBeenCalled()
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+      expect(moveContact).not.toHaveBeenCalled()
+
+      fireEvent.click(screen.getByRole('button', { name: moveLabel }))
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      expect(moveContact).toHaveBeenCalledTimes(1)
+      expect(saveContact).not.toHaveBeenCalled()
+      expect(deleteContact).not.toHaveBeenCalled()
+    }
+  )
+
+  it('rescans with a newer contact prop after a source-only dismissal', async () => {
+    setupDuplicateInTarget()
+    const { onClose, rerenderContact } = renderDialog(
+      'move',
+      true,
+      sourceContact
+    )
+    selectDestination()
+    const move = (): HTMLElement =>
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    fireEvent.click(move())
+    const merge = await screen.findByRole('button', {
+      name: en.contacts.merge.merge
+    })
+    vi.mocked(fetchContactForMerge).mockResolvedValueOnce({
+      etag: 'dismissed',
+      contact: {
+        ...sourceContact,
+        passthroughProps: [
+          duplicateDismissalProperty(
+            duplicateContactUrn({
+              addressBookId: 'target',
+              contact: destDuplicate
+            })
+          )
+        ]
+      }
+    })
+    fireEvent.click(merge)
+    await screen.findByText(en.contacts.merge.changedError)
+
+    rerenderContact({ ...sourceContact, etag: 'dismissal-removed' })
+    fireEvent.click(move())
+
+    await screen.findByRole('button', { name: en.contacts.merge.merge })
+    expect(moveContact).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('keeps the move source until destination cleanup succeeds on retry', async () => {
+    setupDuplicateInTarget()
+    const extraDuplicate = { ...destDuplicate, id: 'd2' }
+    vi.mocked(fetchContactsPage).mockResolvedValue({
+      entries: [destDuplicate, extraDuplicate].map(contact => ({
+        addressBookId: 'target',
+        contact
+      })),
+      next: null
+    })
+    let savedTarget = { contact: destDuplicate, etag: 'etag-dst' }
+    vi.mocked(fetchContactForMerge).mockImplementation((book, id) => {
+      if (book.id === 'source' && id === 'c1') {
+        return Promise.resolve({ contact: sourceContact, etag: 'etag-src' })
+      }
+      if (book.id === 'target' && id === 'd1') {
+        return Promise.resolve(savedTarget)
+      }
+      if (book.id === 'target' && id === 'd2') {
+        return Promise.resolve({ contact: extraDuplicate, etag: 'etag-extra' })
+      }
+      return Promise.reject(new Error('Unexpected contact'))
+    })
+    vi.mocked(saveContact).mockImplementation((_user, _book, contact) => {
+      const saved = { ...contact, etag: 'etag-dst-2' }
+      savedTarget = { contact: saved, etag: saved.etag }
+      return Promise.resolve(saved)
+    })
+    vi.mocked(deleteContact).mockRejectedValueOnce(new Error('Delete failed'))
+    const { onClose, store } = renderDialog('move', true, sourceContact)
+    selectDestination()
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.moveContact.confirm })
+    )
+    const merge = await screen.findByRole('button', {
+      name: en.contacts.merge.merge
+    })
+
+    fireEvent.click(merge)
+
+    expect(
+      await screen.findByText(en.contacts.merge.mergeError)
+    ).toBeInTheDocument()
+    expect(vi.mocked(deleteContact).mock.calls).toEqual([
+      ['owner-target', 'target', 'd2', 'etag-extra']
+    ])
+    expect(store.getState().contacts.addressBooks.source.contacts).toEqual([
+      sourceContact
+    ])
+
+    fireEvent.click(merge)
+    expect(
+      await screen.findByText(en.contacts.merge.changedError)
+    ).toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', { name: en.contacts.merge.merge })
+    )
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(vi.mocked(deleteContact).mock.calls).toEqual([
+      ['owner-target', 'target', 'd2', 'etag-extra'],
+      ['owner-target', 'target', 'd2', 'etag-extra'],
+      ['owner-source', 'source', 'c1', 'etag-src']
+    ])
+    expect(store.getState().contacts.addressBooks.source.contacts).toEqual([])
+  })
+
+  it.each([
+    {
+      mode: 'copy' as const,
+      confirmLabel: en.contacts.copy,
+      title: en.contacts.copyContact.title
+    },
+    {
+      mode: 'move' as const,
+      confirmLabel: en.contacts.moveContact.confirm,
+      title: en.contacts.moveContact.title
+    }
+  ])(
+    'returns to the %s modal when clicking cancel in the duplicate modal',
+    async ({ mode, confirmLabel, title }) => {
+      vi.clearAllMocks()
+      setupDuplicateInTarget()
+      const { onClose } = renderDialog(mode, true, sourceContact)
+
+      selectDestination('target')
+      fireEvent.click(screen.getByRole('button', { name: confirmLabel }))
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(en.contacts.transfer.duplicateTitle)
+        ).toBeInTheDocument()
+      )
+
+      fireEvent.click(
+        screen.getByRole('button', { name: en.contacts.form.cancel })
+      )
+
+      expect(onClose).not.toHaveBeenCalled()
+      expect(screen.getByText(title)).toBeInTheDocument()
+      expect(
+        screen.queryByText(en.contacts.transfer.duplicateTitle)
+      ).not.toBeInTheDocument()
+    }
+  )
+})

@@ -10,7 +10,22 @@
       "currentlyIn": "%{name} · actuellement dans %{book}",
       "open": "Ouvrir",
       "sharedToSharedWarning": "Visible par tous les membres de %{book}.",
-      "privateToSharedWarning": "Ce contact privé sera visible par tous les membres de %{book}."
+      "privateToSharedWarning": "Ce contact privé sera visible par tous les membres de %{book}.",
+      "duplicateTitle": "Contact en double détecté",
+      "audienceError": "Un contact avec le même %{fields} existe déjà dans ce carnet partagé. Continuer ne fusionnera pas.",
+      "audienceUnavailable": "Impossible de vérifier qui a accès à ces carnets d’adresses. Vous pouvez continuer sans fusionner.",
+      "matchFields": {
+        "name": "nom",
+        "phone": "téléphone",
+        "email": "e-mail",
+        "matrixId": "identifiant Matrix"
+      },
+      "duplicateCopyAlert": "Le contact copié sera fusionné avec le contact existant dans %{book}.",
+      "duplicateMoveAlert": "Le contact déplacé sera fusionné avec le contact existant dans %{book}.",
+      "copyWithoutMerge": "Copier sans fusionner",
+      "moveWithoutMerge": "Déplacer sans fusionner",
+      "copyAnyway": "Copier quand même",
+      "moveAnyway": "Déplacer quand même"
     },
     "copyContact": {
       "success": "« %{name} » copié vers %{book}",

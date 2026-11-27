@@ -94,3 +94,59 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: Camille Moussu, [PR #718](https://github.com/linagora/twake-contacts-frontend/pull/718)
 - Why: the toggles are there to debug; the user chooses the theme in the settings of the other Twake apps.
 - Scope: both, `ThemeSync`, `ThemeToggle` and `ContrastToggle` of @contacts/common.
+
+## 2026-11-26, [UX] A transfer merge error stays visible when the duplicate group disappears
+
+- Decision: the copy or move dialog displays the merge error when the duplicate confirmation closes because the source has no remaining eligible matches.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4693162762)), to be confirmed by chibenwa.
+- Why: the user needs to know why the merge did not proceed when a duplicate is deleted or dismissed during confirmation.
+- Scope: @contacts/private, copy and move dialogs on desktop and mobile.
+
+## 2026-11-26, [Product] Transfer merges honor dismissals saved during confirmation
+
+- Decision: confirming a copy or move merge checks fresh cards for dismissals and recomputes the source's eligible duplicate group before offering another merge action.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4693162774)), to be confirmed by chibenwa.
+- Why: a dismissal saved after the scan must protect the affected contacts from being merged or deleted together.
+- Scope: @contacts/common, transfer merge runner and duplicate detection, and @contacts/private, copy and move dialogs.
+
+## 2026-11-26, [Architecture] A move merge deletes the original card last
+
+- Decision: a move merge saves and rereads the destination survivor, deletes the other destination duplicates, and then deletes the original card.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4693162781)), to be confirmed by chibenwa.
+- Why: a destination cleanup failure leaves the original available so the user can retry the move merge.
+- Scope: @contacts/common, transfer merge plan used by the copy and move dialogs in @contacts/private.
+
+## 2026-11-27, [UX] A newer source contact takes precedence in a transfer
+
+- Decision: the transfer dialog reuses a freshly read source card only while the contact prop that prompted the read is still current.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4710566126)), to be confirmed by chibenwa.
+- Why: a cached dismissal can hide duplicate matches after the row receives an updated contact.
+- Scope: @contacts/private, copy and move dialogs on desktop and mobile.
+
+## 2026-11-27, [Architecture] Merge cleanup verifies the saved contact fields
+
+- Decision: source cleanup proceeds only when the saved target has a strong ETag and the same visible fields as the merge plan, allowing repeated values to be reordered.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4710566137)), to be confirmed by chibenwa.
+- Why: a target change between the save and read-back can remove fields that would be lost if the sources were then deleted.
+- Scope: @contacts/common, the merge runner for the duplicates page and transfer dialogs.
+
+## 2026-11-27, [Product] Transfer merges warn upfront on wider destination audience and replace Merge/Without-merging with "Copy/Move anyway"
+
+- Decision: when a copy or move detects a duplicate in a destination book whose audience is wider than the source's, check the audience upfront, show a warning explaining why merging into the shared address book is blocked, and replace both the "Merge" and "Copy/Move without merging" buttons with a single "Copy anyway" / "Move anyway" button that transfers the contact without merging.
+- Decided by: user request.
+- Why: prevents leaking private contact details into a wider-audience book while avoiding a dead "Merge" button and keeping a single clear confirmation action.
+- Scope: @contacts/common (`canMergeIntoDestinationBook`) and @contacts/private (`DuplicateTransferDialog`, `useContactTransfer`).
+
+## 2026-11-27, [UX] Transfer errors preserve an audience block
+
+- Decision: a failed Copy or Move anyway attempt keeps the audience warning and non-merge action available until the user goes back and checks the destination again.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4717008588)), to be confirmed by chibenwa.
+- Why: retrying an ordinary transfer cannot establish that merging into the same book is safe.
+- Scope: @contacts/private, the copy and move duplicate confirmation dialogs on desktop and mobile.
+
+## 2026-11-27, [Product] Copy and move remain available when the merge audience is unknown
+
+- Decision: when a transfer merge cannot verify who can read either book before offering Merge or at confirmation, the dialog explains the failed check and offers only Copy or Move without merging.
+- Decided by: agent ([PR #672 review](https://github.com/linagora/twake-contacts-frontend/pull/672#discussion_r4717008592)), to be confirmed by chibenwa.
+- Why: copying or moving the selected card does not require combining it with data from another book.
+- Scope: @contacts/common transfer merge audience checks and @contacts/private copy and move dialogs on desktop and mobile.

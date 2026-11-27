@@ -27,11 +27,12 @@ export interface DuplicateGroupCardProps {
   mergedContact?: MergedContactTarget
   isMerging: boolean
   isMergeDisabled?: boolean
-  isDismissing: boolean
-  isDismissDisabled: boolean
+  isDismissing?: boolean
+  isDismissDisabled?: boolean
+  hideActions?: boolean
   error?: string | null
   onMerge: (groupId: string) => void
-  onDismiss: (groupId: string) => void
+  onDismiss?: (groupId: string) => void
   onViewContact?: (groupId: string) => void
 }
 
@@ -160,8 +161,9 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
   mergedContact,
   isMerging,
   isMergeDisabled = false,
-  isDismissing,
-  isDismissDisabled,
+  isDismissing = false,
+  isDismissDisabled = false,
+  hideActions = false,
   error = null,
   onMerge,
   onDismiss,
@@ -196,31 +198,33 @@ export const DuplicateGroupCard: React.FC<DuplicateGroupCardProps> = ({
         </Stack>
       </Paper>
 
-      <Stack
-        direction="row"
-        spacing={2}
-        className="u-flex-items-center u-flex-justify-end u-mt-1"
-      >
-        {!isMerged && (
-          <Button
-            variant="text"
-            onClick={() => onDismiss(group.id)}
-            loading={isDismissing}
-            disabled={isDismissDisabled}
-          >
-            {t('contacts.merge.dismiss')}
-          </Button>
-        )}
-        <CardActionButton
-          groupId={group.id}
-          isMerged={isMerged}
-          mergedContact={mergedContact}
-          isMerging={isMerging}
-          isMergeDisabled={isMergeDisabled}
-          onMerge={onMerge}
-          onViewContact={onViewContact}
-        />
-      </Stack>
+      {!hideActions && (
+        <Stack
+          direction="row"
+          spacing={2}
+          className="u-flex-items-center u-flex-justify-end u-mt-1"
+        >
+          {!isMerged && onDismiss && (
+            <Button
+              variant="text"
+              onClick={() => onDismiss(group.id)}
+              loading={isDismissing}
+              disabled={isDismissDisabled}
+            >
+              {t('contacts.merge.dismiss')}
+            </Button>
+          )}
+          <CardActionButton
+            groupId={group.id}
+            isMerged={isMerged}
+            mergedContact={mergedContact}
+            isMerging={isMerging}
+            isMergeDisabled={isMergeDisabled}
+            onMerge={onMerge}
+            onViewContact={onViewContact}
+          />
+        </Stack>
+      )}
     </Box>
   )
 }

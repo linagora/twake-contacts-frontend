@@ -1,6 +1,6 @@
 import { toOperationError } from '@common/utils/errorUtils'
 import { AppDispatch } from '@common/app/store'
-import { BookAudience, toBookAudience } from '../bookAudience'
+import { BookAudience, isAudienceWithin, toBookAudience } from '../bookAudience'
 import {
   fetchAddressBookDetails,
   fetchContactForMerge,
@@ -20,9 +20,13 @@ import {
 } from '../mergeContactsTypes'
 import {
   buildMergedContactPlan,
+  buildMergedContactPlanIntoDestination,
   contactValueKey,
   findDuplicateContactGroups,
-  MergeContactError
+  findDuplicatesOfContactInBook,
+  MergeContactError,
+  MergedContactPlan,
+  TransferMergeAudienceBlock
 } from '../mergeContactsUtils'
 
 export interface MergedContactTarget {
@@ -94,7 +98,13 @@ const findGroupBook = (
 }
 
 async function fetchBookAudience(book: AddressBook): Promise<BookAudience> {
-  return toBookAudience(await fetchAddressBookDetails(book.userId, book.id))
+  // A delegated book's ACL may only show the current sharee's rights.
+  // Use the owner and the original book to read the full audience.
+  const owner = book.ownerId ?? book.userId
+  const bookId = book.ownerId ? book.sourceBookId : book.id
+  if (!owner || !bookId) throw new MergeContactError('audience')
+  const audience = toBookAudience(await fetchAddressBookDetails(owner, bookId))
+  return { ...audience, members: [...audience.members, owner] }
 }
 
 /**
@@ -116,6 +126,35 @@ async function fetchGroupAudiences(
   return new Map(audiences)
 }
 
+export async function findDestinationDuplicates(
+  userId: string,
+  sourceEntry: DuplicateContactEntry,
+  destinationBook: AddressBook
+): Promise<DuplicateContactGroup | null> {
+  const destinationEntries = await fetchAllBookContacts(
+    destinationBook.userId || userId,
+    destinationBook
+  )
+  return findDuplicatesOfContactInBook(sourceEntry, destinationEntries)
+}
+
+export async function getTransferMergeAudienceBlock(
+  sourceBook: AddressBook,
+  destinationBook: AddressBook
+): Promise<TransferMergeAudienceBlock | null> {
+  try {
+    const [sourceAudience, destinationAudience] = await Promise.all([
+      fetchBookAudience(sourceBook),
+      fetchBookAudience(destinationBook)
+    ])
+    return isAudienceWithin(destinationAudience, sourceAudience)
+      ? null
+      : 'audience'
+  } catch {
+    return 'audienceUnavailable'
+  }
+}
+
 async function fetchEntrySnapshot(
   entry: DuplicateContactEntry,
   books: AddressBook[]
@@ -135,22 +174,29 @@ async function fetchEntrySnapshot(
  * (`passthroughProps`, `propertyParams`, `uidProperty`, `carriedGroups`,
  * `birthdayProp`), which can differ between the book listing and card GET.
  */
-function contactComparisonKey(contact: Contact): string {
+function contactComparisonKey(
+  contact: Contact,
+  ignoreListOrder = false
+): string {
+  // A read-back can reorder repeated properties according to vCard PREF.
+  const list = (values: unknown[] | undefined): unknown[] | undefined =>
+    ignoreListOrder ? (values ?? []).map(contactValueKey).sort() : values
+
   return contactValueKey({
     id: contact.id,
     displayName: contact.displayName,
     name: contact.name,
-    nicknames: contact.nicknames,
+    nicknames: list(contact.nicknames),
     birthday: contact.birthday,
-    emails: contact.emails,
-    phones: contact.phones,
-    addresses: contact.addresses,
-    socialProfiles: contact.socialProfiles,
-    urls: contact.urls,
+    emails: list(contact.emails),
+    phones: list(contact.phones),
+    addresses: list(contact.addresses),
+    socialProfiles: list(contact.socialProfiles),
+    urls: list(contact.urls),
     org: contact.org,
     title: contact.title,
     role: contact.role,
-    categories: contact.categories,
+    categories: list(contact.categories),
     note: contact.note
   })
 }
@@ -187,6 +233,20 @@ export interface ExecuteGroupMergeParams {
   refreshGroup: (entries: DuplicateContactEntry[]) => void
 }
 
+export interface ExecuteTransferMergeParams {
+  dispatch: AppDispatch
+  userId: string
+  mode: 'copy' | 'move'
+  sourceEntry: DuplicateContactEntry
+  group: DuplicateContactGroup
+  books: AddressBook[]
+  refreshGroup: (entries: DuplicateContactEntry[]) => void
+}
+
+export interface MergedTransferTarget extends MergedContactTarget {
+  contactName: string
+}
+
 async function readGroupSnapshots(
   group: DuplicateContactGroup,
   books: AddressBook[],
@@ -203,6 +263,17 @@ async function readGroupSnapshots(
     throw new MergeContactError('changed')
   }
   return snapshots
+}
+
+function requireUndismissedGroup(
+  snapshots: ContactSnapshot[],
+  refreshGroup: ExecuteGroupMergeParams['refreshGroup']
+): void {
+  // A dismissal may have been saved since the scan, including on another client.
+  if (dismissedDuplicatePairs(snapshots).size > 0) {
+    refreshGroup(snapshots)
+    throw new MergeContactError('changed')
+  }
 }
 
 async function saveContactDismissals(
@@ -254,13 +325,15 @@ export async function executeGroupDismissal({
 async function deleteMergedSources(
   dispatch: AppDispatch,
   userId: string,
+  books: AddressBook[],
   snapshots: ContactSnapshot[],
   toDelete: { addressBookId: string; contactId: string }[]
 ): Promise<void> {
   for (const item of toDelete) {
+    const itemBook = books.find(b => b.id === item.addressBookId)
     await dispatch(
       deleteContact({
-        userId,
+        userId: itemBook?.userId || userId,
         addressBookId: item.addressBookId,
         contactId: item.contactId,
         ignoreNotFound: true,
@@ -270,27 +343,25 @@ async function deleteMergedSources(
   }
 }
 
-export async function executeGroupMerge({
+async function applyMergePlan({
   dispatch,
   userId,
-  group,
   books,
-  refreshGroup
-}: ExecuteGroupMergeParams): Promise<MergedContactTarget> {
-  const snapshots = await readGroupSnapshots(group, books, refreshGroup)
-  // A dismissal may have been saved since the scan, including on another client.
-  if (dismissedDuplicatePairs(snapshots).size > 0) {
-    refreshGroup(snapshots)
-    throw new MergeContactError('changed')
-  }
+  snapshots,
+  plan
+}: {
+  dispatch: AppDispatch
+  userId: string
+  books: AddressBook[]
+  snapshots: ContactSnapshot[]
+  plan: MergedContactPlan
+}): Promise<MergedTransferTarget> {
+  const targetBook = books.find(b => b.id === plan.targetAddressBookId)
+  const targetUserId = targetBook?.userId || userId
 
-  const plan = buildMergedContactPlan(
-    snapshots,
-    await fetchGroupAudiences(snapshots, books)
-  )
   await dispatch(
     updateContact({
-      userId,
+      userId: targetUserId,
       addressBookId: plan.targetAddressBookId,
       contact: {
         ...plan.updatedContact,
@@ -312,13 +383,20 @@ export async function executeGroupMerge({
     },
     books
   )
-  if (!savedTarget) throw new MergeContactError('changed')
+  if (
+    !savedTarget ||
+    contactComparisonKey(savedTarget.contact, true) !==
+      contactComparisonKey(plan.updatedContact, true)
+  ) {
+    throw new MergeContactError('changed')
+  }
 
-  await deleteMergedSources(dispatch, userId, snapshots, plan.toDelete)
+  await deleteMergedSources(dispatch, userId, books, snapshots, plan.toDelete)
 
   return {
     addressBookId: plan.targetAddressBookId,
-    contactId: plan.updatedContact.id
+    contactId: plan.updatedContact.id,
+    contactName: savedTarget.contact.displayName
   }
 }
 
@@ -338,6 +416,111 @@ async function runQueueWorker(
   }
 }
 
+export async function executeGroupMerge({
+  dispatch,
+  userId,
+  group,
+  books,
+  refreshGroup
+}: ExecuteGroupMergeParams): Promise<MergedContactTarget> {
+  const snapshots = await readGroupSnapshots(group, books, refreshGroup)
+  requireUndismissedGroup(snapshots, refreshGroup)
+  const plan = buildMergedContactPlan(
+    snapshots,
+    await fetchGroupAudiences(snapshots, books)
+  )
+  const target = await applyMergePlan({
+    dispatch,
+    userId,
+    books,
+    snapshots,
+    plan
+  })
+  return {
+    addressBookId: target.addressBookId,
+    contactId: target.contactId
+  }
+}
+
+const isMatchingEntry = (
+  entry: ContactSnapshot,
+  target: DuplicateContactEntry
+): boolean =>
+  entry.addressBookId === target.addressBookId &&
+  entry.contact.id === target.contact.id
+
+function partitionTransferSnapshots(
+  snapshots: ContactSnapshot[],
+  sourceEntry: DuplicateContactEntry,
+  refreshGroup: ExecuteTransferMergeParams['refreshGroup']
+): {
+  sourceSnapshot: ContactSnapshot
+  destinationSnapshots: ContactSnapshot[]
+} {
+  const sourceSnapshot = snapshots.find(entry =>
+    isMatchingEntry(entry, sourceEntry)
+  )
+  const destinationSnapshots = snapshots.filter(
+    entry => !isMatchingEntry(entry, sourceEntry)
+  )
+  if (!sourceSnapshot || destinationSnapshots.length === 0) {
+    refreshGroup(snapshots)
+    throw new MergeContactError('changed')
+  }
+  return { sourceSnapshot, destinationSnapshots }
+}
+
+async function assertDestinationAudienceWithinGroup(
+  snapshots: ContactSnapshot[],
+  books: AddressBook[],
+  destinationAddressBookId: string
+): Promise<void> {
+  const audiences = await fetchGroupAudiences(snapshots, books).catch(() => {
+    throw new MergeContactError('audienceUnavailable')
+  })
+  const destinationAudience = audiences.get(destinationAddressBookId)
+  const isWiderThanAnySource =
+    !destinationAudience ||
+    [...audiences.values()].some(
+      audience => !isAudienceWithin(destinationAudience, audience)
+    )
+  if (isWiderThanAnySource) throw new MergeContactError('audience')
+}
+
+export async function executeTransferMerge({
+  dispatch,
+  userId,
+  mode,
+  sourceEntry,
+  group,
+  books,
+  refreshGroup
+}: ExecuteTransferMergeParams): Promise<MergedTransferTarget> {
+  const snapshots = await readGroupSnapshots(group, books, refreshGroup)
+  requireUndismissedGroup(snapshots, refreshGroup)
+  const { sourceSnapshot, destinationSnapshots } = partitionTransferSnapshots(
+    snapshots,
+    sourceEntry,
+    refreshGroup
+  )
+  await assertDestinationAudienceWithinGroup(
+    snapshots,
+    books,
+    destinationSnapshots[0].addressBookId
+  )
+  const plan = buildMergedContactPlanIntoDestination(
+    sourceSnapshot,
+    destinationSnapshots,
+    mode === 'move'
+  )
+  return applyMergePlan({
+    dispatch,
+    userId,
+    books,
+    snapshots,
+    plan
+  })
+}
 export async function runQueuedMerges(
   groups: DuplicateContactGroup[],
   limit: number,
