@@ -94,3 +94,10 @@ Categories: UX, UI, Product, Architecture, Infra, Tech.
 - Decided by: Camille Moussu, [PR #718](https://github.com/linagora/twake-contacts-frontend/pull/718)
 - Why: the toggles are there to debug; the user chooses the theme in the settings of the other Twake apps.
 - Scope: both, `ThemeSync`, `ThemeToggle` and `ContrastToggle` of @contacts/common.
+
+## 2026-11-27, [UI] High contrast is the twake-mui `contrast` scheme, with no override of its own
+
+- Decision: high contrast is the `contrast` scheme of twake-mui 22 as it ships, applied through `useApplyColorScheme`: the app defines no theme options or style overrides of its own (the high-contrast theme options of #527 are removed).
+- Decided by: Camille Moussu, in a Claude Code session on branch `ui-improvements`, 2026-11-27
+- Why: the scheme lives in the design system, so every Twake app shows the same high contrast.
+- Scope: both, `ThemeSync` of @contacts/common; `highContrastTheme.ts` is deleted.

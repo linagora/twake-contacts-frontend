@@ -7,8 +7,15 @@ import type { ContrastMode, ThemeMode } from './SettingsSlice'
 import { ThemeSync } from './ThemeSync'
 
 function ModeProbe(): React.JSX.Element {
-  const { mode } = useColorScheme()
-  return <span data-testid="mode">{mode}</span>
+  const { mode, colorScheme } = useColorScheme()
+  return (
+    <>
+      <span data-testid="mode">{mode}</span>
+      <span data-testid="scheme">
+        {colorScheme === 'contrast' && 'contrast'}
+      </span>
+    </>
+  )
 }
 
 const renderSync = ({
@@ -70,9 +77,9 @@ describe('ThemeSync', () => {
     expect(await screen.findByText('light')).toBeInTheDocument()
   })
 
-  it('stays light in high contrast', async () => {
+  it('applies the twake-mui contrast scheme in high contrast', async () => {
     renderSync({ sharedTheme: 'dark', contrastMode: 'more' })
 
-    expect(await screen.findByText('light')).toBeInTheDocument()
+    expect(await screen.findByText('contrast')).toBeInTheDocument()
   })
 })

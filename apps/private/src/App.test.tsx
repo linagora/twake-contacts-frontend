@@ -14,7 +14,8 @@ vi.mock('@linagora/twake-mui', () => ({
     children,
   Stack: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Box: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useColorScheme: () => ({ mode: 'light', setMode: vi.fn() })
+  useColorScheme: () => ({ mode: 'light', systemMode: 'light' }),
+  useApplyColorScheme: () => vi.fn()
 }))
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
 vi.mock('@common/components/Error/Error', () => ({

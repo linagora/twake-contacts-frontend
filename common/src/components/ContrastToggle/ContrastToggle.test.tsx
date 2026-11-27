@@ -1,7 +1,6 @@
 import { setupStore } from '@common/app/store'
-import { highContrastThemeOptions } from '@common/features/Settings/highContrastTheme'
 import en from '@common/locales/en.json'
-import { Typography, TwakeMuiThemeProvider } from '@linagora/twake-mui'
+import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import I18n from 'twake-i18n'
@@ -69,21 +68,5 @@ describe('ContrastToggle', () => {
     } finally {
       mockConfig.CONTRAST_TOGGLE = true
     }
-  })
-})
-
-describe('highContrastThemeOptions', () => {
-  it('builds a theme whose primary text uses the high-contrast colour', () => {
-    render(
-      <TwakeMuiThemeProvider themeOptions={highContrastThemeOptions}>
-        <Typography color="textPrimary">Alice</Typography>
-      </TwakeMuiThemeProvider>
-    )
-
-    const style = Array.from(document.querySelectorAll('style'))
-      .map(node => node.textContent)
-      .join('\n')
-    expect(style).toContain('#1B1B1D')
-    expect(style).toContain('3px solid #0047B3')
   })
 })

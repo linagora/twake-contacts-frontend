@@ -1,24 +1,18 @@
 import { useAppSelector } from '@common/app/hooks'
-import { useColorScheme } from '@linagora/twake-mui'
+import { useApplyColorScheme } from '@linagora/twake-mui'
 import { useEffect } from 'react'
 import { selectIsHighContrast, selectThemeSetting } from './themeSelectors'
 
-/** The high-contrast scheme is light: it wins over the dark theme. */
+/** High contrast is the twake-mui `contrast` scheme: it wins over the theme */
 export function ThemeSync(): null {
-  const { mode, setMode } = useColorScheme()
+  const applyColorScheme = useApplyColorScheme()
   const theme = useAppSelector(selectThemeSetting)
   const isHighContrast = useAppSelector(selectIsHighContrast)
-  const effectiveMode = isHighContrast
-    ? 'light'
-    : theme === 'auto'
-      ? 'system'
-      : theme
+  const scheme = isHighContrast ? 'contrast' : theme
 
   useEffect(() => {
-    if (mode !== effectiveMode) {
-      setMode(effectiveMode)
-    }
-  }, [mode, effectiveMode, setMode])
+    applyColorScheme(scheme)
+  }, [scheme, applyColorScheme])
 
   return null
 }
